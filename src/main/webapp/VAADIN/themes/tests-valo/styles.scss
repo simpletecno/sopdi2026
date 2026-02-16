@@ -1,0 +1,161 @@
+@import "variables";
+@import "valotest";
+.tests-valo {
+    @include valotest;
+
+    min-width: 100%;
+
+    .liteblueH {
+        background-color : #848986;//#58ACFA;
+    }
+
+    .option-button .v-icon {
+        color :lightblue;
+        font-size: 48px;
+        text-align: bottom;        
+    }
+
+    .v-button-big,
+    .v-disabled.v-button-big {
+        height: 100px;
+        width: 100px; 
+    }
+
+
+    .whiteicon .v-icon .v-button-caption {
+        color : white;
+    }
+
+    .main-view,
+    .login-layout {
+        position: relative;
+        z-index: 2;
+    }
+    .rcorners2 {
+        border-radius: 25px;
+        border: 4px solid #58ACFA;
+        padding: 20px; 
+        //    width: 200px;
+        //    height: 150px; 
+    }
+
+    .rcorners3 {
+        border-radius: 10px;
+        border: 1px solid #58ACFA;
+        padding: 5px; 
+        //    width: 200px;
+        //    height: 150px; 
+    }
+
+    .rcorners4 {
+        border-radius: 20px;
+        border: 2px solid #58ACFA;
+        padding: 10px; 
+        //    width: 200px;
+        //    height: 150px; 
+    }
+
+    .centrado {
+        text-align: center;
+    }
+
+    .loginview {
+        @include radial-gradient(circle at 50% 50%, scale-color($v-app-background-color, $lightness: -2%), scale-color($v-app-background-color, $lightness: -2% - valo-gradient-opacity()), $fallback: $v-app-background-color);
+        padding-top: 0 !important;
+        @include animation(valo-animate-in-fade 300ms 10ms backwards);
+
+        > .v-loading-indicator {
+            display: none !important;
+        }
+    }
+
+    .login-panel {
+        @include valo-panel-style;
+        padding: round($v-unit-size / 1.5) round($v-unit-size / 1.5);
+        min-width: $v-font-size * 13;
+        max-width: 90%;
+        @include animation(valo-animate-in-slide-up 800ms 10ms backwards, valo-animate-in-fade 600ms 100ms backwards);
+
+        > .v-spacing {
+            height: round($v-unit-size / 2);
+        }
+
+        .labels {
+            display: block;
+
+            .h4 {
+                margin: 1;
+                vertical-align: baseline;
+            }
+
+            .h3 {
+                margin: 1;
+                float: right;
+            }
+        }
+
+        .fields .v-icon {
+            opacity: 0.3;
+        }
+
+        @include width-range($min: 0, $max: $v-unit-size * 14) {
+            .labels .h3 {
+                float: none;
+                display: block;
+                margin-top: .2em;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .fields {
+                display: block;
+                .v-slot {
+                    display: block;
+                    .v-widget {
+                        width: 100%;
+                    }
+                }
+            }
+        }
+    }
+
+    .v-ui[width-range~="0-800px"] .login-panel {
+        @include animation(animate-in-scale-up 500ms 10ms backwards, valo-animate-in-fade 300ms 100ms backwards);
+    }
+
+    .login-help {
+        margin: 0 round($v-unit-size/4) !important;
+
+        &.v-Notification-animate-in {
+            @include animation(valo-animate-in-fade 500ms 1500ms backwards);
+        }
+
+        p span {
+            // Mimic paragraphs (since notification styles are a bit limiting...)
+            display: block;
+            margin-top: .5em;
+
+            a {
+                color: #fff;
+                text-decoration: none;
+                border-bottom: 1px solid #888;
+            }
+        }
+    }    
+
+    .menu-logo-empresa .v-menubar-menuitem img.v-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 32px;
+
+        display: block;
+        margin: 0 auto 0.3em;
+        border: 2px solid #afafaf;        
+    }
+
+    .wordwrap-table .v-table-cell-wrapper {
+        /* Do not specify any margins, paddings or borders here */
+        white-space: normal;
+        overflow: hidden;
+    }
+}

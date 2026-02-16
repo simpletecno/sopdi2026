@@ -1,0 +1,430 @@
+@import "variables";
+@import "../tests-valo/_valotest";
+
+.tests-valo-facebook {
+    @include valo;
+
+    .v-tabsheet-tabitemcell-dirtyTabCaption{
+        .v-captiontext {
+            font-weight: bold;
+            color: red;
+        }
+    }
+
+    .v-caption-mybluecaption {
+        color: blue;
+    }
+
+    .v-select-twincol-options-caption-mybigcaption {
+        color : #2c9720;
+        font-weight: bold;
+        font-size: large;
+    }
+
+    .v-textfield-mayusculas {
+        text-transform: uppercase;
+    }
+
+    buttonongrid {
+        border: 3;
+        background-color: transparent;
+        background-size: 25px;
+        color: #2E64FE;
+        font-family: FontAwesome;
+        height: 25px;
+        width: 25px;
+        align-content: center;
+    }
+
+    buttonred {
+        border: 3;
+        background-color: transparent;
+        background-size: 25px;
+        color: #FC3105;
+        font-family: FontAwesome;
+        height: 25px;
+        width: 25px;
+        align-content: center;
+    }
+
+    .v-select-optiongroup-horizontal .v-select-option {
+        display: inline-block;
+    }
+    .v-label-alinear{
+        float: right;
+    }
+
+    .left {
+        text-align: left;
+    }
+
+    .v-verticallayout-appointment {
+        font-size: 10px;
+    }
+    .v-caption-negrita{
+        font-weight:bold;
+    }
+
+    .v-caption-prueba2 {
+        display: none;
+        //white-space: nowrap;
+        line-height: 0;
+    }
+
+    .v-captiontext-prueba1 {
+        display: none;
+        line-height: inherit;
+    }
+    .v-horizontallayout-espacios{
+        margin: 0; 
+        padding: 0; 
+    }
+    .buttonongrid {
+        border: none;
+        background-color: transparent;
+        background-size: 0px;
+        color: #2E64FE;
+        /*        font-family: FontAwesome; */
+        /*        height: 25px; */
+        /*         width: 25px; */
+        align-content: center;
+        cursor: pointer;
+    }
+
+    .v-grid .v-nativebutton {
+        border: none;
+        background-color: transparent;
+        background-size: 0px;
+        color: #2E64FE; /*#2E64FE;*/
+        /*        font-family: FontAwesome; */
+        /*        height: 25px; */
+        /*         width: 25px; */
+        align-content: center;
+        cursor: pointer;
+    }
+
+    .v-grid-cell-resoluciones {
+        line-height: 50px;
+    }
+    
+    .v-grid .v-nativebutton:hover {
+        /*        color: #ffffff; */
+        font-size: 14px;
+    }
+    .v-button-flechas{        
+        border-radius: 25px;
+        outline: none;
+    }
+    .v-button-flechas:hover{
+        background: #566573;
+        color: #F9F9F9;
+
+    }
+
+    .h1_custom {
+        margin-top: 1.1em;
+        margin-bottom: 0.5em;
+    }
+
+    .v-panel-caption-colorApp {
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        padding: 0 11px;
+        line-height: 30px;
+        border-bottom: none;
+        margin-bottom: 2px;
+        background-color: #6f9314;
+        background-image: -webkit-linear-gradient(top, #6f9314 0%, #6f9314 100%);
+        background-image: linear-gradient(to bottom,#6f9314 0%, #6f9314 100%);
+        color: #caeac1;
+        font-weight: 400;
+        font-size: 13px;
+        -webkit-box-shadow: 0 0 0 2px #6f9314;
+        box-shadow: 0 0 0 2px #6f9314;
+        text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    .option-button .v-icon {
+        color : green;//lightblue;
+        font-size: 32px;
+        text-align: bottom;        
+    }
+
+    .whiteicon .v-icon .v-button-caption .v-menubar {
+        color : white;
+    }
+
+    .greenicon .v-icon {
+        color : #0066bd;
+        font-size: 96px;
+        text-align: bottom;        
+    }
+
+    .main-view,
+    .login-layout {
+        position: relative;
+        z-index: 2;
+    }
+    .rcorners2 {
+        border-radius: 25px;
+        border: 4px solid #3943AC;
+        padding: 20px; 
+        //    width: 200px;
+        //    height: 150px; 
+    }
+
+    .rcorners3 {
+        border-radius: 10px;
+        border: 1px solid #3943AC;
+        padding: 5px; 
+        //    width: 200px;
+        //    height: 150px; 
+    }
+
+    .rcorners4 {
+        border-radius: 20px;
+        border: 2px solid #3943AC;
+        padding: 10px; 
+        //    width: 200px;
+        //    height: 150px; 
+    }
+
+    .centrado {
+        text-align: center;
+    }
+    .aladerecha {
+        text-align: right;
+    }
+
+    .loginview {
+        @include radial-gradient(circle at 50% 50%, scale-color($v-app-background-color, $lightness: -2%), scale-color($v-app-background-color, $lightness: -2% - valo-gradient-opacity()), $fallback: $v-app-background-color);
+        padding-top: 0 !important;
+        @include animation(valo-animate-in-fade 300ms 10ms backwards);
+
+        > .v-loading-indicator {
+            display: none !important;
+        }
+    }
+
+    .login-panel {
+        @include valo-panel-style;
+        padding: round($v-unit-size / 1.5) round($v-unit-size / 1.5);
+        min-width: $v-font-size * 13;
+        max-width: 90%;
+        @include animation(valo-animate-in-slide-up 800ms 10ms backwards, valo-animate-in-fade 600ms 100ms backwards);
+
+        > .v-spacing {
+            height: round($v-unit-size / 2);
+        }
+
+        .labels {
+            display: block;
+
+            .h4 {
+                margin: 1;
+                vertical-align: baseline;
+            }
+
+            .h3 {
+                margin: 1;
+                float: right;
+            }
+        }
+
+        .fields .v-icon {
+            opacity: 0.3;
+        }
+
+        @include width-range($min: 0, $max: $v-unit-size * 14) {
+            .labels .h3 {
+                float: none;
+                display: block;
+                margin-top: .2em;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .fields {
+                display: block;
+                .v-slot {
+                    display: block;
+                    .v-widget {
+                        width: 100%;
+                    }
+                }
+            }
+        }
+    }
+
+    .v-ui[width-range~="0-800px"] .login-panel {
+        @include animation(animate-in-scale-up 500ms 10ms backwards, valo-animate-in-fade 300ms 100ms backwards);
+    }
+
+    .login-help {
+        margin: 0 round($v-unit-size/4) !important;
+
+        &.v-Notification-animate-in {
+            @include animation(valo-animate-in-fade 500ms 1500ms backwards);
+        }
+
+        p span {
+            // Mimic paragraphs (since notification styles are a bit limiting...)
+            display: block;
+            margin-top: .5em;
+
+            a {
+                color: #fff;
+                text-decoration: none;
+                border-bottom: 1px solid #888;
+            }
+        }
+    }    
+
+    .menu-logo-empresa .v-menubar-menuitem img.v-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 32px;
+
+        display: block;
+        margin: 0 auto 0.3em;
+        border: 2px solid #afafaf;        
+    }
+
+    .wordwrap-table .v-table-cell-wrapper {
+        /* Do not specify any margins, paddings or borders here */
+        white-space: normal;
+        overflow: hidden;
+    }
+
+    .smallgrid .v-grid-body .v-grid-cell {  
+        line-height: 18px;     // adjust to your needs
+        font-size: 10px;       // adjust to your needs
+    }
+
+    .largegrid .v-grid-body .v-grid-cell {
+        line-height: 40px;     // adjust to your needs
+        font-size: 34px;       // adjust to your needs
+    }
+
+    .v-grid-cell.rightalign {
+        text-align: right;
+    }
+
+    .v-grid-cell.centeralign {
+        text-align: center;
+    }
+
+    .v-grid-cell.centeralignred {
+        text-align: center;
+        color : red;
+    }
+
+    .time-only .v-datefield-calendarpanel-header,
+    .time-only .v-datefield-calendarpanel-body {
+        display: none;
+    }
+
+    .v-grid-cell.colred {
+    	color: red;
+    	background-color: red;
+    }
+
+    .v-grid-row.green {
+        color: green;
+    }
+    .v-grid-row.red {
+        color: red;
+    }
+
+    .rotated-checkbox .v-checkbox label {
+        display: flex;
+        align-items: center;
+        transform: rotate(-45deg); /* Cambia el ángulo según necesidad */
+        transform-origin: left center;
+        white-space: nowrap;
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+    .v-checkbox-toggle-switch.toggle-switch.v-widget {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      padding-left: 5px !important;
+      padding-right: 5px !important;
+
+      input[type="checkbox"] {
+        display: none;
+      }
+
+      label {
+        display: inline-block;
+        width: 42px;
+        height: 24px;
+        background-color: #ccc;
+        border-radius: 24px;
+        position: relative;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        transform: translateY(-2px);
+
+        &::before {
+          content: none !important;
+        }
+
+        &::after {
+          content: "";
+          position: absolute;
+          top: 2px;
+          left: 2px;
+          width: 20px;
+          height: 20px;
+          background-color: white;
+          border-radius: 50%;
+          transition: left 0.3s ease;
+        }
+          &:active::after {
+            background-color: darken(white, 20%); // Aquí decides cuánto más oscuro o qué color
+            box-shadow: 0 0 6px rgba(0, 0, 0, 0.3); // Un poco más de sombra para que sea más notorio
+          }
+      }
+
+      input[type="checkbox"]:checked + label {
+        background-color: $v-focus-color;
+
+        &::after {
+          left: 20px;
+        }
+      }
+
+    }
+
+    .narrow-caption {
+      @extend .v-caption; // hereda todo lo de v-caption...
+      margin-right: 0 !important; // ...pero sin margen a la derecha
+    }
+
+    .segmented-input {
+        font-family: monospace;
+        text-align: center;
+        padding: 2px 4px;
+        font-size: 14px;
+    }
+
+    .mi-label-personalizado {
+        color: #2E86C1;        /* color del texto */
+        font-size: 18px;       /* tamaño */
+        font-family: Arial;   /* fuente */
+        font-weight: bold;    /* opcional */
+    }
+
+    .label-kpi{
+        font-size:28px;
+        font-weight:600;
+        color:#27AE60;
+        border-radius: 5px;
+    }
+
+
+}

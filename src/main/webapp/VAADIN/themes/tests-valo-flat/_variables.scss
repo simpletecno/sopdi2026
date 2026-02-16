@@ -1,0 +1,52 @@
+$v-app-loading-text: "SOPDI";
+
+$v-font-family: "Source Sans Pro", sans-serif;
+//$v-font-family: "Roboto", sans-serif;
+$v-font-weight: 400;
+$v-font-size: 14px;
+$v-font-weight--header: 500;
+//$v-background-color: #fff;
+$v-focus-color: rgb(150,190,90);
+$v-luminance-threshold: 180;
+$v-border: 2px solid v-shade;
+$v-border-radius: 6px;
+$v-bevel: false;
+$v-gradient: false;
+$v-shadow: true;
+$v-textfield-bevel: false;
+$v-textfield-shadow: true;
+$v-link-text-decoration: false;
+$v-selection-overlay-padding-horizontal: 0;
+$v-selection-overlay-padding-vertical: 6px;
+$v-selection-item-height: 30px;
+$v-selection-item-border-radius: 0;
+//$valo-menu-background-color: #eee;
+$v-table-header-font-size:16px;
+
+// Main layout padding
+$view-padding: round($v-unit-size / 1.5) !default;
+// Slight adjustment to menu background-color
+//$valo-menu-background-color: #414B56;
+
+@import "../valo/valo";
+/* TODO move common mixins to base theme */
+
+.valo-test {
+  .v-button-primary.v-button-primary {
+    background: #fff;
+    border-color: $v-focus-color;
+    color: $v-focus-color;
+  }
+
+  .v-button-danger.v-button-danger {
+    background: #fff;
+    border-color: $v-error-indicator-color;
+    color: $v-error-indicator-color;
+  }
+
+  .v-slider-base:before,
+  .v-slider-base:after {
+    border: none !important;
+  }
+  
+}
