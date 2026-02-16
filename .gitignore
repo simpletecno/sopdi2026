@@ -33,3 +33,22 @@ release.properties
 # OS files
 .DS_Store
 Thumbs.db
+
+# Ignore large project resources and generated assets
+# These folders contain binaries/documents that are not needed in the Git history
+src/main/webapp/projectfiles/
+src/main/webapp/pdfreceipts/
+
+# Local app/server/dev configuration
+.smarttomcat/
+
+# Temporary and backup files
+*.tmp
+*.bak
+*.swp
+
+# Node / front-end modules (if any)
+node_modules/
+
+# Git LFS attributes file (if you use git-lfs)
+.gitattributes
