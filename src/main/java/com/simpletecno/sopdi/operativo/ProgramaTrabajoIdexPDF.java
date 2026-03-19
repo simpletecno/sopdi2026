@@ -34,8 +34,6 @@ public class ProgramaTrabajoIdexPDF extends Window {
     public static PreparedStatement stPreparedQuery;
     public static ResultSet rsRecords;
 
-    static final DecimalFormat df1 = new DecimalFormat("###,##0.00");
-
     String fileName;
     Object selectedIdex;
     public IndexedContainer idexContainer;
@@ -77,8 +75,6 @@ public class ProgramaTrabajoIdexPDF extends Window {
 
             VerticalLayout buttonLayout = new VerticalLayout();
             buttonLayout.addStyleName("rcorners3");
-//            buttonLayout.setHeight("10%");
-//            buttonLayout.setWidth("100%");
             buttonLayout.setSizeUndefined();
 
             fileName = "ProgramaTrabajoIdex_";

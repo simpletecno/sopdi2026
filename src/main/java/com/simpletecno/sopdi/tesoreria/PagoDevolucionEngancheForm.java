@@ -93,7 +93,6 @@ public class PagoDevolucionEngancheForm extends Window {
     NumberField haber6QTxt;
     NumberField haber7QTxt;
 
-    ComboBox empresaCbx;
     ComboBox proveedorCbx;
     ComboBox monedaCbx;
     ComboBox medioCbx;
@@ -114,8 +113,8 @@ public class PagoDevolucionEngancheForm extends Window {
     Label titleLbl;
 
     UI mainUI;
-    Statement stQuery, stQuery1, stQuery2;
-    ResultSet rsRecords, rsRecords2;
+    Statement stQuery, stQuery2;
+    ResultSet rsRecords;
     String queryString;
 
     String codigoPartidaNuevo;
@@ -131,6 +130,9 @@ public class PagoDevolucionEngancheForm extends Window {
 
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
     static DecimalFormat numberFormat3 = new DecimalFormat("######0.00");
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public PagoDevolucionEngancheForm(String idProveedor, Date fechaPago) {
 
@@ -149,19 +151,10 @@ public class PagoDevolucionEngancheForm extends Window {
         setHeight("90%");
 
         titleLbl = new Label("");
-        titleLbl.setValue("DEVOLUCION A CLIENTE");
+        titleLbl.setValue(empresaId + " " + empresaNombre + " DEVOLUCION A CLIENTE");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
 
         proveedorCbx = new ComboBox("Cliente : ");
         proveedorCbx.setWidth("35em");
@@ -181,8 +174,7 @@ public class PagoDevolucionEngancheForm extends Window {
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -196,36 +188,13 @@ public class PagoDevolucionEngancheForm extends Window {
         llenarTablaEnganches();
         crearLayoutCheque();
         crearPartidaLayout();
-
-    }
-
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords2 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords2.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords2.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords2.getString("IdEmpresa"), rsRecords2.getString("Empresa"));
-            }
-            rsRecords2.first();
-
-            empresaCbx.select(rsRecords2.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void llenarComboProveedor(String codigos) {
-        String queryString = " SELECT * from proveedor ";
+        String queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE " + codigos;
         queryString += " AND Inhabilitado = 0 ";
-        queryString += " Order By Nombre ";
+        queryString += " ORDER BY Nombre ";
 
         proveedorCbx.removeAllItems();
 
@@ -304,14 +273,7 @@ public class PagoDevolucionEngancheForm extends Window {
         enganchesGrid.getSelectedRows().clear();
         enganchesGrid.getSelectionModel().reset();
 
-//        queryString = " SELECT autorizacion_pago.*, proveedor.Nombre ";
-//        queryString += " FROM autorizacion_pago  ";
-//        queryString += " INNER JOIN  proveedor ON autorizacion_pago.IdProveedor = proveedor.IdProveedor";
-//        queryString += " WHERE autorizacion_pago.IdEmpresa = " + String.valueOf(empresaCbx.getValue());
-//        queryString += " AND autorizacion_pago.TipoAutorizacion = 'DEVOLUCION A CLIENTE'";
-//        queryString += " AND autorizacion_pago.IdProveedor = " + idProveedor;
-
-        queryString = " Select contabilidad_partida.CodigoPartida, contabilidad_partida.CodigoCC, ";
+        queryString = "SELECT contabilidad_partida.CodigoPartida, contabilidad_partida.CodigoCC, ";
         queryString += " contabilidad_partida.NombreProveedor ,";
         queryString += " contabilidad_partida.IdNomenclatura, contabilidad_partida.TipoDocumento, ";
         queryString += " contabilidad_partida.SerieDocumento, contabilidad_partida.NumeroDocumento, ";
@@ -320,16 +282,13 @@ public class PagoDevolucionEngancheForm extends Window {
         queryString += " ((autorizacion_pago.Monto / contabilidad_partida.Haber) * contabilidad_partida.HaberQuetzales) ProporcionHaberQ,";
         queryString += " autorizacion_pago.Objetivo, autorizacion_pago.IdAutorizacion, autorizacion_pago.CuentaContableLiquidar, ";
         queryString += " autorizacion_pago.Moneda, autorizacion_pago.Fecha, autorizacion_pago.Monto, autorizacion_pago.IdProveedor ";
-        queryString += " From contabilidad_partida ";
-        queryString += " Inner Join autorizacion_pago On autorizacion_pago.CodigoCC = contabilidad_partida.CodigoCC ";
-        queryString += " Where contabilidad_partida.IdEmpresa =" + String.valueOf(empresaCbx.getValue());
-        queryString += " And contabilidad_partida.IdProveedor = " + idProveedor;
+        queryString += " FROM contabilidad_partida ";
+        queryString += " INNER JOIN autorizacion_pago ON autorizacion_pago.CodigoCC = contabilidad_partida.CodigoCC ";
+        queryString += " WHERE contabilidad_partida.IdEmpresa =" + empresaId;
+        queryString += " AND contabilidad_partida.IdProveedor = " + idProveedor;
         queryString += " AND contabilidad_partida.IdNomenclatura In (" + ((SopdiUI) mainUI).cuentasContablesDefault.getEnganches() + "," + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposClientes() + ", " + ((SopdiUI) mainUI).cuentasContablesDefault.getAcreedoresCortoPlazo() + ")";
         queryString += " AND autorizacion_pago.TipoAutorizacion = 'DEVOLUCION A CLIENTE'";
-        queryString += " Group by CodigoPartida";
-
-        System.out.println("query pagar ENGANCHES : " + queryString);
-
+        queryString += " GROUP BY CodigoPartida";
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -1410,9 +1369,10 @@ public class PagoDevolucionEngancheForm extends Window {
     }
     
     public void llenarComboCuentaContable() {
-        String queryString = " SELECT * from contabilidad_nomenclatura ";
-        queryString += " where Estatus='HABILITADA'";
-        queryString += " Order By N5";
+        String queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
+        queryString += " WHERE Estatus='HABILITADA'";
+        queryString += " ANd IdEmprewsa = " + empresaId;
+        queryString += " ORDER BY N5";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1455,13 +1415,13 @@ public class PagoDevolucionEngancheForm extends Window {
             return;
         }
 
-        if (((SopdiUI) UI.getCurrent()).esMesCerrado(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+        if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
             Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return;
         }
-        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
-            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(String.valueOf(empresaCbx.getValue())), Notification.Type.WARNING_MESSAGE);
+        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(empresaId), Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return;
         }
@@ -1508,11 +1468,11 @@ public class PagoDevolucionEngancheForm extends Window {
             return;
         }
 
-        queryString = " Select CodigoPartida from contabilidad_partida ";
-        queryString += " Where NumeroDocumento = '" + numeroTxt.getValue() + "'";
-        queryString += " And IdEmpresa = " + String.valueOf(empresaCbx.getValue());
-        queryString += " And TipoDocumento = '" + String.valueOf(medioCbx.getValue()) + "'";
-        queryString += " And MonedaDocumento = '" + monedaCbx.getValue() + "'";
+        queryString = "SELECT CodigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE NumeroDocumento = '" + numeroTxt.getValue() + "'";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND TipoDocumento = '" + String.valueOf(medioCbx.getValue()) + "'";
+        queryString += " AND MonedaDocumento = '" + monedaCbx.getValue() + "'";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1535,11 +1495,11 @@ public class PagoDevolucionEngancheForm extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        String codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "3";
+        String codigoPartida = empresaId + año + mes + dia + "3";
 
-        queryString = " Select codigoPartida from contabilidad_partida ";
-        queryString += " Where CodigoPartida like '" + codigoPartida + "%'";
-        queryString += " Order by CodigoPartida desc ";
+        queryString = "SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE CodigoPartida LIKE '" + codigoPartida + "%'";
+        queryString += " ORDER BY CodigoPartida DESC ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1564,14 +1524,14 @@ public class PagoDevolucionEngancheForm extends Window {
 
         codigoPartidaNuevo = codigoPartida;
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
+        queryString = "INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
         queryString += " TipoDocumento, Fecha, IdProveedor, NITProveedor, NombreProveedor, NombreCheque,";
         queryString += " MontoDocumento, SerieDocumento, NumeroDocumento, TipoDOCA, NoDOCA, IdNomenclatura, MonedaDocumento, Debe, Haber,";
         queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, Saldo,";
         queryString += " Descripcion, CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values ";
+        queryString += " VALUES ";
         queryString += " (";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigo1Txt.getValue() + "'";
@@ -1599,11 +1559,9 @@ public class PagoDevolucionEngancheForm extends Window {
         queryString += ",current_timestamp";
         queryString += ")";
 
-        System.out.println("primer insert" + queryString);
-
         if (cuentaContable2Cbx.getValue() != null && (debe2Txt.getDoubleValueDoNotThrow() > 0 || haber2Txt.getDoubleValueDoNotThrow() > 0)) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo2Txt.getValue() + "'";
@@ -1631,13 +1589,11 @@ public class PagoDevolucionEngancheForm extends Window {
             queryString += ",current_timestamp";
             queryString += ")";
 
-            System.out.println("segundo query" + queryString);
-
         }
 
         if (cuentaContable3Cbx.getValue() != null && (debe3Txt.getDoubleValueDoNotThrow() > 0 || haber3Txt.getDoubleValueDoNotThrow() > 0)) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo3Txt.getValue() + "'";
@@ -1665,12 +1621,10 @@ public class PagoDevolucionEngancheForm extends Window {
             queryString += ",current_timestamp";
             queryString += ")";
 
-            System.out.println("tercer query" + queryString);
-
         }
         if (cuentaContable4Cbx.getValue() != null && (debe4Txt.getDoubleValueDoNotThrow() > 0 || haber4Txt.getDoubleValueDoNotThrow() > 0)) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo4Txt.getValue() + "'";
@@ -1703,7 +1657,7 @@ public class PagoDevolucionEngancheForm extends Window {
         }
         if (cuentaContable5Cbx.getValue() != null && (debe5Txt.getDoubleValueDoNotThrow() > 0 || haber5Txt.getDoubleValueDoNotThrow() > 0)) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",''";
@@ -1731,13 +1685,11 @@ public class PagoDevolucionEngancheForm extends Window {
             queryString += ",current_timestamp";
             queryString += ")";
 
-            System.out.println("quinto query" + queryString);
-
         }
 
         if (cuentaContable6Cbx.getValue() != null && (debe6Txt.getDoubleValueDoNotThrow() > 0 || haber6Txt.getDoubleValueDoNotThrow() > 0)) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",''";
@@ -1765,13 +1717,11 @@ public class PagoDevolucionEngancheForm extends Window {
             queryString += ",current_timestamp";
             queryString += ")";
 
-            System.out.println("quinto query" + queryString);
-
         }
 
         if (cuentaContable7Cbx.getValue() != null && (debe7Txt.getDoubleValueDoNotThrow() > 0 || haber7Txt.getDoubleValueDoNotThrow() > 0)) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",''";
@@ -1798,9 +1748,6 @@ public class PagoDevolucionEngancheForm extends Window {
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ")";
-
-            System.out.println("quinto query" + queryString);
-
         }
 
         try {
@@ -1813,8 +1760,8 @@ public class PagoDevolucionEngancheForm extends Window {
 
             PagoChequesPDF Pagocheques
                     = new PagoChequesPDF(
-                    String.valueOf(empresaCbx.getValue()),
-                    empresaCbx.getItemCaption(empresaCbx.getValue()),
+                    empresaId,
+                    empresaNombre,
                     codigoPartidaNuevo,
                     "0",
                     nombreChequeTxt.getValue(),
@@ -1890,14 +1837,6 @@ public class PagoDevolucionEngancheForm extends Window {
             }
 
             ((PagarView) (mainUI.getNavigator().getCurrentView())).documentosContainer.removeItem(((PagarView) (mainUI.getNavigator().getCurrentView())).documentosGrid.getSelectedRow());
-
-//            for (Iterator iTerator = ((PagarView) (mainUI.getNavigator().getCurrentView())).documentosContainer.getItemIds().iterator(); iTerator.hasNext();) {
-//                Object itemId = iTerator.next();
-//
-//                if(idAutorizacion.equals(String.valueOf(((PagarView) (mainUI.getNavigator().getCurrentView())).documentosContainer.getContainerProperty(itemId, PagarView.ID_AUTO_PROPERTY).getValue()))) {
-//                    ((PagarView) (mainUI.getNavigator().getCurrentView())).documentosContainer.getContainerProperty(itemId, PagarView.ESTATUS_PROPERTY).setValue("PAGADO");
-//                }
-//            }
 
             llenarTablaEnganches();
             limpiarPartida();
@@ -2016,5 +1955,4 @@ public class PagoDevolucionEngancheForm extends Window {
         codigo4Txt.setValue("");
         codigo5Txt.setValue("");
     }
-
 }

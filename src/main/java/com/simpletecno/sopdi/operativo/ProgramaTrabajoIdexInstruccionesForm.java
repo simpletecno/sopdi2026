@@ -20,8 +20,6 @@ public class ProgramaTrabajoIdexInstruccionesForm extends  Window {
     Button saveBtn;
 
     Statement stQuery = null;
-    static PreparedStatement stPreparedQuery;
-    ResultSet rsRecords = null;
 
     TextArea instruccionesTxtA;
 
@@ -103,7 +101,6 @@ public class ProgramaTrabajoIdexInstruccionesForm extends  Window {
         grupoTrabajoForm = new FormLayout();
         grupoTrabajoForm.setMargin(marginInfo);
         grupoTrabajoForm.setSpacing(true);
-//        grupoTrabajoForm.addStyleName(ValoTheme.FORMLAYOUT_LIGHT);
         grupoTrabajoForm.setSizeFull();
 
         instruccionesTxtA = new TextArea("Instrucciones");
@@ -129,8 +126,6 @@ public class ProgramaTrabajoIdexInstruccionesForm extends  Window {
         queryString = "UPDATE plan_trabajo_idex ";
         queryString += " SET Instrucciones = '" + instruccionesTxtA.getValue() + "'";
         queryString += " WHERE Id = " + idPlanTrabajo;
-
-//System.out.println("queryString="+queryString);
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

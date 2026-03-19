@@ -22,8 +22,6 @@ public class IngresosVariadosForm extends Window {
 
     VerticalLayout mainLayout;
     HorizontalLayout layoutTitle;
-    ComboBox empresaCbx;
-    String empresa;
     Label titleLbl;
 
     Button prestamosBtn;
@@ -48,9 +46,10 @@ public class IngresosVariadosForm extends Window {
     String horizontal_height_percent = "65%";
     String horizontal_width_percent = "90%";
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public IngresosVariadosForm(String empresa) {
-        this.empresa = empresa;
 
         this.mainUI = UI.getCurrent();
         setResponsive(true);
@@ -68,22 +67,10 @@ public class IngresosVariadosForm extends Window {
         layoutTitle.setMargin(true);
         layoutTitle.setWidth("100%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-
-        titleLbl = new Label("INGRESO A BANCOS");
+        titleLbl = new Label(empresaId + " " + empresaNombre + " INGRESO A BANCOS");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -94,26 +81,6 @@ public class IngresosVariadosForm extends Window {
 
         crearBotones();
 
-    }
-
-    public void llenarComboEmpresa() {
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void crearBotones() {
@@ -390,33 +357,5 @@ public class IngresosVariadosForm extends Window {
 
         mainLayout.addComponent(buttonsLayout5);
         mainLayout.setComponentAlignment(buttonsLayout5, Alignment.BOTTOM_CENTER);
-    /*
-        /*
-        cerrarBtn = new Button("SALIR");
-        cerrarBtn.setIcon(FontAwesome.SIGN_OUT);
-        cerrarBtn.setStyleName(ValoTheme.BUTTON_BORDERLESS);
-        cerrarBtn.setDescription("Cerrar esta ventana.");
-        cerrarBtn.setWidth("18em");
-        cerrarBtn.setHeight("5em");
-        cerrarBtn.addListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                close();
-            }
-        });
-
-        HorizontalLayout exitButtonLayout3 = new HorizontalLayout();
-        exitButtonLayout3.setSpacing(true);
-        exitButtonLayout3.setMargin(false);
-        exitButtonLayout3.setHeight(horizontal_height_percent);
-        exitButtonLayout3.setWidth(horizontal_width_percent);
-        exitButtonLayout3.setSizeUndefined();
-        exitButtonLayout3.addStyleName(ValoTheme.LAYOUT_HORIZONTAL_WRAPPING);
-
-        exitButtonLayout3.addComponents(cerrarBtn);
-
-        mainLayout.addComponent(exitButtonLayout3);
-        mainLayout.setComponentAlignment(exitButtonLayout3, Alignment.BOTTOM_CENTER);
-    */
     }
 }

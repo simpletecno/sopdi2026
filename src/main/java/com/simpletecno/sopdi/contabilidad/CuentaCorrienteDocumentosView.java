@@ -1,6 +1,5 @@
 package com.simpletecno.sopdi.contabilidad;
 
-import com.simpletecno.sopdi.configuracion.EnvironmentVars;
 import com.simpletecno.sopdi.SopdiUI;
 import com.simpletecno.sopdi.utilerias.Utileria;
 import com.vaadin.data.util.IndexedContainer;
@@ -12,7 +11,6 @@ import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.Grid.HeaderCell;
 import com.vaadin.ui.Grid.HeaderRow;
@@ -54,10 +52,7 @@ public class CuentaCorrienteDocumentosView extends Window {
     static final String MONEDA2_PROPERTY = "Moneda";
     static final String DEBE_PROPERTY = "Monto";
     static final String HABER_PROPERTY = "Haber";
-    static final String MONTO2_PROPERTY = "Monto";
     static final String CODIGO_CC2_PROPERTY = "CodigoCC";
-
-    ComboBox empresaCbx;
 
     IndexedContainer facturasContainer = new IndexedContainer();
     Grid facturasGrid;
@@ -65,7 +60,6 @@ public class CuentaCorrienteDocumentosView extends Window {
 
     IndexedContainer documentoPagoContainer = new IndexedContainer();
     Grid documentoPagoGrid;
-    Grid.FooterRow documentoPagoFooter;
 
     Button salirBtn;
     Button autorizarBtn;
@@ -78,12 +72,13 @@ public class CuentaCorrienteDocumentosView extends Window {
     String codigoPartidaFactura = "";
     String codigoProveedor = "";
 
-    EnvironmentVars enviromentsVars = new EnvironmentVars();
-
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
     static DecimalFormat numberFormat2 = new DecimalFormat("#,###,##0");
 
     static PreparedStatement stPreparedQuery;
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public CuentaCorrienteDocumentosView() {
         mainLayout = new VerticalLayout();
@@ -101,22 +96,11 @@ public class CuentaCorrienteDocumentosView extends Window {
         setWidth("90%");
         setHeight("90%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
 
-        Label titleLbl = new Label("Consulta de documentos de pago");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Consulta de documentos de pago");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -131,31 +115,6 @@ public class CuentaCorrienteDocumentosView extends Window {
 
         crearComponentes();
 
-    }
-
-    public void llenarComboEmpresa() {
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            System.out.println("Se ejevuto el query de empresas");
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords1.next()) { //  encontrado                
-                System.out.println("se encontro la empresa");
-                empresaCbx.addItem(rsRecords1.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords1.getString("IdEmpresa"), rsRecords1.getString("Empresa"));
-            }
-            rsRecords1.first();
-
-            empresaCbx.select(rsRecords1.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void crearGridFactura() {
@@ -302,7 +261,7 @@ public class CuentaCorrienteDocumentosView extends Window {
 
         facturasFooter.getCell(MONTO_PROPERTY).setText("0.00");
 
-        queryString = " Select contabilidad_partida.CodigoPartida, contabilidad_partida.IdPartida, contabilidad_partida.Fecha, ";
+        queryString = " SELECT contabilidad_partida.CodigoPartida, contabilidad_partida.IdPartida, contabilidad_partida.Fecha, ";
         queryString += " contabilidad_partida.IdProveedor, contabilidad_partida.NombreProveedor ,";
         queryString += " contabilidad_partida.SerieDocumento, contabilidad_partida.NumeroDocumento, ";
         queryString += " contabilidad_partida.MonedaDocumento, contabilidad_partida.TipoCambio, ";
@@ -311,17 +270,18 @@ public class CuentaCorrienteDocumentosView extends Window {
         queryString += " Sum(contabilidad_partida.Haber) Total, Sum(contabilidad_partida.HaberQuetzales) TotalQ,";
         queryString += " contabilidad_partida.Saldo, contabilidad_partida.Descripcion, contabilidad_partida.MontoAutorizadoPagar, contabilidad_partida.MontoAplicarAnticipo, ";
         queryString += " DATEDIFF(CURDATE(),contabilidad_partida.Fecha) as DiasHoy ";
-        queryString += " From contabilidad_partida, usuario ";
-        queryString += " Where contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
-        queryString += " And contabilidad_partida.Estatus = 'REVISADO'";
-        queryString += " And UPPER(contabilidad_partida.TipoDocumento) IN ('FACTURA', 'RECIBO','RECIBO CONTABLE', 'FORMULARIO','NOTA DE CREDITO')";
-        queryString += " And contabilidad_partida.IdLiquidacion = 0 "; // SOLO FACTURAS PROVEEDORES COMPRA
-        queryString += " And contabilidad_partida.SALDO > 0 ";
-        queryString += " And usuario.IdUsuario = contabilidad_partida.CreadoUsuario ";
-        queryString += " Group by contabilidad_partida.CodigoPartida";
-        queryString += " Order by contabilidad_partida.NombreProveedor";
+        queryString += " FROM contabilidad_partida, usuario ";
+        queryString += " WHERE contabilidad_partida.IdEmpresa = " + empresaId;
+        queryString += " AND contabilidad_partida.Estatus = 'REVISADO'";
+        queryString += " AND UPPER(contabilidad_partida.TipoDocumento) IN ('FACTURA', 'RECIBO','RECIBO CONTABLE', 'FORMULARIO','NOTA DE CREDITO')";
+        queryString += " AND contabilidad_partida.IdLiquidacion = 0 "; // SOLO FACTURAS PROVEEDORES COMPRA
+        queryString += " AND contabilidad_partida.SALDO > 0 ";
+        queryString += " AND usuario.IdUsuario = contabilidad_partida.CreadoUsuario ";
+        queryString += " GROUP BY contabilidad_partida.CodigoPartida";
+        queryString += " ORDER BY contabilidad_partida.NombreProveedor";
 
-        System.out.println("query autorizar pagos documentos = " + queryString);
+//        System.out.println("query autorizar pagos documentos = " + queryString);
+
         try {
 
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -398,7 +358,6 @@ public class CuentaCorrienteDocumentosView extends Window {
         mainLayout.addComponent(reportLayout);
         mainLayout.setComponentAlignment(reportLayout, Alignment.TOP_CENTER);
 
-
     }
 
    
@@ -413,17 +372,17 @@ public class CuentaCorrienteDocumentosView extends Window {
         String proveedorSeleccionado = String.valueOf(facturasContainer.getContainerProperty(facturasGrid.getSelectedRow(), ID_PROVEEDOR_PROPERTY).getValue());
         String tipoMonedaSeleccionado = String.valueOf(facturasContainer.getContainerProperty(facturasGrid.getSelectedRow(), MONEDA_PROPERTY).getValue());
 
-        queryString = " select contabilidad_partida.IdPartida, contabilidad_partida.CodigoPartida, contabilidad_partida.Fecha,";
+        queryString = " SELECT contabilidad_partida.IdPartida, contabilidad_partida.CodigoPartida, contabilidad_partida.Fecha,";
         queryString += " contabilidad_partida.TipoDocumento,contabilidad_partida.NumeroDocumento, ";
         queryString += " contabilidad_partida.Descripcion,contabilidad_partida.MonedaDocumento,";
         queryString += " contabilidad_partida.Debe, contabilidad_partida.Haber,contabilidad_partida.TipoCambio,";
         queryString += " contabilidad_partida.DebeQuetzales, contabilidad_partida.HaberQuetzales, contabilidad_partida.Saldo";
-        queryString += " from contabilidad_partida";
-        queryString += " where contabilidad_partida.IdProveedor = " + proveedorSeleccionado;
-        queryString += " and contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
-        queryString += " and contabilidad_partida.IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getProveedores();
+        queryString += " FROM contabilidad_partida";
+        queryString += " WHERE contabilidad_partida.IdProveedor = " + proveedorSeleccionado;
+        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
+        queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getProveedores();
         queryString += " and contabilidad_partida.TipoDocumento In ('CHEQUE', 'TRANSFERENCIA', 'NOTA DE CREDITO')";
-        queryString += " and contabilidad_partida.MonedaDocumento = '" + tipoMonedaSeleccionado + "'";
+        queryString += " AND contabilidad_partida.MonedaDocumento = '" + tipoMonedaSeleccionado + "'";
         queryString += " and contabilidad_partida.Saldo > 0.00";
 ////colcar condicion por tipo de moneda
 

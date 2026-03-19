@@ -5,6 +5,7 @@ import com.simpletecno.sopdi.utilerias.Utileria;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
+import com.vaadin.server.Page;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Label;
@@ -17,8 +18,6 @@ import java.sql.Statement;
 public class ChequesEnCirculacionView extends VerticalLayout implements View {
 
     UI mainUI;
-    ComboBox empresaCbx;
-    String empresa;
     Utileria utileria;
     
     static final String NUMERO_CHEQUE_PROPERTY = "No. Cheque";
@@ -38,6 +37,9 @@ public class ChequesEnCirculacionView extends VerticalLayout implements View {
 
     VerticalLayout reportLayout;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public ChequesEnCirculacionView(){
         this.utileria = new Utileria();
         this.mainUI = UI.getCurrent();
@@ -47,36 +49,19 @@ public class ChequesEnCirculacionView extends VerticalLayout implements View {
         setSpacing(true);
         setResponsive(true);
 
-        Label titleLbl = new Label("Cheques en Circulación");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Cheques en Circulación");
         if (mainUI.getPage().getBrowserWindowWidth() >= 736) {
             titleLbl.addStyleName(ValoTheme.LABEL_H2);
         }
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
 
-        empresaCbx = new ComboBox("Empresa:");
-        if (mainUI.getPage().getBrowserWindowWidth() >= 736) {
-            empresaCbx.setWidth("400px");
-        }
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        if (mainUI.getPage().getBrowserWindowWidth() >= 736) {
-            empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        }
-
-        llenarComboEmpresa();
-
-        empresa = String.valueOf(empresaCbx.getValue());
-
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -150,31 +135,6 @@ public class ChequesEnCirculacionView extends VerticalLayout implements View {
         reportLayout.setComponentAlignment(containerGrid, Alignment.BOTTOM_CENTER);
     }
 
-    private void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        empresaCbx.addContainerProperty("Nit", String.class, "");
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-                empresaCbx.getContainerProperty(rsRecords.getString("IdEmpresa"), "Nit").setValue(rsRecords.getString("NIT"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar Combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     private void llenarContainer(){
         queryString = "SELECT * ";
         queryString += "FROM contabilidad_partida ";
@@ -218,6 +178,6 @@ public class ChequesEnCirculacionView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent viewChangeEvent) {
-        
+        Page.getCurrent().setTitle("Sopdi : Cheques en circulación");
     }
 }

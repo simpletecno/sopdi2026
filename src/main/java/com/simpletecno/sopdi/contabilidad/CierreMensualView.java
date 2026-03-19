@@ -55,7 +55,6 @@ public final class CierreMensualView extends VerticalLayout implements View {
     UI mainUI;
     Statement stQuery, stQuery1, stQuery2;
     ResultSet rsRecords, rsRecords1, rsRecords2;
-    ComboBox empresaCbx;
     ComboBox mesCbx;
     CheckBox omitirSinMovimientoChk;
     Button consultarBtn;
@@ -67,6 +66,9 @@ public final class CierreMensualView extends VerticalLayout implements View {
     IndexedContainer balanceSaldosContainer;
     Grid balanceSaldosGrid;
     Grid.FooterRow footerRow;
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     private static final LinkedHashMap<String, String> NOMBREMES = new LinkedHashMap<String, String>();
 
@@ -97,29 +99,13 @@ public final class CierreMensualView extends VerticalLayout implements View {
 
         addComponent(contentLayout);
 
-        Label titleLbl = new Label("CIERRE CONTABLE MENSUAL");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " CIERRE CONTABLE MENSUAL");
         titleLbl.addStyleName(ValoTheme.LABEL_H1);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
 
         contentLayout.addComponents(titleLbl);
         contentLayout.setComponentAlignment(titleLbl, Alignment.TOP_CENTER);
-
-        empresaCbx = new ComboBox("Empresa :");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_LARGE);
-        empresaCbx.setWidth("30em");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        empresaCbx.setFilteringMode(FilteringMode.CONTAINS);
-        empresaCbx.addValueChangeListener((Property.ValueChangeEvent event) -> {
-            if (mesCbx != null) {
-                llenarComboMes();
-            }
-        });
-
-        llenarComboEmpresa();
 
         mesCbx = new ComboBox("Mes a cerrar :");
         mesCbx.setWidth("15em");
@@ -150,8 +136,7 @@ public final class CierreMensualView extends VerticalLayout implements View {
         HorizontalLayout layoutCerrar = new HorizontalLayout();
         layoutCerrar.setMargin(true);
         layoutCerrar.setSpacing(true);
-        layoutCerrar.addComponents(empresaCbx, mesCbx, omitirSinMovimientoChk, consultarBtn);
-        layoutCerrar.setComponentAlignment(empresaCbx, Alignment.BOTTOM_LEFT);
+        layoutCerrar.addComponents(mesCbx, omitirSinMovimientoChk, consultarBtn);
         layoutCerrar.setComponentAlignment(mesCbx, Alignment.BOTTOM_RIGHT);
         layoutCerrar.setComponentAlignment(consultarBtn, Alignment.BOTTOM_RIGHT);
 
@@ -209,28 +194,6 @@ public final class CierreMensualView extends VerticalLayout implements View {
         contentLayout.addComponents(layoutCerrar, crearGridBalanceSaldos(), buttonsLayout);
         contentLayout.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
 
-    }
-
-    public void llenarComboEmpresa() {
-        String queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords1.next()) { //  encontrado        
-
-                empresaCbx.addItem(rsRecords1.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords1.getString("IdEmpresa"), rsRecords1.getString("Empresa"));
-
-            }
-            empresaCbx.select(empresaCbx.getItemIds().iterator().next());
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public VerticalLayout crearGridBalanceSaldos() {
@@ -412,9 +375,9 @@ public final class CierreMensualView extends VerticalLayout implements View {
         mesCbx.removeAllItems();
 
         String queryString = "";
-        queryString += " SELECT * from contabilidad_empresa_cierre";
-        queryString += " where Estatus = 'ABIERTO'";
-        queryString += " And IdEmpresa = " + String.valueOf(empresaCbx.getValue());
+        queryString += " SELECT * FROM contabilidad_empresa_cierre";
+        queryString += " WHERE Estatus = 'ABIERTO'";
+        queryString += " AND IdEmpresa = " + empresaId;
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -449,9 +412,10 @@ public final class CierreMensualView extends VerticalLayout implements View {
 
         Object itemId;
 
-        String queryString = " SELECT * from contabilidad_nomenclatura";
-        queryString += " where Estatus = 'HABILITADA'";
-        queryString += " Order By Cast(NoCuenta AS UNSIGNED)";
+        String queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
+        queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY Cast(NoCuenta AS UNSIGNED)";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -522,12 +486,12 @@ public final class CierreMensualView extends VerticalLayout implements View {
     }
 
     public void cierreMensual() {
-        String queryString = " Update contabilidad_empresa_cierre Set ";
+        String queryString = " UPDATE contabilidad_empresa_cierre SET ";
         queryString += " Estatus = 'CERRADO'";
         queryString += ",FechaYHoraCierre = current_timestamp";
         queryString += ",UsuarioCerro = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
-        queryString += " Where IdEmpresa = " + String.valueOf(empresaCbx.getValue());
-        queryString += " And Mes = '" + mesCbx.getValue() + "'";
+        queryString += " WHERE IdEmpresa = " + empresaId;
+        queryString += " AND Mes = '" + mesCbx.getValue() + "'";
 
         waitLbl.setVisible(true);
 
@@ -536,9 +500,9 @@ public final class CierreMensualView extends VerticalLayout implements View {
             stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             stQuery1.executeUpdate(queryString);
 
-            queryString = " SELECT * from contabilidad_nomenclatura";
-            queryString += " where Estatus = 'HABILITADA'";
-            queryString += " Order By ID1";
+            queryString = " SELECT * FROM contabilidad_nomenclatura";
+            queryString += " WHERE Estatus = 'HABILITADA'";
+            queryString += " ORDER BY ID1";
 
             rsRecords1 = stQuery1.executeQuery(queryString);
 
@@ -565,7 +529,7 @@ public final class CierreMensualView extends VerticalLayout implements View {
 
                 queryString = " Insert Into contabilidad_balance_saldo (IdEmpresa, IdNomenclatura, AnioMesCierre,";
                 queryString += " SaldoAnterior, Debe, Haber, SaldoFinal ) Values (";
-                queryString += " " + String.valueOf(empresaCbx.getValue());
+                queryString += " " + empresaId;
                 queryString += "," + rsRecords1.getString("IdNomenclatura");
                 queryString += ",'" + String.valueOf(mesCbx.getValue()) + "'";
                 queryString += "," + String.valueOf(saldoAnterior.doubleValue());
@@ -584,7 +548,7 @@ public final class CierreMensualView extends VerticalLayout implements View {
 
                 queryString = " SELECT * from contabilidad_empresa_cierre";
                 queryString += " where Estatus = 'ABIERTO'";
-                queryString += " And IdEmpresa = " + empresaCbx.getValue();
+                queryString += " And IdEmpresa = " + empresaId;
                 queryString += " And Mes = '" + proxAnioMesCierre + "'";
 //System.out.println("cierreMensual crea proximo mes de cierre : " + queryString);
                 try {
@@ -593,8 +557,8 @@ public final class CierreMensualView extends VerticalLayout implements View {
 
                     if (!rsRecords.next()) {
                         queryString = "INSERT INTO contabilidad_empresa_cierre (IdEmpresa, Mes, Estatus)";
-                        queryString += " Values (";
-                        queryString += empresaCbx.getValue();
+                        queryString += " VALUES (";
+                        queryString += empresaId;
                         queryString += ",'" + proxAnioMesCierre + "'";
                         queryString += ",'ABIERTO'";
                         queryString += ")";
@@ -637,14 +601,14 @@ public final class CierreMensualView extends VerticalLayout implements View {
     public double getDebeHaberCuenta(String idNomenclatura, String rubro) throws SQLException {
         double saldo = 0.00;
 
-        String queryString = " Select IfNull(SUM(" + rubro + "), 0.00) As Saldo";
-        queryString += " From contabilidad_partida";
-        queryString += " Where IdNomenclatura = " + idNomenclatura;
-        queryString += " And   IdEmpresa = " + String.valueOf(empresaCbx.getValue());
-        queryString += " And   Extract(YEAR_MONTH From contabilidad_partida.Fecha) = " + String.valueOf(mesCbx.getValue());
-        queryString += " And   Estatus <> 'ANULADO'";
+        String queryString = " SELECT IfNull(SUM(" + rubro + "), 0.00) As Saldo";
+        queryString += " FROM contabilidad_partida";
+        queryString += " WHERE IdNomenclatura = " + idNomenclatura;
+        queryString += " AND   IdEmpresa = " + empresaId;
+        queryString += " AND   Extract(YEAR_MONTH From contabilidad_partida.Fecha) = " + String.valueOf(mesCbx.getValue());
+        queryString += " AND   Estatus <> 'ANULADO'";
 //        queryString += " And   TipoDocumento NOT IN ('PARTIDA CIERRE', 'PARTIDA APERTURA', 'PARTIDA INICIAL')";
-        queryString += " And   TipoDocumento <> 'PARTIDA CIERRE'";
+        queryString += " AND   TipoDocumento <> 'PARTIDA CIERRE'";
 
         stQuery2 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
         rsRecords2 = stQuery2.executeQuery(queryString);
@@ -668,11 +632,11 @@ public final class CierreMensualView extends VerticalLayout implements View {
         c.set(Integer.valueOf(mesCierre.substring(0, 4)), Integer.valueOf(mesCierre.substring(4, 6)) - 1, 1);
         c.add(Calendar.MONTH, -1);
 
-        String queryString = " Select IfNull(SaldoFinal, 0) SaldoMesAnterior ";
-        queryString += " From contabilidad_balance_saldo";
-        queryString += " Where IdNomenclatura = " + idNomenclatura;
-        queryString += " And  IdEmpresa = " + String.valueOf(empresaCbx.getValue());
-        queryString += " And  AnioMesCierre = " + String.valueOf(c.get(Calendar.YEAR)) + String.format("%02d", c.get(Calendar.MONTH) + 1);
+        String queryString = " SELECT IfNull(SaldoFinal, 0) SaldoMesAnterior ";
+        queryString += " FROM contabilidad_balance_saldo";
+        queryString += " WHERE IdNomenclatura = " + idNomenclatura;
+        queryString += " AND  IdEmpresa = " + empresaId;
+        queryString += " AND  AnioMesCierre = " + String.valueOf(c.get(Calendar.YEAR)) + String.format("%02d", c.get(Calendar.MONTH) + 1);
 
         stQuery2 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
         rsRecords2 = stQuery2.executeQuery(queryString);
@@ -691,8 +655,7 @@ public final class CierreMensualView extends VerticalLayout implements View {
             excelExport.excludeCollapsedColumns();
             excelExport.setDisplayTotals(false);
             String fileexport;
-// produccion            fileexport = (empresa + "_" + empresaLbl.getValue().substring(5, empresaLbl.getValue().length()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é","") + "_INTEGRACION_CAMBIOS.xlsx").replaceAll(" ", "").replaceAll(",", "");
-            fileexport = (empresaCbx.getValue() + "_" + empresaCbx.getItemCaption(empresaCbx.getValue()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + "_" + mesCbx.getValue() + ".xls").replaceAll(" ", "").replaceAll(",", "");
+            fileexport = ((empresaId+ "_" + empresaNombre).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + "_" + mesCbx.getValue() + ".xls").replaceAll(" ", "").replaceAll(",", "");
             excelExport.setExportFileName(fileexport);
             excelExport.export();
         }

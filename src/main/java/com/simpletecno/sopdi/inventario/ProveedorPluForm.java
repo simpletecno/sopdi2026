@@ -43,6 +43,9 @@ public class ProveedorPluForm extends Window {
     Button guardarBtn;
     Button salirBtn;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public ProveedorPluForm() {
         this.mainUI = UI.getCurrent();
         setResponsive(true);
@@ -136,7 +139,7 @@ public class ProveedorPluForm extends Window {
         mainForm.addComponent(buttonsLayout);
         mainForm.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
 
-        Label titleLbl = new Label("PLU de Proveedor");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " PLU de Proveedor");
         titleLbl.addStyleName(Runo.LABEL_H2);
         titleLbl.setSizeUndefined();
 
@@ -159,8 +162,9 @@ public class ProveedorPluForm extends Window {
 
     private void fillComboProveedor(ComboBox comboBox) {
 
-        String queryString = "Select * ";
-        queryString += " From proveedor ";
+        String queryString = "SELECT * ";
+        queryString += " FROM proveedor_empresa ";
+        queryString += " WHERE IdEmpresa = " + empresaId;
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -185,9 +189,9 @@ public class ProveedorPluForm extends Window {
 
     private void fillComboCuentaCentroCosto(ComboBox comboBox) {
 
-        String queryString = "Select * ";
-        queryString += " From centro_costo_cuenta ";
-        queryString += " Where IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
+        String queryString = "SELECT * ";
+        queryString += " FROM centro_costo_cuenta ";
+        queryString += " WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
 
 // System.out.println("queryComboCCC=" + queryString);
         try {
@@ -213,9 +217,9 @@ public class ProveedorPluForm extends Window {
     public void llenarCampos() {
         try {
 
-            queryString = " select *";
-            queryString += " from proveedor_plu";
-            queryString += " where Id = " + idPluEdit;
+            queryString = " SELECT *";
+            queryString += " FROM proveedor_plu";
+            queryString += " WHERE Id = " + idPluEdit;
 
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
@@ -239,9 +243,9 @@ public class ProveedorPluForm extends Window {
         try {
 
             if (idPluEdit.equals("0")) {
-                queryString = "Insert Into proveedor_plu ";
+                queryString = "INSERT INTO proveedor_plu ";
                 queryString += "(IDProveedor, IdCuentaCentroCosto, PLU, DescripcionProveedor, Cantidad, Precio) ";
-                queryString += " Values (";
+                queryString += " VALUES (";
                 queryString += proveedorCbx.getValue() + ",";
                 queryString += cuentaCentroCostoCbx.getValue() + ",";
                 queryString += "'" + pluTxt.getValue() + "',";
@@ -250,14 +254,14 @@ public class ProveedorPluForm extends Window {
                 queryString += precioTxt.getValue();
                 queryString += ")";
             } else { //update
-                queryString = "Update proveedor_plu Set ";
+                queryString = "UPDATE proveedor_plu SET ";
                 queryString += "IDProveedor = " + proveedorCbx.getValue() + ",";
                 queryString += "IdCuentaCentroCosto = " + cuentaCentroCostoCbx.getValue() + ",";
                 queryString += "PLU = '" + pluTxt.getValue() + "',";
                 queryString += "DescripcionProveedor = '" + descripcionTxt.getValue() + "',";
                 queryString += "Cantidad = " + cantidadTxt.getValue() + ",";
                 queryString += "Precio = " + precioTxt.getValue() + " ";
-                queryString += " Where Id = " + idPluEdit;
+                queryString += " WHERE Id = " + idPluEdit;
             }
 
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

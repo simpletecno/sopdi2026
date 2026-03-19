@@ -22,7 +22,7 @@ import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.simpletecno.sopdi.ventas.FacturaVentaForm.NIT_PROPERTY;
+import static com.simpletecno.sopdi.ventas.FacturaVentaInfileForm.NIT_PROPERTY;
 
 public class FacturarAnticiposForm extends Window {
 
@@ -30,12 +30,8 @@ public class FacturarAnticiposForm extends Window {
     UI mainUI;
 
     HorizontalLayout layoutTitle;
-    ComboBox empresaCbx;
     Label titleLbl;
-
-    BigDecimal totalDebe;
-    BigDecimal totalHaber;
-
+    
     Button guardarBtn;
     Button salirBtn;
 
@@ -61,6 +57,9 @@ public class FacturarAnticiposForm extends Window {
     String queryString, codigoPartida;
     String variableTemp = "";
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+    
     public FacturarAnticiposForm() {
 
         this.mainUI = UI.getCurrent();
@@ -77,24 +76,12 @@ public class FacturarAnticiposForm extends Window {
         layoutTitle.setSpacing(true);
         layoutTitle.setMargin(true);
         layoutTitle.setWidth("100%");
-
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-
-        titleLbl = new Label("FACTURAR ANTICIPOS DE CLIENTES");
+        
+        titleLbl = new Label(empresaId + " " + empresaNombre + " FACTURAR ANTICIPOS DE CLIENTES");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
-
+        
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
 
@@ -105,38 +92,16 @@ public class FacturarAnticiposForm extends Window {
         mainLayout.addComponent(crearComponentes());
 
     }
-
-    public void llenarComboEmpresa() {
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            Logger.getLogger(this.getClass().getName()).log(Level.INFO,"Error al llenar combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
+    
     public void llenarProveedor() {
         String prov = "";
         try {
 
             queryString = " SELECT prov.* ";
-            queryString += " FROM proveedor prov";
+            queryString += " FROM proveedor_empresa prov";
             queryString += " WHERE prov.Inhabilitado = 0 ";
             queryString += " AND prov.EsCliente = 1";
+            queryString += " AND prov.IdEmpresa = " + empresaId;
             queryString += " ORDER By prov.Nombre";
 
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -152,7 +117,7 @@ public class FacturarAnticiposForm extends Window {
                     queryString += " WHERE IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposClientes();
                     queryString += " AND TipoDocumento IN ('DEPOSITO', 'NOTA DE CREDITO') ";
                     queryString += " AND IdProveedor = " + rsRecords.getString("IdProveedor");
-                    queryString += " AND IdEmpresa = " + empresaCbx.getValue();
+                    queryString += " AND IdEmpresa = " + empresaId;
                     
                     rsRecords2 = stQuery2.executeQuery(queryString);
 
@@ -191,9 +156,10 @@ public class FacturarAnticiposForm extends Window {
 
     public void llenarComboCuentaContable() {
 
-        queryString = " SELECT * FROM contabilidad_nomenclatura";
+        queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
         queryString += " WHERE Estatus = 'HABILITADA'";
         queryString += " AND Tipo IN ('SERVICIO', 'PRODUCTO', 'VENTA')";
+        queryString += " AND IdEmpresa = " + empresaId;
         queryString += " ORDER BY N5";
 
         try {
@@ -396,7 +362,7 @@ public class FacturarAnticiposForm extends Window {
         queryString += " WHERE IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposClientes();
         queryString += " AND TipoDocumento IN ('DEPOSITO', 'NOTA DE CREDITO') ";
         queryString += " And IdProveedor = " + proveedorCbx.getValue();
-        queryString += " And IdEmpresa = " + empresaCbx.getValue();
+        queryString += " And IdEmpresa = " + empresaId;
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO,"QUERY BUSCAR ANTICIPOS CIENTE : " + queryString);
 
@@ -507,7 +473,7 @@ public class FacturarAnticiposForm extends Window {
         queryString = " SELECT * FROM contabilidad_partida";
         queryString += " WHERE NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
         queryString += " AND IdProveedor     =  " + String.valueOf(proveedorCbx.getValue());
-        queryString += " AND IdEmpresa = " + String.valueOf(empresaCbx.getValue());
+        queryString += " AND IdEmpresa = " + empresaId;
         queryString += " AND TipoDocumento = 'RECIBO CONTABLE'";
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query=" + queryString + "\n\n");
@@ -531,7 +497,7 @@ public class FacturarAnticiposForm extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "0";
+        codigoPartida = empresaId + año + mes + dia + "0";
 
         queryString = " SELECT codigoPartida FROM contabilidad_partida ";
         queryString += " WHERE codigoPartida like '" + codigoPartida + "%'";
@@ -563,7 +529,7 @@ public class FacturarAnticiposForm extends Window {
         queryString += " MonedaDocumento, MontoDocumento, Debe, Haber, DebeQuetzales, HaberQuetzales, TipoCambio,";
         queryString += " Saldo, Descripcion, CreadoUsuario, CreadoFechaYHora)";
         queryString += " Values (";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'";
@@ -587,7 +553,7 @@ public class FacturarAnticiposForm extends Window {
         queryString += "),";
 
         queryString += "(";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",''";
@@ -629,7 +595,7 @@ public class FacturarAnticiposForm extends Window {
         queryString2 += " MonedaDocumento, MontoDocumento, Debe, Haber, DebeQuetzales, HaberQuetzales, TipoCambio,";
         queryString2 += " Saldo, Descripcion, CreadoUsuario, CreadoFechaYHora)";
         queryString2 += " Values (";
-        queryString2 += String.valueOf(empresaCbx.getValue());
+        queryString2 += empresaId;
         queryString2 += ",'INGRESADO'";
         queryString2 += ",'" + codigoPartida + "'";
         queryString2 += ",'" + codigoCCRecibo + "'";
@@ -659,7 +625,7 @@ public class FacturarAnticiposForm extends Window {
         while (iter2.hasNext()) {
             gridItem = iter2.next();
             queryString2 += ",(";
-            queryString2 += String.valueOf(empresaCbx.getValue());
+            queryString2 += empresaId;
             queryString2 += ",'INGRESADO'";
             queryString2 += ",'" + codigoPartida + "'";
             queryString2 += ",'" + String.valueOf(anticiposGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CODIGO_CC_PROPERTY).getValue()) + "'";   /// CODIGOCC
@@ -705,7 +671,7 @@ public class FacturarAnticiposForm extends Window {
             anticiposGrid.getSelectionModel().reset();
             anticiposContainer.removeAllItems();
 
-            ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta(String.valueOf(empresaCbx.getValue()));
+            ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta();
 
             Notification notif = new Notification("ANTICIPOS FACTURADOS (recibo contable) EXITOSAMENTE.",
                     Notification.Type.HUMANIZED_MESSAGE);

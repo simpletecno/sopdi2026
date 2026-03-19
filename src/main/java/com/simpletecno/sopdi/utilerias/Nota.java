@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @SuppressWarnings("unchecked")
+//para solicitar a usuario una nota, para cualquier tabla
 public class Nota extends Window
 {      
     Button acceptBtn;

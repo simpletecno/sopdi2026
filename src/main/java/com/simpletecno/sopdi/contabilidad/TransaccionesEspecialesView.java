@@ -40,8 +40,6 @@ import java.util.Date;
  */
 public class TransaccionesEspecialesView extends VerticalLayout implements View {
 
-    ComboBox empresaCbx;
-    String empresa;
     UI mainUI;
     Statement stQuery;
     ResultSet rsRecords;
@@ -85,7 +83,9 @@ public class TransaccionesEspecialesView extends VerticalLayout implements View 
 
     VerticalLayout reportLayoutPartida = new VerticalLayout();
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
-    static DecimalFormat numberFormat2 = new DecimalFormat("#,###,##0");
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public TransaccionesEspecialesView() {
         this.mainUI = UI.getCurrent();
@@ -94,44 +94,26 @@ public class TransaccionesEspecialesView extends VerticalLayout implements View 
         //setMargin(true);
         reportLayoutPartida.setEnabled(false);
 
-        Label titleLbl = new Label("TRANSACCIONES ESPECIALES");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " TRANSACCIONES ESPECIALES");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-
-        llenarComboEmpresa();
-
-        empresaCbx.addValueChangeListener(event -> {
-            empresa = String.valueOf(event.getProperty().getValue());
-            llenarTablaFactura(empresa);
-        });
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
         addComponent(titleLayout);
         setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
 
-        empresa = String.valueOf(empresaCbx.getValue());
-
         createTablaTransacciones();
         createTablaPartida();
 
-        llenarTablaFactura(empresa);
+        llenarTablaFactura(empresaId);
     }
 
     public void createTablaTransacciones() {
@@ -163,7 +145,7 @@ public class TransaccionesEspecialesView extends VerticalLayout implements View 
         consultarBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                llenarTablaFactura(empresa);
+                llenarTablaFactura(empresaId);
             }
         });
 
@@ -313,7 +295,7 @@ public class TransaccionesEspecialesView extends VerticalLayout implements View 
             public void buttonClick(Button.ClickEvent event) {
                 TransaccionesEspecialesForm nuevaTransaccion =
                         new TransaccionesEspecialesForm(
-                                empresa,
+                                empresaId,
                                 "",
                                 "TRANSACCION ESPECIAL",
                                 1
@@ -334,35 +316,14 @@ public class TransaccionesEspecialesView extends VerticalLayout implements View 
         setComponentAlignment(reportLayout, Alignment.MIDDLE_CENTER);
     }
 
-    public void llenarComboEmpresa() {
-        String queryString = "";
-        queryString += " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords2 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords2.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords2.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords2.getString("IdEmpresa"), rsRecords2.getString("Empresa"));
-            }
-            rsRecords2.first();
-
-            empresaCbx.select(rsRecords2.getString("IdEmpresa"));
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     public void llenarTablaFactura(String empresa) {
         container.removeAllItems();
         containerPartida.removeAllItems();
 
         setTotal();
 
-        queryString = " SELECT *, SUM(contabilidad_partida.Debe) AS Total from contabilidad_partida";
+        queryString = " SELECT *, SUM(contabilidad_partida.Debe) AS Total";
+        queryString += " FROM contabilidad_partida";
         queryString += " WHERE contabilidad_partida.Fecha BETWEEN ";
         queryString += " '" + Utileria.getFechaYYYYMMDD_1(inicioDt.getValue()) + "'";
         queryString += " AND '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "'";
@@ -489,7 +450,7 @@ public class TransaccionesEspecialesView extends VerticalLayout implements View 
                 } else {
                     TransaccionesEspecialesForm editTransaccion
                             = new TransaccionesEspecialesForm(
-                            String.valueOf(empresa),
+                            String.valueOf(empresaId),
                             String.valueOf(container.getContainerProperty(transaccionesEspecialesGrid.getSelectedRow(), ID_PROPERTY).getValue()),
                             String.valueOf(container.getContainerProperty(transaccionesEspecialesGrid.getSelectedRow(), TIPODOC_PROPERTY).getValue()),
                             2
@@ -512,7 +473,7 @@ public class TransaccionesEspecialesView extends VerticalLayout implements View 
             } else {
                 LibroDiarioView libroDiario = new LibroDiarioView();
                 libroDiario.documentoTxt.setValue(String.valueOf(container.getContainerProperty(transaccionesEspecialesGrid.getSelectedRow(), ID_PROPERTY).getValue()));
-                libroDiario.empresa = empresa;
+                libroDiario.empresaId = empresaId;
                 try {
                     libroDiario.inicioDt.setValue(
                             new SimpleDateFormat("dd/MM/yyyy")
@@ -545,8 +506,8 @@ public class TransaccionesEspecialesView extends VerticalLayout implements View 
                     try {
 
                         queryString = "UPDATE  contabilidad_partida";
-                        queryString += " set Estatus = 'REVISADO'";
-                        queryString += " where CodigoPartida = '" + String.valueOf(container.getContainerProperty(transaccionesEspecialesGrid.getSelectedRow(), ID_PROPERTY).getValue()) + "'";
+                        queryString += " SET Estatus = 'REVISADO'";
+                        queryString += " WHERE CodigoPartida = '" + String.valueOf(container.getContainerProperty(transaccionesEspecialesGrid.getSelectedRow(), ID_PROPERTY).getValue()) + "'";
 
                         stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                         stQuery.executeUpdate(queryString);
@@ -572,7 +533,6 @@ public class TransaccionesEspecialesView extends VerticalLayout implements View 
         reportLayoutPartida.setComponentAlignment(camposPartidaLayout, Alignment.BOTTOM_CENTER);
         addComponent(reportLayoutPartida);
         setComponentAlignment(reportLayoutPartida, Alignment.MIDDLE_CENTER);
-
     }
 
     public void llenarTablaPartida(String codigoPartida) {
@@ -587,12 +547,11 @@ public class TransaccionesEspecialesView extends VerticalLayout implements View 
         double totalHaberQ = 0.00;
 
         queryString = "";
-        queryString = " select contabilidad_partida.*,contabilidad_nomenclatura.N5, contabilidad_nomenclatura.NoCuenta";
-        queryString += " from contabilidad_partida,contabilidad_nomenclatura";
+        queryString = " SELECT contabilidad_partida.*,contabilidad_nomenclatura_emprewsa.N5, contabilidad_nomenclatura_emprewsa.NoCuenta";
+        queryString += " FROM contabilidad_partida,contabilidad_nomenclatura_emprewsa";
         queryString += " WHERE contabilidad_partida.CodigoPartida = '" + codigoPartida + "'";
-        queryString += " and contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
-
-        System.out.println("Query mostrar" + queryString);
+        queryString += " AND contabilidad_nomenclatura_emprewsa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+        queryString += " AND contabilidad_nomenclatura_emprewsa.IdEmpresa = " + empresaId;
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

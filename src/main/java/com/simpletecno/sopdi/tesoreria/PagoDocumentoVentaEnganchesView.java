@@ -27,13 +27,11 @@ import java.util.logging.Logger;
 public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements View {
 
     static final String NIT_PROPERTY = "NIT";
-    static final String NOMBRESINCODIGO_PROPERTY = "NSC";
 
     VerticalLayout mainLayout;
     UI mainUI;
 
     HorizontalLayout layoutTitle;
-    ComboBox empresaCbx;
     Label titleLbl;
 
     Button generarBtn;
@@ -43,8 +41,6 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
     DateField fechaDt;
     TextField numeroTxt;
     TextField descripcionTxt;
-
-//    ArrayList<String> codigoEnganches = new ArrayList<String>();
 
     public IndexedContainer facturasContainer = new IndexedContainer();
     Grid facturasGrid;
@@ -77,6 +73,9 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
     String queryString, codigoPartida;
     String variableTemp = "";
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public PagoDocumentoVentaEnganchesView() {
 
         this.mainUI = UI.getCurrent();
@@ -91,25 +90,10 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
         layoutTitle.setMargin(true);
         layoutTitle.setWidth("100%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-
-        titleLbl = new Label("PAGO DOCUMENTO VENTAS CON ENGANCHES");
+        titleLbl = new Label(empresaId + " " + empresaNombre + " PAGO DOCUMENTO VENTAS CON ENGANCHES");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        empresaCbx.addItem(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId());
-        empresaCbx.setItemCaption(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId(), "(" + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId() +") " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName() );
-        empresaCbx.select(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId());
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -125,9 +109,9 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
     }
 
     private void llenarComboCuentaContable() {
-        String queryString = " SELECT * from contabilidad_nomenclatura ";
-        queryString += " where Estatus='HABILITADA'";
-        queryString += " Order By N5";
+        String queryString = " SELECT * FROM contabilidad_nomenclatura_empresa ";
+        queryString += " WHERE Estatus='HABILITADA'";
+        queryString += " ORDER BY N5";
 
         cuentasContables.clear();
 
@@ -147,10 +131,11 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
 
     private void llenarComboProveedor() {
         queryString = " SELECT prov.* ";
-        queryString += " FROM proveedor prov";
+        queryString += " FROM proveedor_empresa prov";
         queryString += " WHERE prov.Inhabilitado = 0 ";
         queryString += " AND prov.EsCliente = 1";
-        queryString += " Order By prov.Nombre";
+        queryString += " AND prov.IdEmpresa = " + empresaId;
+        queryString += " ORDER BY prov.Nombre";
 
         proveedorCbx.removeAllItems();
 
@@ -392,11 +377,11 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
     }
 
     private void llenarFacturas() {
-        queryString = " SELECT * From contabilidad_partida ";
+        queryString = " SELECT * FROM contabilidad_partida ";
         queryString += " WHERE IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getClientes();
-        queryString += " And TipoDocumento IN ('FACTURA VENTA', 'RECIBO CONTABLE')";
-        queryString += " And IdProveedor = " + proveedorCbx.getValue();
-        queryString += " And IdEmpresa = " + empresaCbx.getValue();
+        queryString += " AND TipoDocumento IN ('FACTURA VENTA', 'RECIBO CONTABLE')";
+        queryString += " AND IdProveedor = " + proveedorCbx.getValue();
+        queryString += " AND IdEmpresa = " + empresaId;
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO,"QUERY BUSCAR FACTURAS VENTA DE UN PROVEEDOR (CIENTE) : " + queryString);
 
@@ -448,18 +433,18 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
     }
 
     private void llenarEnganches() {
-        queryString = "  select contabilidad_partida.IdNomenclatura, contabilidad_partida.CodigoPartida, contabilidad_partida.CodigoCC, ";
+        queryString = "SELECT contabilidad_partida.IdNomenclatura, contabilidad_partida.CodigoPartida, contabilidad_partida.CodigoCC, ";
         queryString += " contabilidad_partida.MonedaDocumento, contabilidad_partida.Fecha, contabilidad_partida.Debe, contabilidad_partida.Haber, ";
         queryString += "contabilidad_partida.NumeroDocumento, proveedor.IdProveedor, proveedor.Nombre, TipoCambio ";
-        queryString += " from contabilidad_partida";
-        queryString += " inner join proveedor on contabilidad_partida.IdProveedor = proveedor.IDProveedor ";
-        queryString += " where contabilidad_partida.IdEmpresa =" + empresaCbx.getValue();
-        queryString += " and contabilidad_partida.Fecha >= '2019-01-01'";
-        queryString += " and contabilidad_partida.IdProveedor = " + proveedorCbx.getValue();
-        queryString += " and contabilidad_partida.Estatus <> 'ANULADO'";
+        queryString += " FROM contabilidad_partida";
+        queryString += " INNER JOIN proveedor ON contabilidad_partida.IdProveedor = proveedor.IDProveedor ";
+        queryString += " WHERE contabilidad_partida.IdEmpresa =" + empresaId;
+        queryString += " AND contabilidad_partida.Fecha >= '2019-01-01'";
+        queryString += " AND contabilidad_partida.IdProveedor = " + proveedorCbx.getValue();
+        queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
 //        queryString += " and contabilidad_partida.IdNomenclatura IN (" + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getEnganches() + "," + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposClientes() + ")";
-        queryString += " and contabilidad_partida.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getEnganches();
-        queryString += " Order by contabilidad_partida.Fecha desc";
+        queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getEnganches();
+        queryString += " ORDER BY contabilidad_partida.Fecha DESC";
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO,"QUERY BUSCAR ENGANCHES DE UN CLIENTE : " + queryString);
 
@@ -474,9 +459,9 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
                     queryString = " SELECT ";
                     queryString += " SUM(HABER - DEBE) TOTALSALDO";
                     queryString += " FROM contabilidad_partida";
-                    queryString += " WHERE IdEmpresa = " + empresaCbx.getValue();
+                    queryString += " WHERE IdEmpresa = " + empresaId;
                     queryString += " AND CodigoCC = '" + rsRecords.getString("CodigoCC") + "'";
-                    queryString += " and IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
+                    queryString += " AND IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
 
                     rsRecords2 = stQuery2.executeQuery(queryString);
 
@@ -604,32 +589,6 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
 
         }// end while iterator enganches seleccionados
 
-        //diferencial cambiario
-
-//        if( (totalDebeQ.doubleValue() != totalHaberQ.doubleValue())) { // si hay diferencial cambiario
-//
-//            partidaObject = partidaContainer.addItem();
-//
-//            partidaContainer.getContainerProperty(partidaObject, CUENTA_PROPERTY).setValue(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario());
-//            partidaContainer.getContainerProperty(partidaObject, DESCRIPCION_PROPERTY).setValue("DIFERENCIAL CAMBIARIO");
-//
-//            partidaContainer.getContainerProperty(partidaObject, DEBE_PROPERTY).setValue("0");
-//            partidaContainer.getContainerProperty(partidaObject, HABER_PROPERTY).setValue("0");
-//
-//            if((totalDebeQ.doubleValue() - totalHaberQ.doubleValue()) > 0 ) {
-//                partidaContainer.getContainerProperty(partidaObject, DEBE_Q_PROPERTY).setValue(String.valueOf(Utileria.numberFormatEntero.format(totalDebeQ.doubleValue() - totalHaberQ.doubleValue())));
-//                totalDebeQ = totalDebeQ.add(new BigDecimal(Utileria.numberFormatEntero.format(totalDebeQ.doubleValue() - totalHaberQ.doubleValue())));
-//            }
-//            else {
-//                partidaContainer.getContainerProperty(partidaObject, DEBE_Q_PROPERTY).setValue(String.valueOf(Utileria.numberFormatEntero.format((totalDebeQ.doubleValue() - totalHaberQ.doubleValue()) * -1)));
-//                totalDebeQ = totalDebeQ.add(new BigDecimal(Utileria.numberFormatEntero.format((totalDebeQ.doubleValue() - totalHaberQ.doubleValue()) * -1)));
-//            }
-//
-//            partidaContainer.getContainerProperty(partidaObject, HABER_Q_PROPERTY).setValue("0");
-//            partidaContainer.getContainerProperty(partidaObject, CODIGOCC_PROPERTY).setValue("");
-//
-//        }
-
         partidaObject = partidaContainer.addItem();
 
         partidaContainer.getContainerProperty(partidaObject, CUENTA_PROPERTY).setValue("__________");
@@ -716,13 +675,11 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
 
         codigoPartida = String.valueOf(facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue());
 
-        queryString = " Update  contabilidad_partida ";
-        queryString += " Set Saldo = 0";
-        queryString += " Where CodigoPartida = '" + codigoPartida + "'";
-        queryString += " And IdEmpresa = " + empresaCbx.getValue();
-        queryString += " And IdProveedor = " + proveedorCbx.getValue();
-
-//        System.out.println("Query actualizar saldo de facturas :" + queryString);
+        queryString = "UPDATE  contabilidad_partida ";
+        queryString += " SET Saldo = 0";
+        queryString += " WHERE CodigoPartida = '" + codigoPartida + "'";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND IdProveedor = " + proveedorCbx.getValue();
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -734,39 +691,17 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
             return;
         }
 
-        /// SI HAY ENGANCHES ACTUALIZAR SALDO
-
-//        if (codigoEnganches.size() > 0) {
-//            for (int i = 0; i < codigoEnganches.size(); i++) {
-//
-//                queryString = " Update  contabilidad_partida ";
-//                queryString += " Set Saldo = 0";
-//                queryString += " Where CodigoPartida = '" + codigoEnganches.get(i) + "'";
-//                queryString += " And IdEmpresa = " + empresaCbx.getValue();
-//                queryString += " And IdProveedor = " + proveedorCbx.getValue();
-//
-//                System.out.println("Query actualizar saldo de enganches :" + queryString);
-//                try {
-//                    stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-//                    stQuery.executeUpdate(queryString);
-//                } catch (Exception ex1) {
-//                    System.out.println("Error al actualizar el saldo de los enganches" + ex1.getMessage());
-//                    ex1.printStackTrace();
-//                }
-//            }
-//        }
-
         ingresarPagoDocumentoVenta();
     }
 
     public void ingresarPagoDocumentoVenta() {
 
-        queryString = " Select * from contabilidad_partida";
-        queryString += " Where NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " And IdProveedor     =  " + String.valueOf(proveedorCbx.getValue());
-        queryString += " And IdEmpresa = " + String.valueOf(empresaCbx.getValue());
-        queryString += " And TipoDocumento = 'PAGO DOCUMENTO VENTA'";
-        queryString += " And MonedaDocumento = 'DOLARES'";
+        queryString = "SELECT * FROM contabilidad_partida";
+        queryString += " WHERE NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
+        queryString += " AND IdProveedor =  " + String.valueOf(proveedorCbx.getValue());
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND TipoDocumento = 'PAGO DOCUMENTO VENTA'";
+        queryString += " AND MonedaDocumento = 'DOLARES'";
 
 //        System.out.println("\n\nQuery=" + queryString + "\n\n");
 
@@ -789,11 +724,11 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "5";
+        codigoPartida = empresaId + año + mes + dia + "5";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + codigoPartida + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = "SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida LIKE '" + codigoPartida + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -816,19 +751,19 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
+        queryString = "INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
         queryString += " TipoDocumento, NoDOCA, TipoDOCA, Fecha, IdProveedor, NITProveedor, ";
         queryString += " NombreProveedor, NombreCheque, MontoDocumento, SerieDocumento, NumeroDocumento, ";
         queryString += " IdNomenclatura, MonedaDocumento, Debe, Haber,";
         queryString += " DebeQuetzales, HaberQuetzales, TipoCambio,";
         queryString += " Descripcion, CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values ";
+        queryString += " VALUES ";
 
         for (Object itemId: partidaContainer.getItemIds()) {
             Item item = partidaContainer.getItem(itemId);
             if(!String.valueOf(item.getItemProperty(CODIGOCC_PROPERTY).getValue()).equals("___________")) {
                 queryString += " (";
-                queryString += String.valueOf(empresaCbx.getValue());
+                queryString += empresaId;
                 queryString += ",'INGRESADO'";
                 queryString += ",'" + codigoPartida + "'";
                 queryString += ",'" + String.valueOf(item.getItemProperty(CODIGOCC_PROPERTY).getValue()) + "'";
@@ -876,7 +811,7 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
             facturasGrid.getSelectionModel().reset();
             facturasContainer.removeAllItems();
 
-            ((IngresoBancosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(String.valueOf(empresaCbx.getValue()));
+            ((IngresoBancosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(empresaId);
 
             Notification notif = new Notification("PAGO REGISTRADO EXITOSAMENTE.",
                     Notification.Type.HUMANIZED_MESSAGE);
@@ -915,7 +850,7 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
             queryString += ", FechaUsado = current_timestamp";
             queryString += ", CodigoPartida = '" + codigoPartida + "'";
             queryString += ", Estatus = 'UTILIZADO'";
-            queryString += " Where Codigo = '" + variableTemp + "'";
+            queryString += " WHERE Codigo = '" + variableTemp + "'";
 
             stQuery.executeUpdate(queryString);
 

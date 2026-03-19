@@ -51,9 +51,9 @@ public class OrdenCompraAnticiposForm extends Window {
     static final String PROCESADO_PROPERTY = "Procesado";
 
     UI mainUI;
-    Statement stQuery, stQuery2;
+    Statement stQuery;
     PreparedStatement stPreparedQuery = null;
-    ResultSet rsRecords, rsRecords2;
+    ResultSet rsRecords;
     String queryString;
 
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
@@ -61,7 +61,8 @@ public class OrdenCompraAnticiposForm extends Window {
     Button salirBtn;
     Button autorizarBtn;
 
-    ComboBox empresaCbx;
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public OrdenCompraAnticiposForm() {
         this.mainUI = UI.getCurrent();
@@ -76,12 +77,10 @@ public class OrdenCompraAnticiposForm extends Window {
 
         setContent(mainLayout);
 
-        Label titleLbl = new Label("ANTICIPOS POR AUTORIZAR -- DESDE ORDENES DE COMPRA");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " ANTICIPOS POR AUTORIZAR -- DESDE ORDENES DE COMPRA");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        crearButtonEmpresa();
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
@@ -89,8 +88,7 @@ public class OrdenCompraAnticiposForm extends Window {
         titleLayout.setMargin(new MarginInfo(false, true, false, false));
         titleLayout.setWidth("100%");
 
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -234,7 +232,7 @@ public class OrdenCompraAnticiposForm extends Window {
                                         queryString += " VALUES ";
                                         queryString += "(";
                                         queryString += "'ANTICIPO A PROVEEDOR'";
-                                        queryString += "," + String.valueOf(empresaCbx.getValue());
+                                        queryString += "," + empresaId;
                                         queryString += "," + ordenCompraContainer.getContainerProperty(itemId, IDPROVEEDOR_PROPERTY).getValue();
                                         queryString += ",current_date";
                                         queryString += ",'" + ordenCompraContainer.getContainerProperty(itemId, MONEDA_PROPERTY).getValue() + "'";
@@ -318,10 +316,11 @@ public class OrdenCompraAnticiposForm extends Window {
             queryString += " proveedor.Nombre AS ProveedorNombre, tipo_orden_compra.Descripcion As TipoOrdenCompra ";
             queryString += " FROM orden_compra";
             queryString += " LEFT JOIN empresa ON orden_compra.IdEmpresa = empresa.IdEmpresa";
-            queryString += " LEFT JOIN proveedor ON orden_compra.IdProveedor = proveedor.IdProveedor";
+            queryString += " LEFT JOIN proveedor_empresa ON orden_compra_empresa.IdProveedor = proveedor.IdProveedor";
             queryString += " LEFT JOIN tipo_orden_compra ON orden_compra.IdTipoOrdenCompra = tipo_orden_compra.Id";
             queryString += " WHERE orden_compra.CodigoCCAnticipo = '' AND orden_compra.CodigoCCDocumento = ''";
-            queryString += " AND   orden_compra.IdEmpresa =" + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+            queryString += " AND   orden_compra.IdEmpresa =" + empresaId;
+            queryString += " AND   proveedor_empresa.IdEmpresa = " + empresaId;
 
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
@@ -355,37 +354,5 @@ public class OrdenCompraAnticiposForm extends Window {
             ex.printStackTrace();
             Notification.show("Error al listar tabla anticipos de orden de compra.", Notification.Type.ERROR_MESSAGE);
         }
-    }
-
-    public void crearButtonEmpresa() {
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-
     }
 }

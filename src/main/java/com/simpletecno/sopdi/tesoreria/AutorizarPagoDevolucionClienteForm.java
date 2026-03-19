@@ -28,8 +28,6 @@ public class AutorizarPagoDevolucionClienteForm extends Window {
 
     VerticalLayout mainLayout;
 
-    ComboBox empresaCbx;
-
     Button salirBtn;
     Button autorizarBtn;
 
@@ -63,6 +61,9 @@ public class AutorizarPagoDevolucionClienteForm extends Window {
     double totalDebeQuetzales = 0.00, totalHaberQueztales = 0.00;
     double saldo = 0.00;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public AutorizarPagoDevolucionClienteForm() {
         this.mainUI = UI.getCurrent();
         setResponsive(true);
@@ -79,23 +80,13 @@ public class AutorizarPagoDevolucionClienteForm extends Window {
         layoutTitle.setSpacing(true);
         layoutTitle.setMargin(new MarginInfo(true, true, false, true));
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-
         Label titleLbl = new Label("");
-        titleLbl.setValue(AutorizacionesPagoView.DEVOLUCION_CLIENTE);
+        titleLbl.setValue(empresaId + " " + empresaNombre + " " + AutorizacionesPagoView.DEVOLUCION_CLIENTE);
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
 
-        layoutTitle.addComponents(empresaCbx, titleLbl);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
+        layoutTitle.addComponents(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.MIDDLE_RIGHT);
 
         mainLayout.addComponent(layoutTitle);
@@ -104,29 +95,6 @@ public class AutorizarPagoDevolucionClienteForm extends Window {
         createTablaDevolucionesCliente();
         llenarTablaDevolucionesCliente();
         crearComponentes();
-    }
-
-    public void llenarComboEmpresa() {
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void createTablaDevolucionesCliente() {
@@ -360,18 +328,20 @@ public class AutorizarPagoDevolucionClienteForm extends Window {
         totalHaberQueztales = 0.00;
         saldo = 0.00;
 
-        queryString = "  SELECT contabilidad_partida.MonedaDocumento, contabilidad_nomenclatura.N5, contabilidad_partida.IdNomenclatura, ";
-        queryString += " contabilidad_partida.CodigoCC, proveedor.IdProveedor, proveedor.Nombre, ";
+        queryString = "  SELECT contabilidad_partida.MonedaDocumento, contabilidad_nomenclatura_empresa.N5, contabilidad_partida.IdNomenclatura, ";
+        queryString += " contabilidad_partida.CodigoCC, proveedor_empresa.IdProveedor, proveedor_empresa.Nombre, ";
         queryString += " SUM(contabilidad_partida.Debe) SUMDEBE, SUM(contabilidad_partida.Haber) SUMHABER,";
         queryString += " SUM(contabilidad_partida.DebeQuetzales) SUMDEBEQ, SUM(contabilidad_partida.HaberQuetzales) SUMHABERQ ";
         queryString += " FROM contabilidad_partida";
-        queryString += " INNER JOIN proveedor on contabilidad_partida.IdProveedor = proveedor.IDProveedor ";
-        queryString += " INNER JOIN contabilidad_nomenclatura on contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
-        queryString += " WHERE contabilidad_partida.IdEmpresa =" + empresaCbx.getValue();
+        queryString += " INNER JOIN proveedor_empresa on contabilidad_partida.IdProveedor = proveedor_empresa.IDProveedor ";
+        queryString += " INNER JOIN contabilidad_nomenclatura_empresa on contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+        queryString += " WHERE contabilidad_partida.IdEmpresa =" + empresaId;
         queryString += " AND contabilidad_partida.Fecha >= '2019-01-01'";
-        queryString += " AND contabilidad_partida.CodigoCC Not In (Select autorizacion_pago.CodigoCC from autorizacion_pago)";
+        queryString += " AND contabilidad_partida.CodigoCC NOT IN (SELECT autorizacion_pago.CodigoCC FROM autorizacion_pago)";
         queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
         queryString += " AND contabilidad_partida.IdNomenclatura In (" + ((SopdiUI) mainUI).cuentasContablesDefault.getEnganches() + "," + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposClientes() + ")";
+        queryString += " AND contabildiad_nomenclatura_empresa.IdEmpresa = " + empresaId;
+        queryString += " ANd proveedor_empresa.IdEmpresa = " + empresaId;
         queryString += " GROUP BY contabilidad_partida.MonedaDocumento, contabilidad_partida.IdNomenclatura, contabilidad_partida.CodigoCC, proveedor.IdProveedor ";
         queryString += " ORDER BY contabilidad_partida.Fecha desc";
 
@@ -388,7 +358,7 @@ public class AutorizarPagoDevolucionClienteForm extends Window {
                     queryString = " SELECT ";
                     queryString += " SUM(HABER - DEBE) TOTALSALDO, SUM(HaberQuetzales - DebeQuetzales) TOTALSALDOQ ";
                     queryString += " FROM contabilidad_partida";
-                    queryString += " WHERE IdEmpresa = " + empresaCbx.getValue();
+                    queryString += " WHERE IdEmpresa = " + empresaId;
                     queryString += " AND CodigoCC = '" + rsRecords.getString("CodigoCC") + "'";
                     queryString += " AND Estatus <> 'ANULADO'";
                     queryString += " and IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
@@ -497,7 +467,7 @@ public class AutorizarPagoDevolucionClienteForm extends Window {
             queryString += " Values ";
             queryString += "(";
             queryString += "'" + AutorizacionesPagoView.DEVOLUCION_CLIENTE + "'";
-            queryString += "," + String.valueOf(empresaCbx.getValue());
+            queryString += "," + empresaId;
             queryString += "," + proveedorId;
             queryString += ",current_date";
             queryString += ",'" + clienteGrid.getContainerDataSource().getItem(gridItem).getItemProperty(MONEDA).getValue() + "'";

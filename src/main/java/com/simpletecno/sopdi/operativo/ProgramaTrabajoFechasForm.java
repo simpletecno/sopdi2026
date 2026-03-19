@@ -120,7 +120,6 @@ public class ProgramaTrabajoFechasForm extends  Window {
         grupoTrabajoForm = new FormLayout();
         grupoTrabajoForm.setMargin(marginInfo);
         grupoTrabajoForm.setSpacing(true);
-//        grupoTrabajoForm.addStyleName(ValoTheme.FORMLAYOUT_LIGHT);
         grupoTrabajoForm.setWidth("100%");
 
         fechaRealInicioDt = new DateField("Fecha real inicio " + (esSupervisor ? "según Supervidor" : "según Maestro") );
@@ -251,16 +250,6 @@ public class ProgramaTrabajoFechasForm extends  Window {
 
             stQuery.executeUpdate(queryString);
 
-            if(esInicio) {
-               //((ProgramaTrabajoCheckView) (mainUI.getNavigator().getCurrentView())).idexContainer.getContainerProperty(((ProgramaTrabajoCheckView) (mainUI.getNavigator().getCurrentView())).idexGrid.getSelectedRow(), ProgramaTrabajoCheckView.S_INICIO_PROPERTY).setValue(Utileria.getFechaDDMMYYYY(fechaRealInicioDt.getValue()));
-               //((ProgramaTrabajoCheckView) (mainUI.getNavigator().getCurrentView())).idexContainer.getContainerProperty(((ProgramaTrabajoCheckView) (mainUI.getNavigator().getCurrentView())).idexGrid.getSelectedRow(), ProgramaTrabajoCheckView.M_INICIO_PROPERTY).setValue(Utileria.getFechaDDMMYYYY(fechaRealInicioDt.getValue()));
-            }
-            else { // es final
-               // ((ProgramaTrabajoCheckView) (mainUI.getNavigator().getCurrentView())).idexContainer.getContainerProperty(((ProgramaTrabajoCheckView) (mainUI.getNavigator().getCurrentView())).idexGrid.getSelectedRow(), ProgramaTrabajoCheckView.S_FIN_PROPERTY).setValue(Utileria.getFechaDDMMYYYY(fechaRealFinDt.getValue()));
-                //((ProgramaTrabajoCheckView) (mainUI.getNavigator().getCurrentView())).idexContainer.getContainerProperty(((ProgramaTrabajoCheckView) (mainUI.getNavigator().getCurrentView())).idexGrid.getSelectedRow(), ProgramaTrabajoCheckView.M_FIN_PROPERTY).setValue(Utileria.getFechaDDMMYYYY(fechaRealFinDt.getValue()));
-            }
-
-
             Notification.show("NUEVAS FECHAS ACEPTADAS!", Notification.Type.HUMANIZED_MESSAGE);
 
             close();
@@ -275,7 +264,7 @@ public class ProgramaTrabajoFechasForm extends  Window {
     private void llenarRazonAtraso(Boolean mismaFecha){
 
         String queryString;
-        ResultSet rsRecords = null;
+        ResultSet rsRecords;
         String primero = "";
 
         razonCbx.setWidth("100%");

@@ -37,6 +37,9 @@ public class CuentasBancosForm extends Window {
     Button guardarBtn;
     Button salirBtn;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public CuentasBancosForm(String tipoTransaccion, String idCuentaBancoEdit) {
         this.mainUI = UI.getCurrent();
         this.tipoTransaccion = tipoTransaccion;
@@ -55,7 +58,7 @@ public class CuentasBancosForm extends Window {
         titleLayout.setResponsive(true);
         titleLayout.setWidth("100%");
 
-        Label titleLbl = new Label("ASIGNACION DE CUENTAS BANCO A " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName().toUpperCase());
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " ASIGNACION DE CUENTAS BANCO A " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName().toUpperCase());
         titleLbl.addStyleName(Runo.LABEL_H2);
         titleLbl.setSizeUndefined();
 
@@ -163,8 +166,9 @@ public class CuentasBancosForm extends Window {
     }
     
     public void llenarComboProveedor() {
-        queryString = " SELECT * FROM proveedor ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE EsBanco = 1";
+        queryString += " AND IdEmpresa = " + empresaId;
         queryString += " ORDER BY Nombre";
 
         try {
@@ -184,8 +188,9 @@ public class CuentasBancosForm extends Window {
     }
 
     public void llenarComboNomenclatura() {
-        queryString = " SELECT * FROM contabilidad_nomenclatura ";
+        queryString = " SELECT * FROM contabilidad_nomenclatura_empresa ";
         queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " AND EmpresaId = '" + empresaId + "'";
         queryString += " ORDER BY N5";
 
         try {
@@ -247,9 +252,9 @@ public class CuentasBancosForm extends Window {
 
             if (tipoTransaccion.equals("0")) {
 
-                queryString = "Insert Into contabilidad_cuentas_bancos ";
+                queryString = "INSERT INTO contabilidad_cuentas_bancos ";
                 queryString += "(IdEmpresa, IdNomenclatura, IdProveedor, NoCuenta, Moneda)";
-                queryString += " Values ";
+                queryString += " VALUES ";
                 queryString += "(" + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
                 queryString += "," + cuentaContableCbx.getValue();
                 queryString += "," + proveedorCbx.getValue();
@@ -264,7 +269,7 @@ public class CuentasBancosForm extends Window {
                 queryString += ", IdProveedor = " + proveedorCbx.getValue();
                 queryString += ", NoCuenta = '" +noCuentaTxt.getValue() + "'";                
                 queryString += ", Moneda = '" + monedaCbx.getValue() +"'";                
-                queryString += " Where IdCuentasBanco = " +  idCuentaBancoEdit;
+                queryString += " WHERE IdCuentasBanco = " +  idCuentaBancoEdit;
                             
             }
 

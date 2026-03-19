@@ -68,8 +68,6 @@ public class AutorizarPagoPlanillaForm extends Window {
     static final String SALDO2 = "Saldo";
     static final String UTILIZAR_PROPERTY = "Utilizar";
 
-    ComboBox empresaCbx;
-
     IndexedContainer planillaContainer = new IndexedContainer();
     Grid planillaGrid;
     Grid.FooterRow planillaFooter;
@@ -88,12 +86,15 @@ public class AutorizarPagoPlanillaForm extends Window {
 
     UI mainUI;
     Statement stQuery, stQuery1, stQueryPlanillas;
-    ResultSet rsRecords, rsRecords1, rsRecordsPlanillas;
+    ResultSet  rsRecords1, rsRecordsPlanillas;
 
     String queryString;
     String codigoPartidaPlanilla = "";
 
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public AutorizarPagoPlanillaForm() {
         mainLayout = new VerticalLayout();
@@ -112,22 +113,10 @@ public class AutorizarPagoPlanillaForm extends Window {
         setWidth("90%");
         setHeight("90%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-
-        Label titleLbl = new Label("AUTORIZAR PAGO DE PLANILLA");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " AUTORIZAR PAGO DE PLANILLA");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -140,29 +129,6 @@ public class AutorizarPagoPlanillaForm extends Window {
 
         crearGridAnticipos();
 
-    }
-
-    public void llenarComboEmpresa() {
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords1.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords1.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords1.getString("IdEmpresa"), rsRecords1.getString("Empresa"));
-            }
-            rsRecords1.first();
-
-            empresaCbx.select(rsRecords1.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void crearGridPlanilla() {
@@ -295,19 +261,19 @@ public class AutorizarPagoPlanillaForm extends Window {
 
         double totalMonto = 0.00;
 
-        queryString = " Select CodigoPartida, IdPartida, Fecha, SerieDocumento, NumeroDocumento, IdProveedor, ";
+        queryString = " SELECT CodigoPartida, IdPartida, Fecha, SerieDocumento, NumeroDocumento, IdProveedor, ";
         queryString += " IdNomenclatura, NombreProveedor, MonedaDocumento ,Sum(Haber) Pagar, CodigoPartida, CodigoCC, ";
         queryString += " Saldo, MontoAutorizadoPagar, MontoAplicarAnticipo";
-        queryString += " From contabilidad_partida ";
-        queryString += " Where UPPER(contabilidad_partida.TipoDocumento) = 'PLANILLA' ";
-        queryString += " And IdProveedor > 0 ";
-        queryString += " And Estatus <> 'ANULADO' ";
-        queryString += " And IdEmpresa = " + empresaCbx.getValue();
-        queryString += " And IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getSueldosPorPagar();
-        queryString += " And Saldo > 0";
+        queryString += " FROM contabilidad_partida ";
+        queryString += " WHERE UPPER(contabilidad_partida.TipoDocumento) = 'PLANILLA' ";
+        queryString += " AND IdProveedor > 0 ";
+        queryString += " AND Estatus <> 'ANULADO' ";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getSueldosPorPagar();
+        queryString += " AND Saldo > 0";
 //        queryString += " And EXTRACT(YEAR FROM Fecha) >= EXTRACT(YEAR FROM current_date)";
-        queryString += " And CodigoCC Not In (select codigoCc from autorizacion_pago)";
-        queryString += " Group By IdProveedor, SerieDocumento, NumeroDocumento ";
+        queryString += " AND CodigoCC NOT IN (SELECT codigoCc FROM autorizacion_pago)";
+        queryString += " GROUP BY IdProveedor, SerieDocumento, NumeroDocumento ";
 
         try {
             stQueryPlanillas = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -320,7 +286,7 @@ public class AutorizarPagoPlanillaForm extends Window {
                     queryString = " SELECT SUM(HABER - DEBE) TOTALSALDO, ";
                     queryString += " SUM(HaberQuetzales - DebeQuetzales) TOTALSALDOQ ";
                     queryString += " FROM contabilidad_partida";
-                    queryString += " WHERE IdEmpresa = " + empresaCbx.getValue();
+                    queryString += " WHERE IdEmpresa = " + empresaId;
                     queryString += " AND CodigoCC = '" + rsRecordsPlanillas.getString("CodigoCC") + "'";
                     queryString += " AND contabilidad_partida.IdNomenclatura = " + rsRecordsPlanillas.getString("IdNomenclatura");
                     queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
@@ -616,18 +582,18 @@ public class AutorizarPagoPlanillaForm extends Window {
         String proveedorSeleccionado = String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue());
         String tipoMonedaSeleccionado = String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), MONEDA_PROPERTY).getValue());
 
-        queryString = " select contabilidad_partida.IdPartida, contabilidad_partida.CodigoPartida, contabilidad_partida.Fecha,";
+        queryString = " SELECT contabilidad_partida.IdPartida, contabilidad_partida.CodigoPartida, contabilidad_partida.Fecha,";
         queryString += " contabilidad_partida.TipoDocumento,contabilidad_partida.NumeroDocumento, ";
         queryString += " contabilidad_partida.Descripcion,contabilidad_partida.MonedaDocumento,";
         queryString += " contabilidad_partida.Debe, contabilidad_partida.Haber,contabilidad_partida.TipoCambio,";
         queryString += " contabilidad_partida.DebeQuetzales, contabilidad_partida.HaberQuetzales, contabilidad_partida.Saldo";
-        queryString += " from contabilidad_partida";
-        queryString += " where contabilidad_partida.IdProveedor = " + proveedorSeleccionado;
-        queryString += " and contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
-        queryString += " and contabilidad_partida.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposSueldos();
-        queryString += " and contabilidad_partida.TipoDocumento In ('CHEQUE', 'TRANSFERENCIA', 'NOTA DE CREDITO')";
-        queryString += " and contabilidad_partida.MonedaDocumento = '" + tipoMonedaSeleccionado + "'";
-        queryString += " and contabilidad_partida.Saldo > 0.00";
+        queryString += " FROM contabilidad_partida";
+        queryString += " WHERE contabilidad_partida.IdProveedor = " + proveedorSeleccionado;
+        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
+        queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposSueldos();
+        queryString += " AND contabilidad_partida.TipoDocumento In ('CHEQUE', 'TRANSFERENCIA', 'NOTA DE CREDITO')";
+        queryString += " AND contabilidad_partida.MonedaDocumento = '" + tipoMonedaSeleccionado + "'";
+        queryString += " AND contabilidad_partida.Saldo > 0.00";
 
         try {
             stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -678,24 +644,24 @@ public class AutorizarPagoPlanillaForm extends Window {
 
             montoAplicarAnticipo = totalUtilizarAnticiposTxt.getDoubleValueDoNotThrow() + Double.valueOf(String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), ANTICIPO_PROPERTY).getValue()).replaceAll("Q.", "").replaceAll("\\$.", "").replaceAll(",", ""));
 
-            queryString = "Update contabilidad_partida Set ";
+            queryString = "UPDATE contabilidad_partida SET ";
             queryString += " MontoAutorizadoPagar = " + montoAuotizadoPagar;
             queryString += ", MontoAplicarAnticipo = " + montoAplicarAnticipo;
             //           queryString += ", Saldo = " + nuevoSaldo;
-            queryString += " Where CodigoPartida = '" + String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
-            queryString += " and IdEmpresa = " + String.valueOf(empresaCbx.getValue());
+            queryString += " WHERE CodigoPartida = '" + String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
+            queryString += " AND IdEmpresa = " + empresaId;
 
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();stQuery.executeUpdate(queryString);
 
-            queryString = "  Insert Into autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
+            queryString = "  INSERT INTO autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
             queryString += " Fecha, Moneda, Monto, CodigoCC, CodigoCCRelacionado, CuentaContableLiquidar, ";
             queryString += " Objetivo, CreadoUsuario, CreadoFechaYHora)";
-            queryString += " Values ";
+            queryString += " VALUES ";
             queryString += "(";
             queryString += "'" + AutorizacionesPagoView.PAGO_PLANILLA + "'";
-            queryString += "," + String.valueOf(empresaCbx.getValue());
+            queryString += "," + empresaId;
             queryString += "," + String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue());
             queryString += ",current_date";
             queryString += ",'QUETZALES'";
@@ -745,19 +711,19 @@ public class AutorizarPagoPlanillaForm extends Window {
                 if (montoUtilizarVariable > 0) {
 
                     try {
-                        queryString = " Delete From autorizacion_pago ";
-                        queryString += " Where CodigoCCRelacionado = '" + codigoCCAnticipo + "'";
-                        queryString += " And   CodigoCC = '" + codigoCC + "'";
+                        queryString = " DELETE FROM autorizacion_pago ";
+                        queryString += " WHERE CodigoCCRelacionado = '" + codigoCCAnticipo + "'";
+                        queryString += " AND   CodigoCC = '" + codigoCC + "'";
 
                         stQuery.executeUpdate(queryString);
 
-                        queryString = "  Insert Into autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
+                        queryString = "  INSERT INTO autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
                         queryString += " Fecha, Moneda, Monto, CodigoCC, CodigoCCRelacionado, CuentaContableLiquidar, ";
                         queryString += " Objetivo, CreadoUsuario, CreadoFechaYHora)";
-                        queryString += " Values ";
+                        queryString += " VALUES ";
                         queryString += "(";
                         queryString += "'" + AutorizacionesPagoView.PAGO_DOCUMENTO + "'";
-                        queryString += "," + String.valueOf(empresaCbx.getValue());
+                        queryString += "," + empresaId;
                         queryString += "," + proveedorSeleccionado;
                         queryString += ",current_date";
                         queryString += ",'" + moneda + "'";

@@ -46,7 +46,6 @@ import org.vaadin.dialogs.ConfirmDialog;
 public class IngresoDocumentosVisitaInspeccion extends Window {
 
     MultiFileUpload singleUpload;
-    Image logoImage;
     public File file;
     StreamResource logoStreamResource = null;
     String parametro1, parametro2;
@@ -58,9 +57,6 @@ public class IngresoDocumentosVisitaInspeccion extends Window {
     ResultSet rsRecords;
     String queryString;
     static PreparedStatement stPreparedQuery;
-
-    static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
-    static DecimalFormat numberFormat2 = new DecimalFormat("#,###,##0");
 
     public IndexedContainer documentsContainer = new IndexedContainer();
     static final String ID_PROPERTY = "Id";
@@ -214,9 +210,9 @@ public class IngresoDocumentosVisitaInspeccion extends Window {
     public void llenarTabla() {
         String queryString = "";
 
-        queryString = "Select *";
-        queryString += " From visita_inspeccion_documento ";
-        queryString += " Where IdVisitaInspeccion = " + codigoVisita;
+        queryString = "SELECT *";
+        queryString += " FROM visita_inspeccion_documento ";
+        queryString += " WHERE IdVisitaInspeccion = " + codigoVisita;
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -289,9 +285,6 @@ public class IngresoDocumentosVisitaInspeccion extends Window {
             documentStreamResource.setFilename(archivoNombre);
             documentStreamResource.getStream().setParameter("Content-Disposition", "attachment; filename=" + fileName);
 
-//            System.out.println("Tipo de Archivo : " + rsRecords.getString("ArchivoTipo"));
-//            System.out.println("Archivo Nombre :" + rsRecords.getString("ArchivoNombre"));
-//            System.out.println("Tamanio :" + rsRecords.getString("ArchivoPeso"));
             if (archivoTipo.contains("pdf")) {
                 window.setWidth("98%");
                 window.setHeight("98%");
@@ -516,8 +509,8 @@ public class IngresoDocumentosVisitaInspeccion extends Window {
                 public void onClose(ConfirmDialog dialog) {
                     if (dialog.isConfirmed()) {
 
-                        queryString = "Delete from visita_inspeccion_documento";
-                        queryString += " where IdVisitaDocumento = " + String.valueOf(documentsContainer.getContainerProperty(e.getItemId(), ID_PROPERTY).getValue());
+                        queryString = "DELETE FROM visita_inspeccion_documento";
+                        queryString += " WHERE IdVisitaDocumento = " + String.valueOf(documentsContainer.getContainerProperty(e.getItemId(), ID_PROPERTY).getValue());
                         ///queryString += " and IdEmpresa = " + empresa;
 
                         try {
@@ -545,7 +538,7 @@ public class IngresoDocumentosVisitaInspeccion extends Window {
 
         try {
 
-            queryString = " Insert into visita_inspeccion_documento(IdVisitaInspeccion,ArchivoTipo,";
+            queryString = " INSERT INTO visita_inspeccion_documento(IdVisitaInspeccion,ArchivoTipo,";
             queryString += " ArchivoNombre,ArchivoPeso)";
             queryString += " VALUES( ";
             queryString += codigoVisita;
@@ -570,7 +563,7 @@ public class IngresoDocumentosVisitaInspeccion extends Window {
 
         try {
 
-            queryString = " Insert into visita_inspeccion_documento(IdVisitaInspeccion,ArchivoTipo,";
+            queryString = " INSERT INTO visita_inspeccion_documento(IdVisitaInspeccion,ArchivoTipo,";
             queryString += " ArchivoNombre,ArchivoPeso)";
             queryString += " VALUES( ";
             queryString += codigoVisita;

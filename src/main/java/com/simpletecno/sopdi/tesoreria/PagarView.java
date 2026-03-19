@@ -31,9 +31,6 @@ import java.util.logging.Logger;
  */
 public class PagarView extends VerticalLayout implements View {
 
-    ComboBox empresaCbx;
-    String empresa;
-
     UI mainUI;
 
     Statement stQuery;
@@ -60,25 +57,17 @@ public class PagarView extends VerticalLayout implements View {
 
     public static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public PagarView() {
 
         this.mainUI = UI.getCurrent();
         setWidth("100%");
         setSpacing(true);
         setMargin(false);
-        // mainUI.setTheme("myTheme");
 
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-
-        llenarComboEmpresa();
-
-        Label titleLbl = new Label("PAGAR");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " PAGAR");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -97,16 +86,13 @@ public class PagarView extends VerticalLayout implements View {
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(true);
-        titleLayout.addComponents(empresaCbx, titleLbl,  fechaDt);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.BOTTOM_CENTER);
+        titleLayout.addComponents(titleLbl, fechaDt);
         titleLayout.setComponentAlignment(fechaDt, Alignment.BOTTOM_CENTER);
         titleLayout.setComponentAlignment(titleLbl, Alignment.BOTTOM_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
         addComponent(titleLayout);
         setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
-        empresa = String.valueOf(empresaCbx.getValue());
 
         crearGridDocumentos();
 
@@ -143,28 +129,6 @@ public class PagarView extends VerticalLayout implements View {
         setComponentAlignment(instruccionesLayout, Alignment.BOTTOM_CENTER);
 
         llenarTablaAutorizaciones();
-    }
-
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void crearGridDocumentos() {
@@ -250,11 +214,11 @@ public class PagarView extends VerticalLayout implements View {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        String codigoPartidaPago = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "3";
+        String codigoPartidaPago = empresaId + año + mes + dia + "3";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + codigoPartidaPago + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = "SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida LIKE '" + codigoPartidaPago + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
 
@@ -286,11 +250,11 @@ public class PagarView extends VerticalLayout implements View {
         queryString += " FROM autorizacion_pago";
         queryString += " INNER JOIN contabilidad_partida ON contabilidad_partida.CodigoCC = autorizacion_pago.CodigoCCRelacionado";
         queryString += " WHERE autorizacion_pago.idProveedor = " + idProveedorCliente;
-        queryString += " AND autorizacion_pago.IdEmpresa = " + empresaCbx.getValue();
+        queryString += " AND autorizacion_pago.IdEmpresa = " + empresaId;
         queryString += " AND autorizacion_pago.CodigoCC = '" + codigoCC + "'";
         queryString += " AND autorizacion_pago.CodigoCCRelacionado <> ''";
         queryString += " AND contabilidad_partida.idProveedor = " + idProveedorCliente;
-        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
+        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
 //        queryString += " AND contabilidad_partida.IdNomenclatura In (" + ((SopdiUI) mainUI).cuentasContablesDefault.getProveedores() + "," + ((SopdiUI) mainUI).cuentasContablesDefault.getInstituciones() + "," + ((SopdiUI) mainUI).cuentasContablesDefault.getAbastos() + ")"; //SOLO LA LINEA DE FACTURA O ABASTO
         queryString += " AND contabilidad_partida.IdNomenclatura = " +  ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposProveedor();
         queryString += " AND contabilidad_partida.Debe > 0"; //JA 2023-04-20
@@ -309,18 +273,18 @@ public class PagarView extends VerticalLayout implements View {
 
                 descripcion += " " + nombreProveedor + " " + rsRecords.getString("SerieDocumento") + " " + rsRecords.getString("NumeroDocumento");
 
-                queryString  = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
+                queryString  = "INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
                 queryString += " TipoDocumento, Fecha, idProveedor, NITProveedor, ";
                 queryString += " NombreProveedor, NombreCheque, MontoDocumento, SerieDocumento, NumeroDocumento, ";
                 queryString += " IdNomenclatura, MonedaDocumento, Debe, Haber,";
                 queryString += " DebeQuetzales, HaberQuetzales, TipoCambio,";
                 queryString += " Descripcion, CreadoUsuario, CreadoFechaYHora)";
-                queryString += " Values ";
+                queryString += " VALUES ";
 
                 do { // PUEDEN HABER VARIOS ANTICIPOS PARA PAGAR ESTE DOCUMENTO
 
                     queryString += " (";
-                    queryString += String.valueOf(empresaCbx.getValue());
+                    queryString += empresaId;
                     queryString += ",'INGRESADO'";
                     queryString += ",'" + codigoPartidaPago + "'";
                     queryString += ",'" + rsRecords.getString("CodigoCCRelacionado") + "'";
@@ -352,7 +316,7 @@ public class PagarView extends VerticalLayout implements View {
 
                 //INSERTANDO LINEA DE FACTURA O ABASTO
                 queryString += " (";
-                queryString += String.valueOf(empresaCbx.getValue());
+                queryString += empresaId;
                 queryString += ",'INGRESADO'";
                 queryString += ",'" + codigoPartidaPago + "'";
                 queryString += ",'" + codigoCC + "'";
@@ -368,7 +332,7 @@ public class PagarView extends VerticalLayout implements View {
 
 //                queryString += ",76"; // proveedores locales
 
-                if(codigoCC.equals(String.valueOf(empresaCbx.getValue()) + "20210401000")) {
+                if(codigoCC.equals(empresaId + "20210401000")) {
                     queryString += "," + ((SopdiUI) mainUI).cuentasContablesDefault.getAbastos(); // abastos
                 }
                 else {
@@ -392,7 +356,7 @@ public class PagarView extends VerticalLayout implements View {
 
                 stQuery.executeUpdate(queryString);
 
-                queryString = " Update contabilidad_partida Set ";
+                queryString = "UPDATE contabilidad_partida SET ";
                 queryString += " MontoAutorizadoPagar = 0.00";
                 queryString += ", MontoAplicarAnticipo = 0.00";
                 queryString += ",Estatus = 'PAGADO'";
@@ -413,7 +377,7 @@ public class PagarView extends VerticalLayout implements View {
 
                     if (rsRecords.next()) { //  encontrado
                         if (rsRecords.getDouble("TotalDebeQ") != rsRecords.getDouble("TotalHaberQ")) { //si hay diferencial cambiario
-                            queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
+                            queryString = "INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
                             queryString += " TipoDocumento, Fecha, idProveedor, NITProveedor, ";
                             queryString += " NombreProveedor, NombreCheque, MontoDocumento, SerieDocumento, NumeroDocumento, ";
                             queryString += " IdNomenclatura, MonedaDocumento, Debe, Haber,";
@@ -422,7 +386,7 @@ public class PagarView extends VerticalLayout implements View {
                             queryString += " Values ";
 
                             queryString += " (";
-                            queryString += String.valueOf(empresaCbx.getValue());
+                            queryString += empresaId;
                             queryString += ",'INGRESADO'";
                             queryString += ",'" + codigoPartidaPago + "'";
                             queryString += ",''";
@@ -608,11 +572,12 @@ public class PagarView extends VerticalLayout implements View {
 
         queryString = " SELECT autorizacion_pago.*, proveedor.Nombre";
         queryString += " FROM autorizacion_pago ";
-        queryString += " INNER JOIN  proveedor ON autorizacion_pago.idProveedor = proveedor.idProveedor";
-        queryString += " AND autorizacion_pago.IdEmpresa = " + String.valueOf(empresaCbx.getValue());
+        queryString += " INNER JOIN  proveedor_empresa ON autorizacion_pago.idProveedor = proveedor_empresa.idProveedor";
+        queryString += " AND autorizacion_pago.IdEmpresa = " + empresaId;
         queryString += " AND (autorizacion_pago.CodigoCCRelacionado = '' || autorizacion_pago.CodigoCCRelacionado = '0')";
+        queryString += " ANd proveedor_empresa.IdEmpresa = " + empresaId;
         queryString += " GROUP BY CodigoCC, idProveedor";
-        queryString += " Order By autorizacion_pago.idProveedor, autorizacion_pago.Fecha ASC";
+        queryString += " ORDER BY autorizacion_pago.idProveedor, autorizacion_pago.Fecha ASC";
 
 //System.out.println("Query llenarAutorizacion" + queryString);
 

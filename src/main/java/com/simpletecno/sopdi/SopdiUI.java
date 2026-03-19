@@ -3,7 +3,7 @@ package com.simpletecno.sopdi;
 import com.simpletecno.sopdi.configuracion.CuentasContablesDefault;
 import com.simpletecno.sopdi.configuracion.EnvironmentVars;
 import com.simpletecno.sopdi.seguridad.*;
-import com.simpletecno.sopdi.compras.ProveedoresInstitucionales;
+import com.simpletecno.sopdi.configuracion.ProveedoresInstitucionales;
 import com.simpletecno.sopdi.seguridad.LoginForm;
 import com.simpletecno.sopdi.utilerias.FontAwesomeUtil;
 import com.simpletecno.sopdi.utilerias.MyEmailMessanger;
@@ -16,8 +16,6 @@ import javax.servlet.annotation.WebServlet;
 import com.vaadin.navigator.Navigator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
-import com.vaadin.server.ExternalResource;
-import com.vaadin.server.FileResource;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Responsive;
@@ -31,7 +29,6 @@ import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -40,7 +37,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.mail.MessagingException;
@@ -80,7 +76,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
     Statement stQuery = null;
     ResultSet rsRecords = null;
 
-    Tree mainMenu = new Tree();
+    Tree treeMainMenu = new Tree();
 
     public MenuBar userSettings;
     private MenuBar.MenuItem userSettingsItem;
@@ -94,12 +90,13 @@ public class SopdiUI extends UI implements Button.ClickListener {
     public EnvironmentVars enviromentsVars = new EnvironmentVars();
     InfoVariable result;
 
-    private MenuLayout root = new MenuLayout();
-    ComponentContainer viewDisplay = root.getContentContainer();
-    CssLayout menu = new CssLayout();
+    private MenuLayout appLayout = new MenuLayout();
+
+    ComponentContainer viewDisplay = appLayout.getContentContainer();
+    CssLayout mainMenuLayout = new CssLayout();
     private CssLayout menuItemsLayout = new CssLayout();
     {
-        menu.setId("testMenu");
+        mainMenuLayout.setId("testMenu");
     }
     private Navigator navigator;
     private LinkedHashMap<String, String> menuItems = new LinkedHashMap<String, String>();
@@ -117,8 +114,8 @@ public class SopdiUI extends UI implements Button.ClickListener {
         return menuItems;
     }
 
-    public MenuLayout getRoot() {
-        return root;
+    public MenuLayout getAppLayout() {
+        return appLayout;
     }
 
     public MenuBar.MenuItem getUserSettingsItem() {
@@ -141,6 +138,8 @@ public class SopdiUI extends UI implements Button.ClickListener {
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
+
+        setSizeFull();
 
         getPage().setTitle("SOPDI v 4.0.0");
 
@@ -166,7 +165,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
         }
         if (getPage().getWebBrowser().isIE()
                 && getPage().getWebBrowser().getBrowserMajorVersion() == 9) {
-            menu.setWidth("320px");
+            mainMenuLayout.setWidth("320px");
         }
         if (!testMode) {
             Responsive.makeResponsive(this);
@@ -182,16 +181,16 @@ public class SopdiUI extends UI implements Button.ClickListener {
         }
         addStyleName(ValoTheme.UI_WITH_MENU);
 
-        mainMenu.addValueChangeListener(event -> { // Java 8
+        treeMainMenu.addValueChangeListener(event -> { // Java 8
             if (event.getProperty() != null &&
                     event.getProperty().getValue() != null) {
-                if(mainMenu.getParent(event.getProperty().getValue()) != null) {
+                if(treeMainMenu.getParent(event.getProperty().getValue()) != null) {
                     getNavigator().navigateTo(event.getProperty().getValue().toString());
                 }
             }
         });
 
-        getMenuItemsLayout().addComponent(mainMenu);
+        getMenuItemsLayout().addComponent(treeMainMenu);
 
         buildLoginView();
     }
@@ -237,7 +236,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
             queryString += " INNER JOIN empresa Emp On Emp.IdEmpresa = Usr.IdEmpresa ";// And Upper(Emp.Alias) = '" + loginView.farmName.getValue().trim().toUpperCase() + "'";
             queryString += " LEFT  JOIN proveedor_empresa Prv On Usr.IdUsuario = Prv.IdUsuario";
             queryString += " WHERE Upper(Usr.Usuario)  = '" + userName.toUpperCase() + "'";
-            queryString += " AND Prv.IdEmpresa = " + sessionInformation.getStrCompanyId() + " ";
+//            queryString += " AND Prv.IdEmpresa = " + sessionInformation.getStrCompanyId() + " ";
             if (databaseProvider.getUsedDBDataSource().equals("MYSQL")) {
                 queryString += " AND  Usr.Clave    = Sha1('" + passWord + "')";
             } else {
@@ -470,7 +469,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
 
         if (getPage().getWebBrowser().isIE()
                 && getPage().getWebBrowser().getBrowserMajorVersion() == 9) {
-            menu.setWidth("320px");
+            mainMenuLayout.setWidth("320px");
         }
 
         if (!testMode) {
@@ -514,6 +513,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
         }
 
         getNavigator().setErrorView(ErrorView.class);
+        getNavigator().setErrorView(AccessDeniedView.class);
 
         String f = Page.getCurrent().getUriFragment();
         if (f == null || f.equals("")) {
@@ -535,7 +535,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
                     it.next().removeStyleName("selected");
                 }
                 currentViewName = event.getViewName();
-//System.out.println("currentViewName=" + currentViewName) ;               
+//System.out.println("currentViewName=" + currentViewName) ;
                 /**
                  * for (Entry<String, String> item : menuItems.entrySet()) { if
                  * (event.getViewName().equals(item.getKey())) { for
@@ -560,13 +560,13 @@ public class SopdiUI extends UI implements Button.ClickListener {
                     }
                 }
 
-                menu.removeStyleName("valo-menu-visible");
+                mainMenuLayout.removeStyleName("valo-menu-visible");
             }
         });
 
-        setContent(root);
-        root.setWidth("100%");
-        root.addMenu(buildMenu());
+        setContent(appLayout);
+        appLayout.setWidth("100%");
+        appLayout.addMenu(buildMenu());
 
 //        fillCuentasContablesPorDefault();
 
@@ -609,15 +609,15 @@ public class SopdiUI extends UI implements Button.ClickListener {
         top.setWidth("100%");
         top.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
         top.addStyleName(ValoTheme.MENU_TITLE);
-        menu.addComponent(top);
+        mainMenuLayout.addComponent(top);
 
         Button showMenu = new Button("Menu", new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                if (menu.getStyleName().contains("valo-menu-visible")) {
-                    menu.removeStyleName("valo-menu-visible");
+                if (mainMenuLayout.getStyleName().contains("valo-menu-visible")) {
+                    mainMenuLayout.removeStyleName("valo-menu-visible");
                 } else {
-                    menu.addStyleName("valo-menu-visible");
+                    mainMenuLayout.addStyleName("valo-menu-visible");
                 }
             }
         });
@@ -626,7 +626,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
         showMenu.addStyleName(ValoTheme.BUTTON_SMALL);
         showMenu.addStyleName("valo-menu-toggle");
         showMenu.setIcon(FontAwesome.LIST);
-        menu.addComponent(showMenu);
+        mainMenuLayout.addComponent(showMenu);
 
         empresaProyecto = "<strong>" + sessionInformation.getStrAccountingCompanyName() + "<br></strong><strong>" + sessionInformation.getStrProjectName() + "</strong></br>";
 
@@ -697,7 +697,6 @@ public class SopdiUI extends UI implements Button.ClickListener {
             }
             if (selectedItem.getId() == 10) {
                 getNavigator().navigateTo("ErrorView");
-
 /*
                 String basePath = VaadinService.getCurrent()
                         .getBaseDirectory().getAbsolutePath();
@@ -745,10 +744,10 @@ public class SopdiUI extends UI implements Button.ClickListener {
         userSettingsItem.addItem("Ayuda", FontAwesome.BOOK, mycommand).setDescription("Ayuda del sistema."); //12
         userSettingsItem.addSeparator();
         userSettingsItem.addItem("Salir", FontAwesome.SIGN_OUT, mycommand).setDescription("Salir (logout) del sistema."); //10
-        menu.addComponent(settings);
+        mainMenuLayout.addComponent(settings);
 
         getMenuItemsLayout().setPrimaryStyleName("valo-menuitems");
-        menu.addComponent(getMenuItemsLayout());
+        mainMenuLayout.addComponent(getMenuItemsLayout());
 
         Label label = null;
         int count = -1;
@@ -762,9 +761,9 @@ public class SopdiUI extends UI implements Button.ClickListener {
                 label.addStyleName(ValoTheme.LABEL_H4);
                 label.setSizeUndefined();
                 //getMenuItemsLayout().addComponent(label);
-                mainMenu.addItem(item.getKey());
-                mainMenu.setItemCaption(item.getKey(), item.getValue());
-                mainMenu.setItemIcon(item.getKey(), iconItems.get(item.getKey()));
+                treeMainMenu.addItem(item.getKey());
+                treeMainMenu.setItemCaption(item.getKey(), item.getValue());
+                treeMainMenu.setItemIcon(item.getKey(), iconItems.get(item.getKey()));
                 parent = item.getKey();
            }
             else {
@@ -790,11 +789,11 @@ public class SopdiUI extends UI implements Button.ClickListener {
 //                b.setPrimaryStyleName(ValoTheme.MENU_ITEM);
 //                b.setIcon(iconItems.get(item.getKey()));
                 //getMenuItemsLayout().addComponent(b);
-                mainMenu.addItem(item.getKey());
-                mainMenu.setItemCaption(item.getKey(), item.getValue());
-                mainMenu.setChildrenAllowed(item.getKey(), false);
-                mainMenu.setParent(item.getKey(), parent);
-                mainMenu.setItemIcon(item.getKey(), iconItems.get(item.getKey()));
+                treeMainMenu.addItem(item.getKey());
+                treeMainMenu.setItemCaption(item.getKey(), item.getValue());
+                treeMainMenu.setChildrenAllowed(item.getKey(), false);
+                treeMainMenu.setParent(item.getKey(), parent);
+                treeMainMenu.setItemIcon(item.getKey(), iconItems.get(item.getKey()));
             }
             /**
              * if (item.getKey().equals("disponibles")) {
@@ -809,7 +808,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
             count++;
         }
 
-        return menu;
+        return mainMenuLayout;
     }
 
     @Override

@@ -39,6 +39,10 @@ Buenas prácticas del repo
 - Las carpetas `src/main/webapp/projectfiles/` y `src/main/webapp/pdfreceipts/` se han añadido al `.gitignore` y sus contenidos han sido removidos del índice (siguen presentes en tu copia local).
 - Para archivos binarios grandes considera usar Git LFS.
 
+Notas de la versión 4.0
+-----------------------
+Sopdi v4.0: mejoras en el menú, "misproveedores" y "mis empresas".
+
 Contribuciones
 --------------
 1. Crea una rama para tu funcionalidad: `git checkout -b feat/descripcion`.

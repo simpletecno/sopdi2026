@@ -33,7 +33,6 @@ import java.util.Date;
 public class IngresoDepositoVentaMonedaForm extends Window {
 
     static final String NIT_PROPERTY = "NIT";
-    static final String NOMBRESINCODIGO_PROPERTY = "NSC";
 
     UI mainUI;
     Statement stQuery;
@@ -42,7 +41,6 @@ public class IngresoDepositoVentaMonedaForm extends Window {
 
     VerticalLayout mainLayout;
     HorizontalLayout layoutTitle;
-    ComboBox empresaCbx;
     Label titleLbl;
 
     ComboBox tipoIngresoCbx;
@@ -82,6 +80,9 @@ public class IngresoDepositoVentaMonedaForm extends Window {
 
     String idDeposito;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public IngresoDepositoVentaMonedaForm(String idDeposito) {
 
         this.idDeposito = idDeposito;
@@ -100,22 +101,10 @@ public class IngresoDepositoVentaMonedaForm extends Window {
         layoutTitle.setMargin(true);
         layoutTitle.setWidth("100%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-
-        titleLbl = new Label("INGRESO A BANCOS VENTA DE MONEDA");
+        titleLbl = new Label(empresaId + " " + empresaNombre + " INGRESO A BANCOS VENTA DE MONEDA");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -546,29 +535,6 @@ public class IngresoDepositoVentaMonedaForm extends Window {
 
     }
 
-    public void llenarComboEmpresa() {
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     public void llenarComboProveedor() {
         queryString = " SELECT * from proveedor ";
         queryString += " WHERE Inhabilitado = 0 ";
@@ -596,9 +562,10 @@ public class IngresoDepositoVentaMonedaForm extends Window {
 
     public void llenarComboCuentaContable() {
 
-        queryString = " SELECT * from contabilidad_nomenclatura";
-        queryString += " where Estatus = 'HABILITADA'";
-        queryString += " Order By N5";
+        queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
+        queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY N5";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -642,13 +609,12 @@ public class IngresoDepositoVentaMonedaForm extends Window {
 
         this.proveedorCbx.setCaption("Proveedor");
         llenarComboProveedor();
-
     }
 
     public void llenarDatos() {
 
-        queryString = " select * from contabilidad_partida ";
-        queryString += " where codigoPartida = '" + idDeposito + "'";
+        queryString = "SELECT * FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida = '" + idDeposito + "'";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -666,7 +632,6 @@ public class IngresoDepositoVentaMonedaForm extends Window {
 
                     cuentaContable1Cbx.setValue(rsRecords.getString("IdNomenclatura"));
                     debe1Txt.setValue(rsRecords.getDouble("Debe"));
-
                 }
 
                 if (contador == 1) {
@@ -690,24 +655,21 @@ public class IngresoDepositoVentaMonedaForm extends Window {
             System.out.println("Error al buscar deposito" + ex1.getMessage());
             ex1.printStackTrace();
         }
-
     }
 
     public void actualizarDeposito() {
-
-        queryString = " Update contabilidad_partida set ";
+        queryString = "UPDATE contabilidad_partida SET ";
         queryString += " TipoCambio = " + tipoCambioTxt.getValue();
         queryString += ", DebeQuetzales = Debe * " + tipoCambioTxt.getValue();
         queryString += ", HaberQuetzales = Haber * " + tipoCambioTxt.getValue();
-        queryString += " Where codigoPartida = '" + idDeposito + "'";       
+        queryString += " WHERE codigoPartida = '" + idDeposito + "'";
                        
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);
             
             Notification.show("REGISTRO ACTUALIZADO CON EXITO! ", Notification.Type.HUMANIZED_MESSAGE);
-            
-            
+
         } catch (Exception e) {
             System.out.println("Error al intentar actualizar registro " + e);
         }
@@ -793,11 +755,11 @@ public class IngresoDepositoVentaMonedaForm extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "5";
+        codigoPartida = empresaId + año + mes + dia + "5";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + codigoPartida + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = "SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida LIKE '" + codigoPartida + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -820,14 +782,14 @@ public class IngresoDepositoVentaMonedaForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, ";
+        queryString = "INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, ";
         queryString += " TipoDocumento, Fecha, IdProveedor, NombreProveedor, SerieDocumento,";
         queryString += " NumeroDocumento, IdNomenclatura, MonedaDocumento, MontoDocumento, Debe, Haber,";
         queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, Saldo, Descripcion,";
         queryString += " CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values ";
+        queryString += " VALUES ";
         queryString += "(";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
@@ -852,7 +814,7 @@ public class IngresoDepositoVentaMonedaForm extends Window {
 
         //segundo  ingreso
         queryString += ",(";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
@@ -877,7 +839,7 @@ public class IngresoDepositoVentaMonedaForm extends Window {
 
         if (cuentaContable3Cbx.getValue() != null && debe3Txt.getDoubleValueDoNotThrow() != 0.00) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
@@ -902,7 +864,7 @@ public class IngresoDepositoVentaMonedaForm extends Window {
         }
         if (cuentaContable3Cbx.getValue() != null && haber3Txt.getDoubleValueDoNotThrow() != 0.00) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
@@ -926,7 +888,6 @@ public class IngresoDepositoVentaMonedaForm extends Window {
             queryString += ")";
         }
 
-//        System.out.println("queryString Ingreso Bancos DEPOSITOS = " + queryString);
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "queryString Ingreso Bancos DEPOSITO VENTA MONEDA = " + queryString);
 
         try {
@@ -939,7 +900,7 @@ public class IngresoDepositoVentaMonedaForm extends Window {
 
             Notification.show("Ingreso realizado con exito!", Notification.Type.HUMANIZED_MESSAGE);
 
-            ((IngresoBancosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(String.valueOf(empresaCbx.getValue()));
+            ((IngresoBancosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(empresaId);
 
             close();
 
@@ -1013,7 +974,7 @@ public class IngresoDepositoVentaMonedaForm extends Window {
             queryString += ", FechaUsado = current_timestamp";
             queryString += ", CodigoPartida = '" + codigoPartida + "'";
             queryString += ", Estatus = 'UTILIZADO'";
-            queryString += " Where Codigo = '" + variableTemp + "'";
+            queryString += " WHERE Codigo = '" + variableTemp + "'";
 
             variableTemp = "";
 

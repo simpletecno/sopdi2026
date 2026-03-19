@@ -158,7 +158,7 @@ public class CambiarEstatusSeguimientoForm extends Window {
         try {
 
             if (estatusCbx.getValue() == null) {
-                Notification.show("Por favor selecciona una cuenta ", Notification.Type.WARNING_MESSAGE);
+                Notification.show("Por favor selecciona un ESTATUS ", Notification.Type.WARNING_MESSAGE);
                 return;
             }
 

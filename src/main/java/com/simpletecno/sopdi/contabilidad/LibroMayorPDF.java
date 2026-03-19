@@ -49,13 +49,10 @@ import java.util.logging.Logger;
 public class LibroMayorPDF extends Window {
 
     String fileName;
-    String queryString;
 
-    UI mainUI;
     String idEmpresa;
     String empresaNombre;
     String empresaNit;
-    String tipoReporte;
     IndexedContainer libroMayorContainer;
     String desde;
     String hasta;

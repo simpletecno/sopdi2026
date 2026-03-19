@@ -40,8 +40,6 @@ public class EmpleadoResumenHorasExtraView extends VerticalLayout implements Vie
     public static final String HORASEXTRAII_PROPERTY = "Hrs ExtraII";
     public static final String EVENTO_PROPERTY = "Eventos";
     public static final String DIASVACACIONES_PROPERTY = "Dias vacaciones";
-//    public static final String ESTATUS_PROPERTY = "Estatus";
-//    public static final String RAZON_PROPERTY = "Razón";
 
     public IndexedContainer resumenContainer = new IndexedContainer();
     Grid resumenGrid;
@@ -54,6 +52,9 @@ public class EmpleadoResumenHorasExtraView extends VerticalLayout implements Vie
 
     VerticalLayout mainLayout = new VerticalLayout();
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public EmpleadoResumenHorasExtraView() {
 
         this.mainUI = UI.getCurrent();
@@ -61,7 +62,7 @@ public class EmpleadoResumenHorasExtraView extends VerticalLayout implements Vie
         setMargin(false);
         setSpacing(true);
 
-        Label titleLbl = new Label("RESUMEN HORAS EXTRA Y VACACIONES");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " RESUMEN HORAS EXTRA Y VACACIONES");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -127,8 +128,6 @@ public class EmpleadoResumenHorasExtraView extends VerticalLayout implements Vie
         resumenContainer.addContainerProperty(HORASEXTRAII_PROPERTY, String.class, "0");
         resumenContainer.addContainerProperty(EVENTO_PROPERTY, String.class, "0");
         resumenContainer.addContainerProperty(DIASVACACIONES_PROPERTY, String.class, "0");
-//        resumenContainer.addContainerProperty(ESTATUS_PROPERTY, String.class, "PRESENTE");
-//        resumenContainer.addContainerProperty(RAZON_PROPERTY, String.class, "");
 
         resumenGrid = new Grid("RESUMEN DEL MES : " + Utileria.getFechaYYYYMM(fechaDt.getValue()), resumenContainer);
         resumenGrid.setImmediate(true);
@@ -149,8 +148,6 @@ public class EmpleadoResumenHorasExtraView extends VerticalLayout implements Vie
         resumenGrid.getColumn(HORASEXTRAII_PROPERTY).setExpandRatio(1);
         resumenGrid.getColumn(EVENTO_PROPERTY).setExpandRatio(1);
         resumenGrid.getColumn(DIASVACACIONES_PROPERTY).setExpandRatio(1);
-//        resumenGrid.getColumn(ESTATUS_PROPERTY).setExpandRatio(2);
-//        resumenGrid.getColumn(RAZON_PROPERTY).setExpandRatio(3);
 
         resumenGrid.setCellStyleGenerator(
                 (Grid.CellReference cellReference) -> {
@@ -238,7 +235,7 @@ public class EmpleadoResumenHorasExtraView extends VerticalLayout implements Vie
             queryString += "SUM(IF(BITA.Razon = 'Licencia', 1, 0)) TOTLICENCIA, ";
             queryString += "SUM(IF(BITA.Razon = 'Suspensión IGSS', 1, 0)) TOTSUSPENCION ";
             queryString += "FROM empleado_asistencia BITA ";
-            queryString += "INNER JOIN proveedor PROV ON PROV.IdProveedor = BITA.IdEmpleado ";
+            queryString += "INNER JOIN proveedor_empresa PROV ON PROV.IdProveedor = BITA.IdEmpleado ";
             queryString += "WHERE Extract(YEAR_MONTH FROM BITA.Fecha) = " + Utileria.getFechaYYYYMM(fechaDt.getValue()) + " ";
             queryString += "AND PROV.Inhabilitado = 0 ";
             queryString += "AND PROV.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + " ";
@@ -256,13 +253,7 @@ System.out.println("queryRESUMENHORASEXTRA=" + queryString);
                     if((rsRecords.getDouble("TOTHORASEXTRA") + rsRecords.getDouble("TOTHORASEXTRADOBLE")
                         + rsRecords.getDouble("TOTEVENTOS") + rsRecords.getDouble("TOTVACACIONES")
                         + rsRecords.getDouble("TOTLICENCIA") + rsRecords.getDouble("TOTSUSPENCION")) > 0) {
-//                        for(Object itemIndex : resumenContainer.getContainerPropertyIds()) {
-//                            if(String.valueOf(resumenContainer.getContainerProperty(itemIndex, IDEMPLEADO_PROPERTY).getValue()).equals(rsRecords.getString("IdEmpleado")) {
-//                                resumenContainer.getContainerProperty(itemId, HORASEXTRAII_PROPERTY).setValue(rsRecords.getString("TOTHORASEXTRADOBLE"));
-//                                resumenContainer.getContainerProperty(itemId, EVENTO_PROPERTY).setValue(rsRecords.getString("TOTEVENTOS"));
-//                                resumenContainer.getContainerProperty(itemId, DIASVACACIONES_PROPERTY).setValue(rsRecords.getString("TOTVACACIONES"));
-//                            }
-//                        }
+
                         itemId = resumenContainer.addItem();
                         resumenContainer.getContainerProperty(itemId, IDEMPLEADO_PROPERTY).setValue(rsRecords.getString("IdEmpleado"));
                         resumenContainer.getContainerProperty(itemId, EMPLEADO_PROPERTY).setValue(rsRecords.getString("NombreEmpleado"));
@@ -273,8 +264,6 @@ System.out.println("queryRESUMENHORASEXTRA=" + queryString);
                         resumenContainer.getContainerProperty(itemId, HORASEXTRAII_PROPERTY).setValue(rsRecords.getString("TOTHORASEXTRADOBLE"));
                         resumenContainer.getContainerProperty(itemId, EVENTO_PROPERTY).setValue(Utileria.formatSimple(rsRecords.getDouble("TOTEVENTOS")));
                         resumenContainer.getContainerProperty(itemId, DIASVACACIONES_PROPERTY).setValue(rsRecords.getString("TOTVACACIONES"));
-//                        resumenContainer.getContainerProperty(itemId, ESTATUS_PROPERTY).setValue(rsRecords.getString("Estatus"));
-//                        resumenContainer.getContainerProperty(itemId, RAZON_PROPERTY).setValue(rsRecords.getString("Razon"));
 
                         totalLicencia += rsRecords.getDouble("TOTLICENCIA");
                         totalSuspecion += rsRecords.getDouble("TOTSUSPENCION");
@@ -307,7 +296,7 @@ System.out.println("queryRESUMENHORASEXTRA=" + queryString);
             excelExport.excludeCollapsedColumns();
             excelExport.setDisplayTotals(false);
             String fileexport;
-// produccion            fileexport = (empresa + "_" + empresaLbl.getValue().substring(5, empresaLbl.getValue().length()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é","") + "_INTEGRACION_CAMBIOS.xlsx").replaceAll(" ", "").replaceAll(",", "");
+
             fileexport = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + "_" + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyName().replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + "_ASISTENCIA.xls";
             excelExport.setExportFileName(fileexport);
             excelExport.export();

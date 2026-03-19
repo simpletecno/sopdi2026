@@ -26,11 +26,6 @@ import java.util.logging.Logger;
 public class FacturaVentaAnularForm extends Window {
     VerticalLayout mainLayout;
 
-    File pdfFile = null;
-    String filePath = "";
-
-    /* title */
-    ComboBox empresaCbx;
     DateField fechaDt;
 
     TextArea motivo;
@@ -46,6 +41,9 @@ public class FacturaVentaAnularForm extends Window {
     String codigoCC;
     String tipoDocumento;
     int cuota;
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public FacturaVentaAnularForm(String codigoPartida, String codigoCC, String tipoDocumento, int cuota){
         this.codigoPartida = codigoPartida;
@@ -92,24 +90,12 @@ public class FacturaVentaAnularForm extends Window {
         anularLayout.setSpacing(true);
         anularLayout.setMargin(new MarginInfo(false, true, false, true));
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("95%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        empresaCbx.addItem(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId());
-        empresaCbx.setItemCaption(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId(), ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName() + " : " +  ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyRegimen());
-        empresaCbx.select(empresaCbx.getItemIds().iterator().next());
-
         codigoPartidaLabel = new Label("Partida: " + codigoPartida);
         codigoPartidaLabel.addStyleName(ValoTheme.LABEL_H2);
         codigoPartidaLabel.setSizeUndefined();
         codigoPartidaLabel.addStyleName("h1_custom");
         
-        horizontalLayout1.addComponents(empresaCbx, codigoPartidaLabel);
-        horizontalLayout1.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
+        horizontalLayout1.addComponents( codigoPartidaLabel);
         horizontalLayout1.setComponentAlignment(codigoPartidaLabel, Alignment.MIDDLE_RIGHT);
         
         
@@ -150,7 +136,7 @@ public class FacturaVentaAnularForm extends Window {
         queryString += "FROM contabilidad_partida ";
         queryString += "WHERE codigoCC = '" + codigoPartida + "' ";
         queryString += "AND Estatus <> 'ANULADO' ";
-        queryString += "AND IdEmpresa = " + empresaCbx.getValue() + " ";
+        queryString += "AND IdEmpresa = " + empresaId;
         queryString += "AND IdNomenclatura In (" + ((SopdiUI) mainUI).cuentasContablesDefault.getClientes() + "," +
                                                    ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposClientes() + "," +
                                                    ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposClientes() + ") ";
@@ -210,7 +196,7 @@ public class FacturaVentaAnularForm extends Window {
         queryString = "SELECT * ";
         queryString += "FROM contabilidad_partida ";
         queryString += "WHERE codigoPartida = '" + codgioPartida + "' ";
-        queryString += "AND IdEmpresa = " + empresaCbx.getValue() + " ";
+        queryString += "AND IdEmpresa = " + empresaId;
         queryString += "AND IdNomenclatura In (" + ((SopdiUI) mainUI).cuentasContablesDefault.getClientes() + "," + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposProveedor() + "," +
                                                     ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposClientes() + "," + ((SopdiUI) mainUI).cuentasContablesDefault.getProveedores() + ")";
 
@@ -265,7 +251,7 @@ public class FacturaVentaAnularForm extends Window {
                                 stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                                 stQuery.executeUpdate(queryString);
 
-                                ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta(String.valueOf(empresaCbx.getValue()));
+                                ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta();
 
                                 close();
 
@@ -294,10 +280,10 @@ public class FacturaVentaAnularForm extends Window {
                             try {
 
                                 queryString = "UPDATE contabilidad_partida ";
-                                queryString += "set Estatus = 'ANULADO' ";
+                                queryString += "SET Estatus = 'ANULADO' ";
                                 if(cuota==1) queryString += ",codigoCC = '" + codgioPartida + "' ";
                                 queryString += "WHERE codigoPartida = '" + codgioPartida + "' ";
-                                queryString += "And IdEmpresa = " + empresaCbx.getValue();
+                                queryString += "AND IdEmpresa = " + empresaId;
 
                                 stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                                 stQuery.executeUpdate(queryString);
@@ -316,7 +302,7 @@ public class FacturaVentaAnularForm extends Window {
 
                                     queryString = "DELETE FROM contabilidad_partida ";
                                     queryString += "WHERE codigoPartida = '" + codigoCC + "' ";
-                                    queryString += "And IdEmpresa = " + empresaCbx.getValue();
+                                    queryString += "AND IdEmpresa = " + empresaId;
 
                                     stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                                     stQuery.executeUpdate(queryString);
@@ -342,7 +328,7 @@ public class FacturaVentaAnularForm extends Window {
                                     }
                                     queryString += "WHERE cp.Estatus = 'ANULADO' ";
                                     queryString += "AND cp.CodigoPartida = '" + codgioPartida + "' ";
-                                    queryString += "AND cp.IdEmpresa = " + empresaCbx.getValue() + ";";
+                                    queryString += "AND cp.IdEmpresa = " + empresaId + ";";
 
                                     stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                                     stQuery.executeUpdate(queryString);
@@ -357,7 +343,7 @@ public class FacturaVentaAnularForm extends Window {
                             }
 
                             InfileClient.obtenerDTEPdf(rsRecords.getString("UUID"), rsRecords.getString("ArchivoNombre"));
-                            ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta(String.valueOf(empresaCbx.getValue()));
+                            ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta();
                         } else {
                             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "ERROR AL CERTIFICAR EL DOCUMENTO DE VENTA : " + infileClient.getDescripcionErrores().toString());
                             Notification.show("ERROR AL CERTIFICAR ANULACION DE DOCUMENTO DE VENTA  : " + infileClient.getDescripcionErrores().toString(), Notification.Type.ERROR_MESSAGE);

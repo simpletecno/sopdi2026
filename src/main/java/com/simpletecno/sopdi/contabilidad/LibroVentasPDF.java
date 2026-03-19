@@ -53,13 +53,10 @@ import java.util.logging.Logger;
  */
 public class LibroVentasPDF extends Window {
     String fileName;
-    String queryString;
 
-    UI mainUI;
     String idEmpresa;
     String empresaNombre;
     String empresaNit;
-    String tipoReporte;
     IndexedContainer libroVentasContainer;
     String fecha;
     String folioInicial;
@@ -86,7 +83,7 @@ public class LibroVentasPDF extends Window {
             setHeight("90%");
             center();
 
-            fileName = "LibroVentas_" + empresaNombre.replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "") + "_" + fecha + "_" + new Utileria().getHora() + ".pdf";
+            fileName = "LibroIVAVentas_" + empresaNombre.replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "") + "_" + fecha + "_" + new Utileria().getHora() + ".pdf";
 
             StreamResource pdfResource;
             pdfResource = new StreamResource(new Pdf(fileName), fileName);
@@ -158,7 +155,7 @@ public class LibroVentasPDF extends Window {
                 
                 HeaderFooterPageEvent event = new HeaderFooterPageEvent();
 
-                event.setFirstLineReportTitle("LIBRO DE VENTAS");
+                event.setFirstLineReportTitle("LIBRO IVA DE VENTAS");
                 event.setCompanyName(empresaNombre);
                 event.setCompanyTaxid(empresaNit);
 //                event.setPrintBy(((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserName());
@@ -197,7 +194,7 @@ public class LibroVentasPDF extends Window {
         // Reader
         // under File -> Properties
         private void addMetaData(Document document) {
-            document.addTitle("Reporte de documentos " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectName());
+            document.addTitle("LibroIVAVentas " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectName());
             document.addSubject("Using iText");
             document.addKeywords("Java, PDF, iText");
             document.addAuthor("www.sopdi.com");

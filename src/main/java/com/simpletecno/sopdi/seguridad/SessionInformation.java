@@ -11,7 +11,7 @@ import com.simpletecno.sopdi.extras.infile.Emisor;
 import com.vaadin.server.StreamResource;
 
 /**
- *
+ * Para uso general , datos de sesión del usuario.
  * @author joseaguirre
  */
 public class SessionInformation {

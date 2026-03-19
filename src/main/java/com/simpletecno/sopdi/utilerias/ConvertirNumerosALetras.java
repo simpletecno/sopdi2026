@@ -8,7 +8,6 @@ package com.simpletecno.sopdi.utilerias;
     public class ConvertirNumerosALetras {
     
     private Integer counter=0;
-    private String value=""; 
     private String nombreDeMoneda;
 
     public ConvertirNumerosALetras()
@@ -46,10 +45,6 @@ package com.simpletecno.sopdi.utilerias;
             resultado = doThings(_counter) + " " + nombreDeMoneda + " CON " + montoCheque.split("\\.")[1] + "/100.";
         }
         
-//System.out.println("montoCheque=" + montoCheque);
-//System.out.println("resultado="+resultado);
-//System.out.println("split[0]="+montoCheque.split("\\.")[0]);
-//System.out.println("split[1]="+montoCheque.split("\\.")[1]);
         return resultado;
     }
 

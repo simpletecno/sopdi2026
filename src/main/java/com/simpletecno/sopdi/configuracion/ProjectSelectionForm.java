@@ -41,18 +41,11 @@ public class ProjectSelectionForm extends VerticalLayout {
     public Statement stQuery = null;
     public ResultSet rsRecords = null;
     
-    static final String CODIGO_PROPERTY = "Id";
     static final String LOGO_PROPERTY = "Logo";
     static final String NOMBRE_PROPERTY = "Nombre";
-    static final String DISPONIBLES_PROPERTY = "Disponibles";
-    static final String EMPRESA_PROPERTY = "Empresa";
-    static final String PAIS_PROPERTY = "Pais";
     static final String MONEDA_PROPERTY = "Moneda";
     static final String RESERVA_PROPERTY = "Reserva";
     static final String COSTO_TRAMITE_PROPERTY = "Costo tramite";
-    
-    Utileria utileria = new Utileria();
-    MarginInfo  marginInfo;
         
     VerticalLayout selectionPanel = new VerticalLayout();
     
@@ -192,14 +185,10 @@ public class ProjectSelectionForm extends VerticalLayout {
         
         projectsTable.removeAllItems();
                 
-        String queryString = "Select Pro.*";
-        queryString += " From  proyecto_usuario ProUsr";
-        queryString += " Inner Join proyecto Pro On Pro.IdProyecto = ProUsr.IdProyecto";
-        queryString += " Where ProUsr.IdUsuario = " + ((SopdiUI)mainUI).sessionInformation.getStrUserId();
-//        queryString += " And Pro.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrCompanyId();
-//        queryString += " Order By Pro.Nombre";
-
-//System.out.println("\n\nQuery="+queryString);
+        String queryString = "SELECT Pro.*";
+        queryString += " FROM  proyecto_usuario ProUsr";
+        queryString += " INNER JOIN proyecto Pro ON Pro.IdProyecto = ProUsr.IdProyecto";
+        queryString += " WHERE ProUsr.IdUsuario = " + ((SopdiUI)mainUI).sessionInformation.getStrUserId();
 
         try {
             
@@ -256,8 +245,6 @@ public class ProjectSelectionForm extends VerticalLayout {
    
     private void setProject() {
         ((SopdiUI)mainUI).sessionInformation.setStrProjectId(String.valueOf(projectsTable.getValue()));   
-//System.out.println("Id proyecto = " + String.valueOf(projectsTable.getValue()));
-//System.out.println("nombre proyecto = " + String.valueOf(projectsTable.getContainerProperty(projectsTable.getValue(), NOMBRE_PROPERTY).getValue()));
 
         ((SopdiUI)mainUI).sessionInformation.setStrProjectName(String.valueOf(projectsTable.getContainerProperty(projectsTable.getValue(), NOMBRE_PROPERTY).getValue()));
 

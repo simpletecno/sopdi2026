@@ -34,7 +34,6 @@ public class IngresoRedepositoChequeDevueltoForm extends Window {
     UI mainUI;
 
     HorizontalLayout layoutTitle;
-    ComboBox empresaCbx;
     Label titleLbl;
 
     BigDecimal totalDebe;
@@ -76,6 +75,9 @@ public class IngresoRedepositoChequeDevueltoForm extends Window {
     String queryString, codigoPartida;
     String variableTemp = "";
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public IngresoRedepositoChequeDevueltoForm() {
 
         this.mainUI = UI.getCurrent();
@@ -93,22 +95,10 @@ public class IngresoRedepositoChequeDevueltoForm extends Window {
         layoutTitle.setMargin(true);
         layoutTitle.setWidth("100%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-
-        titleLbl = new Label("INGRESO A BANCOS REDEPOSITO CHEQUE DEVUELTO");
+        titleLbl = new Label(empresaId + " " + empresaNombre + " INGRESO A BANCOS REDEPOSITO CHEQUE DEVUELTO");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -121,34 +111,12 @@ public class IngresoRedepositoChequeDevueltoForm extends Window {
 
     }
 
-    public void llenarComboEmpresa() {
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     public void llenarComboProveedor() {
         queryString = " SELECT prov.* ";
-        queryString += " FROM proveedor prov";
+        queryString += " FROM proveedor_empresa prov";
         queryString += " WHERE prov.Inhabilitado = 0 ";
 //        queryString += " AND prov.EsCliente = 1";
+        queryString += " AND prov.IdEmpresa = '" + empresaId + "'";
         queryString += " ORDER BY prov.Nombre";
 
         proveedorCbx.removeAllItems();
@@ -172,8 +140,9 @@ public class IngresoRedepositoChequeDevueltoForm extends Window {
 
     public void llenarComboCuentaContable() {
 
-        queryString = " SELECT * FROM contabilidad_nomenclatura";
+        queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
         queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " AND IdEmpresa = '" + empresaId + "'";
         queryString += " ORDER BY N5";
 
         try {
@@ -545,7 +514,7 @@ public class IngresoRedepositoChequeDevueltoForm extends Window {
         queryString += " WHERE IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getChequesDevueltos();
         queryString += " AND TipoDocumento = 'NOTA DE DEBITO'";
         queryString += " AND IdProveedor = " + proveedorCbx.getValue();
-        queryString += " AND IdEmpresa = " + empresaCbx.getValue();
+        queryString += " AND IdEmpresa = " +empresaId;
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO,"QUERY BUSCAR CHEQUES DEVUELTOS DE CIENTE : " + queryString);
 
@@ -592,49 +561,6 @@ public class IngresoRedepositoChequeDevueltoForm extends Window {
             Notification.show("ERROR AL LEER CHEQUES DEVUELTOS: " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
             ex.printStackTrace();
         }
-        /*
-        queryString = " SELECT *, ";
-        queryString += " SUM(contabilidad_partida.Debe) TOTALDEBE, SUM(contabilidad_partida.Haber) TOTALHABER,";
-        queryString += " SUM(contabilidad_partida.DebeQuetzales) TOTALDEBEQ, SUM(contabilidad_partida.HaberQuetzales) TOTALHABERQ, ";
-        queryString += " SUM(DEBE - HABER) TOTALSALDO, SUM(DebeQuetzales - HaberQuetzales) TOTALSALDOQ ";
-        queryString += " FROM contabilidad_partida";
-        queryString += " INNER JOIN contabilidad_nomenclatura ON contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
-        queryString += " WHERE Fecha >= '2015-01-01' AND contabilidad_partida.IdLiquidacion = 0";
-        queryString += " AND (trim(contabilidad_partida.CodigoCC) <> '' AND contabilidad_partida.CodigoCC <> '0')";
-        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
-        queryString += " And contabilidad_partida.IdProveedor = " + proveedorCbx.getValue();
-        queryString += " AND contabilidad_nomenclatura.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getCientes();
-        queryString += " AND contabilidad_partida.MontoAutorizadoPagar = 0 ";
-        queryString += " AND contabilidad_partida.MontoAplicarAnticipo = 0 ";
-        queryString += " GROUP BY contabilidad_partida.CodigoCC, contabilidad_partida.IdNomenclatura";
-        queryString += " HAVING TOTALSALDO > 0";
-        queryString += " Order by contabilidad_partida.NombreProveedor";
-
-        System.out.println("Query para listar tabla documentos pagar" + queryString);
-
-        try {
-            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords = stQuery.executeQuery(queryString);
-
-            if (rsRecords.next()) { //  encontrado
-                do {
-                    Object itemId = facturasContainer.addItem();
-
-                    facturasContainer.getContainerProperty(itemId, CODIGO_PARTIDA_PROPERTY).setValue(rsRecords.getString("CodigoPartida"));
-                    facturasContainer.getContainerProperty(itemId, CODIGO_CC_PROPERTY).setValue(rsRecords.getString("CodigoCC"));
-                    facturasContainer.getContainerProperty(itemId, NUMERO_DOCUMENTO_PROPERTY).setValue(rsRecords.getString("NumeroDocumento") + " " + rsRecords.getString("SerieDocumento"));
-                    facturasContainer.getContainerProperty(itemId, MONEDA_DOCUMENTO_PROPERTY).setValue(rsRecords.getString("MonedaDocumento"));
-                    facturasContainer.getContainerProperty(itemId, MONTO_DOCUMENTO_PROPERTY).setValue(rsRecords.getString("TOTALSALDO"));
-
-                } while (rsRecords.next());
-            }
-
-        } catch (Exception ex) {
-            System.out.println("Error al listar tabla de DOCUMENTOS : " + ex);
-            Notification.show("ERROR AL LEER DOCUMENTOS AUTORIZADOS PARA PAGOS : " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
-            ex.printStackTrace();
-        }
-         */
     }
 
     public boolean validarCamposParaIngresarPagoDocumentos() {
@@ -670,13 +596,6 @@ public class IngresoRedepositoChequeDevueltoForm extends Window {
             montoTxt.focus();
             error = true;
         }
-        /*
-        if (descripcionTxt.getValue().isEmpty()) {
-            Notification.show("Por favor, Ingrese una descripción..", Notification.Type.ERROR_MESSAGE);
-            descripcionTxt.focus();
-            error = true;
-        }
-         */
         if (monedaCbx.getValue().equals("DOLARES") && tipoCambioTxt.getDoubleValueDoNotThrow() <= 1.00) {
             Notification.show("Si la transacción es en DOLARES, debe llebar tipo de cambio. Por favor, revise la moneda.", Notification.Type.ERROR_MESSAGE);
             monedaCbx.focus();
@@ -752,7 +671,7 @@ public class IngresoRedepositoChequeDevueltoForm extends Window {
             queryString = " UPDATE  contabilidad_partida ";
             queryString += " SET Saldo = 0";
             queryString += " WHERE CodigoPartida = '" + codigoPartida + "'";
-            queryString += " AND IdEmpresa = " + empresaCbx.getValue();
+            queryString += " AND IdEmpresa = " + empresaId;
             queryString += " AND IdProveedor = " + proveedorCbx.getValue();
 
             try {
@@ -773,7 +692,7 @@ public class IngresoRedepositoChequeDevueltoForm extends Window {
         queryString = " SELECT * FROM contabilidad_partida";
         queryString += " WHERE NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
         queryString += " AND IdProveedor     =  " + String.valueOf(proveedorCbx.getValue());
-        queryString += " AND IdEmpresa = " + String.valueOf(empresaCbx.getValue());
+        queryString += " AND IdEmpresa = " + empresaId;
         queryString += " AND TipoDocumento = '" + String.valueOf(medioCbx.getValue())  + "'";
         queryString += " AND MonedaDocumento = '" + monedaCbx.getValue() + "'";
 
@@ -796,7 +715,7 @@ public class IngresoRedepositoChequeDevueltoForm extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "5";
+        codigoPartida = empresaId + año + mes + dia + "5";
 
         queryString = " SELECT codigoPartida FROM contabilidad_partida ";
         queryString += " WHERE codigoPartida LIKE '" + codigoPartida + "%'";
@@ -823,12 +742,12 @@ public class IngresoRedepositoChequeDevueltoForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC, ";
+        queryString = "INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC, ";
         queryString += " TipoDocumento, Fecha, IdProveedor, NombreProveedor, NumeroDocumento, IdNomenclatura,";
         queryString += " MonedaDocumento, MontoDocumento, Debe, Haber, DebeQuetzales, HaberQuetzales, TipoCambio, Saldo,";
         queryString += " Descripcion, CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values (";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += " VALUES (";
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",''";
@@ -852,7 +771,7 @@ public class IngresoRedepositoChequeDevueltoForm extends Window {
         queryString += ")";
 
         queryString += ",(";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + String.valueOf(facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(CODIGO_CC_PROPERTY).getValue()) + "'";   /// CODIGOCC
@@ -895,7 +814,7 @@ public class IngresoRedepositoChequeDevueltoForm extends Window {
             facturasGrid.getSelectionModel().reset();
             facturasContainer.removeAllItems();
 
-            ((IngresoBancosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(String.valueOf(empresaCbx.getValue()));
+            ((IngresoBancosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(empresaId);
 
             Notification notif = new Notification("INGRESO REGISTRADO EXITOSAMENTE.",
                     Notification.Type.HUMANIZED_MESSAGE);
@@ -955,7 +874,7 @@ public class IngresoRedepositoChequeDevueltoForm extends Window {
             queryString += ", FechaUsado = current_timestamp";
             queryString += ", CodigoPartida = '" + codigoPartida + "'";
             queryString += ", Estatus = 'UTILIZADO'";
-            queryString += " Where Codigo = '" + variableTemp + "'";
+            queryString += " WHERE Codigo = '" + variableTemp + "'";
 
             stQuery.executeUpdate(queryString);
 

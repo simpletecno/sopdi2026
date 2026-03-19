@@ -40,7 +40,6 @@ public class EditarPartidaLiquidacion extends Window {
     TextField numeroTxt;
     TextField nitProveedotTxt;
 
-    ComboBox empresaCbx;
     ComboBox proveedorCbx;
     ComboBox monedaCbx;
     ComboBox cuentaContableCbx;
@@ -80,9 +79,6 @@ public class EditarPartidaLiquidacion extends Window {
     BigDecimal totalDebe;
     BigDecimal totalHaber;
 
-    static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
-    static DecimalFormat numberFormat2 = new DecimalFormat("#,###,##0");
-
     String idLiquidacionEdit;
     String idLiquidadorEdit;
     String liquidadorNombre;
@@ -95,6 +91,9 @@ public class EditarPartidaLiquidacion extends Window {
     String codigoCC;
     
     String variableTemp ="";
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public EditarPartidaLiquidacion(String codigoPartida, String codigoCC) {
 
@@ -114,22 +113,9 @@ public class EditarPartidaLiquidacion extends Window {
         layoutTitle.setMargin(true);
         layoutTitle.setWidth("100%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-        empresaCbx.select(empresaCbx.getItemIds().iterator().next());
-
-        Label titleLbl = new Label("EDITAR LIQUIDACION");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " EDITAR LIQUIDACION");
         titleLbl.addStyleName(ValoTheme.LABEL_H3);
         titleLbl.addStyleName("h3_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -532,10 +518,11 @@ public class EditarPartidaLiquidacion extends Window {
     }
 
     public void llenarComboProveedor() {
-        queryString = " SELECT * from proveedor ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0";
         queryString += " AND EsProveedor = 1";
-        queryString += " Order By Nombre ";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY Nombre ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -583,10 +570,10 @@ public class EditarPartidaLiquidacion extends Window {
 
         estatusPartidaEdit = "INGRESADO";
 
-        queryString = " SELECT contabilidad_partida.*, proveedor.Nombre as LiquidadorNombre ";
-        queryString += " From contabilidad_partida ";
-        queryString += " Left Join proveedor On proveedor.IdProveedor =  contabilidad_partida.IdLiquidador ";
-        queryString += " Where contabilidad_partida.CodigoPartida = '" + codigoPartidaEdit + "'";
+        queryString = " SELECT contabilidad_partida.*, proveedor.Nombre AS LiquidadorNombre ";
+        queryString += " FROM contabilidad_partida ";
+        queryString += " LEFT JOIN proveedor ON proveedor.IdProveedor =  contabilidad_partida.IdLiquidador ";
+        queryString += " WHERE contabilidad_partida.CodigoPartida = '" + codigoPartidaEdit + "'";
 
         try {
             stQuery2 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -600,7 +587,6 @@ public class EditarPartidaLiquidacion extends Window {
                 if (contador == 0) {
                     tipoDocumentoTxt.setValue(rsRecords2.getString("TipoDocumento"));
                     estatusPartidaEdit = rsRecords2.getString("Estatus");
-                    empresaCbx.select(rsRecords2.getString("IdEmpresa"));
                     serieTxt.setValue(rsRecords2.getString("SerieDocumento"));
                     numeroTxt.setValue(rsRecords2.getString("NumeroDocumento"));
                     nitProveedotTxt.setValue(rsRecords2.getString("NITProveedor"));
@@ -624,8 +610,6 @@ public class EditarPartidaLiquidacion extends Window {
                     idLiquidacionEdit = rsRecords2.getString("IdLiquidacion");
                     idLiquidadorEdit = rsRecords2.getString("IdLiquidador");
                     liquidadorNombre = rsRecords2.getString("LiquidadorNombre");
-                    idEmpresa = rsRecords2.getString("IdEmpresa");
-
                 }
                 if (contador == 1) {
                     cuentaContable1Cbx.select(rsRecords2.getString("IdNomenclatura"));
@@ -654,7 +638,6 @@ public class EditarPartidaLiquidacion extends Window {
             }
 
             montoTxt.setValue(montoFactura);
-            empresaCbx.setReadOnly(false);
             serieTxt.setReadOnly(false);
             numeroTxt.setReadOnly(false);
             nitProveedotTxt.setReadOnly(false);
@@ -673,7 +656,7 @@ public class EditarPartidaLiquidacion extends Window {
 
     public void llenarComboCuentaContable() {
 
-        queryString = " SELECT * from contabilidad_nomenclatura ";
+        queryString = " SELECT * FROM contabilidad_nomenclatura ";
         queryString += " WHERE  FiltrarFormularioLiquidacion = 'S'";
 
         try {
@@ -701,25 +684,6 @@ public class EditarPartidaLiquidacion extends Window {
 
         } catch (Exception ex1) {
             System.out.println("Error al listar cuentas contables: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
             ex1.printStackTrace();
         }
     }
@@ -765,13 +729,13 @@ public class EditarPartidaLiquidacion extends Window {
         totalDebe.setScale(2, BigDecimal.ROUND_DOWN);
         totalHaber.setScale(2, BigDecimal.ROUND_DOWN);
 
-        if (((SopdiUI) UI.getCurrent()).esMesCerrado(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+        if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
             Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return;
         }
-        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
-            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(String.valueOf(empresaCbx.getValue())), Notification.Type.WARNING_MESSAGE);
+        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(empresaId), Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return;
         }
@@ -818,8 +782,8 @@ public class EditarPartidaLiquidacion extends Window {
             return;
         }
 
-        queryString = " DELETE from contabilidad_partida ";
-        queryString += " where CodigoPartida  ='" + codigoPartidaEdit + "'";
+        queryString = " DELETE FROM contabilidad_partida ";
+        queryString += " WHERE CodigoPartida  ='" + codigoPartidaEdit + "'";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -836,11 +800,11 @@ public class EditarPartidaLiquidacion extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        nuevoCodigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "2";
+        nuevoCodigoPartida = empresaId + año + mes + dia + "2";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + nuevoCodigoPartida + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = " SELECT codigoPartida from contabilidad_partida ";
+        queryString += " WHERE codigoPartida like '" + nuevoCodigoPartida + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -863,18 +827,18 @@ public class EditarPartidaLiquidacion extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC, ";
+        queryString = " INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC, ";
         queryString += " TipoDocumento, Fecha, NITProveedor, IdProveedor, NombreProveedor,";
         queryString += " SerieDocumento, NumeroDocumento, IdNomenclatura, MonedaDocumento, Debe, Haber, ";
         queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, Saldo, ";
         queryString += " IdLiquidador, IdLiquidacion,  ";
         queryString += " Descripcion, CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values ";
+        queryString += " VALUES ";
 
 //// primer ingreso
         if (cuentaContableCbx.getValue() != null && haberTxt.getDoubleValueDoNotThrow() > 0) {
             queryString += "(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'" + estatusPartidaEdit + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
             queryString += ",'" + codigoCC + "'";
@@ -912,7 +876,7 @@ public class EditarPartidaLiquidacion extends Window {
         if ((cuentaContable1Cbx.getValue() != null && debe1Txt.getDoubleValueDoNotThrow() > 0)
                 || (cuentaContable1Cbx.getValue() != null && haber1Txt.getDoubleValueDoNotThrow() > 0)) {
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'" + estatusPartidaEdit + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
@@ -959,7 +923,7 @@ public class EditarPartidaLiquidacion extends Window {
                 || (cuentaContable2Cbx.getValue() != null && haber2Txt.getDoubleValueDoNotThrow() > 0)) {
 
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'" + estatusPartidaEdit + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
@@ -1007,7 +971,7 @@ public class EditarPartidaLiquidacion extends Window {
                 || (cuentaContable3Cbx.getValue() != null && haber3Txt.getDoubleValueDoNotThrow() > 0)) {
 
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'" + estatusPartidaEdit + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
@@ -1054,7 +1018,7 @@ public class EditarPartidaLiquidacion extends Window {
                 || (cuentaContable4Cbx.getValue() != null && haber4Txt.getDoubleValueDoNotThrow() > 0)) {
 
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'" + estatusPartidaEdit + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
@@ -1108,10 +1072,10 @@ public class EditarPartidaLiquidacion extends Window {
             Notification.show("Registro agregado con exito!", Notification.Type.HUMANIZED_MESSAGE);
 
             if (mainUI.getNavigator().getCurrentView().getClass().getSimpleName().equals("LibroDiarioView")) {
-                ((LibroDiarioView) (mainUI.getNavigator().getCurrentView())).llenarGridLibroDiario(String.valueOf(idEmpresa));
+                ((LibroDiarioView) (mainUI.getNavigator().getCurrentView())).llenarGridLibroDiario(empresaId);
             } else {
                 ((IngresoLiquidacionGastoView) (mainUI.getNavigator().getCurrentView())).llenarTablaPartida(idLiquidacionEdit, codigoPartidaEdit);
-                ((IngresoLiquidacionGastoView) (mainUI.getNavigator().getCurrentView())).llenarTablaLiquidacion(idEmpresa);
+                ((IngresoLiquidacionGastoView) (mainUI.getNavigator().getCurrentView())).llenarTablaLiquidacion(empresaId);
                 ((IngresoLiquidacionGastoView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(idLiquidacionEdit);
             }
 
@@ -1133,7 +1097,7 @@ public class EditarPartidaLiquidacion extends Window {
             queryString += ", FechaUsado = current_timestamp";
             queryString += ", CodigoPartida = '" + codigoPartida +"'";
             queryString += ", Estatus = 'UTILIZADO'";
-            queryString += " Where Codigo = '" + variableTemp +"'";
+            queryString += " WHERE Codigo = '" + variableTemp +"'";
             
             variableTemp = "";
             

@@ -43,7 +43,7 @@ import java.util.logging.Logger;
  */
 public class OrdenCompraPDF extends Window {
 
-    String idOrdenCompra;
+    String idOrdenCompra = "";
     String tipoOrdenCompra;
     String nombreTipoOrdenCompra;
     String proveedorNombre;

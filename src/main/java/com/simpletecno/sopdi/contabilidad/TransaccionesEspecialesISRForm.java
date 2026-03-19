@@ -56,7 +56,6 @@ public class TransaccionesEspecialesISRForm extends Window {
     ComboBox proveedorCbx;
     ComboBox monedaCbx;
     ComboBox tipoDocumentoCbx;
-    ComboBox empresaCbx;
 
     Statement stQuery, stQuery2, stQuery3;
     ResultSet rsRecords, rsRecords2, rsRecords3;
@@ -111,20 +110,6 @@ public class TransaccionesEspecialesISRForm extends Window {
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-        empresaCbx.select(empresa);
-        empresaCbx.setReadOnly(true);
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -330,8 +315,9 @@ public class TransaccionesEspecialesISRForm extends Window {
     }
 
     public void llenarComboProveedor() {
-        queryString = " SELECT * from proveedor ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0 ";
+        queryString += " AND IdEmpresa = " + empresa;
         if (tipoDocumento.equals("CONSTANCIA ISR VENTA")) {
             queryString += " AND EsCliente = 1";
         }
@@ -339,7 +325,7 @@ public class TransaccionesEspecialesISRForm extends Window {
             queryString += " AND EsProveedor = 1";
         }
 
-        queryString += " Order By Nombre ";
+        queryString += " ORDER BY Nombre ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -484,15 +470,16 @@ public class TransaccionesEspecialesISRForm extends Window {
             }
         } else {
 
-            queryString = " select *, contabilidad_nomenclatura.N5, contabilidad_nomenclatura.NoCuenta";
-            queryString += " from contabilidad_partida,contabilidad_nomenclatura";
+            queryString = " SELECT *, contabilidad_nomenclatura_empresa.N5, contabilidad_nomenclatura_empresa.NoCuenta";
+            queryString += " FROM contabilidad_partida,contabilidad_nomenclatura_empresa";
             queryString += " WHERE contabilidad_partida.CodigoPartida = '" + codigoCC + "'";
-            queryString += " and contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+            queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
             if (tipoDocumento.equals("CONSTANCIA ISR COMPRA")) {
-                queryString += " and contabilidad_nomenclatura.IdNomenclatura = " +   ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getProveedores();
+                queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura = " +   ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getProveedores();
             } else if (tipoDocumento.equals("CONSTANCIA ISR VENTA")) {
-                queryString += " and contabilidad_nomenclatura.IdNomenclatura = " +  ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getClientes();
+                queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura = " +  ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getClientes();
             }
+            queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresa;
             queryString += " GROUP by contabilidad_partida.CodigoPartida";
 
             try {
@@ -574,10 +561,11 @@ public class TransaccionesEspecialesISRForm extends Window {
         footer.getCell("DEBE").setText("0.00");
         footer.getCell("HABER").setText("0.00");
 
-        queryString = " select contabilidad_partida.*,contabilidad_nomenclatura.N5, contabilidad_nomenclatura.NoCuenta";
-        queryString += " from contabilidad_partida,contabilidad_nomenclatura";
+        queryString = " SELECT contabilidad_partida.*,contabilidad_nomenclatura_empresa.N5, contabilidad_nomenclatura.NoCuenta";
+        queryString += " FROM contabilidad_partida,contabilidad_nomenclatura_empresa";
         queryString += " WHERE contabilidad_partida.CodigoPartida = '" + codigoPartida + "'";
-        queryString += " and contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+        queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+        queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresa;
 
         try {
 
@@ -594,7 +582,6 @@ public class TransaccionesEspecialesISRForm extends Window {
                 do {
 
                     if (contador == 0) {
-                        empresaCbx.select(rsRecords3.getString("IdEmpresa"));
                         serieTxt.setValue(rsRecords3.getString("SerieDocumento"));
                         numeroTxt.setValue(rsRecords3.getString("NumeroDocumento"));
                         nitProveedotTxt.setValue(rsRecords3.getString("NITProveedor"));
@@ -642,33 +629,11 @@ public class TransaccionesEspecialesISRForm extends Window {
         }
     }
 
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * FROM contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords2 = stQuery.executeQuery(queryString);
-
-            while (rsRecords2.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords2.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords2.getString("IdEmpresa"), rsRecords2.getString("Empresa"));
-            }
-
-            rsRecords2.first();
-            empresaCbx.select(rsRecords2.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar cuentas a cargar: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     public boolean validar() {
 /*  ---------------- Verificar Fecha ----------------   */
-        queryString = " select Fecha from contabilidad_partida ";
-        queryString += " where CodigoPartida like '" + codigoPartida + "%'";
-        queryString += " order by CodigoPartida desc ";
+        queryString = " SELECT Fecha FROM contabilidad_partida ";
+        queryString += " WHERE CodigoPartida LIKE '" + codigoPartida + "%'";
+        queryString += " ORDER BY CodigoPartida DESC ";
 
         Logger.getLogger(PagoAnticipoProveedorForm.class.getName()).log(Level.SEVERE, "QUERY FECHAS: " + queryString);
 
@@ -709,10 +674,10 @@ public class TransaccionesEspecialesISRForm extends Window {
         }
 
 /*  ---------------- Verificar Numero y Serie ----------------   */
-        queryString = " SELECT Fecha from contabilidad_partida ";
+        queryString = " SELECT Fecha FROM contabilidad_partida ";
         queryString += " WHERE NumeroDocumento = " + numeroTxt.getValue();
         queryString += " AND SerieDocumento = " + serieTxt.getValue();
-        queryString += " AND IdEmpresa = " + empresaCbx.getValue();
+        queryString += " AND IdEmpresa = " + empresa;
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -748,17 +713,6 @@ public class TransaccionesEspecialesISRForm extends Window {
             totalHaber = totalHaber.add(new BigDecimal(Double.parseDouble(String.valueOf(haberValue))).setScale(2, RoundingMode.HALF_UP));
 
         }
-
-        //       if (((SopdiUI) UI.getCurrent()).esMesCerrado(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
-        //           Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
-        //           fechaDt.focus();
-        //           return;
-        //       }
-        //       if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
-        //           Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(String.valueOf(empresaCbx.getValue())), Notification.Type.WARNING_MESSAGE);
-        //           fechaDt.focus();
-        //           return;
-//        }
         if (totalDebe.doubleValue() != totalHaber.doubleValue()) {
             Notification.show("Partida está descuadrada, por favor revisar."
                     + " Debe=" + totalDebe.doubleValue() + " Haber=" + totalHaber.doubleValue(), Notification.Type.ERROR_MESSAGE);
@@ -774,8 +728,8 @@ public class TransaccionesEspecialesISRForm extends Window {
 
             backupCodigoEditar = codigoPartida;
 
-            queryString = " DELETE from contabilidad_partida ";
-            queryString += " where CodigoPartida = '" + codigoPartida + "'";
+            queryString = " DELETE FROM contabilidad_partida ";
+            queryString += " WHERE CodigoPartida = '" + codigoPartida + "'";
 
             try {
                 stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -794,11 +748,11 @@ public class TransaccionesEspecialesISRForm extends Window {
             String mes = fecha.substring(5, 7);
             String año = fecha.substring(0, 4);
 
-            codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "6";
+            codigoPartida = empresa + año + mes + dia + "6";
 
-            queryString = " select codigoPartida from contabilidad_partida ";
-            queryString += " where codigoPartida like '" + codigoPartida + "%'";
-            queryString += " order by codigoPartida desc ";
+            queryString = " SELECT codigoPartida FROM contabilidad_partida ";
+            queryString += " WHERE codigoPartida LIKE '" + codigoPartida + "%'";
+            queryString += " ORDER BY codigoPartida DESC ";
 
             Logger.getLogger(PagoAnticipoProveedorForm.class.getName()).log(Level.SEVERE, "QUERY FECHAS: " + queryString);
 
@@ -824,13 +778,13 @@ public class TransaccionesEspecialesISRForm extends Window {
         }
 
         try {
-            queryString = " Insert Into contabilidad_partida (IdEmpresa,CodigoPartida, CodigoCC, ";
+            queryString = " INSERT INTO contabilidad_partida (IdEmpresa,CodigoPartida, CodigoCC, ";
             queryString += " Fecha, Descripcion, TipoDocumento, IdNomenclatura, ";
             queryString += " IdProveedor, NITProveedor, NombreProveedor,";
             queryString += " SerieDocumento, NumeroDocumento, TipoDOCA, NoDoca, ";
             queryString += " MonedaDocumento, MontoDocumento, Debe, Haber,";
             queryString += " DebeQuetzales, HaberQuetzales, TipoCambio,Estatus ,CreadoUsuario, CreadoFechaYHora)";
-            queryString += " Values ";
+            queryString += " VALUES ";
 
             int contador = 0;
 
@@ -842,7 +796,7 @@ public class TransaccionesEspecialesISRForm extends Window {
                 }
 
                 queryString += "(";
-                queryString += empresaCbx.getValue();
+                queryString += empresa;
 
                 if (editar == 1) { // NUEVA PARTIDA
                     queryString += ",'" + codigoPartida + "'";
@@ -907,19 +861,19 @@ public class TransaccionesEspecialesISRForm extends Window {
             notif.show(Page.getCurrent());
 
             if (mainUI.getNavigator().getCurrentView().getClass().getSimpleName().equals("TransaccionesEspecialesView")) {
-                ((TransaccionesEspecialesView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(String.valueOf(empresaCbx.getValue()));
+                ((TransaccionesEspecialesView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(empresa);
             } else if (mainUI.getNavigator().getCurrentView().getClass().getSimpleName().equals("IngresoDocumentosView")) {
-                ((IngresoDocumentosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(String.valueOf(empresaCbx.getValue()), 0);
+                ((IngresoDocumentosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(empresa, 0);
             } else if (mainUI.getNavigator().getCurrentView().getClass().getSimpleName().equals("FacturaVentaView")) {
-                ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta(String.valueOf(empresaCbx.getValue()));
+                ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta();
             }
 
             if (editar == 1 && (tipoDocumento.equals("CONSTANCIA ISR COMPRA") || tipoDocumento.equals("CONSTANCIA ISR VENTA"))) {
 
-                queryString = " Update contabilidad_partida Set ";
+                queryString = " UPDATE contabilidad_partida SET ";
                 queryString += " Referencia = 'NO'";
-                queryString += " Where CodigoPartida = '" + codigoCCFactura + "'";
-                queryString += " and IdEmpresa = " + String.valueOf(empresaCbx.getValue());
+                queryString += " WHERE CodigoPartida = '" + codigoCCFactura + "'";
+                queryString += " AND IdEmpresa = " + empresa;
 
                 stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                 stQuery.executeUpdate(queryString);
@@ -943,9 +897,9 @@ public class TransaccionesEspecialesISRForm extends Window {
         comboBox.setNewItemsAllowed(false);
         comboBox.setFilteringMode(FilteringMode.CONTAINS);
 
-        queryString = " SELECT * from contabilidad_nomenclatura";
-        queryString += " where Estatus = 'HABILITADA'";
-        queryString += " Order By N5";
+        queryString = " SELECT * FROM contabilidad_nomenclatura";
+        queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " ORDER BY N5";
 
         try {
             stQuery2 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -965,8 +919,8 @@ public class TransaccionesEspecialesISRForm extends Window {
 
     private String getDescripcionCuentas(String idNomenclatura) {
 
-        queryString = " SELECT * from contabilidad_nomenclatura";
-        queryString += " where IdNomenclatura = " + idNomenclatura;
+        queryString = " SELECT * FROM contabilidad_nomenclatura";
+        queryString += " WHERE IdNomenclatura = " + idNomenclatura;
 
         try {
             stQuery2 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();

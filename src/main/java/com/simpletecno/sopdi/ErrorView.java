@@ -20,14 +20,26 @@ import com.vaadin.ui.themes.ValoTheme;
 public class ErrorView extends VerticalLayout implements View {
 
     public ErrorView() {
-        Label huge = new Label("No disponible en esta versión!!!");
-        
-//        huge.setWidth("100%");
-        huge.addStyleName(ValoTheme.LABEL_HUGE);
-        huge.addStyleName(ValoTheme.LABEL_COLORED);
-        huge.setSizeUndefined();
-        addComponent(huge);
-        setComponentAlignment(huge, Alignment.MIDDLE_CENTER);
+        VerticalLayout layout = new VerticalLayout();
+        layout.setSpacing(true);
+        layout.setMargin(true);
+        layout.setSizeFull();
+        layout.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
+
+        Label icon = new Label("🚫");
+        icon.setStyleName(ValoTheme.LABEL_HUGE);
+
+        Label title = new Label("Acceso Denegado o Funcionalidad No Disponible");
+        title.addStyleName(ValoTheme.LABEL_H2);
+        title.addStyleName(ValoTheme.LABEL_COLORED);
+
+        Label detail = new Label("Esta opción no está disponible en esta versión del sistema.");
+        detail.addStyleName(ValoTheme.LABEL_LARGE);
+
+        layout.addComponents(icon, title, detail);
+
+        addComponent(layout);
+        setComponentAlignment(layout, Alignment.MIDDLE_CENTER);
 
     }
 

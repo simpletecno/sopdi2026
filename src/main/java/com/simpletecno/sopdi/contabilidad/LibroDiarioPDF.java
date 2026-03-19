@@ -48,7 +48,6 @@ import java.util.logging.Logger;
  */
 public class LibroDiarioPDF extends Window {
     String fileName;
-    String queryString;
 
     String idEmpresa;
     String empresaNombre;

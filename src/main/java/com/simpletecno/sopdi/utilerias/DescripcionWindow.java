@@ -14,7 +14,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
-@SuppressWarnings("unchecked")
+// para que usuario ingrese una descripción para cualquier tabla.
 public class DescripcionWindow extends Window
 {      
     private com.vaadin.ui.Label descripcionLbl;
@@ -31,8 +31,7 @@ public class DescripcionWindow extends Window
         descripcionLbl.setWidth("600px");
         descripcionLbl.setWidth("300px");
         descripcionLbl.setValue(descripcion);
-//        descripcionLbl.addStyleName("v-textfield-uppercase");
-        
+
         mainLayout.addComponent(descripcionLbl);
                 
         exitBtn = new Button("Salir");

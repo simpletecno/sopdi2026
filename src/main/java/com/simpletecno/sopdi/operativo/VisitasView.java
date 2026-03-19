@@ -82,7 +82,6 @@ public class VisitasView extends VerticalLayout implements View {
     PreparedStatement stPreparedQuery = null;
 
     MultiFileUpload singleUpload;
-    Image logoImage;
     public File file;
     StreamResource logoStreamResource = null;
     String parametro1, parametro2;
@@ -132,26 +131,21 @@ public class VisitasView extends VerticalLayout implements View {
     static final String CENTRO_COSTO_PROPERTY = "Centro costo"; //<-- Compartido VIsitas y Tareas
     static final String CORRELATIVO_PROPERTY = "#"; // <-- Compartida Participantes, Agenda y Tareas
 
-    VerticalLayout mainLayout;
     TabSheet tabSheet;
 
     EnvironmentVars enviromentsVars;
-    Utileria utileria = new Utileria();
     MarginInfo marginInfo;
 
     public IndexedContainer visitasContainer = new IndexedContainer();
     Grid visitasGrid;
-    FooterRow footer;
 
     IndexedContainer agendaYResolucionesContainer = new IndexedContainer();
     IndexedContainer participantesContainer = new IndexedContainer();
     IndexedContainer tareasContainer = new IndexedContainer();
-    IndexedContainer notasContainer = new IndexedContainer();
 
     Grid agendaYResolucionesGrid;
     Grid participantesGrid;
     Grid tareasGrid;
-    Grid notasGrid;
 
     List<Integer> agendaList = new ArrayList<>();
     List<Integer> participanteList = new ArrayList<>();
@@ -182,6 +176,9 @@ public class VisitasView extends VerticalLayout implements View {
 
     UI mainUI;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public VisitasView() {
         this.mainUI = UI.getCurrent();
 
@@ -193,7 +190,7 @@ public class VisitasView extends VerticalLayout implements View {
 
         marginInfo = new MarginInfo(true, true, false, true);
 
-        Label titleLbl = new Label("Visitas y reuniones del proyecto : " + ((SopdiUI)UI.getCurrent()).sessionInformation.getStrProjectName() + "<br>Empesa : " + ((SopdiUI)UI.getCurrent()).sessionInformation.getStrAccountingCompanyName() + "</br>");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Visitas y reuniones del proyecto : " + ((SopdiUI)UI.getCurrent()).sessionInformation.getStrProjectName() + "<br>Empesa : " + ((SopdiUI)UI.getCurrent()).sessionInformation.getStrAccountingCompanyName() + "</br>");
         titleLbl.addStyleName(ValoTheme.LABEL_H3);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
@@ -317,13 +314,6 @@ public class VisitasView extends VerticalLayout implements View {
                 visitasGrid.select(event.getItemId());
                 if (visitasGrid.getSelectedRow() != null) {
                     fillVisitaData();
-//                        InspectionForm newInspectionForm = new InspectionForm(
-//                                String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue()),
-//                                String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(CODIGO_VISITA_PROPERTY).getValue()));
-//                        mainUI.addWindow(newInspectionForm);
-//                        newInspectionForm.center();
-//                        newInspectionForm.fillData();
-//                        newInspectionForm.motivoCbx.focus();
                 }
             }
         });
@@ -1190,12 +1180,12 @@ public class VisitasView extends VerticalLayout implements View {
 
         queryString = "SELECT Vis.*, Cli.Nombre ClienteNombre ";
         queryString += " FROM visita_inspeccion Vis ";
-        queryString += " LEFT JOIN proveedor Cli ON Cli.IdProveedor = Vis.IdCliente";
+        queryString += " LEFT JOIN proveedor_empresa Cli ON Cli.IdProveedor = Vis.IdCliente";
         queryString += " WHERE Vis.IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
         queryString += " AND Vis.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
         queryString += " AND FechaYHoraInicio >= '" + Utileria.getFechaYYYYMMDD_1(inicioDt.getValue()) + " 00:00:00'";
         queryString += " AND FechaYHoraInicio <= '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + " 23:59:59'";
-        queryString += " AND Vis.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND Cli.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
         queryString += " ORDER BY Vis.FechaYHoraInicio DESC";
 
 System.out.println("\n\n"+queryString);
@@ -1313,11 +1303,11 @@ System.out.println("\n\n"+queryString);
 
                 tabSheet.getTab(0).setCaption(codigoVisita);
 
-                queryString = "Insert Into visita_inspeccion ";
+                queryString = "INSERT INTO visita_inspeccion ";
                 queryString += "(IdProyecto, IdEmpresa, CodigoVisita, FechaYHoraInicio, FechaYHoraFin, ";
                 queryString += " Medio, Motivo, Visitas, IdCliente, IdCentroCosto, Referencia, ";
                 queryString += " CreadoUsuario, CreadoFechaYHora, Lugar, Observaciones) ";
-                queryString += " Values (";
+                queryString += " VALUES (";
                 queryString += "  " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectId();
                 queryString += ","  + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
                 queryString += ",'" + codigoVisita + "'";
@@ -1356,7 +1346,7 @@ System.out.println("\n\n"+queryString);
                 if(String.valueOf(idVisitaInspeccionTxt.getValue()).trim().isEmpty()) {
                     return;
                 }
-                queryString = "Update visita_inspeccion Set";
+                queryString = "UPDATE visita_inspeccion SET";
                 queryString += " IdCliente = " + String.valueOf(clienteCbx.getValue());
                 queryString += ",FechaYHoraInicio = '" + Utileria.getFechaYYYYMMDDHHMMSS(fechaYHoraInicioDt.getValue()) + "'";
                 queryString += ",FechaYHoraFin = '" + Utileria.getFechaYYYYMMDDHHMMSS(fechaYHoraFinDt.getValue()) + "'";
@@ -1367,7 +1357,7 @@ System.out.println("\n\n"+queryString);
                 queryString += ",Referencia = '" + referenciaTxt.getValue() + "'";
                 queryString += ",Lugar = '" + lugarTxt.getValue() + "'";
                 queryString += ",Observaciones = '" + observacionesTxt.getValue() + "'";
-                queryString += " Where IdVisitaInspeccion = " + idVisitaInspeccionTxt.getValue();
+                queryString += " WHERE IdVisitaInspeccion = " + idVisitaInspeccionTxt.getValue();
             }
 
             System.out.println("\nQUERY=" + queryString + "\n");
@@ -1523,35 +1513,35 @@ System.out.println("\n\n"+queryString);
 
         String queryString;
 
-        queryString = "Delete ";
-        queryString += " From  visita_inspeccion_tarea_seguimiento ";
-        queryString += " Where IdVisitaInspeccionTarea In (Select A.IdVisitaInspeccionTarea From visita_inspeccion_tarea A Where A.IdVisitaInspeccion = " + String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue()) + ")";
+        queryString = "DELETE ";
+        queryString += " FROM  visita_inspeccion_tarea_seguimiento ";
+        queryString += " WHERE IdVisitaInspeccionTarea In (Select A.IdVisitaInspeccionTarea From visita_inspeccion_tarea A Where A.IdVisitaInspeccion = " + String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue()) + ")";
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);
 
-            queryString = "Delete ";
-            queryString += " From  visita_inspeccion_tarea_imagen ";
-            queryString += " Where IdVisitaInspeccionTarea In (Select A.IdVisitaInspeccionTarea From visita_inspeccion_tarea A Where A.IdVisitaInspeccion = " + String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue()) + ")";
+            queryString = "DELETE ";
+            queryString += " FROM  visita_inspeccion_tarea_imagen ";
+            queryString += " WHERE IdVisitaInspeccionTarea In (Select A.IdVisitaInspeccionTarea From visita_inspeccion_tarea A Where A.IdVisitaInspeccion = " + String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue()) + ")";
 
             stQuery.executeUpdate(queryString);
 
-            queryString = "Delete ";
-            queryString += " From  visita_inspeccion_tarea_presupuesto ";
-            queryString += " Where IdVisitaInspeccionTarea In (Select A.IdVisitaInspeccionTarea From visita_inspeccion_tarea A Where A.IdVisitaInspeccion = " + String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue()) + ")";
+            queryString = "DELETE ";
+            queryString += " FROM  visita_inspeccion_tarea_presupuesto ";
+            queryString += " WHERE IdVisitaInspeccionTarea In (Select A.IdVisitaInspeccionTarea From visita_inspeccion_tarea A Where A.IdVisitaInspeccion = " + String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue()) + ")";
 
             stQuery.executeUpdate(queryString);
 
-            queryString = "Delete ";
-            queryString += " From  visita_inspeccion_tarea ";
-            queryString += " Where IdVisitaInspeccion = " + String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue());
+            queryString = "DELETE ";
+            queryString += " FROM  visita_inspeccion_tarea ";
+            queryString += " WHERE IdVisitaInspeccion = " + String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue());
 
             stQuery.executeUpdate(queryString);
 
-            queryString = "Delete ";
-            queryString += " From  visita_inspeccion ";
-            queryString += " Where IdVisitaInspeccion = " + String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue());
+            queryString = "DELETE ";
+            queryString += " FROM  visita_inspeccion ";
+            queryString += " WHERE IdVisitaInspeccion = " + String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue());
 
             stQuery.executeUpdate(queryString);
 
@@ -1606,9 +1596,6 @@ System.out.println("\n\n"+queryString);
             documentStreamResource.setFilename(archivoNombre);
             documentStreamResource.getStream().setParameter("Content-Disposition", "attachment; filename=" + fileName);
 
-//            System.out.println("Tipo de Archivo : " + rsRecords.getString("ArchivoTipo"));
-//            System.out.println("Archivo Nombre :" + rsRecords.getString("ArchivoNombre"));
-//            System.out.println("Tamanio :" + rsRecords.getString("ArchivoPeso"));
             window.setWidth("98%");
             window.setHeight("98%");
 
@@ -1723,11 +1710,11 @@ System.out.println("\n\n"+queryString);
     public void guardarDocumentoVisita(Object selectedObject, String idVisita, String fileName) {
         try {
 
-            String queryString = " Update visita_inspeccion set  ";
+            String queryString = " Update visita_inspeccion SET  ";
             queryString += "  ArchivoNombre ='" + fileName + "'";
             queryString += ", ArchivoTipo ='" + parametro2 + "'";
             queryString += ", ArchivoPeso = " + parametro3;
-            queryString += " where IdVisita = " + idVisita;
+            queryString += " WHERE IdVisita = " + idVisita;
 
             PreparedStatement stPreparedQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(queryString);
             stPreparedQuery.executeUpdate();
@@ -1781,11 +1768,11 @@ System.out.println("\n\n"+queryString);
             return;
         }
 
-        String queryString = "Select * ";
-        queryString += " From centro_costo ";
-        queryString += " Where IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
+        String queryString = "SELECT * ";
+        queryString += " FROM centro_costo ";
+        queryString += " WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
         queryString += " AND IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-        queryString += " And Inhabilitado = 0";
+        queryString += " AND Inhabilitado = 0";
 
         try {
             stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -1823,8 +1810,9 @@ System.out.println("\n\n"+queryString);
         
         System.out.println("Lo que trae el combo motivo es : " + motivoCbx.getValue());
         
-        String queryString = "Select * ";
-        queryString += "From proveedor ";
+        String queryString = "SELECT * ";
+        queryString += "FROM proveedor_empresa ";
+        queryString += "WHERE IdEmpresa = " + empresaId;
                 
         switch (String.valueOf(motivoCbx.getValue())) {
             case "Diaria":
@@ -1842,14 +1830,14 @@ System.out.println("\n\n"+queryString);
                 queryString += "WHERE (EsComite = 1 OR Grupo = 'Comites' ";
                 break;
             case "Cliente":
-                queryString += "Where (EsComite = 1 ";
+                queryString += "WHERE (EsComite = 1 ";
                 break;
             default:
                 queryString += " ";
                 break;
         }
         queryString += "OR IdProveedor = " + clienteCbx.getValue() + ") ";
-        queryString += "Order By Nombre";
+        queryString += "ORDER BY Nombre";
 
         try {
             stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -1900,9 +1888,9 @@ System.out.println("\n\n"+queryString);
         idVisitaInspeccionTxt.setValue(String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue()));
         idVisitaInspeccionTxt.setReadOnly(true);
 
-        String queryString = "Select * ";
-        queryString += " From  visita_inspeccion ";
-        queryString += " Where IdVisitaInspeccion = " + idVisitaInspeccionTxt.getValue();
+        String queryString = "SELECT * ";
+        queryString += " FROM  visita_inspeccion ";
+        queryString += " WHERE IdVisitaInspeccion = " + idVisitaInspeccionTxt.getValue();
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -2031,9 +2019,9 @@ System.out.println("\n\n"+queryString);
         tareasContainer.removeAllItems();
         tareaList.clear();
 
-        String queryString = "Select *";
-        queryString += " From visita_inspeccion_tarea";
-        queryString += " Where IdVisitaInspeccion = " + idVisitaInspeccionTxt.getValue();
+        String queryString = "SELECT *";
+        queryString += " FROM visita_inspeccion_tarea";
+        queryString += " WHERE IdVisitaInspeccion = " + idVisitaInspeccionTxt.getValue();
 
         try {
 
@@ -2042,7 +2030,6 @@ System.out.println("\n\n"+queryString);
             rsRecords = stQuery.executeQuery(queryString);
 
             if (rsRecords.next()) { //  encontrado
-
 
                 do {
 

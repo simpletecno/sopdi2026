@@ -62,7 +62,6 @@ public class ProjectsView extends VerticalLayout implements View {
     Utileria utileria = new Utileria();
     MarginInfo  marginInfo;
 
-    Table empresaTable;
     Table projectsTable;
     
     Button exportExcelBtn;
@@ -160,11 +159,11 @@ public class ProjectsView extends VerticalLayout implements View {
                 
         String queryString = "";
         
-        queryString =  "Select Pro.*, Pai.Nombre PaisNombre ";
-        queryString += " From  proyecto Pro";
-        queryString += " Inner Join pais    Pai On Pai.IdPais    = Pro.IdPais";
-        queryString += " Where Pro.IdProyecto > 0";
-        queryString += " Order By Pro.Nombre";
+        queryString =  "SELECT Pro.*, Pai.Nombre PaisNombre ";
+        queryString += " FROM  proyecto Pro";
+        queryString += " INNER JOIN pais    Pai On Pai.IdPais    = Pro.IdPais";
+        queryString += " WHERE Pro.IdProyecto > 0";
+        queryString += " ORDER BY Pro.Nombre";
 
 //System.out.println("\n\n"+queryString);
 
@@ -352,17 +351,17 @@ public class ProjectsView extends VerticalLayout implements View {
         
         String queryString = "";
 
-        queryString =  "Delete ";
-        queryString += " From  cliente_nota ";
-        queryString += " Where IdCliente = " + String.valueOf(projectsTable.getValue());
+        queryString =  "DELETE ";
+        queryString += " FROM  cliente_nota ";
+        queryString += " WHERE IdCliente = " + String.valueOf(projectsTable.getValue());
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();            
             stQuery.executeUpdate(queryString);
 
-            queryString =  "Delete ";
-            queryString += " From  proyecto ";
-            queryString += " Where IdProyecto = " + String.valueOf(projectsTable.getValue());
+            queryString =  "DELETE ";
+            queryString += " FROM  proyecto ";
+            queryString += " WHERE IdProyecto = " + String.valueOf(projectsTable.getValue());
 
             stQuery.executeUpdate(queryString);
 

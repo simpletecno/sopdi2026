@@ -28,8 +28,6 @@ public class IvaPorDeclararForm extends Window {
 
     UI mainUI;
 
-    ComboBox empresaCbx;
-
     DateField finDt;
     Button buscarBtn;
     CheckBox incluirResumenChk;
@@ -79,6 +77,9 @@ public class IvaPorDeclararForm extends Window {
 
     double ivaDiferencia = 0.00;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public IvaPorDeclararForm() {
         this.mainUI = UI.getCurrent();
         setResponsive(true);
@@ -93,15 +94,6 @@ public class IvaPorDeclararForm extends Window {
         layoutTitle.setSpacing(true);
         layoutTitle.setMargin(true);
         layoutTitle.setWidth("100%");
-
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
 
         finDt = new DateField("FECHAS DE FACTURAS AL : ");
         finDt.setDateFormat("dd/MM/yyyy");
@@ -128,13 +120,10 @@ public class IvaPorDeclararForm extends Window {
             setTotalIva();
         });
 
-        Label titleLbl = new Label("IVA POR DECLARAR");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " IVA POR DECLARAR");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(finDt);
         layoutTitle.setComponentAlignment(finDt, Alignment.MIDDLE_CENTER);
@@ -154,30 +143,6 @@ public class IvaPorDeclararForm extends Window {
         createGridIvaFooter();
 
 //        fillGrids();
-    }
-
-    public void llenarComboEmpresa() {
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords1.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords1.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords1.getString("IdEmpresa"), rsRecords1.getString("Empresa"));
-            }
-
-            rsRecords1.first();
-
-            empresaCbx.select(rsRecords1.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void createGridDetails() {
@@ -430,7 +395,7 @@ public class IvaPorDeclararForm extends Window {
             queryString = "SELECT CodigoCC, TipoDocumento, Fecha, SerieDocumento, NumeroDocumento, NombreProveedor, ";
             queryString += "DebeQuetzales, HaberQuetzales, CodigoPartida ";
             queryString += " FROM contabilidad_partida";
-            queryString += " WHERE  IdEmpresa = " + empresaCbx.getValue();
+            queryString += " WHERE  IdEmpresa = " + empresaId;
             queryString += " AND Fecha <= '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "'";
             queryString += " AND IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getIvaPorCobrar();  //iva por cobrar
             queryString += " AND DEBE > 0"; // solo las lineas cuenta por cobrar
@@ -460,7 +425,7 @@ public class IvaPorDeclararForm extends Window {
             queryString = "SELECT CodigoCC, TipoDocumento, IdNomenclatura, Fecha, SerieDocumento, NumeroDocumento, ";
             queryString += " DebeQuetzales, HaberQuetzales, NombreProveedor, CodigoPartida ";
             queryString += " FROM contabilidad_partida";
-            queryString += " WHERE  IdEmpresa = " + empresaCbx.getValue();
+            queryString += " WHERE  IdEmpresa = " + empresaId;
             queryString += " AND Fecha <= '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "'";
             queryString += " AND IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getIvaPorCobrar();  //iva por cobrar
             queryString += " AND TipoDocumento IN ('FACTURA', 'NOTA DE CREDITO COMPRA')";
@@ -494,12 +459,13 @@ public class IvaPorDeclararForm extends Window {
             queryString = "SELECT CodigoCC, TipoDocumento, IdNomenclatura, Fecha, SerieDocumento, NumeroDocumento, ";
             queryString += " Prov.Nombre ProveedorNombre, DebeQuetzales, HaberQuetzales, CodigoPartida ";
             queryString += " FROM contabilidad_partida ";
-            queryString += " INNER JOIN proveedor Prov On Prov.IdProveedor = contabilidad_partida.IdProveedor";
-            queryString += " WHERE  contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
+            queryString += " INNER JOIN proveedor_empresa Prov On Prov.IdProveedor = contabilidad_partida.IdProveedor";
+            queryString += " WHERE  contabilidad_partida.IdEmpresa = " + empresaId;
             queryString += " AND Fecha <= '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "'";
             queryString += " AND IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getIvaPorPagar(); // iva por pagar
             queryString += " AND TipoDocumento IN ('FACTURA VENTA', 'NOTA DE CREDITO COMPRA', 'CONSTANCIA RETENCION IVA')";
             queryString += " AND PagadoIVa = 'NO'";
+            queryString += " AND Prv.IdEmpresa = " + empresaId;
             queryString += " AND UPPER(Estatus) <> 'ANULADO'";
 
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -607,16 +573,18 @@ public class IvaPorDeclararForm extends Window {
 
                     if (ivaComprasDetailGrid.isSelected(ivaItemId)) {
                         queryString = " SELECT contabilidad_partida.TipoDocumento, contabilidad_partida.SerieDocumento, contabilidad_partida.NumeroDocumento, ";
-                        queryString += " contabilidad_partida.CodigoPartida,  contabilidad_nomenclatura.NoCuenta,";
+                        queryString += " contabilidad_partida.CodigoPartida,  contabilidad_nomenclatura_empresa.NoCuenta,";
                         queryString += " contabilidad_partida.NitProveedor, contabilidad_partida.NombreProveedor, ";
                         queryString += " IFNULL(proveedor.Regimen, 'SINREGIMEN') PROV_REGIMEN,";
                         queryString += " contabilidad_partida.DebeQuetzales, contabilidad_partida.HaberQuetzales,";
-                        queryString += " contabilidad_partida.Fecha, contabilidad_nomenclatura.IdNomenclatura, contabilidad_nomenclatura.Tipo ";
+                        queryString += " contabilidad_partida.Fecha, contabilidad_nomenclatura_empresa.IdNomenclatura, contabilidad_nomenclatura_empresa.Tipo ";
                         queryString += " FROM contabilidad_partida ";
-                        queryString += " INNER JOIN contabilidad_nomenclatura ON contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura ";
-                        queryString += " LEFT JOIN proveedor ON proveedor.IdProveedor = contabilidad_partida.IdProveedor";
-                        queryString += " where contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
-                        queryString += " and contabilidad_partida.CodigoPartida = '" + ivaComprasContainer.getContainerProperty(ivaItemId, CODIGOPARTIDA_PROPERTY).getValue().toString() + "'";
+                        queryString += " INNER JOIN contabilidad_nomenclatura_empresa ON contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura ";
+                        queryString += " LEFT JOIN proveedor_empresa ON proveedor_empresa.IdProveedor = contabilidad_partida.IdProveedor";
+                        queryString += " WHERE contabilidad_partida.IdEmpresa = " + empresaId;
+                        queryString += " AND contabilidad_partida.CodigoPartida = '" + ivaComprasContainer.getContainerProperty(ivaItemId, CODIGOPARTIDA_PROPERTY).getValue().toString() + "'";
+                        queryString += " AND proveedor_empresa.IdEmpresa = " + empresaId;
+                        queryString += " ANd contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
 
                         rsRecords2 = stQuery2.executeQuery(queryString);
 
@@ -716,12 +684,12 @@ public class IvaPorDeclararForm extends Window {
     }
 
     public void insertPartidas() {
-        if (((SopdiUI) UI.getCurrent()).esMesCerrado(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(new java.util.Date()))) {
+        if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresaId, Utileria.getFechaYYYYMMDD_1(new java.util.Date()))) {
             Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
             return;
         }
-        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(new java.util.Date()))) {
-            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(String.valueOf(empresaCbx.getValue())), Notification.Type.WARNING_MESSAGE);
+        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(empresaId, Utileria.getFechaYYYYMMDD_1(new java.util.Date()))) {
+            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(empresaId), Notification.Type.WARNING_MESSAGE);
             return;
         }
         if (this.serieTxt.getValue().trim().isEmpty()) {
@@ -741,11 +709,11 @@ public class IvaPorDeclararForm extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        String codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "1";
+        String codigoPartida = empresaId + año + mes + dia + "1";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + codigoPartida + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = " SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida LIKE '" + codigoPartida + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
             ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().setAutoCommit(false);
@@ -778,12 +746,12 @@ public class IvaPorDeclararForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Select * from contabilidad_partida";
-        queryString += " Where SerieDocumento  = '" + serieTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " And NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " And IdEmpresa = " + String.valueOf(empresaCbx.getValue());
-        queryString += " And TipoDocumento = 'FORMULARIO IVA'";
-        queryString += " And MonedaDocumento = 'QUETZALES'";
+        queryString = " SELECT * FROM contabilidad_partida";
+        queryString += " WHERE SerieDocumento  = '" + serieTxt.getValue().toUpperCase().trim() + "'";
+        queryString += " AND NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND TipoDocumento = 'FORMULARIO IVA'";
+        queryString += " AND MonedaDocumento = 'QUETZALES'";
 
         try {
             rsRecords = stQuery.executeQuery(queryString);
@@ -804,12 +772,12 @@ public class IvaPorDeclararForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into proveedor_cuentacorriente (IdEmpresa,IdProveedor, Fecha, ";
+        queryString = " INSERT INTO proveedor_cuentacorriente (IdEmpresa,IdProveedor, Fecha, ";
         queryString += " TipoDocumento, SerieDocumento, NumeroDocumento, MonedaDocumento, ";
         queryString += " Monto, MontoQuetzales, TipoCambio, ";
         queryString += " IdUsuarioAutorizoPago,CreadoFechayHora,CreadoUsuario)";
-        queryString += " Values(";
-        queryString += empresaCbx.getValue();
+        queryString += " VALUES(";
+        queryString += empresaId;
         queryString += "," + ((SopdiUI)mainUI).proveedoresInstitucionales.getSat(); //SAT
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaFormularioDt.getValue()) + "'";
         queryString += ",'FORMULARIO IVA'";
@@ -839,14 +807,14 @@ public class IvaPorDeclararForm extends Window {
         }
 
         /// Ingreso del haber o el debe
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
+        queryString = " INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
         queryString += " TipoDocumento, Fecha, IdOrdenCompra, IdProveedor, NITProveedor, NombreProveedor,";
         queryString += " SerieDocumento, NumeroDocumento, IdNomenclatura, MonedaDocumento, MontoDocumento, Debe, Haber,";
         queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, Saldo, IdLiquidador, Descripcion, Referencia,";
         queryString += " CreadoUsuario, CreadoFechaYHora, Archivo, ArchivoTipo, ArchivoPeso, ArchivoNombre)";
-        queryString += " Values ";
+        queryString += " VALUES ";
         queryString += " (";
-        queryString += empresaCbx.getValue();
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'"; //codigoCC
@@ -897,7 +865,7 @@ public class IvaPorDeclararForm extends Window {
         for (Object itemId : ivaComprasContainer.getItemIds()) {
             if (ivaComprasDetailGrid.isSelected(itemId)) {
                 queryString += ",(";
-                queryString += empresaCbx.getValue();
+                queryString += empresaId;
                 queryString += ",'INGRESADO'";
                 queryString += ",'" + codigoPartida + "'";
                 queryString += ",'" + ivaComprasContainer.getContainerProperty(itemId, CODIGO_PROPERTY).getValue().toString() + "'"; //codigoCC
@@ -943,7 +911,7 @@ public class IvaPorDeclararForm extends Window {
         for (Object itemId : ivaVentasContainer.getItemIds()) {
             if (ivaVentasDetailGrid.isSelected(itemId)) {
                 queryString += ",(";
-                queryString += empresaCbx.getValue();
+                queryString += empresaId;
                 queryString += ",'INGRESADO'";
                 queryString += ",'" + codigoPartida + "'";
                 queryString += ",'" + ivaVentasContainer.getContainerProperty(itemId, CODIGO_PROPERTY).getValue().toString() + "'"; //codigoCC
@@ -1023,7 +991,7 @@ public class IvaPorDeclararForm extends Window {
         // redondeo
         if (montoTxt.getDoubleValueDoNotThrow() > 0 && (montoTxt.getDoubleValueDoNotThrow() != ivaDiferencia)) {
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaNombre;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoPartida + "'"; //codigoCC
@@ -1081,7 +1049,7 @@ public class IvaPorDeclararForm extends Window {
         if (multaTxt.getDoubleValueDoNotThrow() > 0 && multaTxt.getValue() != null) {
 
             queryString += " ,(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoPartida + "'"; //codigoCC
@@ -1115,7 +1083,7 @@ public class IvaPorDeclararForm extends Window {
 
             if (ivaCredito) {
                 queryString += " ,(";
-                queryString += empresaCbx.getValue();
+                queryString += empresaId;
                 queryString += ",'INGRESADO'";
                 queryString += ",'" + codigoPartida + "'";
                 queryString += ",'" + codigoPartida + "'"; //codigoCC
@@ -1162,12 +1130,12 @@ public class IvaPorDeclararForm extends Window {
                 if(!ivaCredito){
                     
                     queryString = " UPDATE contabilidad_partida ";
-                    queryString += " Set MontoDocumento = " + (montoTxt.getDoubleValueDoNotThrow() + multaTxt.getDoubleValueDoNotThrow());
+                    queryString += " SET MontoDocumento = " + (montoTxt.getDoubleValueDoNotThrow() + multaTxt.getDoubleValueDoNotThrow());
                     queryString += " , Haber = " + (montoTxt.getDoubleValueDoNotThrow() + multaTxt.getDoubleValueDoNotThrow());
                     queryString += " , HaberQuetzales = " + (montoTxt.getDoubleValueDoNotThrow() + multaTxt.getDoubleValueDoNotThrow());
                     queryString += " WHERE codigoPartida = '" + codigoPartida + "'";
                     queryString += " AND IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getInstituciones();
-                    queryString += " AND IdEmpresa = " + empresaCbx.getValue();
+                    queryString += " AND IdEmpresa = " + empresaId;
                     
                     stQuery.executeUpdate(queryString);
                 }
@@ -1229,7 +1197,7 @@ public class IvaPorDeclararForm extends Window {
             notif.setIcon(FontAwesome.CHECK);
             notif.show(Page.getCurrent());
 
-            ((IngresoDocumentosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(String.valueOf(empresaCbx.getValue()), 0);
+            ((IngresoDocumentosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(empresaId, 0);
 
             close();
 

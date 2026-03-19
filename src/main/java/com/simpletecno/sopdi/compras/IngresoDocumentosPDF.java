@@ -61,9 +61,7 @@ public class IngresoDocumentosPDF extends Window {
     static final DecimalFormat df1 = new DecimalFormat("###,##0.00");
 
     String fileName;
-    String queryString;
 
-    UI mainUI;
     String idEmpresa;
     String empresaNombre;
     String empresaNit;

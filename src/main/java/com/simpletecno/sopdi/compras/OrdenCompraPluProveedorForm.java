@@ -22,16 +22,12 @@ public class OrdenCompraPluProveedorForm extends Window {
 
     VerticalLayout mainLayout;
 
-    double totalMonto;
-    double totalQueztales;
-
     static final String ID_PROPERTY = "Id";
     static final String PLU_PROPERTY = "PLU";
     static final String DESCRIPCION_PROVEEDOR = "Descripción Proveedor";
 
     public IndexedContainer pluContainer = new IndexedContainer();
     Grid pluGrid;
-    Grid.FooterRow footerLiquidaciones;
     
     Button guardarBtn;
 
@@ -45,6 +41,9 @@ public class OrdenCompraPluProveedorForm extends Window {
     String noCuenta;
     String idArea;
     String idProveedor;
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public OrdenCompraPluProveedorForm(
             String idOrdenCompra,

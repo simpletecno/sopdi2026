@@ -46,11 +46,14 @@ public class DetalleItemsCostosView extends VerticalLayout implements View {
     ResultSet rsRecords;
     String queryString;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public DetalleItemsCostosView() {
         this.mainUI = UI.getCurrent();
         this.setHeightUndefined();
 
-        Label titleLbl = new Label("Detalle Items Costos PLU Proveedor");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Detalle Items Costos PLU Proveedor");
         titleLbl.addStyleName(ValoTheme.LABEL_H1);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -308,10 +311,10 @@ public class DetalleItemsCostosView extends VerticalLayout implements View {
         queryString = "  SELECT DISTINCT DITEMC.Idcc, DITEMC.Idex, DITEMC.IdProveedor, DITEMC.NoCuenta,";
         queryString += " DITEMC.IdArea, DITEMC.Descripcion, DITEMC.Unidad, DITEMC.CodItemPro, DITEMC.DesItemPro, PROV.Nombre NombreProveedor ";
         queryString += " FROM DetalleItemsCostos DITEMC";
-        queryString += " Inner Join project PROJ On PROJ.Numero = DITEMC.IdProject And PROJ.Estatus = 'ACTIVO'";
-        queryString += " Left Join proveedor PROV On PROV.IdProveedor = DITEMC.IdProveedor";
-        queryString += " Where DITEMC.IdEmpresa = " + ((SopdiUI)UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-        queryString += " And DITEMC.Tipo = 'INTINI'";
+        queryString += " INNER JOIN project PROJ ON PROJ.Numero = DITEMC.IdProject AND PROJ.Estatus = 'ACTIVO'";
+        queryString += " LEFT JOIN proveedor PROV ON PROV.IdProveedor = DITEMC.IdProveedor";
+        queryString += " WHERE DITEMC.IdEmpresa = " + ((SopdiUI)UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND DITEMC.Tipo = 'INTINI'";
 
         Logger.getLogger(DetalleItemsCostosView.class.getName()).log(Level.INFO, queryString);
 

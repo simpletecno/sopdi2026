@@ -134,7 +134,6 @@ public class EstimacionesWindowParaSeguimiento extends Window {
 
         estimacionIdLbl = new Label(estimacionId);
         estimacionIdLbl.addStyleName(ValoTheme.LABEL_SUCCESS);
-  //      estimacionIdLbl.setSizeUndefined();
         estimacionIdLbl.addStyleName("h1_custom");
         
         titleLbl = new Label("Detalle estimación " + estatus);

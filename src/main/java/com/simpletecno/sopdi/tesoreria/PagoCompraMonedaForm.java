@@ -88,7 +88,6 @@ public class PagoCompraMonedaForm extends Window {
     String monedaSeleccionada;
 
     Button grabarPartidaBtn;
-    ComboBox empresaCbx;
     Label titleLbl;
 
     UI mainUI;
@@ -108,6 +107,9 @@ public class PagoCompraMonedaForm extends Window {
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
     static DecimalFormat numberFormat3 = new DecimalFormat("######0.00");
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public PagoCompraMonedaForm(String idVentaSeleccionado, Date fechaPago) {
 
         this.mainUI = UI.getCurrent();
@@ -124,26 +126,16 @@ public class PagoCompraMonedaForm extends Window {
         setWidth("90%");
         setHeight("90%");
 
-        titleLbl = new Label("PAGO VENTA DE MONEDA");
+        titleLbl = new Label(empresaId + " " + empresaNombre + " PAGO VENTA DE MONEDA");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -159,28 +151,6 @@ public class PagoCompraMonedaForm extends Window {
             monedaGrid.select(monedaContainer.firstItemId());
         }
 
-    }
-
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords2 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords2.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords2.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords2.getString("IdEmpresa"), rsRecords2.getString("Empresa"));
-            }
-            rsRecords2.first();
-
-            empresaCbx.select(rsRecords2.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void crearGridCompraMoneda() {
@@ -280,8 +250,9 @@ public class PagoCompraMonedaForm extends Window {
 
         String queryString = " SELECT *, prov.Nombre ";
         queryString += " FROM autorizacion_pago aup" ;
-        queryString += " INNER JOIN proveedor prov ON prov.IdProveedor = aup.IdProveedor";
+        queryString += " INNER JOIN proveedor_empresa prov ON prov.IdProveedor = aup.IdProveedor";
         queryString += " WHERE aup.IdAutorizacion =  " + idVentaSeleccionado;
+        queryString += " AND prov.IdEmpresa = " + empresaId;
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -707,30 +678,17 @@ public class PagoCompraMonedaForm extends Window {
     }
 
     public void llenarComboCuentaContable() {
-        String queryString = " SELECT * from contabilidad_nomenclatura ";
+        String queryString = " SELECT * FROM contabilidad_nomenclatura_empresa ";
 //      queryString += " where FiltrarFormularioLiquidacion = ?";
-        queryString += " where Estatus='HABILITADA'";
-        queryString += " Order By N5";
+        queryString += " WHERE Estatus='HABILITADA'";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY N5";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
 
             while (rsRecords.next()) { //  encontrado
-                /**
-                 * *
-                 * if (rsRecords.getString("NoCuenta").equals("23201002")) {
-                 * provisionBono14 = rsRecords.getString("IdNomenclatura"); } if
-                 * (rsRecords.getString("NoCuenta").equals("23201001")) {
-                 * provisionAguinaldo = rsRecords.getString("IdNomenclatura"); }
-                 * if (rsRecords.getString("NoCuenta").equals("23201004")) {
-                 * provisionIndemnizacion =
-                 * rsRecords.getString("IdNomenclatura"); } if
-                 * (rsRecords.getString("NoCuenta").equals("21103005")) {
-                 * cuotaPatronalIgss = rsRecords.getString("IdNomenclatura"); }
-                 * if (rsRecords.getString("NoCuenta").equals("21103006")) {
-                 * cuotaLaboralIgss = rsRecords.getString("IdNomenclatura"); } *
-                 */
                 cuentaContable1Cbx.addItem(rsRecords.getString("IdNomenclatura"));
                 cuentaContable1Cbx.setItemCaption(rsRecords.getString("IdNomenclatura"), rsRecords.getString("NoCuenta") + " " + rsRecords.getString("N5"));
 
@@ -788,13 +746,13 @@ public class PagoCompraMonedaForm extends Window {
 
     public void insertarPartidaSimple() {
 
-        if (((SopdiUI) UI.getCurrent()).esMesCerrado(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+        if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
             Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return;
         }
-        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
-            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(String.valueOf(empresaCbx.getValue())), Notification.Type.WARNING_MESSAGE);
+        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(empresaId), Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return;
         }
@@ -862,11 +820,11 @@ public class PagoCompraMonedaForm extends Window {
             return;
         }
 
-        queryString = " Select CodigoPartida from contabilidad_partida ";
-        queryString += " Where NumeroDocumento = '" + numeroTxt.getValue() + "'";
-        queryString += " And IdEmpresa = " + empresaCbx.getValue();
-        queryString += " And TipoDocumento = '" + String.valueOf(medioCbx.getValue()) + "'";
-        queryString += " And MonedaDocumento = '" + monedaCbx.getValue() + "'";
+        queryString = "SELECT CodigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE NumeroDocumento = '" + numeroTxt.getValue() + "'";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND TipoDocumento = '" + String.valueOf(medioCbx.getValue()) + "'";
+        queryString += " AND MonedaDocumento = '" + monedaCbx.getValue() + "'";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -889,11 +847,11 @@ public class PagoCompraMonedaForm extends Window {
         String mes = fecha.substring(5, 7);
         String anio = fecha.substring(0, 4);
 
-        String codigoPartida = String.valueOf(empresaCbx.getValue()) + anio + mes + dia + "3";
+        String codigoPartida = empresaId + anio + mes + dia + "3";
 
-        queryString = " Select codigoPartida from contabilidad_partida ";
-        queryString += " Where CodigoPartida like '" + codigoPartida + "%'";
-        queryString += " Order by CodigoPartida desc ";
+        queryString = "SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE CodigoPartida LIKE '" + codigoPartida + "%'";
+        queryString += " ORDER BY CodigoPartida DESC ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -920,14 +878,14 @@ public class PagoCompraMonedaForm extends Window {
 
         String descripcion = "";
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
+        queryString = "INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
         queryString += " TipoDocumento, Fecha, IdProveedor, NITProveedor, NombreProveedor, NombreCheque,";
         queryString += " MontoDocumento, SerieDocumento, NumeroDocumento, TipoDOCA, NoDOCA, IdNomenclatura, MonedaDocumento, Debe, Haber,";
         queryString += " DebeQuetzales, HaberQuetzales, TipoCambio,";
         queryString += " Descripcion, CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values ";
+        queryString += " VALUES ";
         queryString += " (";
-        queryString += empresaCbx.getValue();
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'";
@@ -957,11 +915,9 @@ public class PagoCompraMonedaForm extends Window {
         queryString += ",current_timestamp";
         queryString += ")";
 
-        System.out.println("primer insert" + queryString);
-
         if (cuentaContable2Cbx.getValue() != null && haber2Txt.getDoubleValueDoNotThrow() != 0) {
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoPartida + "'";
@@ -988,13 +944,11 @@ public class PagoCompraMonedaForm extends Window {
             queryString += ",current_timestamp";
             queryString += ")";
 
-            System.out.println("segundo query" + queryString);
-
         }
 
         if (cuentaContable3Cbx.getValue() != null && haber3Txt.getDoubleValueDoNotThrow() != 0) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoPartida + "'";
@@ -1020,9 +974,6 @@ public class PagoCompraMonedaForm extends Window {
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ")";
-
-            System.out.println("tercer query" + queryString);
-
         }
 
         try {
@@ -1038,8 +989,8 @@ public class PagoCompraMonedaForm extends Window {
 
             PagoChequesPDF Pagocheques
                     = new PagoChequesPDF(
-                    String.valueOf(empresaCbx.getValue()),
-                    empresaCbx.getItemCaption(empresaCbx.getValue()),
+                    empresaId,
+                    empresaNombre,
                     codigoPartidaNuevo,
                     "0",
                     nombreChequeTxt.getValue(),
@@ -1158,10 +1109,11 @@ public class PagoCompraMonedaForm extends Window {
     }
 
     public void llenarComboProveedor(String codigos) {
-        String queryString = " SELECT * from proveedor ";
+        String queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE N0 IN (" + codigos + ")";
         queryString += " AND Inhabilitado = 0 ";
-        queryString += " Order By Nombre ";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY Nombre ";
 
         proveedorCbx.removeAllItems();
 

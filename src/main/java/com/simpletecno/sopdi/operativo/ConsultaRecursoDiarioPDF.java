@@ -38,13 +38,9 @@ public class ConsultaRecursoDiarioPDF extends Window {
     static final DecimalFormat df1 = new DecimalFormat("###,##0.00");
 
     String fileName;
-    String grupoId;
-    String grupoNombre;
-    String grupoJefe;
     public IndexedContainer asistenciaContainer;
     String fechaInicio;
     String fechaFin;
-    String totalRh;
 
     public ConsultaRecursoDiarioPDF(
             String fechaInicio,

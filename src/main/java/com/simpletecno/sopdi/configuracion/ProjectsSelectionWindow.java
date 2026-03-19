@@ -42,14 +42,10 @@ public class ProjectsSelectionWindow extends Window {
     public ResultSet rsRecords = null;
     public ResultSet rsRecords1 = null;
     
-    static final String CODIGO_PROPERTY = "Id";
     static final String LOGO_PROPERTY = "Logo";
     static final String NOMBRE_PROPERTY = "Nombre";
     static final String ELEGIR_PROPERTY = "Elegir";
-    
-    Utileria utileria = new Utileria();
-    MarginInfo  marginInfo;
-        
+
     VerticalLayout selectionPanel = new VerticalLayout();
     
     Table projectsTable;
@@ -163,11 +159,11 @@ public class ProjectsSelectionWindow extends Window {
                 
         String queryString = "";
         
-        queryString =  "Select * ";
-        queryString += " From  proyecto ";
-        queryString += " Where IdProyecto > 0"; //solo para tener los And's
+        queryString =  "SELECT * ";
+        queryString += " FROM  proyecto ";
+        queryString += " WHERE IdProyecto > 0"; //solo para tener los And's
         if(((SopdiUI) mainUI).sessionInformation.getStrUserProfile().compareTo("DESARROLLADOR") == 0) {
-            queryString += " And IdProyecto In (Select IdProyecto From proyecto_usuario where IdUsuario = " + ((SopdiUI)mainUI).sessionInformation.getStrUserId() + ")";
+            queryString += " AND IdProyecto In (Select IdProyecto From proyecto_usuario where IdUsuario = " + ((SopdiUI)mainUI).sessionInformation.getStrUserId() + ")";
         }
 
         try {
@@ -204,10 +200,10 @@ public class ProjectsSelectionWindow extends Window {
                     checkBox.setData(rsRecords.getString("IdProyecto"));
                     checkBox.setImmediate(true);
                     
-                    queryString =  "Select IdUsuario ";
-                    queryString += " From  proyecto_usuario ";
-                    queryString += " Where IdUsuario = "  + idUsuario;
-                    queryString += " And   IdProyecto = " + rsRecords.getString("IdProyecto");
+                    queryString =  "SELECT IdUsuario ";
+                    queryString += " FROM  proyecto_usuario ";
+                    queryString += " WHERE IdUsuario = "  + idUsuario;
+                    queryString += " AND   IdProyecto = " + rsRecords.getString("IdProyecto");
                      
                     rsRecords1 = stQuery1.executeQuery (queryString);
 
@@ -239,8 +235,8 @@ public class ProjectsSelectionWindow extends Window {
 
         String queryString = "";
         
-        queryString =  "Delete from proyecto_usuario ";
-        queryString += " Where IdUsuario = " + idUsuario;
+        queryString =  "DELETE FROM proyecto_usuario ";
+        queryString += " WHERE IdUsuario = " + idUsuario;
 
 System.out.println("\n\nQuery="+queryString);
 
@@ -262,7 +258,7 @@ System.out.println("\n\nQuery="+queryString);
             
                 if(checkBox.getValue()) {
 
-                    queryString = "Insert Into proyecto_usuario (IdProyecto, IdUsuario, Rol, Estatus) Values (";
+                    queryString = "INSERT INTO proyecto_usuario (IdProyecto, IdUsuario, Rol, Estatus) Values (";
                     queryString += " " + String.valueOf(checkBox.getData());
                     queryString += "," + idUsuario;
                     queryString += ",'ASESOR'";

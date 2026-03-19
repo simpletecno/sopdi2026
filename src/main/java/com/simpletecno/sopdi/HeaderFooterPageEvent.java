@@ -156,21 +156,6 @@ public class HeaderFooterPageEvent extends PdfPageEventHelper {
             ex.printStackTrace();
         }
 
-//        ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_CENTER, new Phrase("Top Left"), 30, 800, 0);
-/*        
-        ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_CENTER, new Phrase("Siena San Isidro"), 525, 800, 0);
-        Utileria utilData = new Utileria(1);
-        ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_CENTER, new Phrase("Fecha : "  + utilData.getFecha(new java.util.Date()) + " Hora : " + Utileria.getHora_1(new java.util.Date()).substring(0, 5)),  30, 800, 0);
-        ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_CENTER, new Phrase("Página : " + document.getPageNumber()), 525, 800, 0);
-        
-
-//        ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_CENTER, new Phrase("Top Left"), 30, 800, 0);
-/*        
-        ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_CENTER, new Phrase("Siena San Isidro"), 525, 800, 0);
-        Utileria utilData = new Utileria(1);
-        ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_CENTER, new Phrase("Fecha : "  + utilData.getFecha(new java.util.Date()) + " Hora : " + Utileria.getHora_1(new java.util.Date()).substring(0, 5)),  30, 800, 0);
-        ColumnText.showTextAligned(writer.getDirectContent(), Element.ALIGN_CENTER, new Phrase("Página : " + document.getPageNumber()), 525, 800, 0);
-         */
     }
 
     private void addEmptyLine(Paragraph paragraph, int number) {

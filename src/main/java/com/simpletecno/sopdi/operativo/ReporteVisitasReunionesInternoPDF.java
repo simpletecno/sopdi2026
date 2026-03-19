@@ -41,8 +41,6 @@ public class ReporteVisitasReunionesInternoPDF extends Window {
     public static PreparedStatement stPreparedQuery;
     public static ResultSet rsRecords;
 
-    static final DecimalFormat df1 = new DecimalFormat("###,##0.00");
-
     String fileName;
     String queryString;
     String idvisitaInspeccion;
@@ -107,8 +105,6 @@ public class ReporteVisitasReunionesInternoPDF extends Window {
 
             VerticalLayout buttonLayout = new VerticalLayout();
             buttonLayout.addStyleName("rcorners3");
-//            buttonLayout.setHeight("10%");
-//            buttonLayout.setWidth("100%");
             buttonLayout.setSizeUndefined();
 
             fileName = "ReporteVisitaReunionInterno_" + String.valueOf(codigoVisitaInspeccion) + "_" + new Utileria().getFechaHoraSinFormato() + ".pdf";
@@ -122,8 +118,6 @@ public class ReporteVisitasReunionesInternoPDF extends Window {
             fileName = VaadinService.getCurrent()
                     .getBaseDirectory().getAbsolutePath() + "/pdfreceipts/" + fileName;
 
-            //File file = new File(fileName);
-            // file.delete();
             FileUtils.writeByteArrayToFile(new File(fileName), pdf.os.toByteArray());
 
             enviarReporteBtn = new Button("Enviar reporte");
@@ -151,7 +145,6 @@ public class ReporteVisitasReunionesInternoPDF extends Window {
                     Logger.getLogger(ReporteVisitasReunionesInternoPDF.class.getName()).log(Level.SEVERE, null, ex);
                 }
             });
-            //file.delete();
 
             browser.setSource(pdfResource);
 
@@ -224,8 +217,6 @@ public class ReporteVisitasReunionesInternoPDF extends Window {
 
                 fileName = RECEIPTFILE + fileName;
 
-//                Document document = new Document(PageSize.A4.rotate(), 0, 0, 0, 0);
-//                Document document2 = new Document(PageSize.A4.rotate(), 0, 0, 0, 0);
                 Document document = new Document(PageSize.A4, 0, 0, 0, 0);
                 Document document2 = new Document(PageSize.A4, 0, 0, 0, 0);
                 fost = new FileOutputStream(fileName);

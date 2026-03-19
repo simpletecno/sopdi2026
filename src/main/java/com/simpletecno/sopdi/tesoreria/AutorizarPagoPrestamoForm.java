@@ -35,7 +35,6 @@ public class AutorizarPagoPrestamoForm extends Window {
 
     NumberField montoAutorizarTxt;
 
-    ComboBox empresaCbx;
     ComboBox monedaCbx;
     ComboBox proveedorCbx;
     ComboBox tipoCbx;
@@ -70,6 +69,9 @@ public class AutorizarPagoPrestamoForm extends Window {
     double totalDebeQuetzales = 0.00, totalHaberQueztales = 0.00;
     double totalDebe = 0.00, totalHaber = 0.00;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public AutorizarPagoPrestamoForm() {
         this.mainUI = UI.getCurrent();
         setResponsive(true);
@@ -86,16 +88,7 @@ public class AutorizarPagoPrestamoForm extends Window {
         layoutTitle.setSpacing(true);
         layoutTitle.setMargin(new MarginInfo(true, true, false, true));
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-
-        Label titleLbl = new Label(AutorizacionesPagoView.PAGO_PRESTAMO);
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " " + AutorizacionesPagoView.PAGO_PRESTAMO);
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
@@ -128,8 +121,6 @@ public class AutorizarPagoPrestamoForm extends Window {
         tipoCbx.addItem(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAbastos());
         tipoCbx.setItemCaption(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getPrestamos(), "PRESTAMO");
         tipoCbx.setItemCaption(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAbastos(), "ABASTO");
-//        tipoCbx.getContainerProperty(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getPrestamos(), "CUENTA").setValue("22101001");
-//        tipoCbx.getContainerProperty(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAbastos(), "CUENTA").setValue("21106006");
         tipoCbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getPrestamos());
         tipoCbx.addValueChangeListener(event -> {
             if (event.getProperty() == null) {
@@ -174,9 +165,6 @@ public class AutorizarPagoPrestamoForm extends Window {
             }
         });
 
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
-
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
 
@@ -195,28 +183,6 @@ public class AutorizarPagoPrestamoForm extends Window {
 
         crearGridPrestamo();
         crearComponentes();
-    }
-
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void crearGridPrestamo() {
@@ -300,16 +266,16 @@ public class AutorizarPagoPrestamoForm extends Window {
         totalDebe = 0.00;
         totalHaber = 0.00;
 
-        queryString = "  select contabilidad_partida.CodigoPartida, contabilidad_partida.Fecha, contabilidad_partida.TipoDocumento,";
+        queryString = " SELECT contabilidad_partida.CodigoPartida, contabilidad_partida.Fecha, contabilidad_partida.TipoDocumento,";
         queryString += " contabilidad_partida.NumeroDocumento, contabilidad_partida.Descripcion, contabilidad_partida.MonedaDocumento,";
         queryString += " contabilidad_partida.Debe, contabilidad_partida.Haber, contabilidad_partida.TipoCambio, contabilidad_partida.CodigoCC,";
         queryString += " contabilidad_partida.DebeQuetzales, contabilidad_partida.HaberQuetzales,contabilidad_partida.IdNomenclatura ";
-        queryString += " from contabilidad_partida";
-        queryString += " where contabilidad_partida.IdEmpresa =" + empresaCbx.getValue();
+        queryString += " FROM contabilidad_partida";
+        queryString += " WHERE contabilidad_partida.IdEmpresa =" + empresaId;
 //        queryString += " and contabilidad_partida.IdProveedor =" + proveedorCbx.getValue();
-        queryString += " and contabilidad_partida.IdNomenclatura = " + tipoCbx.getValue();
+        queryString += " AND contabilidad_partida.IdNomenclatura = " + tipoCbx.getValue();
 //        queryString += " and contabilidad_partida.TipoDocumento In ('CHEQUE', 'TRANSFERENCIA')";
-        queryString += " Order by contabilidad_partida.Fecha desc";
+        queryString += " ORDER BY contabilidad_partida.Fecha DESC";
 
         try {
 
@@ -326,7 +292,7 @@ public class AutorizarPagoPrestamoForm extends Window {
                     queryString = " SELECT ";
                     queryString += " SUM(HABER - DEBE) TOTALSALDO, SUM(DebeQuetzales - HaberQuetzales) TOTALSALDOQ ";
                     queryString += " FROM contabilidad_partida";
-                    queryString += " WHERE IdEmpresa = " + empresaCbx.getValue();
+                    queryString += " WHERE IdEmpresa = " + empresaId;
                     queryString += " AND CodigoCC = '" + rsRecords.getString("CodigoCC") + "'";
                     queryString += " AND contabilidad_partida.IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
                     queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
@@ -397,10 +363,11 @@ public class AutorizarPagoPrestamoForm extends Window {
     }
 
     public void llenarComboProveedor() {
-        queryString = " SELECT * FROM proveedor ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0";
-        queryString += " And EsProveedor = 1";
-        queryString += " Order By Nombre ";
+        queryString += " AND EsProveedor = 1";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY Nombre ";
 
         proveedorCbx.removeAllItems();
 
@@ -445,13 +412,13 @@ public class AutorizarPagoPrestamoForm extends Window {
             return;
         }
 
-        queryString = "  Insert Into autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
+        queryString = "INSERT INTO autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
         queryString += " Fecha, Moneda, Monto, CodigoCC, CuentaContableLiquidar, ";
         queryString += " Objetivo, CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values ";
+        queryString += " VALUES ";
         queryString += "(";
         queryString += "'" + AutorizacionesPagoView.PAGO_PRESTAMO + "'";
-        queryString += "," + String.valueOf(empresaCbx.getValue());
+        queryString += "," + empresaId;
         queryString += "," + proveedorCbx.getValue();
         queryString += ",current_date";
         queryString += ",'" + monedaCbx.getValue() + "'";

@@ -198,15 +198,15 @@ public class MostrarPartidaContable extends Window {
         double totalDebeQ = 0.00;
         double totalHaberQ = 0.00;
 
-        String queryString = " select contabilidad_partida.TipoDocumento, contabilidad_partida.Fecha,";
+        String queryString = " SELECT contabilidad_partida.TipoDocumento, contabilidad_partida.Fecha,";
         queryString += " contabilidad_partida.MonedaDocumento,";
         queryString += " contabilidad_partida.Debe, contabilidad_partida.Haber,";
         queryString += " contabilidad_partida.DebeQuetzales, contabilidad_partida.HaberQuetzales,";
-        queryString += " contabilidad_nomenclatura.N5, contabilidad_nomenclatura.NoCuenta,";
+        queryString += " contabilidad_nomenclatura_empresa.N5, contabilidad_nomenclatura_empresa.NoCuenta,";
         queryString += " contabilidad_partida.TipoCambio, contabilidad_partida.CodigoCentroCosto";
-        queryString += " from contabilidad_partida,contabilidad_nomenclatura";
-        queryString += " where contabilidad_partida.CodigoPartida = '" + codigoPartida + "'";
-        queryString += " and contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+        queryString += " FROM contabilidad_partida,contabilidad_nomenclatura_empresa";
+        queryString += " WHERE contabilidad_partida.CodigoPartida = '" + codigoPartida + "'";
+        queryString += " AND contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();

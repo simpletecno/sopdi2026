@@ -150,8 +150,8 @@ public class ClasificacionCuentasCostoView extends VerticalLayout implements Vie
                     try {
 
                         queryString = "";
-                        queryString += " delete from clasificacion";
-                        queryString += " where IdClasificacion = " + String.valueOf(container.getContainerProperty(clasificacionGrid.getSelectedRow(), ID_CLASIFICACION_PROPERTY).getValue());
+                        queryString += " DELETE FROM clasificacion";
+                        queryString += " WHERE IdClasificacion = " + String.valueOf(container.getContainerProperty(clasificacionGrid.getSelectedRow(), ID_CLASIFICACION_PROPERTY).getValue());
 
                         stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                         stQuery.executeUpdate(queryString);
@@ -181,8 +181,8 @@ public class ClasificacionCuentasCostoView extends VerticalLayout implements Vie
         container.removeAllItems();
 
         String queryString = "";
-        queryString = "  select *";
-        queryString += " from clasificacion";
+        queryString = "  SELECT *";
+        queryString += " FROM clasificacion";
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

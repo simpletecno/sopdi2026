@@ -80,6 +80,9 @@ public class BalanceDeSaldosView extends VerticalLayout implements View {
 
     static final Utileria UTILERIA = new Utileria();
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public BalanceDeSaldosView() {
         this.mainUI = UI.getCurrent();
         setWidth("100%");
@@ -87,7 +90,7 @@ public class BalanceDeSaldosView extends VerticalLayout implements View {
         setMargin(true);
         setHeightUndefined();
 
-        Label titleLbl = new Label("BALANCE SALDOS");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " BALANCE SALDOS");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
 //        titleLbl.addStyleName("h2_custom");
@@ -127,8 +130,8 @@ public class BalanceDeSaldosView extends VerticalLayout implements View {
     }
 
     public void llenarComboEmpresa() {
-        String queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        String queryString = " SELECT * FROM contabilidad_empresa";
+        queryString += " WHERE IdEmpresa = " + empresaId;
 
         try {
             stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -250,11 +253,6 @@ public class BalanceDeSaldosView extends VerticalLayout implements View {
 
         balanceSaldosGrid.getColumn(CUENTA_PROPERTY).setExpandRatio(1);
         balanceSaldosGrid.getColumn(DESCRIPCION_PROPERTY).setExpandRatio(3);
-//        balanceSaldosGrid.getColumn(SALDO_ANTERIOR_PROPERTY).setExpandRatio(1);
-//        balanceSaldosGrid.getColumn(DEBE_PROPERTY).setExpandRatio(1);
-//        balanceSaldosGrid.getColumn(HABER_PROPERTY).setExpandRatio(1);
-//        balanceSaldosGrid.getColumn(SALDO_FINAL_PROPERTY).setExpandRatio(1);
-
 
         Grid.HeaderRow filterRow = balanceSaldosGrid.appendHeaderRow();
 
@@ -336,9 +334,9 @@ public class BalanceDeSaldosView extends VerticalLayout implements View {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
 
-            queryString = " SELECT * from contabilidad_nomenclatura";
-            queryString += " where Estatus = 'HABILITADA'";
-            queryString += " Order By Cast(NoCuenta AS UNSIGNED)";
+            queryString = " SELECT * FROM contabilidad_nomenclatura";
+            queryString += " WHERE Estatus = 'HABILITADA'";
+            queryString += " ORDER BY Cast(NoCuenta AS UNSIGNED)";
 
             rsRecords = stQuery.executeQuery(queryString);
 
@@ -360,11 +358,11 @@ public class BalanceDeSaldosView extends VerticalLayout implements View {
                             stringMes = String.valueOf(numeroMes);
                         }
 
-                        queryString = " Select *";
-                        queryString += " From contabilidad_balance_saldo";
-                        queryString += " Where IdEmpresa = " + empresa;
-                        queryString += " And IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
-                        queryString += " And AnioMesCierre = '" + anioCbx.getValue() + stringMes + "'";
+                        queryString = " SELECT *";
+                        queryString += " FROM contabilidad_balance_saldo";
+                        queryString += " WHERE IdEmpresa = " + empresa;
+                        queryString += " AND IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
+                        queryString += " AND AnioMesCierre = '" + anioCbx.getValue() + stringMes + "'";
 
 //System.out.println(queryString);
 
@@ -413,28 +411,6 @@ public class BalanceDeSaldosView extends VerticalLayout implements View {
             ex1.printStackTrace();
         }
 
-    }
-
-    public String getEmpresaNit() {
-        String strNit = "N/A";
-
-        String queryString = " SELECT Nit from contabilidad_empresa ";
-        queryString += " Where IdEmpresa = " + empresa;
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            if (rsRecords1.next()) {
-                strNit = rsRecords1.getString("Nit");
-            }
-
-        } catch (Exception ex1) {
-            System.out.println("Error al buscar NIT de empresa: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-
-        return strNit;
     }
 
     @Override

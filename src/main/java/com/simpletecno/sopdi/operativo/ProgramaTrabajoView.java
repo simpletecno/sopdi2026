@@ -102,7 +102,6 @@ public class ProgramaTrabajoView extends VerticalLayout implements View {
 
         setResponsive(true);
         setCaption("Programación de trabajo " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectName());
-//        setSizeFull();
 
         mainLayout.setWidth("100%");
         mainLayout.setSpacing(true);
@@ -141,9 +140,6 @@ public class ProgramaTrabajoView extends VerticalLayout implements View {
         projectCbx.setInvalidAllowed(false);
         projectCbx.setNullSelectionAllowed(false);
         projectCbx.setNewItemsAllowed(false);
-        projectCbx.addValueChangeListener(event -> {
-//            fillIdexGrid();
-        });
         llenarComboProject();
 
         //TODO : PRIMER DIA DE LOS PROJECTS ACTIVOS
@@ -242,43 +238,6 @@ public class ProgramaTrabajoView extends VerticalLayout implements View {
         }
         return new java.util.Date();
     }
-
-//    private boolean calificacionesBloqueada() {
-//        boolean bloqueada = false;
-//
-//        queryString = "Select calificacionesBloqueda ";
-//        queryString += " From proyecto ";
-//        queryString += " Where IdProyecto = " + ((SopdiUI)UI.getCurrent()).sessionInformation.getStrProjectId();
-//
-//        try {
-//            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-//            rsRecords = stQuery.executeQuery(queryString);
-//
-//            if (rsRecords.next()) { //  encontrado
-//                bloqueada = (rsRecords.getInt("calificacionesBloqueda") == 1 ? true : false);
-//            }
-//        }
-//        catch (Exception ex1) {
-//            Notification.show("ERROR DEL SISTEMA AL BUSCAR PROYECTO", Notification.Type.ERROR_MESSAGE);
-//            System.out.println("ERROR AL INTENTAR BUSCAR PROYECTO: " + ex1.getMessage());
-//            ex1.printStackTrace();
-//        }
-//        return bloqueada;
-//    }
-
-//    private void setButtonBehavior() {
-//        if(calificacionesBloqueada()) {
-//            calificacionesBtn.setData(1);
-//            calificacionesBtn.setCaption("DESBLOQUEAR calificaciones");
-//            calificacionesBtn.setIcon(FontAwesome.CHECK);
-//        }
-//        else {
-//            calificacionesBtn.setData(0);
-//            calificacionesBtn.setCaption("BLOQUEAR calificaciones");
-//            calificacionesBtn.setIcon(FontAwesome.STOP);
-//        }
-//    }
-//
     private void llenarComboProject() {
         String queryString = "";
 
@@ -308,7 +267,6 @@ public class ProgramaTrabajoView extends VerticalLayout implements View {
             System.out.println("Error al intentar leer registros de projects : " + ex.getMessage());
             Notification.show("Error al intentar leer registros de projects..!", Notification.Type.ERROR_MESSAGE);
         }
-
     }
 
     private void createIdexGrid() {
@@ -355,8 +313,6 @@ public class ProgramaTrabajoView extends VerticalLayout implements View {
         idexGrid.setHeightMode(HeightMode.ROW);
         idexGrid.setHeightByRows(7);
         idexGrid.setSizeFull();
-//        idexGrid.getColumn(INSTRUCCIONES_PROPERTY).setEditorField(getComboState());
-//        idexGrid.getColumn(PLANOS_PROPERTY).setEditorField(getEditTextRazon());
         idexGrid.addSelectionListener(new SelectionEvent.SelectionListener() {
             @Override
             public void select(SelectionEvent event
@@ -576,7 +532,6 @@ public class ProgramaTrabajoView extends VerticalLayout implements View {
         rhGrid.setHeightByRows(5);
         rhGrid.setResponsive(true);
         rhGrid.setEditorBuffered(false);
-//        rhGrid.setSizeFull();
 
         rhGrid.getColumn(IDEMPLEADO_PROPERTY).setExpandRatio(1);
         rhGrid.getColumn(NOMBRE_PROPERTY).setExpandRatio(4);
@@ -727,7 +682,6 @@ public class ProgramaTrabajoView extends VerticalLayout implements View {
                                             queryString += " WHERE Id = " + String.valueOf(rhContainer.getContainerProperty(rhGrid.getSelectedRow(), ID_PROPERTY).getValue());
 
                                             stQuery.executeUpdate(queryString);
-System.out.println("query update esjefe=" + queryString);
 
                                             queryString = " UPDATE proveedor SET";
                                             queryString += " EsJefe = 1";
@@ -757,7 +711,7 @@ System.out.println("query update esjefe=" + queryString);
             }
         });
 
-        Button noJefeBtn = new Button("Des Asignar como JEFE ");
+        Button noJefeBtn = new Button("Desasignar como JEFE ");
         noJefeBtn.setIcon(FontAwesome.UNDO);
         noJefeBtn.addStyleName(ValoTheme.BUTTON_LINK);
         noJefeBtn.setWidth(190, Sizeable.UNITS_PIXELS);
@@ -998,8 +952,6 @@ System.out.println("query update esjefe=" + queryString);
 
             } while (rsRecords.next());
 
-//            idexGrid.select(idexContainer.firstItemId());
-//            idexGrid.select(null);
         } catch (Exception ex) {
             System.out.println("Error al listar tabla DE IDEX (TAREAS) DEL PROGRAMA : " + ex);
             ex.printStackTrace();
@@ -1037,7 +989,7 @@ System.out.println("query update esjefe=" + queryString);
                                 //ELIMINAR LOS REGISTROS DE plan_trabajo_idex de tareas o idex no iniciados...
                                 queryString = "DELETE FROM plan_trabajo_idex_rh";
                                 queryString += " WHERE IdPlanTrabajoIdex IN ("+ ids + ")";
-//System.out.println("--->" + queryString);
+
                                 stQuery1.executeUpdate(queryString);
 
                                 queryString = "DELETE FROM plan_trabajo_idex";
@@ -1050,17 +1002,13 @@ System.out.println("query update esjefe=" + queryString);
                                     if(String.valueOf(idexContainer.getContainerProperty(idexObject, FECHAINICIOREAL_PROPERTY).getValue()).trim().isEmpty() == false) {
                                         continue;
                                     }
-                                    queryString =  "Insert Into plan_trabajo_idex (Idex, IdProject, FechaInicioPlaneada, FechaFinPlaneada)";
-                                    queryString += " Values (";
+                                    queryString =  "INSERT INTO plan_trabajo_idex (Idex, IdProject, FechaInicioPlaneada, FechaFinPlaneada)";
+                                    queryString += " VALUES (";
                                     queryString += "'"  + idexContainer.getContainerProperty(idexObject, IDEX_PROPERTY).getValue() + "'";
                                     queryString += ","  + idexContainer.getContainerProperty(idexObject, IDPROJECT_PROPERTY).getValue();
                                     queryString += ",'" + idexContainer.getContainerProperty(idexObject, FECHAINICIO_PROPERTY).getValue() + "'";
                                     queryString += ",'" + idexContainer.getContainerProperty(idexObject, FECHAFINAL_PROPERTY).getValue() + "'";
-//                                    queryString += ", " + idexContainer.getContainerProperty(idexObject, RH1_PROPERTY).getValue();
-//                                    queryString += ", " + idexContainer.getContainerProperty(idexObject, RH2_PROPERTY).getValue();
                                     queryString += ")";
-
-//System.out.println("INSERT PLANTRABAJOIDEX ="+queryString);
 
                                     stPreparedQuery  = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(queryString, Statement.RETURN_GENERATED_KEYS);
                                     stPreparedQuery.executeUpdate();
@@ -1075,15 +1023,13 @@ System.out.println("query update esjefe=" + queryString);
                                     fillRhGrid(idexObject);
 
                                     for(Object rhObject : rhContainer.getItemIds()) {
-                                        queryString = "Insert Into plan_trabajo_idex_rh (IdPlanTrabajoIdex, IdEmpleado, EsJefe, Cargo)";
-                                        queryString += " Values (";
+                                        queryString = "INSERT INTO plan_trabajo_idex_rh (IdPlanTrabajoIdex, IdEmpleado, EsJefe, Cargo)";
+                                        queryString += " VALUES (";
                                         queryString += " " + idPlanTrabajoIdex;
                                         queryString += ",'" + rhContainer.getContainerProperty(rhObject, IDEMPLEADO_PROPERTY).getValue() + "'";
                                         queryString += ",'" + rhContainer.getContainerProperty(rhObject, ESJEFE_PROPERTY).getValue() + "'";
                                         queryString += ",'" + rhContainer.getContainerProperty(rhObject, CARGO_PROPERTY).getValue() + "'";
                                         queryString += ")";
-
-//System.out.println("queryString="+queryString);
 
                                         stQuery1.executeUpdate(queryString);
 
@@ -1091,8 +1037,8 @@ System.out.println("query update esjefe=" + queryString);
 
                                     //MAESTRO Y SUPERVISOR
                                     for(Object rhObject : rhContainerMaestroSupervidor.getItemIds()) {
-                                        queryString = "Insert Into plan_trabajo_idex_rh (IdPlanTrabajoIdex, IdEmpleado, EsJefe, Cargo)";
-                                        queryString += " Values (";
+                                        queryString = "INSERT INTO plan_trabajo_idex_rh (IdPlanTrabajoIdex, IdEmpleado, EsJefe, Cargo)";
+                                        queryString += " VALUES (";
                                         queryString += " " + idPlanTrabajoIdex;
                                         queryString += ",'" + rhContainerMaestroSupervidor.getContainerProperty(rhObject, IDEMPLEADO_PROPERTY).getValue() + "'";
                                         queryString += ",'NO'";
@@ -1214,15 +1160,12 @@ System.out.println("query update esjefe=" + queryString);
                         rhContainer.getContainerProperty(itemId, NOMBRE_PROPERTY).setValue(rsRecords.getString("Nombre"));
                         rhContainer.getContainerProperty(itemId, CARGO_PROPERTY).setValue(rsRecords.getString("Cargo"));
                         if(!hayJefe && rsRecords.getString("Cargo").equals("RH1")) { //no hay jefe y es rh
-//                            rhContainer.getContainerProperty(itemId, ESJEFE_PROPERTY).setValue(rsRecords.getString("EsJefe").equals("1") ? "SI" : "");
                              rhContainer.getContainerProperty(itemId, ESJEFE_PROPERTY).setValue("SI");
                             hayJefe = true;
                         }
                         else {
                             rhContainer.getContainerProperty(itemId, ESJEFE_PROPERTY).setValue("NO");
-//                        rhContainer.getContainerProperty(itemId, OPTIONS_PROPERTY).setValue(null)
                         };
-//System.out.println("rhContainer.size()="+rhContainer.size());
                     }
 
                 } while (rsRecords.next());
@@ -1285,7 +1228,7 @@ System.out.println("query update esjefe=" + queryString);
         queryString += " INNER JOIN plan_trabajo_idex_rh ON plan_trabajo_idex_rh.IdEmpleado = proveedor.IdProveedor";
         queryString += " WHERE plan_trabajo_idex_rh.IdPlanTrabajoIdex = " + idexContainer.getContainerProperty(selectedItem, ID_PROPERTY).getValue();
         queryString += " ORDER BY proveedor.Cargo";
-//System.out.println("queryRH=" + queryString);
+
         int rh1 = 0, rh2 = 0;
 
         try {
@@ -1330,22 +1273,14 @@ System.out.println("query update esjefe=" + queryString);
                         else {
                             rhContainer.getContainerProperty(itemId, ESJEFE_PROPERTY).setValue("NO");
                         }
-
-//                        rhContainer.getContainerProperty(itemId, OPTIONS_PROPERTY).setValue("");
                     }
 
                 } while (rsRecords.next());
 
                 idexContainer.getContainerProperty(selectedItem, RH1_REAL_PROPERTY).setValue(rh1);
                 idexContainer.getContainerProperty(selectedItem, RH2_REAL_PROPERTY).setValue(rh2);
-//                if(Integer.valueOf(String.valueOf(idexContainer.getContainerProperty(selectedItem, RH1_REAL_PROPERTY).getValue())) > 0) {
                     int rhD1 = Integer.valueOf(String.valueOf(idexContainer.getContainerProperty(selectedItem, RH1_REAL_PROPERTY).getValue())) - rh1;
-//                    idexContainer.getContainerProperty(selectedItem, RH1_DIFERENCIA_PROPERTY).setValue(rhD1);
-//                }
-//                if(Integer.valueOf(String.valueOf(idexContainer.getContainerProperty(selectedItem, RH2_REAL_PROPERTY).getValue())) > 0) {
                     int rhD2 = Integer.valueOf(String.valueOf(idexContainer.getContainerProperty(selectedItem, RH2_REAL_PROPERTY).getValue())) - rh2;
-//                    idexContainer.getContainerProperty(selectedItem, RH2_DIFERENCIA_PROPERTY).setValue(rhD2);
-//                }
             }
 
         } catch (Exception ex) {
@@ -1372,130 +1307,3 @@ System.out.println("query update esjefe=" + queryString);
         Page.getCurrent().setTitle("Sopdi - PROGRAMA DE TRABAJO");
     }
 }
-
-
-/**
- *                 // Define a common menu command for all the menu items.
- *                 MenuBar.Command mycommand = new MenuBar.Command() {
- *                     @Override
- *                     public void menuSelected(MenuBar.MenuItem selectedItem) {
- *                         if(rhGrid.getSelectedRow() != null) {
- *                             MenuBar menuBar = (MenuBar)rhContainer.getContainerProperty(rhGrid.getSelectedRow(), OPTIONS_PROPERTY).getValue();
- *                             if(menuBar.getItems().get(0).getChildren().contains(selectedItem)) {
- *
- *                                 if(selectedItem.getId() == 1) { // JEFE
- *                                     ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de nombrar como JEFE?",
- *                                             "SI", "NO", new ConfirmDialog.Listener() {
- *
- *                                                 public void onClose(ConfirmDialog dialog) {
- *                                                     if (dialog.isConfirmed()) {
- *                                                         try {
- *                                                             for (Object objectItem : rhContainer.getItemIds()) {
- *                                                                 if (String.valueOf(rhContainer.getContainerProperty(objectItem, ESJEFE_PROPERTY).getValue()).equals("SI")) {
- *                                                                     Notification.show("YA EXISTE UN EMPLEADO COMO JEFE EN ESTA TAREA, DEBE PRIMERO QUITAR COMO JEFE AL EMPLEADO JEFE ACTUAL.", Notification.Type.WARNING_MESSAGE);
- *                                                                     return;
- *                                                                 }
- *
- *                                                             }// end for;
- *
- *                                                             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
- *
- *                                                             String queryString = " UPDATE plan_trabajo_idex_rh SET";
- *                                                             queryString += " EsJefe = 'SI''";
- *                                                             queryString += " WHERE Id = " + String.valueOf(rhContainer.getContainerProperty(rhGrid.getSelectedRow(), ID_PROPERTY).getValue());
- *
- *                                                             stQuery.executeUpdate(queryString);
- *
- *                                                             rhContainer.getContainerProperty(rhGrid.getSelectedRow(), ESJEFE_PROPERTY).setValue("SI");
- *
- *                                                             Notification.show("REGISTRO ACTUALIZADO CON EXITO!", Notification.Type.HUMANIZED_MESSAGE);
- *
- *                                                         } catch (SQLException ex) {
- *                                                             ex.printStackTrace();
- *                                                             Notification.show("ERROR EN BASE DE DATOS...", Notification.Type.ERROR_MESSAGE);
- *                                                         }
- *                                                     }
- *                                                 }
- *                                             });
- *                                 }
- *                                 if(selectedItem.getId() == 2) { // quitar como jefe
- *                                     ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de DES-ASIGNAR el RH en este programa?",
- *                                             "SI", "NO", new ConfirmDialog.Listener() {
- *
- *                                                 public void onClose(ConfirmDialog dialog) {
- *                                                     if (dialog.isConfirmed()) {
- *                                                         try {
- *
- *                                                             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
- *
- *                                                             String queryString = " UPDATE plan_trabajo_idex_rh SET";
- *                                                             queryString += " EsJefe = 'NO'";
- *                                                             queryString += " WHERE Id = " + String.valueOf(rhContainer.getContainerProperty(rhGrid.getSelectedRow(), ID_PROPERTY).getValue());
- *
- *                                                             stQuery.executeUpdate(queryString);
- *
- *                                                             rhContainer.getContainerProperty(rhGrid.getSelectedRow(), ESJEFE_PROPERTY).setValue("NO");
- *
- *                                                             Notification.show("REGISTRO ACTUALIZADO CON EXITO!", Notification.Type.HUMANIZED_MESSAGE);
- *
- *                                                         } catch (SQLException ex) {
- *                                                             ex.printStackTrace();
- *                                                             Notification.show("ERROR EN BASE DE DATOS...", Notification.Type.ERROR_MESSAGE);
- *                                                         }
- *                                                     } else {
- *                                                         Notification.show("Operación cancelada!", Notification.Type.WARNING_MESSAGE);
- *                                                     }
- *                                                 }
- *                                             });
- *                                 }
- *                                 if(selectedItem.getId() == 3) { // DES ASIGNAR RH
- *                                     ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de DES-ASIGNAR el RH en este programa?",
- *                                             "SI", "NO", new ConfirmDialog.Listener() {
- *
- *                                                 public void onClose(ConfirmDialog dialog) {
- *                                                     if (dialog.isConfirmed()) {
- *                                                         try {
- *
- *                                                             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
- *
- *                                                             String queryString = " DELETE plan_trabajo_idex_rh ";
- *                                                             queryString += " WHERE Id = " + String.valueOf(rhContainer.getContainerProperty(rhGrid.getSelectedRow(), ID_PROPERTY).getValue());
- *
- *                                                             stQuery.executeUpdate(queryString);
- *
- *                                                             rhContainer.getContainerProperty(rhGrid.getSelectedRow(), ESTATUS_PROPERTY).setValue("INACTIVO");
- *
- *                                                             Notification.show("REGISTRO ACTUALIZADO CON EXITO!", Notification.Type.HUMANIZED_MESSAGE);
- *
- *                                                         } catch (SQLException ex) {
- *                                                             ex.printStackTrace();
- *                                                             Notification.show("ERROR EN BASE DE DATOS...", Notification.Type.ERROR_MESSAGE);
- *                                                         }
- *                                                     } else {
- *                                                         Notification.show("Operación cancelada!", Notification.Type.WARNING_MESSAGE);
- *                                                     }
- *                                                 }
- *                                             });
- *                                 }
- *                             }
- *                             else {
- *                                 Notification.show("Por favor, seleccione el registro correspondiente.", Notification.Type.WARNING_MESSAGE);
- *                             }
- *                         }
- *                     }
- *                 };
- *
- *
- *                                     MenuBar contactMenu = new MenuBar();
- *                     contactMenu.setCaption("Menú");
- *                     contactMenu.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
- *                     contactMenu.addStyleName(ValoTheme.MENUBAR_SMALL);
- *                     contactMenu.addStyleName(ValoTheme.MENU_APPEAR_ON_HOVER);
- *                     contactMenu.setSizeUndefined();
- *                     contactMenu.setData(rsRecords.getInt("plan_trabajo_idex_rh.Id"));
- *                     MenuBar.MenuItem menuItem = contactMenu.addItem("", FontAwesome.EDIT, null);
- *                     menuItem.addItem("Nombrar como JEFE", FontAwesome.EYE, mycommand);
- *                     menuItem.addSeparator();
- *                     menuItem.addItem("Dar de baja", FontAwesome.CHECK, mycommand);
- *                     menuItem.addSeparator();
- */

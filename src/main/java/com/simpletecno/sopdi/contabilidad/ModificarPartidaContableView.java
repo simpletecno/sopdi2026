@@ -218,7 +218,7 @@ public class ModificarPartidaContableView extends VerticalLayout implements View
 
                     }
 
-                    queryString = " Select * from contabilidad_partida"; /// VERIFICAR QUE EL CODIGO PARTIDA INGRESADO NO SEA REPETIDO
+                    queryString = " SELECT * FROM contabilidad_partida"; /// VERIFICAR QUE EL CODIGO PARTIDA INGRESADO NO SEA REPETIDO
                     queryString += " WHERE CodigoPartida = '" + codigoPartida + "'";
 
                     rsRecords = stQuery.executeQuery(queryString);
@@ -240,12 +240,12 @@ public class ModificarPartidaContableView extends VerticalLayout implements View
 
                         Item item = container.getItem(itemId);
 
-                        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC, Fecha, Descripcion, IdOrdenCompra,";
+                        queryString = " INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC, Fecha, Descripcion, IdOrdenCompra,";
                         queryString += " IdProveedor, NITProveedor, NombreProveedor, NombreCheque, NumeroDocumento, SerieDocumento, TipoDocumento,";
                         queryString += " IdNomenclatura, MonedaDocumento, MontoDocumento, Debe, Haber, TipoCambio, DebeQuetzales, HaberQuetzales, ";
                         queryString += " Saldo, MontoAutorizadoPagar, MontoAplicarAnticipo, IdLiquidacion, IdLiquidador, TipoEnganche, TipoVenta, TipoDOCA, ";
                         queryString += " NoDoca, Referencia, CreadoFechayHora, CreadoUsuario, Año, PagadoIva, IdConciliacion, IdCentroCosto)";
-                        queryString += " Values ";
+                        queryString += " VALUES ";
                         queryString += " (";
                         queryString += String.valueOf(item.getItemProperty(ID_EMPRESA_PROPERTY).getValue());
                         queryString += ",'" + String.valueOf(item.getItemProperty(ESTATUS_PROPERTY).getValue()) + "'";
@@ -450,45 +450,6 @@ public class ModificarPartidaContableView extends VerticalLayout implements View
         partidaGrid.getColumn(CREADO_USUARIO_PROPERTY).setHidden(true).setHidable(true);
         partidaGrid.getColumn(CREADOFECHAYHORA_PROPERTY).setHidden(true).setHidable(true);
 
-        /*partidaGrid.getColumn(ID_PARTIDA_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(ID_EMPRESA_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(ESTATUS_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(CODIGO_PARTIDA_PROPERTY).setExpandRatio(6);
-        partidaGrid.getColumn(CODIGO_CC_PROPERTY).setExpandRatio(6);
-        partidaGrid.getColumn(FECHA_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(DESCRIPCION_PROPERTY).setExpandRatio(6);
-        partidaGrid.getColumn(ORDEN_COMPRA_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(ID_PROVEEDOR_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(NIT_PROVEEDOR_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(NOMBRE_PROVEEDOR_PROPERTY).setExpandRatio(6);
-        partidaGrid.getColumn(NOMBRE_CHEQUE_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(NUMERO_DOCTO_PROPERTY).setExpandRatio(6);
-        partidaGrid.getColumn(SERIE_PROPERTY).setExpandRatio(2);
-        partidaGrid.getColumn(TIPO_DOC_PROPERTY).setExpandRatio(6);
-        partidaGrid.getColumn(ID_CONTABLE_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(MONEDA_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(MONTO_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(TIPO_CAMBIO_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(DEBE_PROPERTY).setExpandRatio(4);
-        partidaGrid.getColumn(HABER_PROPERTY).setExpandRatio(4);
-        partidaGrid.getColumn(DEBEQ_PROPERTY).setExpandRatio(4);
-        partidaGrid.getColumn(HABERQ_PROPERTY).setExpandRatio(4);
-        partidaGrid.getColumn(SALDO_PROPERTY).setExpandRatio(4);
-        partidaGrid.getColumn(MONTO_AUTORIZADO_PROPERTY).setExpandRatio(4);
-        partidaGrid.getColumn(MONTO_APLICAR_PROPERTY).setExpandRatio(4);
-        partidaGrid.getColumn(ID_LIQUIDACION_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(ID_LIQUIDADOR_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(TIPO_ENGANCHE_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(TIPO_VENTA_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(TIPO_DOCA_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(NODOCA_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(REFERENCIA_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(CREADOFECHAYHORA_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(CREADO_USUARIO_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(ANIO_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(PAGADO_IVA_PROPERTY).setExpandRatio(1);
-        partidaGrid.getColumn(ID_COINCILIACION_PROPERTY).setExpandRatio(1);
-         */
         HorizontalLayout layoutButton = new HorizontalLayout();
         layoutButton.setSpacing(true);
         layoutButton.addComponents(cancelarBtn, agregarBtn, updateBtn);

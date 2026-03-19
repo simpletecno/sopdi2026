@@ -49,8 +49,6 @@ public class ProgramaTrabajoCalificarForm extends Window {
     UI mainUI;
     Statement stQuery = null;
     ResultSet rsRecords = null;
-    Statement stQuery1 = null;
-    ResultSet rsRecords1 = null;
     String queryString = "";
 
     VerticalLayout mainLayout;
@@ -74,8 +72,6 @@ public class ProgramaTrabajoCalificarForm extends Window {
 
     Button saveBtn;
     Button salirBtn;
-
-
 
     String idPlanTrabajoIdex; //puede ser rh tambien
     String tipo;
@@ -189,7 +185,7 @@ public class ProgramaTrabajoCalificarForm extends Window {
     }
 
     private void createPersonalTable(){
-        tableRH = new Table("Evaluacion Recursos Humanos");
+        tableRH = new Table("Evaluación Recursos Humanos");
         tableRH.setWidth("95%");
         tableRH.setImmediate(true);
         tableRH.setPageLength(5);
@@ -300,19 +296,19 @@ public class ProgramaTrabajoCalificarForm extends Window {
 
     private void llenarPersonalTable(){
 
-        queryString = "Select plan_trabajo_idex_rh.Id, plan_trabajo_idex_rh.IdEmpleado, prv.Nombre ";
-        queryString += " From plan_trabajo_idex_rh ";
-        queryString += " Inner Join proveedor prv On prv.IdProveedor = plan_trabajo_idex_rh.IdEmpleado";
+        queryString = "SELECT plan_trabajo_idex_rh.Id, plan_trabajo_idex_rh.IdEmpleado, prv.Nombre ";
+        queryString += " FROM plan_trabajo_idex_rh ";
+        queryString += " INNER JOIN proveedor prv ON prv.IdProveedor = plan_trabajo_idex_rh.IdEmpleado";
         if (esJefe) {
-            queryString += " Where plan_trabajo_idex_rh.Cargo In ('RH1', 'RH2') ";
-            queryString += " And   plan_trabajo_idex_rh.EsJefe <> 'SI'";
+            queryString += " WHERE plan_trabajo_idex_rh.Cargo In ('RH1', 'RH2') ";
+            queryString += " AND   plan_trabajo_idex_rh.EsJefe <> 'SI'";
         } else if (esMaestro) {
-            queryString += " Where plan_trabajo_idex_rh.Cargo In ('RH1', 'RH2') ";
-            queryString += " And   plan_trabajo_idex_rh.EsJefe = 'SI'";
+            queryString += " WHERE plan_trabajo_idex_rh.Cargo In ('RH1', 'RH2') ";
+            queryString += " AND   plan_trabajo_idex_rh.EsJefe = 'SI'";
         } else {
-            queryString += " Where plan_trabajo_idex_rh.Cargo Like 'MAESTRO%'";
+            queryString += " WHERE plan_trabajo_idex_rh.Cargo LIKE 'MAESTRO%'";
         }
-        queryString += " And plan_trabajo_idex_rh.IdPlanTrabajoIdex = " + idPlanTrabajoIdex;
+        queryString += " AND plan_trabajo_idex_rh.IdPlanTrabajoIdex = " + idPlanTrabajoIdex;
         queryString += " AND prv.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
         queryString += " ORDER BY prv.Nombre";
 
@@ -484,8 +480,8 @@ public class ProgramaTrabajoCalificarForm extends Window {
 
     private void llenarListaGrid() {
 
-        queryString = "Select * ";
-        queryString += " From calidad_listas ";
+        queryString = "SELECT * ";
+        queryString += " FROM calidad_listas ";
 //        queryString += " Order By lista.Id";
 
         try {
@@ -563,8 +559,8 @@ public class ProgramaTrabajoCalificarForm extends Window {
                                             stQuery.executeUpdate(queryString.substring(0, queryString.length() - 2));
                                         }
 
-                                        queryString = "Insert Into plan_trabajo_idex_ca (IdPlanTrabajoIdex, IdUsuario, IdCaracteristica, IdEmpleado, FechaYHora, Valor)";
-                                        queryString += " Values ";
+                                        queryString = "INSERT INTO plan_trabajo_idex_ca (IdPlanTrabajoIdex, IdUsuario, IdCaracteristica, IdEmpleado, FechaYHora, Valor)";
+                                        queryString += " VALUES ";
 
                                         for (Integer idCaracteristica : regionEvaluacionActiva.keySet()) {
 

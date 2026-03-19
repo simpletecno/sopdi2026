@@ -108,14 +108,14 @@ public class EstimacionesDetalleWindow extends Window {
         createGrids();
         createButtons();
 
-        String queryString =  "Select NoCuenta, Descripcion, ";
+        String queryString =  "SELECGT NoCuenta, Descripcion, ";
         queryString += " SUM(Total / Cantidad) PrecioTotal, SUM(Cantidad) CantidadTotal, SUM(Total) TotalTotal ";
-        queryString += " From  DetalleItemsCostos";
-        queryString += " Where IdEmpresa = " + empresa;
-        queryString += " And   IdProveedor = " + proveedorId;
-        queryString += " And   IDEX = '" + idex + "'";
-        queryString += " And   IdCC = '" + idCC + "'";
-        queryString += " And   Tipo In ('INTINI', 'DOCA')";
+        queryString += " FROM  DetalleItemsCostos";
+        queryString += " WHERE IdEmpresa = " + empresa;
+        queryString += " AND   IdProveedor = " + proveedorId;
+        queryString += " AND   IDEX = '" + idex + "'";
+        queryString += " AND   IdCC = '" + idCC + "'";
+        queryString += " AND   Tipo IN ('INTINI', 'DOCA')";
 
 System.out.println("\n\n"+queryString);
 
@@ -157,14 +157,6 @@ System.out.println("\n\n"+queryString);
         
         setWidth("60%");
         setHeight("70%");
-/*
-    protected static final String CUENTA_PROPERTY        = "Cuenta";
-    protected static final String DESCRIPCION_PROPERTY   = "Descripción";
-    protected static final String CANTIDAD_PROPERTY      = "Cantidad";
-    protected static final String PRECIO_PROPERTY        = "Precio";
-    protected static final String PROVISION_PROPERTY     = "Provision";
-    protected static final String TOTALEST_PROPERTY      = "TotalEst";
-*/
 
         detailContainer.addContainerProperty(CUENTA_PROPERTY,         String.class, null);
         detailContainer.addContainerProperty(DESCRIPCION_PROPERTY,    String.class, null);

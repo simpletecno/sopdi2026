@@ -225,7 +225,7 @@ public class ProveedorView extends VerticalLayout implements View {
         buttonsLayout.addComponent(nuevoBtn);
         buttonsLayout.addComponent(deleteBtn);
         buttonsLayout.addComponent(exportExcelBtn);
-        buttonsLayout.addComponent(importExcelBtn);
+//        buttonsLayout.addComponent(importExcelBtn);
         buttonsLayout.addComponent(notasBtn);
         buttonsLayout.addComponent(plusBtn);
 

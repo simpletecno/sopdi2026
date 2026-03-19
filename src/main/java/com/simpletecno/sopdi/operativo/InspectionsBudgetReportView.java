@@ -55,7 +55,6 @@ public class InspectionsBudgetReportView extends VerticalLayout implements View 
     static final String CLIENTE_PROPERTY = "Cliente";
     static final String SUPERVISOR_PROPERTY = "Supervisor";
     static final String CENTRO_COSTO_PROPERTY = "Centro costo";
-    static final String CREADACLIENTE_PROPERTY = "Usuario";
     static final String IDCENTRO_COSTO_PROPERTY = "IdCC";
 
     Utileria utileria = new Utileria();
@@ -69,6 +68,9 @@ public class InspectionsBudgetReportView extends VerticalLayout implements View 
 
     UI mainUI;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public InspectionsBudgetReportView() {
         this.mainUI = UI.getCurrent();
 
@@ -78,7 +80,7 @@ public class InspectionsBudgetReportView extends VerticalLayout implements View 
 
         marginInfo = new MarginInfo(true, true, false, true);
 
-        Label titleLbl = new Label("Visitas de cliente con tareas y presupuesto");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Visitas de cliente con tareas y presupuesto");
         titleLbl.addStyleName(ValoTheme.LABEL_H1);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -132,27 +134,10 @@ public class InspectionsBudgetReportView extends VerticalLayout implements View 
         reportLayout.setComponentAlignment(inspectionsGrid, Alignment.MIDDLE_CENTER);
 
         inspectionsGrid.getColumn(ID_PROPERTY).setMaximumWidth(90).setHidable(true).setHidden(true);
-        //inspectionsGrid.getColumn(CODIGO_VISITA_PROPERTY).setMaximumWidth(125);
-        //inspectionsGrid.getColumn(FECHA_PROPERTY).setMaximumWidth(110);
-        //inspectionsGrid.getColumn(CLIENTE_PROPERTY).setMaximumWidth(200);
-        //inspectionsGrid.getColumn(SUPERVISOR_PROPERTY).setMaximumWidth(200);
-        //inspectionsGrid.getColumn(MOTIVO_PROPERTY).setMaximumWidth(200);
 
         inspectionsGrid.getColumn(CENTRO_COSTO_PROPERTY).setHidden(true);
 
         inspectionsGrid.getColumn(IDCENTRO_COSTO_PROPERTY).setHidden(true);
-        /**
-         * inspectionsGrid.addListener(new ItemClickEvent.ItemClickListener() {
-         * public void itemClick(ItemClickEvent event) {
-         * inspectionsGrid.select(event.getItemId()); if (event.isDoubleClick())
-         * { if(inspectionsGrid.getSelectedRow() != null) { InspectionForm
-         * newInspectionForm = new
-         * InspectionForm(String.valueOf(inspectionsGrid.getContainerDataSource().getItem(inspectionsGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue()));
-         * mainUI.addWindow(newInspectionForm); newInspectionForm.center();
-         * newInspectionForm.fillData(); newInspectionForm.motivoCbx.focus(); }
-         * } } });
-         *
-         */
         HeaderRow filterRow = inspectionsGrid.appendHeaderRow();
 
         HeaderCell cellA = filterRow.getCell(CODIGO_VISITA_PROPERTY);
@@ -165,7 +150,6 @@ public class InspectionsBudgetReportView extends VerticalLayout implements View 
         filterFieldA.addTextChangeListener(change -> {
             container.removeContainerFilters(CODIGO_VISITA_PROPERTY);
 
-            // (Re)create the filter if necessary
             if (!change.getText().isEmpty()) {
                 container.addContainerFilter(
                         new SimpleStringFilter(CODIGO_VISITA_PROPERTY,
@@ -304,15 +288,15 @@ public class InspectionsBudgetReportView extends VerticalLayout implements View 
 
         String queryString;
 
-        queryString = "Select Distinct Vis.*, Cli.Nombre ClienteNombre, CC.CodigoCentroCosto";
-        queryString += " From visita_inspeccion Vis ";
-        queryString += " Inner Join proveedor Cli On Cli.IdProveedor = Vis.IdCliente";
-        queryString += " Inner Join visita_inspeccion_tarea Tar On Tar.IdVisitaInspeccion = Vis.IdVisitaInspeccion And Tar.Presupuesto = 'SI'";
-        queryString += " Left  Join centro_costo CC On CC.IdCentroCosto = Vis.IdCentroCosto";
-        queryString += " Where Vis.IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
-        queryString += " And Vis.FechaYHoraInicio >= '2019-01-01 00:00:00'";
-        queryString += " And Vis.Motivo In ('Cliente', 'Residente')";
-        queryString += " Order By Vis.CodigoVisita Desc";
+        queryString = "SELECT DISTINCT Vis.*, Cli.Nombre ClienteNombre, CC.CodigoCentroCosto";
+        queryString += " FROM visita_inspeccion Vis ";
+        queryString += " INNER JOIN proveedor Cli ON Cli.IdProveedor = Vis.IdCliente";
+        queryString += " INNER JOIN visita_inspeccion_tarea Tar ON Tar.IdVisitaInspeccion = Vis.IdVisitaInspeccion And Tar.Presupuesto = 'SI'";
+        queryString += " LEFT JOIN centro_costo CC ON CC.IdCentroCosto = Vis.IdCentroCosto";
+        queryString += " WHERE Vis.IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
+        queryString += " AND Vis.FechaYHoraInicio >= '2019-01-01 00:00:00'";
+        queryString += " AND Vis.Motivo In ('Cliente', 'Residente')";
+        queryString += " ORDER BY Vis.CodigoVisita DESC";
 
 //System.out.println("\n\n"+queryString);
 

@@ -38,8 +38,7 @@ public class CambiarEstatusPago extends Window {
     TextField numeroTxt;
 
     Button guardarBtn;
-    Statement stQuery, stQuery1,stQuery2 ;
-    ResultSet rsRecords, rsRecords1, rsRecords2;
+    Statement stQuery;
 
     UI mainUI;
 
@@ -149,10 +148,10 @@ public class CambiarEstatusPago extends Window {
     public void cambiarEstatus() {
         try {
 
-            queryString = " Update contabilidad_partida Set ";
+            queryString = " UPDATE contabilidad_partida SET ";
             queryString += " Estatus = '" + String.valueOf(estatusCbx.getValue()) + "'";
             queryString += ",NumeroDocumento = '" + numeroTxt.getValue() + "'";
-            queryString += " Where CodigoPartida = '" + codigoPartida + "'";
+            queryString += " WHERE CodigoPartida = '" + codigoPartida + "'";
 
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);

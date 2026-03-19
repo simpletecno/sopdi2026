@@ -44,12 +44,6 @@ public class EmpleadoView extends VerticalLayout implements View {
     public Statement stQuery = null;
     public ResultSet rsRecords = null;
 
-    static final String ID_PROPERTY = "Id";
-    static final String CUENTA_CONTABLE_PROPERTY = "Cuenta Contable";
-    static final String DESDE_PROPERTY = "A partir del";
-    static final String NO_PROPERTY = "NO";
-    static final String MONTO_PROPERTY = "Monto";
-
     HorizontalLayout mainLayout = new HorizontalLayout();
     VerticalLayout leftLayout = new VerticalLayout();
     VerticalLayout rightLayout = new VerticalLayout();
@@ -105,6 +99,9 @@ public class EmpleadoView extends VerticalLayout implements View {
 
     private UI mainUI;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public EmpleadoView() {
 
         this.mainUI = UI.getCurrent();
@@ -112,7 +109,7 @@ public class EmpleadoView extends VerticalLayout implements View {
         marginInfo = new MarginInfo(true, false, false, false);
         setSpacing(true);
 
-        Label h1 = new Label("Empleados " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyName());
+        Label h1 = new Label(empresaId + " " + empresaNombre + " Empleados ");
         h1.addStyleName("h3");
         h1.setWidth("100%");
 
@@ -337,10 +334,10 @@ public class EmpleadoView extends VerticalLayout implements View {
     private void fillGridEmpleados() {
         empleadosContainer.removeAllItems();
 
-        String queryString = " SELECT * FROM proveedor ";
+        String queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0 ";
         queryString += " AND EsPlanilla = 1";
-        queryString += " AND IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND IdEmpresa = " + empresaId;
         queryString += " ORDER BY Nombre ";
 
         try {
@@ -532,7 +529,7 @@ public class EmpleadoView extends VerticalLayout implements View {
 
         clearForms();
 
-        String queryString = " SELECT * FROM proveedor ";
+        String queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE IdProveedor = " + idProveedor;
         queryString += " AND IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
         queryString += " AND EsPlanilla = 1";
@@ -595,9 +592,9 @@ public class EmpleadoView extends VerticalLayout implements View {
 
         excelExport = new ExcelExport(tableToExport);
         excelExport.excludeCollapsedColumns();
-        excelExport.setExportFileName("NISA_CATALOGO_EMPLEADOS.xls");
+        excelExport.setExportFileName(empresaId+"_CATALOGO_EMPLEADOS.xls");
 
-        String mainTitle = "CATALOGO DE EMPLEADOS AL: " + new Utileria().getFechaYYYYMMDD_1(new Date());
+        String mainTitle = empresaNombre + " CATALOGO DE EMPLEADOS AL: " + new Utileria().getFechaYYYYMMDD_1(new Date());
 
         excelExport.setReportTitle(mainTitle);
 
@@ -671,7 +668,7 @@ public class EmpleadoView extends VerticalLayout implements View {
         String queryString = "";
 
         if (esNuevo ) {
-            queryString = "Insert Into proveedor (N0, Grupo0, N1, Grupo, N2, Tipo, N3, Numero, N4, IDProveedor, ";
+            queryString = "INSERT INTO proveedor (N0, Grupo0, N1, Grupo, N2, Tipo, N3, Numero, N4, IDProveedor, ";
             queryString += " Nombre, Producto, NIT, DPI,Regimen, GrupoTrabajo, EstatusTrabajo, Razon,";
             queryString += " AnticipoLote, Provision, DiasAnticipo,";
             queryString += " DiasCredito, AnticipoUnidad, DiaProvision, Email, ";
@@ -684,7 +681,7 @@ public class EmpleadoView extends VerticalLayout implements View {
             queryString += " AfiliacionIgss, FechaIngreso, FechaEgreso, CodigoOcupacion, CondicionLaboral,";
             queryString += " AplicaAnticipoSalario, AsignadoObra, IdCorrFinal, AplicaIndemnizacion, DiasVacacionesDerecho, DiasVacacionesGozados";
             queryString += ")";
-            queryString += " Values (";
+            queryString += " VALUES (";
             queryString += "9";
             queryString += ",'Empleado'";
             queryString += "," + ((SopdiUI)mainUI).sessionInformation.getStrAccountingCompanyId().charAt(0); //N1
@@ -757,7 +754,7 @@ public class EmpleadoView extends VerticalLayout implements View {
             queryString += ","  + vacacionesDiasGozadosTxt.getValue();
             queryString += ")";
         } else {
-            queryString = "Update proveedor Set ";
+            queryString = "UPDATE proveedor SET ";
             queryString += " IDProveedor = " + idEmpleadoTxt.getValue();
             queryString += ",NIT = '" + nitTxt.getValue() + "'";
             queryString += ",DPI = '" + dpiTxt.getValue() + "'";
@@ -789,7 +786,7 @@ public class EmpleadoView extends VerticalLayout implements View {
             queryString += ",AplicaIndemnizacion = " + (aplicaIndemnizacion.getValue() ? "1" : "0");
             queryString += ",DiasVacacionesDerecho = "  + vacacionesDiasDerechoTxt.getValue();
             queryString += ",DiasVacacionesGozados = "  + vacacionesDiasGozadosTxt.getValue();
-            queryString += " Where IdProveedor = " + idEmpleadoTxt.getValue();
+            queryString += " WHERE IdProveedor = " + idEmpleadoTxt.getValue();
 
         }
 

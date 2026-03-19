@@ -59,7 +59,7 @@ public class CargarDocumentoVisita extends Window {
         
         EnvironmentVars enviromentsVars = new EnvironmentVars();
         
-        Label titleLbl = new Label("CARGAR DOCUMENTO");
+        Label titleLbl = new Label("CARGAR DOCUMENTO VISITA");
         titleLbl.addStyleName(ValoTheme.LABEL_H1);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -156,11 +156,11 @@ public class CargarDocumentoVisita extends Window {
     public void guardarArchivo(Object selectedObject, String codigoVisita, String fileName) {
            
         try {
-            String queryString = " Update visita_inspeccion set  ";
+            String queryString = " UPDATE visita_inspeccion SET  ";
             queryString += "  ArchivoNombre ='" + fileName + "'";
             queryString += ", ArchivoTipo ='" + parametro2 + "'";
             queryString += ", ArchivoPeso = " + parametro3;
-            queryString += " where CodigoVisita = '" + codigoVisita + "'";
+            queryString += " WHERE CodigoVisita = '" + codigoVisita + "'";
             
             stPreparedQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(queryString);
             stPreparedQuery.executeUpdate();

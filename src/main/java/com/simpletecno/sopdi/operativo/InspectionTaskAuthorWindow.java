@@ -159,10 +159,10 @@ public class InspectionTaskAuthorWindow extends Window {
 
         String queryString;
         
-        queryString = "Select * ";
-        queryString += " From proyecto";
-        queryString += " Where IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
-        queryString += " And ClaveParaAutorizar = sha1('" + passwordTxt.getValue() + "')";
+        queryString = "SELECT * ";
+        queryString += " FROM proyecto";
+        queryString += " WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
+        queryString += " AND ClaveParaAutorizar = SHA1('" + passwordTxt.getValue() + "')";
 
 System.out.println("queryString="+queryString);
 
@@ -176,7 +176,7 @@ System.out.println("queryString="+queryString);
                 return;
             }
 
-            queryString =  "Update visita_inspeccion_tarea Set ";
+            queryString =  "UPDATE visita_inspeccion_tarea SET ";
             if(autorizar) {
                 queryString += " AutorizadoPor = '" + ((SopdiUI) mainUI).sessionInformation.getStrUserId() + "'";
                 queryString += ",AutorizadoFecha = current_date";
@@ -187,7 +187,7 @@ System.out.println("queryString="+queryString);
                 queryString += ",RechazadoFecha = current_date";
                 queryString += ",RechazadoReferencia = '" + referenciaTxt.getValue() + "'";                
             }
-            queryString += " Where IdVisitaInspeccionTarea  = " + tareaId;
+            queryString += " WHERE IdVisitaInspeccionTarea  = " + tareaId;
         
 System.out.println("queryString="+queryString);
 

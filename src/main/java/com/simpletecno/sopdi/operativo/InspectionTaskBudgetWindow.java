@@ -79,6 +79,9 @@ public class InspectionTaskBudgetWindow extends Window {
 
     String codigoPresupuesto = "";
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public InspectionTaskBudgetWindow(
             String tareaId,
             String codigoTarea,
@@ -109,9 +112,7 @@ public class InspectionTaskBudgetWindow extends Window {
 
         Label titleLbl = new Label("<h4 style=\"color:RoyalBlue;\"" + "/>Presupuesto de tarea : <br><b>" + codigoTarea + "</b> " + descripcionTarea + "</br></h4>");
         titleLbl.addStyleName(ValoTheme.LABEL_H4);
-//        titleLbl.setSizeUndefined();
         titleLbl.setResponsive(true);
-//        titleLbl.addStyleName("h3_custom");
         titleLbl.setContentMode(ContentMode.HTML);
 
         HorizontalLayout titleLayout = new HorizontalLayout();
@@ -204,20 +205,12 @@ public class InspectionTaskBudgetWindow extends Window {
                     cantidadTxt.setValue(0.00);
                     precioTxt.setValue(0.00);
                     totalTxt.setValue(0.00);
-
-//                    if(String.valueOf(budgetContainer.getContainerProperty(budgetGrid.getSelectedRow(), PRECIO)).equals("GENERADA")
-//                            || String.valueOf(budgetContainer.getContainerProperty(budgetGrid.getSelectedRow(), PRECIO)).equals("AUTORIZADA")) {
-//                        editarBudget.setEnabled(false);
-//                        eliminarBudget.setEnabled(false);
-//                        return;
-//                    }
                 }
             }
         });
 
         budgetLayout.addComponent(budgetGrid);
 
-//----------------------------------------BOTONES----------------------------------------
         nuevoBudgetBtn.setIcon(FontAwesome.PLUS);
         nuevoBudgetBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS_COLORED);
         nuevoBudgetBtn.setDescription("Nuevo rubro de presupuesto.");
@@ -225,8 +218,6 @@ public class InspectionTaskBudgetWindow extends Window {
             @Override
             public void buttonClick(Button.ClickEvent event) {
                 setPosition(50,10);
-//                cuentaCentroCostoCbx.select(null);
-//                proveedorCbx.select(null);
                 descripcionTxt.setValue("");
                 cantidadTxt.setValue(0.00);
                 precioTxt.setValue(0.00);
@@ -255,11 +246,11 @@ public class InspectionTaskBudgetWindow extends Window {
                 try {
                     stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
-                    queryString = "Select Presu.*, CCC.CodigoCuentaCentroCosto, CCC.UnidadMedida, CCC.Descripcion, Prov.Nombre ProvNombre ";
-                    queryString += " From visita_inspeccion_tarea_presupuesto Presu";
-                    queryString += " Inner Join centro_costo_cuenta CCC On CCC.IdCuentaCentroCosto = Presu.IdCuentaCentroCosto";
-                    queryString += " Inner Join proveedor Prov On Prov.IdProveedor = Presu.IdProveedor";
-                    queryString += " Where IdVisitaInspeccionTareaPresupuesto  = " + budgetContainer.getContainerProperty(budgetGrid.getSelectedRow(), ID_BUDGET).getValue();
+                    queryString = "SELECT Presu.*, CCC.CodigoCuentaCentroCosto, CCC.UnidadMedida, CCC.Descripcion, Prov.Nombre ProvNombre ";
+                    queryString += " FROM visita_inspeccion_tarea_presupuesto Presu";
+                    queryString += " INNER JOIN centro_costo_cuenta CCC ON CCC.IdCuentaCentroCosto = Presu.IdCuentaCentroCosto";
+                    queryString += " INNER JOIN proveedor Prov ON Prov.IdProveedor = Presu.IdProveedor";
+                    queryString += " WHERE IdVisitaInspeccionTareaPresupuesto  = " + budgetContainer.getContainerProperty(budgetGrid.getSelectedRow(), ID_BUDGET).getValue();
 
                     rsRecords = stQuery.executeQuery(queryString);
 
@@ -304,7 +295,7 @@ public class InspectionTaskBudgetWindow extends Window {
 //                                    Notification.show("NO DISPONIBLE EN ESTA VERSION...", Notification.Type.HUMANIZED_MESSAGE);
 //                                    return;
                                     queryString = "DELETE FROM visita_inspeccion_tarea_presupuesto ";
-                                    queryString += " Where IdVisitaInspeccionTareaPresupuesto  = " + budgetContainer.getContainerProperty(budgetGrid.getSelectedRow(), ID_BUDGET).getValue();
+                                    queryString += " WHERE IdVisitaInspeccionTareaPresupuesto  = " + budgetContainer.getContainerProperty(budgetGrid.getSelectedRow(), ID_BUDGET).getValue();
                                     try {
                                         stQuery.executeUpdate(queryString);
                                         Notification.show("Registro eliminado exitosamente!", Notification.Type.HUMANIZED_MESSAGE);
@@ -513,11 +504,11 @@ public class InspectionTaskBudgetWindow extends Window {
         try {
             if (esnuevoBudget) {
 
-                queryString = "Select CodigoPresupuesto";
-                queryString += " From  visita_inspeccion_tarea_presupuesto ";
-                queryString += " Where IdVisitaInspeccionTarea = " + tareaId;
-                queryString += " Order By CodigoPresupuesto Desc";
-                queryString += " Limit 1";
+                queryString = "SELECT CodigoPresupuesto";
+                queryString += " FROM  visita_inspeccion_tarea_presupuesto ";
+                queryString += " WHERE IdVisitaInspeccionTarea = " + tareaId;
+                queryString += " ORDER BY CodigoPresupuesto DESC";
+                queryString += " LIMIT 1";
 
                 stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                 rsRecords = stQuery.executeQuery(queryString);
@@ -528,9 +519,9 @@ public class InspectionTaskBudgetWindow extends Window {
                     codigoPresupuesto = codigoTarea + String.format("%02d", Integer.valueOf(rsRecords.getString("CodigoPresupuesto").substring(16, 18)) + 1);
                 }
 
-                queryString = "Insert Into visita_inspeccion_tarea_presupuesto (IdVisitaInspeccionTarea, CodigoPresupuesto, ";
+                queryString = "INSERT INTO visita_inspeccion_tarea_presupuesto (IdVisitaInspeccionTarea, CodigoPresupuesto, ";
                 queryString += " IdCuentaCentroCosto, Descripcion, Cantidad, Precio, Total, Moneda, IdProveedor) ";
-                queryString += " Values (";
+                queryString += " VALUES (";
                 queryString += "  " + tareaId;
                 queryString += ",'" + codigoPresupuesto + "'";
                 queryString += ", " + String.valueOf(cuentaCentroCostoCbx.getValue());
@@ -542,7 +533,7 @@ public class InspectionTaskBudgetWindow extends Window {
                 queryString += ", " + String.valueOf(proveedorCbx.getValue());
                 queryString += ")";
             } else {
-                queryString = "Update visita_inspeccion_tarea_presupuesto Set ";
+                queryString = "UPDATE visita_inspeccion_tarea_presupuesto SET ";
                 queryString += " IdCuentaCentroCosto = " + String.valueOf(cuentaCentroCostoCbx.getValue());
                 queryString += ",Descripcion = '" + descripcionTxt.getValue() + "'";
                 queryString += ",Cantidad = " + cantidadTxt.getDoubleValueDoNotThrow();
@@ -550,7 +541,7 @@ public class InspectionTaskBudgetWindow extends Window {
                 queryString += ",Total =  " + totalTxt.getDoubleValueDoNotThrow();
                 queryString += ",Moneda = '" + String.valueOf(monedaCbx.getValue()) + "'";
                 queryString += ",IdProveedor = " + String.valueOf(proveedorCbx.getValue());
-                queryString += " Where IdVisitaInspeccionTareaPresupuesto  = " + budgetContainer.getContainerProperty(budgetGrid.getSelectedRow(), ID_BUDGET).getValue();
+                queryString += " WHERE IdVisitaInspeccionTareaPresupuesto  = " + budgetContainer.getContainerProperty(budgetGrid.getSelectedRow(), ID_BUDGET).getValue();
             }
 
             Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
@@ -584,13 +575,12 @@ public class InspectionTaskBudgetWindow extends Window {
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
-            queryString = "Select Presu.*, CCC.CodigoCuentaCentroCosto, CCC.UnidadMedida, CCC.Descripcion, Prov.Nombre ProvNombre ";
-            queryString += " From visita_inspeccion_tarea_presupuesto Presu";
-            queryString += " Inner Join centro_costo_cuenta CCC On CCC.IdCuentaCentroCosto = Presu.IdCuentaCentroCosto";
-            queryString += " Inner Join proveedor Prov On Prov.IdProveedor = Presu.IdProveedor";
-            queryString += " Where Presu.IdVisitaInspeccionTarea = " + tareaId;
-
-System.out.println("queryString fillBudgetGrid=" + queryString);
+            queryString = "SELECT Presu.*, CCC.CodigoCuentaCentroCosto, CCC.UnidadMedida, CCC.Descripcion, Prov.Nombre ProvNombre ";
+            queryString += " FROM visita_inspeccion_tarea_presupuesto Presu";
+            queryString += " INNER JOIN centro_costo_cuenta CCC ON CCC.IdCuentaCentroCosto = Presu.IdCuentaCentroCosto";
+            queryString += " INNER JOIN proveedor_empresa Prov ON  Prov.IdProveedor = Presu.IdProveedor";
+            queryString += " WHERE Presu.IdVisitaInspeccionTarea = " + tareaId;
+            queryString += " AND Prov.IdEmpresa = " + empresaId;
 
             rsRecords = stQuery.executeQuery(queryString);
 
@@ -624,9 +614,9 @@ System.out.println("queryString fillBudgetGrid=" + queryString);
 
     private void fillComboCuentaCentroCosto(ComboBox comboBox) {
 
-        String queryString = "Select * ";
-        queryString += " From centro_costo_cuenta ";
-        queryString += " Where IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
+        String queryString = "SELECT * ";
+        queryString += " FROM centro_costo_cuenta ";
+        queryString += " WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
 
 // System.out.println("queryComboCCC=" + queryString);
         try {
@@ -658,8 +648,9 @@ System.out.println("queryString fillBudgetGrid=" + queryString);
 
     private void fillComboProveedor(ComboBox comboBox) {
 
-        String queryString = "Select * ";
-        queryString += " From proveedor ";
+        String queryString = "SELECT * ";
+        queryString += " FROM proveedor_empresa ";
+        queryString += " WHERE IdEmpresa = " + empresaId;
 
         try {
             stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -700,11 +691,11 @@ System.out.println("queryString fillBudgetGrid=" + queryString);
     public double getSugestedPrice(String idCuentaCentroCosto, String idProveedor) {
         String queryString = "";
 
-        queryString = "Select Precio ";
-        queryString += " From visita_inspeccion_tarea_presupuesto ";
-        queryString += " Where IdProveedor = " + idProveedor;
-        queryString += " And   IdCuentaCentroCosto = " + idCuentaCentroCosto;
-        queryString += " Order By CodigoPresupuesto Desc Limit 1";
+        queryString = "SELECT Precio ";
+        queryString += " FROM visita_inspeccion_tarea_presupuesto ";
+        queryString += " WHERE IdProveedor = " + idProveedor;
+        queryString += " AND   IdCuentaCentroCosto = " + idCuentaCentroCosto;
+        queryString += " ORDER BY CodigoPresupuesto DESC Limit 1";
 
         System.out.println(queryString);
 

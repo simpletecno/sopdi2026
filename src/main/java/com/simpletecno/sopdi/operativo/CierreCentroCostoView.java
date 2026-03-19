@@ -88,6 +88,9 @@ public class CierreCentroCostoView extends VerticalLayout implements View {
 
     EnvironmentVars enviromentsVars;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public CierreCentroCostoView() {
         this.mainUI = UI.getCurrent();
         setWidth("100%");
@@ -96,7 +99,7 @@ public class CierreCentroCostoView extends VerticalLayout implements View {
 
         enviromentsVars = new EnvironmentVars();
 
-        Label titleLbl = new Label("Facturas Venta Cierre Centro Costo Pendiente Liquidar DIC");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Cierre Centro Costo");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -140,8 +143,8 @@ public class CierreCentroCostoView extends VerticalLayout implements View {
     }
 
     public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString = " SELECT * FROM contabilidad_empresa";
+        queryString += " WHERE IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -500,10 +503,10 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY FACTURAS VENT
 
     private double getSaldoSegunDIC(String CENTROCOSTO) {
 
-        String queryString =  "Select SUM(Total) TotalTotal ";
-        queryString += " From  DetalleItemsCostos ";
-        queryString += " Where IDCC      = '" + CENTROCOSTO + "'";
-        queryString += " And IdEmpresa = " + empresa;
+        String queryString =  "SELECT SUM(Total) TotalTotal ";
+        queryString += " FROM  DetalleItemsCostos ";
+        queryString += " WHERE IDCC      = '" + CENTROCOSTO + "'";
+        queryString += " AND IdEmpresa = " + empresa;
 //System.out.println(queryString);
 
         double saldo = 0.00;
@@ -530,7 +533,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY FACTURAS VENT
 
         queryString = " SELECT * ";
         queryString += " FROM visita_inspeccion ";
-        queryString += " Where Referencia = '" + factura + "'";
+        queryString += " WHERE Referencia = '" + factura + "'";
 
         try {
             rsRecords2 = stQuery2.executeQuery(queryString);
@@ -556,20 +559,20 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY FACTURAS VENT
 
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
-            String queryString =  "Select DIC.IdProject, DIC.NoCuenta, CCC.Descripcion CuentaDescripcion, ";
+            String queryString =  "SELECT DIC.IdProject, DIC.NoCuenta, CCC.Descripcion CuentaDescripcion, ";
             queryString += " DIC.IdEmpresa, DIC.IdProveedor, Prov.Nombre NombreProveedor, ";
             queryString += " DIC.Lote, DIC.Idex, DIC.IdArea, area.Descripcion Area, DIC.Unidad, DIC.Moneda ,";
             queryString += " SUM(DIC.Total / DIC.Cantidad) PrecioTotal, SUM(DIC.Cantidad) CantidadTotal, SUM(DIC.Total) TotalTotal";
-            queryString += " From  DetalleItemsCostos DIC";
-            queryString += " Inner Join proveedor Prov On Prov.IdProveedor = DIC.IdProveedor";
-            queryString += " Inner Join centro_costo_cuenta CCC On CCC.CodigoCuentaCentroCosto = DIC.NoCuenta";
-            queryString += " Inner Join area On area.IdArea = DIC.IdArea";
-            queryString += " Where DIC.IdCC = '" + CENTROCOSTO + "'";
+            queryString += " FROM  DetalleItemsCostos DIC";
+            queryString += " INNER JOIN proveedor Prov ON Prov.IdProveedor = DIC.IdProveedor";
+            queryString += " INNER JOIN centro_costo_cuenta CCC ON CCC.CodigoCuentaCentroCosto = DIC.NoCuenta";
+            queryString += " INNER JOIN area ON area.IdArea = DIC.IdArea";
+            queryString += " WHERE DIC.IdCC = '" + CENTROCOSTO + "'";
             //            queryString += " And DIC.IdProject = " + project;
-            queryString += " And DIC.Tipo In ('INTINI', 'DOCA')";
-            queryString += " And DIC.IdEmpresa = " + empresa;
-            queryString += " Group By DIC.IdProject, DIC.NoCuenta, DIC.IdEmpresa, DIC.IdProveedor, DIC.Idex, DIC.IdArea";
-            queryString += " Order By DIC.IdProject, DIC.Idex, DIC.NoCuenta ";
+            queryString += " AND DIC.Tipo In ('INTINI', 'DOCA')";
+            queryString += " AND DIC.IdEmpresa = " + empresa;
+            queryString += " GROUP BY DIC.IdProject, DIC.NoCuenta, DIC.IdEmpresa, DIC.IdProveedor, DIC.Idex, DIC.IdArea";
+            queryString += " GROUP BY DIC.IdProject, DIC.Idex, DIC.NoCuenta ";
 
 Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY IDEX PENDIENTES DE CERRAR : " + queryString);
 
@@ -662,16 +665,16 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY IDEX PENDIENT
         try {
             stQuery2 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
-            String queryString = "Select Precio ";
-            queryString += " From  DetalleItemsCostos";
-            queryString += " Where IdCC = '" + idcc + "'";
-            queryString += " And IdProject = " + idProject;
-            queryString += " And Idex = '" + idex + "'";
-            queryString += " And NoCuenta = '" + noCuenta + "'";
-            queryString += " And IdArea = " + idArea;
-            queryString += " And IdEmpresa = " + idEmpresa;
-            queryString += " And IdProveedor = " + idProveedor;
-            queryString += " Order By ID Desc Limit 1";
+            String queryString = "SELECT Precio ";
+            queryString += " FROM  DetalleItemsCostos";
+            queryString += " WHERE IdCC = '" + idcc + "'";
+            queryString += " AND IdProject = " + idProject;
+            queryString += " AND Idex = '" + idex + "'";
+            queryString += " AND NoCuenta = '" + noCuenta + "'";
+            queryString += " AND IdArea = " + idArea;
+            queryString += " AND IdEmpresa = " + idEmpresa;
+            queryString += " AND IdProveedor = " + idProveedor;
+            queryString += " ORDER BY ID DESC Limit 1";
 
             rsRecords2 = stQuery2.executeQuery(queryString);
 
@@ -702,16 +705,16 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY IDEX PENDIENT
         precioOC = 0.00;
 
         String
-                queryString =  "Select SUM(Cantidad) TotalCantidad, SUM(Precio) TotalPrecio, SUM(Total) TotalTotal ";
-        queryString += " From  DetalleItemsCostos ";
-        queryString += " Where IDCC      = '" + CENTROCOSTO + "'";
-        queryString += " And IdProject   = " + PROJECT;
-        queryString += " And Idex        = '" + IDEX + "'";
-        queryString += " And NoCuenta    = '" + CUENTA + "'";
-        queryString += " And IdArea      = '" + IDAREA + "'";
-        queryString += " And IdEmpresa   = " + EMPRESA;
-        queryString += " And IdProveedor = " + PROVEEDOR;
-        queryString += " And Tipo = 'DOCA'";
+                queryString =  "SELECT SUM(Cantidad) TotalCantidad, SUM(Precio) TotalPrecio, SUM(Total) TotalTotal ";
+        queryString += " FROM  DetalleItemsCostos ";
+        queryString += " WHERE IDCC      = '" + CENTROCOSTO + "'";
+        queryString += " AND IdProject   = " + PROJECT;
+        queryString += " AND Idex        = '" + IDEX + "'";
+        queryString += " AND NoCuenta    = '" + CUENTA + "'";
+        queryString += " AND IdArea      = '" + IDAREA + "'";
+        queryString += " AND IdEmpresa   = " + EMPRESA;
+        queryString += " AND IdProveedor = " + PROVEEDOR;
+        queryString += " AND Tipo = 'DOCA'";
 
 //        System.out.println(queryString);
 
@@ -746,15 +749,15 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY IDEX PENDIENT
 
         double saldoDoca = 0.00;
 
-        String queryString =  "Select SUM(Total) TotalTotal ";
-        queryString += " From  DocumentosContablesAplicados ";
-        queryString += " Where IDCC      = '" + CENTROCOSTO + "'";
-        queryString += " And IdProject   = " + PROJECT;
-        queryString += " And Idex        = '" + IDEX + "'";
-        queryString += " And NoCuenta    = '" + CUENTA + "'";
-//        queryString += " And IdArea      = '" + IDAREA + "'";
-        queryString += " And IdEmpresa   = " + EMPRESA;
-        queryString += " And IdProveedor = " + PROVEEDOR;
+        String queryString =  "SELECT SUM(Total) TotalTotal ";
+        queryString += " FROM  DocumentosContablesAplicados ";
+        queryString += " WHERE IDCC      = '" + CENTROCOSTO + "'";
+        queryString += " AND IdProject   = " + PROJECT;
+        queryString += " AND Idex        = '" + IDEX + "'";
+        queryString += " AND NoCuenta    = '" + CUENTA + "'";
+//        queryString += " AND IdArea      = '" + IDAREA + "'";
+        queryString += " AND IdEmpresa   = " + EMPRESA;
+        queryString += " AND IdProveedor = " + PROVEEDOR;
 
 //        System.out.println(queryString);
 
@@ -848,12 +851,12 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY IDEX PENDIENT
         SimpleDateFormat df = new SimpleDateFormat("ddMMyy");
         codigoVisita += df.format(new java.util.Date());
 
-        queryString = "Select CodigoVisita";
-        queryString += " From  visita_inspeccion ";
-        queryString += " Where IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
-        queryString += " And   CodigoVisita Like '" + codigoVisita + "%'";
-        queryString += " Order By CodigoVisita Desc";
-        queryString += " Limit 1";
+        queryString = "SELECT CodigoVisita";
+        queryString += " FROM  visita_inspeccion ";
+        queryString += " WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
+        queryString += " AND   CodigoVisita Like '" + codigoVisita + "%'";
+        queryString += " ORDER BY CodigoVisita DESC";
+        queryString += " LIMIT 1";
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -867,12 +870,12 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY IDEX PENDIENT
                 codigoVisita += "01";
             }
 
-            queryString = "Insert Into visita_inspeccion ";
+            queryString = "INSERT INTO visita_inspeccion ";
             queryString += "(IdProyecto, CodigoVisita, FechaYHoraInicio, FechaYHoraFin, ";
             queryString += " Medio, Motivo, Visitas, IdCliente, IdCentroCosto, Referencia, ";
             queryString += " Participante1,Participante1Empresa,Participante1Email,";
             queryString += " PuntoAgenda1, CreadoUsuario, CreadoFechaYHora,Lugar,Observaciones) ";
-            queryString += " Values (";
+            queryString += " VALUES (";
             queryString += "  " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectId();
             queryString += ",'" + codigoVisita + "'";
             queryString += ",current_date";
@@ -903,11 +906,11 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY IDEX PENDIENT
 
             String idVisita = rsRecords.getString(1);
 
-            queryString = "Insert Into visita_inspeccion_tarea (IdVisitaInspeccion, CodigoTarea, Rubro, ";
+            queryString = "INSERT INTO visita_inspeccion_tarea (IdVisitaInspeccion, CodigoTarea, Rubro, ";
             queryString += " Descripcion, Instruccion, Responsable, Ejecutor, ";
             queryString += " EsTarea, Garantia, Presupuesto, AutorizadoTipo, IdCentroCosto, EquipoDibujo, ";
             queryString += " Estatus, FechaUltimoEstatus) ";
-            queryString += " Values (";
+            queryString += " VALUES (";
             queryString += "  " + idVisita;
             queryString += ",'" + codigoVisita + "01'";
             queryString += ",'CIERRE DE CENTRO DE COSTO'";

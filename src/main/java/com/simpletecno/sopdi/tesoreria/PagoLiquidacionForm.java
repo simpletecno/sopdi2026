@@ -121,14 +121,10 @@ public class PagoLiquidacionForm extends Window {
     String tipoDocumentoPagado;
 
     Button grabarPartidaBtn;
-    ComboBox empresaCbx;
 
     UI mainUI;
     Statement stQuery;
     ResultSet rsRecords;
-    Statement stQuery1;
-    Statement stQuery2;
-    ResultSet rsRecords2;
 
     String queryString;
 
@@ -147,6 +143,9 @@ public class PagoLiquidacionForm extends Window {
     static DecimalFormat numberFormat3 = new DecimalFormat("######0.00");
 
     String IdProveedor;
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public PagoLiquidacionForm(String IdProveedor , Date fechaPago) {
 
@@ -179,26 +178,16 @@ public class PagoLiquidacionForm extends Window {
             }
         });
 
-        Label titleLbl = new Label("PAGO DE LIQUIDACION");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " PAGO DE LIQUIDACION");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl, excelBtn);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl, excelBtn);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.setComponentAlignment(excelBtn, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
@@ -212,28 +201,6 @@ public class PagoLiquidacionForm extends Window {
         crearPartidaLayout();
         limpiarPartida();
 
-    }
-
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords2 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords2.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords2.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords2.getString("IdEmpresa"), rsRecords2.getString("Empresa"));
-            }
-            rsRecords2.first();
-
-            empresaCbx.select(rsRecords2.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void createTablaLiquidacion() {
@@ -518,21 +485,21 @@ public class PagoLiquidacionForm extends Window {
         totalMonto = 0.00;
         totalQueztales = 0.00;
 
-        queryString = " Select contabilidad_partida.IdPartida, contabilidad_partida.Fecha, contabilidad_partida.CodigoCC,";
+        queryString = " SELECT contabilidad_partida.IdPartida, contabilidad_partida.Fecha, contabilidad_partida.CodigoCC,";
         queryString += " contabilidad_partida.MonedaDocumento, contabilidad_partida.TipoCambio,  ";
         queryString += " contabilidad_partida.IdProveedor, contabilidad_partida.NombreProveedor, ";
         queryString += " contabilidad_partida.IdLiquidacion, contabilidad_partida.IdLiquidador,  ";
-        queryString += " SUM(Haber) as Total,usuario.Nombre as uNombre, proveedor.Nombre as NLiquidador   ";
-        queryString += " From contabilidad_partida,usuario, proveedor ";
-        queryString += " Where contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
-        queryString += " And UPPER(contabilidad_partida.TipoDocumento) IN ('FACTURA', 'RECIBO','RECIBO CONTABLE', 'RECIBO CORRIENTE', 'FORMULARIO','NOTA DE CREDITO')";
+        queryString += " SUM(Haber) AS Total,usuario.Nombre AS uNombre, proveedor.Nombre AS NLiquidador   ";
+        queryString += " FROM contabilidad_partida,usuario, proveedor ";
+        queryString += " WHERE contabilidad_partida.IdEmpresa = " + empresaId;
+        queryString += " AND UPPER(contabilidad_partida.TipoDocumento) IN ('FACTURA', 'RECIBO','RECIBO CONTABLE', 'RECIBO CORRIENTE', 'FORMULARIO','NOTA DE CREDITO')";
         queryString += " And contabilidad_partida.IdLiquidador = " + IdProveedor;
-        queryString += " And contabilidad_partida.IdLiquidacion > 0   ";
-        queryString += " And contabilidad_partida.MontoAutorizadoPagar > 0   ";
-        queryString += " And usuario.IdUsuario = contabilidad_partida.CreadoUsuario   ";
-        queryString += " And proveedor.IdProveedor = contabilidad_partida.IdLiquidador  ";
+        queryString += " AND contabilidad_partida.IdLiquidacion > 0   ";
+        queryString += " AND contabilidad_partida.MontoAutorizadoPagar > 0   ";
+        queryString += " AND usuario.IdUsuario = contabilidad_partida.CreadoUsuario   ";
+        queryString += " AND proveedor.IdProveedor = contabilidad_partida.IdLiquidador  ";
         queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getLiquidacionesCajaChicha();
-        queryString += " Group by contabilidad_partida.IdLiquidacion, contabilidad_partida.IdLiquidador ";
+        queryString += " GROUP BY contabilidad_partida.IdLiquidacion, contabilidad_partida.IdLiquidador ";
 
 System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
 
@@ -575,11 +542,9 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
 
     private void crearLayoutCheque() {
 
-//        chequeLayout.setHeight("60%");
         chequeLayout.setSpacing(true);
         chequeLayout.setMargin(false);
         chequeLayout.setSizeUndefined();
-//        chequeLayout.addStyleName(ValoTheme.LAYOUT_HORIZONTAL_WRAPPING);
 
         chequeLayout2.setSpacing(true);
         chequeLayout2.setMargin(false);
@@ -1114,10 +1079,10 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
     }
 
     public void llenarComboCuentaContable() {
-        String queryString = " SELECT * from contabilidad_nomenclatura ";
+        String queryString = " SELECT * FROM contabilidad_nomenclatura ";
 //      queryString += " where FiltrarFormularioLiquidacion = ?";
-        queryString += " where Estatus='HABILITADA'";
-        queryString += " Order By N5";
+        queryString += " WHERE Estatus='HABILITADA'";
+        queryString += " ORDER BY N5";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1168,13 +1133,13 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
             Notification.show("Por favor elija la cuenta contable que corresponda. ", Notification.Type.ERROR_MESSAGE);
             return;
         }
-        if (((SopdiUI) UI.getCurrent()).esMesCerrado(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+        if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
             Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return;
         }
-        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
-            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(String.valueOf(empresaCbx.getValue())), Notification.Type.WARNING_MESSAGE);
+        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(empresaId), Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return;
         }
@@ -1206,11 +1171,11 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
             return;
         }
 
-        queryString = " Select CodigoPartida from contabilidad_partida ";
-        queryString += " Where NumeroDocumento = '" + numeroTxt.getValue() + "'";
-        queryString += " And IdEmpresa = " + String.valueOf(empresaCbx.getValue());
-        queryString += " And TipoDocumento = '" + String.valueOf(medioCbx.getValue()) + "'";
-        queryString += " And MonedaDocumento = '" + monedaCbx.getValue() + "'";
+        queryString = "SELECT CodigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE NumeroDocumento = '" + numeroTxt.getValue() + "'";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND TipoDocumento = '" + String.valueOf(medioCbx.getValue()) + "'";
+        queryString += " AND MonedaDocumento = '" + monedaCbx.getValue() + "'";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1233,11 +1198,11 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        String codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "3";
+        String codigoPartida = empresaId + año + mes + dia + "3";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + codigoPartida + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = "SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida LIKE '" + codigoPartida + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
 
@@ -1267,15 +1232,15 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
         //ojo aqui
         descripcion = descripcionTxt.getValue().trim();
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
+        queryString = " INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
         queryString += " TipoDocumento, NoDOCA, TipoDOCA, Fecha, IdProveedor, NITProveedor, ";
         queryString += " NombreProveedor, NombreCheque, MontoDocumento, SerieDocumento, NumeroDocumento, ";
         queryString += " IdNomenclatura, MonedaDocumento, Debe, Haber,";
         queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, IdLiquidador,";
         queryString += " Descripcion, CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values ";
+        queryString += " VALUES ";
         queryString += " (";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoCCLiquidacion1Txt.getValue() + "'";
@@ -1307,7 +1272,7 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
 
         if (cuentaContable2Cbx.getValue() != null && (debe2Txt.getDoubleValueDoNotThrow() > 0 || haber2Txt.getDoubleValueDoNotThrow() > 0)) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoCCLiquidacion2Txt.getValue() + "'";
@@ -1341,7 +1306,7 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
 
         if (cuentaContable3Cbx.getValue() != null && (debe3Txt.getDoubleValueDoNotThrow() > 0 || haber3Txt.getDoubleValueDoNotThrow() > 0)) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoCCLiquidacion3Txt.getValue() + "'";
@@ -1369,13 +1334,11 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
             queryString += ",current_timestamp";
             queryString += ")";
 
-            System.out.println("tercer query pago factura = " + queryString);
-
         }
 
         if (cuentaContable4Cbx.getValue() != null && (debe4Txt.getDoubleValueDoNotThrow() > 0 || haber4Txt.getDoubleValueDoNotThrow() > 0)) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoCCLiquidacion4Txt.getValue() + "'";
@@ -1409,7 +1372,7 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
 
         if (cuentaContable5Cbx.getValue() != null && (debe5Txt.getDoubleValueDoNotThrow() > 0 || haber5Txt.getDoubleValueDoNotThrow() > 0)) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoCCLiquidacion5Txt.getValue() + "'";
@@ -1443,7 +1406,7 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
 
         if (cuentaContable6Cbx.getValue() != null && (debe6Txt.getDoubleValueDoNotThrow() > 0 || haber6Txt.getDoubleValueDoNotThrow() > 0)) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoCCLiquidacion6Txt.getValue() + "'";
@@ -1470,14 +1433,11 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ")";
-
-            System.out.println("sexto query pago factura = " + queryString);
-
         }
 
         if (cuentaContable7Cbx.getValue() != null && (debe7Txt.getDoubleValueDoNotThrow() > 0 || haber7Txt.getDoubleValueDoNotThrow() > 0)) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoCCLiquidacion7Txt.getValue() + "'";
@@ -1504,9 +1464,6 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ")";
-
-            System.out.println("Septimo query pago factura = " + queryString);
-
         }
 
         try {
@@ -1548,7 +1505,7 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
                 queryString += " ,Referencia = '" + codigoPartida + "'";
                 queryString += " ,TipoDoca = '" + medioCbx.getValue() + "'";
                 queryString += " ,NoDoca = '" + numeroTxt.getValue() + "'"; //del cheque
-                queryString += " Where IdEmpresa   = " + String.valueOf(empresaCbx.getValue());
+                queryString += " Where IdEmpresa   = " + empresaId;
                 queryString += " And IdLiquidacion = " + idLiquidacion;
 
 Logger.getLogger(this.getClass().getName()).info("QueryUpdateLiquidacion=" + queryString);
@@ -1561,15 +1518,6 @@ Logger.getLogger(this.getClass().getName()).info("QueryUpdateLiquidacion=" + que
                 stQuery.executeUpdate(queryString);
 
                 ((PagarView) (mainUI.getNavigator().getCurrentView())).documentosContainer.removeItem(((PagarView) (mainUI.getNavigator().getCurrentView())).documentosGrid.getSelectedRow());
-
-//                for (Iterator iTerator = ((PagarView) (mainUI.getNavigator().getCurrentView())).documentosContainer.getItemIds().iterator(); iTerator.hasNext();) {
-//                    // Get the current item identifier, which is an integer.
-//                    Object itemId = iTerator.next();
-//
-//                    if(idLiquidacion.equals(String.valueOf(((PagarView) (mainUI.getNavigator().getCurrentView())).documentosContainer.getContainerProperty(itemId, PagarView.ID_AUTO_PROPERTY).getValue()))) {
-//                        ((PagarView) (mainUI.getNavigator().getCurrentView())).documentosContainer.getContainerProperty(itemId, PagarView.ESTATUS_PROPERTY).setValue("PAGADO");
-//                    }
-//                }
 
             }//end while
 
@@ -1595,8 +1543,8 @@ Logger.getLogger(this.getClass().getName()).info("QueryUpdateLiquidacion=" + que
 
             PagoChequesPDF Pagocheques
                     = new PagoChequesPDF(
-                    String.valueOf(empresaCbx.getValue()),
-                    empresaCbx.getItemCaption(empresaCbx.getValue()),
+                    empresaId,
+                    empresaNombre,
                     codigoPartidaNuevo,
                     "0",
                     nombreChequeTxt.getValue(),
@@ -1607,12 +1555,6 @@ Logger.getLogger(this.getClass().getName()).info("QueryUpdateLiquidacion=" + que
             mainUI.addWindow(Pagocheques);
             Pagocheques.center();
 
-//            if (tabId.equals("2")) { //liquidaciones por pagar
-//                llenarGridLiquidaciones(empresa);
-//            }
-//            else {
-//                llenarGridFacturas(empresa);
-//            }
             liquidacionesGrid.getSelectedRows().clear();
             liquidacionesGrid.getSelectionModel().reset();
 
@@ -1656,8 +1598,6 @@ Logger.getLogger(this.getClass().getName()).info("QueryUpdateLiquidacion=" + que
 
     public void limpiarPartida() {
 
-//        proveedorCbx.setReadOnly(false);
-//        proveedorCbx.clear();
         numeroTxt.setReadOnly(false);
         numeroTxt.setValue("");
         nombreChequeTxt.setReadOnly(false);
@@ -1734,103 +1674,10 @@ Logger.getLogger(this.getClass().getName()).info("QueryUpdateLiquidacion=" + que
             excelExport.setDisplayTotals(false);
             String fileexport;
 // produccion            fileexport = (empresa + "_" + empresaLbl.getValue().substring(5, empresaLbl.getValue().length()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é","") + "_INTEGRACION_CAMBIOS.xlsx").replaceAll(" ", "").replaceAll(",", "");
-            fileexport = (empresaCbx.getValue() + "_" + empresaCbx.getItemCaption(empresaCbx.getValue()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + "_DOCUMENTOS.xls").replaceAll(" ", "").replaceAll(",", "");
+            fileexport = (empresaId + "_" + empresaNombre.replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + "_DOCUMENTOS.xls").replaceAll(" ", "").replaceAll(",", "");
             excelExport.setExportFileName(fileexport);
             excelExport.export();
         }
         return true;
     }
-
-    /*private boolean cuentaRepetida() {
-        if (cuentaContable1Cbx.getValue() != null) { // hay una cuenta seleccioada
-            if (cuentaContable2Cbx.getValue() != null) { // hay una cuenta seleccioada
-                if (cuentaContable2Cbx.getValue().equals(cuentaContable1Cbx.getValue())) {
-                    Notification.show("No puede utilizar la misma cuenta para dos registros de la partida.", Notification.Type.ERROR_MESSAGE);
-                    return true;
-                }
-                if (cuentaContable3Cbx.getValue() != null) {
-                    if (cuentaContable1Cbx.getValue().equals(cuentaContable3Cbx.getValue())
-                            || cuentaContable2Cbx.getValue().equals(cuentaContable3Cbx.getValue())) {
-                        Notification.show("No puede utilizar la misma cuenta para dos registros de la partida.", Notification.Type.ERROR_MESSAGE);
-                        return true;
-                    }
-                    if (cuentaContable4Cbx.getValue() != null) {
-                        if (cuentaContable4Cbx.getValue().equals(cuentaContable1Cbx.getValue())
-                                || cuentaContable4Cbx.getValue().equals(cuentaContable3Cbx.getValue())
-                                || cuentaContable4Cbx.getValue().equals(cuentaContable2Cbx.getValue())) {
-                            return true;
-                        }
-                    }
-                }
-                if (cuentaContable4Cbx.getValue() != null) {
-                    if (cuentaContable4Cbx.getValue().equals(cuentaContable1Cbx.getValue())
-                            || cuentaContable4Cbx.getValue().equals(cuentaContable3Cbx.getValue())
-                            || cuentaContable4Cbx.getValue().equals(cuentaContable2Cbx.getValue())) {
-                        return true;
-                    }
-                }
-            }
-        }
-        if (cuentaContable2Cbx.getValue() != null) { // hay una cuenta seleccioada
-            if (cuentaContable1Cbx.getValue() != null) { // hay una cuenta seleccioada
-                if (cuentaContable2Cbx.getValue().equals(cuentaContable1Cbx.getValue())) {
-                    Notification.show("No puede utilizar la misma cuenta para dos registros de la partida.", Notification.Type.ERROR_MESSAGE);
-                    return true;
-                }
-            }
-            if (cuentaContable3Cbx.getValue() != null) { // hay una cuenta seleccioada
-                if (cuentaContable2Cbx.getValue().equals(cuentaContable3Cbx.getValue())) {
-                    Notification.show("No puede utilizar la misma cuenta para dos registros de la partida.", Notification.Type.ERROR_MESSAGE);
-                    return true;
-                }
-            }
-            if (cuentaContable4Cbx.getValue() != null) { // hay una cuenta seleccioada
-                if (cuentaContable2Cbx.getValue().equals(cuentaContable4Cbx.getValue())) {
-                    Notification.show("No puede utilizar la misma cuenta para dos registros de la partida.", Notification.Type.ERROR_MESSAGE);
-                    return true;
-                }
-            }
-        }
-        if (cuentaContable3Cbx.getValue() != null) {
-            if (cuentaContable1Cbx.getValue() != null) {
-                if (cuentaContable3Cbx.getValue().equals(cuentaContable1Cbx.getValue())) {
-                    Notification.show("No puede utilizar la misma cuenta para dos registros de la partida.", Notification.Type.ERROR_MESSAGE);
-                    return true;
-                }
-            }
-            if (cuentaContable2Cbx.getValue() != null) {
-                if (cuentaContable2Cbx.getValue().equals(cuentaContable3Cbx.getValue())) {
-                    Notification.show("No puede utilizar la misma cuenta para dos registros de la partida.", Notification.Type.ERROR_MESSAGE);
-                    return true;
-                }
-            }
-            if (cuentaContable4Cbx.getValue() != null) {
-                if (cuentaContable4Cbx.getValue().equals(cuentaContable3Cbx.getValue())) {
-                    Notification.show("No puede utilizar la misma cuenta para dos registros de la partida.", Notification.Type.ERROR_MESSAGE);
-                    return true;
-                }
-            }
-        }
-        if (cuentaContable4Cbx.getValue() != null) {
-            if (cuentaContable1Cbx.getValue() != null) {
-                if (cuentaContable1Cbx.getValue().equals(cuentaContable4Cbx.getValue())) {
-                    Notification.show("No puede utilizar la misma cuenta para dos registros de la partida.", Notification.Type.ERROR_MESSAGE);
-                    return true;
-                }
-            }
-            if (cuentaContable2Cbx.getValue() != null) { // hay una cuenta seleccioada
-                if (cuentaContable2Cbx.getValue().equals(cuentaContable4Cbx.getValue())) {
-                    Notification.show("No puede utilizar la misma cuenta para dos registros de la partida.", Notification.Type.ERROR_MESSAGE);
-                    return true;
-                }
-            }
-            if (cuentaContable3Cbx.getValue() != null) { // hay una cuenta seleccioada
-                if (cuentaContable3Cbx.getValue().equals(cuentaContable4Cbx.getValue())) {
-                    Notification.show("No puede utilizar la misma cuenta para dos registros de la partida.", Notification.Type.ERROR_MESSAGE);
-                    return true;
-                }
-            }
-        }
-        return false;
-    }*/
 }

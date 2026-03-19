@@ -45,7 +45,7 @@ public class ChangePassword extends Window implements Button.ClickListener
     public ChangePassword(String userId, String userName, String lastLogin) {
 
         setSizeFull();
-        setCaption("Cambio de clave para : " + userName);
+        setCaption("Cambio de contraseña para : " + userName);
         this.userId=userId;
         this.lastLogin = lastLogin;
 

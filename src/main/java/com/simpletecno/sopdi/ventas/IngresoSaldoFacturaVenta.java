@@ -24,24 +24,22 @@ public class IngresoSaldoFacturaVenta extends Window {
     VerticalLayout mainLayout;
     Button guardarBtn;
     Statement stQuery, stQuery1, stQuery2;
-    ResultSet rsRecords, rsRecords1, rsRecords2;
+    ResultSet rsRecords1;
     String queryString;
 
     double totalEnganches = 0.00;
 
-    String empresa;
     public String codigoPartida;
     public String saldo;
-    double cantidad;
     String proveedor;
     String facturaNumero;
-    static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
-    static DecimalFormat numberFormat2 = new DecimalFormat("#,###,##0");
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public IngresoSaldoFacturaVenta(String empresa1, String codigoPartida, String Saldo, String proveedor, String numeroFactura) {
 
         this.codigoPartida = codigoPartida;
-        this.empresa = empresa1;
         this.saldo = Saldo;
         this.proveedor = proveedor;
         this.facturaNumero = numeroFactura;
@@ -53,7 +51,7 @@ public class IngresoSaldoFacturaVenta extends Window {
         mainLayout.setSpacing(true);
         mainLayout.setMargin(true);
 
-        Label titleLbl = new Label("Ingrese el monto.");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Ingrese el monto.");
         titleLbl.addStyleName(Runo.LABEL_H2);
         titleLbl.setSizeUndefined();
 
@@ -120,10 +118,10 @@ public class IngresoSaldoFacturaVenta extends Window {
 
     public void buscarTotalEnganches() {
 
-        queryString = " select *";
-        queryString += " from contabilidad_partida";
-        queryString += " where TipoDocumento = 'ENGANCHES'";
-        queryString += " and NombreProveedor = '" + proveedor + "'";
+        queryString = " SELECT *";
+        queryString += " FROM contabilidad_partida";
+        queryString += " WHERE TipoDocumento = 'ENGANCHES'";
+        queryString += " AND NombreProveedor = '" + proveedor + "'";
 
         System.out.println("query" + queryString);
 
@@ -151,10 +149,10 @@ public class IngresoSaldoFacturaVenta extends Window {
                 - montoPagarTxt.getDoubleValueDoNotThrow();
 
         System.out.println("Nuevo saldo" + nuevoSaldo);
-        String queryString = "Update contabilidad_partida";
-        queryString += " Set Saldo = " + nuevoSaldo;
-        queryString += " Where CodigoPartida = " + codigoPartida;
-        queryString += " and IdEmpresa = " + empresa;
+        String queryString = "UPDATE contabilidad_partida";
+        queryString += " SET Saldo = " + nuevoSaldo;
+        queryString += " WHERE CodigoPartida = " + codigoPartida;
+        queryString += " AND IdEmpresa = " + empresaId;
 
         try {
 
@@ -162,7 +160,7 @@ public class IngresoSaldoFacturaVenta extends Window {
             stQuery.executeUpdate(queryString);
 
             reducirEnganche();
-            ((FacturaVentaView) (((SopdiUI) UI.getCurrent()).getNavigator().getCurrentView())).llenarTablaFacturaVenta(empresa);
+            ((FacturaVentaView) (((SopdiUI) UI.getCurrent()).getNavigator().getCurrentView())).llenarTablaFacturaVenta();
             Notification.show("Autorización exitosa.");
 
             close();
@@ -175,11 +173,11 @@ public class IngresoSaldoFacturaVenta extends Window {
 
     public void reducirEnganche() {
 
-        queryString = " select *";
-        queryString += " from contabilidad_partida";
-        queryString += " where TipoDocumento = 'ENGANCHES'";
-        queryString += " and NombreProveedor = '" + proveedor + "'";
-        queryString += " GROUP by CodigoPartida";
+        queryString = " SELECT *";
+        queryString += " FROM contabilidad_partida";
+        queryString += " WHERE TipoDocumento = 'ENGANCHES'";
+        queryString += " AND NombreProveedor = '" + proveedor + "'";
+        queryString += " GROUP BY CodigoPartida";
 
         double montoPagar = montoPagarTxt.getDoubleValueDoNotThrow();
         double nuevoSaldo = 0.00;
@@ -201,12 +199,12 @@ public class IngresoSaldoFacturaVenta extends Window {
 
                             queryString = "";
                             queryString = " UPDATE contabilidad_partida";
-                            queryString += " Set Saldo = 0 ";
+                            queryString += " SET Saldo = 0 ";
                             queryString += " ,Estatus = 'PAGADO'";
                             queryString += " ,NoDOCA = '" + facturaNumero + "'";
                             queryString += " ,TipoDOCA = 'FACTURA VENTA'";
-                            queryString += " Where CodigoPartida = " + rsRecords1.getString("CodigoPartida");
-                            queryString += " and Haber = 0.00";
+                            queryString += " WHERE CodigoPartida = " + rsRecords1.getString("CodigoPartida");
+                            queryString += " AND Haber = 0.00";
 
                             stQuery2 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                             stQuery2.executeUpdate(queryString);
@@ -217,12 +215,12 @@ public class IngresoSaldoFacturaVenta extends Window {
                         montoPagar = rsRecords1.getDouble("Saldo") - montoPagar;
                         queryString = "";
                         queryString = " UPDATE contabilidad_partida";
-                        queryString += " Set Saldo = " + montoPagar;
+                        queryString += " SET Saldo = " + montoPagar;
                         queryString += " ,Estatus = 'PAGADO'";
                         queryString += " ,NoDOCA = '" + facturaNumero + "'";
                         queryString += " ,TipoDOCA = 'FACTURA VENTA'";
-                        queryString += " Where CodigoPartida = " + rsRecords1.getString("CodigoPartida");
-                        queryString += " and Haber = 0.00";
+                        queryString += " WHERE CodigoPartida = " + rsRecords1.getString("CodigoPartida");
+                        queryString += " AND Haber = 0.00";
 
                         stQuery2 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                         stQuery2.executeUpdate(queryString);

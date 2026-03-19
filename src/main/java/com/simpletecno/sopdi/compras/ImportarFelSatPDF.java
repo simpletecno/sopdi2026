@@ -43,7 +43,6 @@ public class ImportarFelSatPDF extends Window {
     String fileName;
     String queryString;
 
-    UI mainUI;
     String idEmpresa;
     String empresaNombre;
     String empresaNit;

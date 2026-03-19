@@ -6,6 +6,8 @@
 package com.simpletecno.sopdi.seguridad;
 
 import com.simpletecno.sopdi.SopdiUI;
+import com.vaadin.data.Validator;
+import com.vaadin.data.validator.EmailValidator;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
@@ -116,6 +118,7 @@ public class UserForm extends Window {
         emailTxt.setMaxLength(128);
         emailTxt.setRequired(true);
         emailTxt.setRequiredError("POR FAVOR INGRESE EL EMAIL DEL USUARIO");
+//        emailTxt.addValidator(new EmailValidator());
 
         perfilCbx = new ComboBox("Perfil :");
         perfilCbx.setNewItemsAllowed(false);

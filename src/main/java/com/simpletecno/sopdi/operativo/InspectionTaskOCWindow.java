@@ -35,7 +35,6 @@ public class InspectionTaskOCWindow extends Window {
     static final String IDEX_PROPERTY = "IDEX";
     static final String CUENTA_PROPERTY = "Cuenta";
     static final String DESCRIPCION_PROPERTY = "Descripción";
-    //    static final String AREA_PROPERTY = "Area";
     static final String UNIDAD_PROPERTY = "Unidad";
     static final String EMPRESA_PROPERTY = "Empresa";
     static final String PROVEEDOR_PROPERTY = "Proveedor";
@@ -52,7 +51,6 @@ public class InspectionTaskOCWindow extends Window {
     static final String ES_NUEVO_PROPERTY = "Nuevo";
 
     static final String IDOC_PROPERTY = "IDOC";
-    //    static final String IDAREA_PROPERTY = "IDAREA";
     static final String LOTE_PROPERTY = "Lote";
 
     static final String CODIGOOC_PROPERTY = "CodigoOC";
@@ -150,12 +148,6 @@ public class InspectionTaskOCWindow extends Window {
         projectCbx.setNullSelectionAllowed(false);
         projectCbx.setNewItemsAllowed(false);
         projectCbx.addContainerProperty("id", String.class, "");
-        projectCbx.addValueChangeListener(event ->
-                {
-//                    fillOcIdexGrid(String.valueOf(projectCbx.getContainerProperty(projectCbx.getValue(), "id").getValue()));
-//                    fillOcIdexGrid(String.valueOf(projectCbx.getValue()));
-                }
-        );
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
@@ -166,8 +158,6 @@ public class InspectionTaskOCWindow extends Window {
 
         mainLayout.addComponent(titleLayout);
         mainLayout.setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-//        mainLayout.addComponents(projectCbx);
-//        mainLayout.setComponentAlignment(projectCbx, Alignment.TOP_LEFT);
 
         llenarComboProject();
 
@@ -180,12 +170,11 @@ public class InspectionTaskOCWindow extends Window {
     }
 
     private void llenarComboProject() {
-        String queryString = "";
-
-        queryString = "Select *";
-        queryString += " From  project";
+        String queryString=
+        "SELECT *";
+        queryString += " FROM project";
         queryString += " WHERE Estatus = 'ACTIVO'";
-        queryString += " Order By Numero";
+        queryString += " ORDER BY Numero";
 
 //System.out.println("\n\n"+queryString);
 
@@ -197,7 +186,6 @@ public class InspectionTaskOCWindow extends Window {
             if (rsRecords.next()) { //  encontrado
 
                 do {
-                    Utileria utileria = new Utileria();
 
                     projectCbx.addItem(rsRecords.getString("Numero"));
                     projectCbx.setItemCaption(rsRecords.getString("Numero"), rsRecords.getString("Descripcion")
@@ -248,13 +236,6 @@ public class InspectionTaskOCWindow extends Window {
         ocGrid.setSizeFull();
         ocGrid.addSelectionListener((SelectionEvent.SelectionListener) event -> {
             if (ocGrid.getSelectedRow() != null) {
-//                    if(projectCbx.getValue() == null) {
-//                        Notification.show("Por favor elija un project!", Notification.Type.HUMANIZED_MESSAGE);
-//                        projectCbx.focus();
-//                        return;
-//                    }
-//                    fillOcIdexGrid(String.valueOf(projectCbx.getContainerProperty(projectCbx.getValue(), "id").getValue()));
-//                    fillOcIdexGrid(String.valueOf(projectCbx.getValue()));
                 fillOcIdexGrid();
                 actualizarBotones();
             }
@@ -417,7 +398,6 @@ public class InspectionTaskOCWindow extends Window {
         ocIdexContainer.addContainerProperty(IDEX_PROPERTY, String.class, "");
         ocIdexContainer.addContainerProperty(CUENTA_PROPERTY, String.class, "");
         ocIdexContainer.addContainerProperty(DESCRIPCION_PROPERTY, String.class, "");
-//        ocIdexContainer.addContainerProperty(AREA_PROPERTY, String.class, "");
         ocIdexContainer.addContainerProperty(UNIDAD_PROPERTY, String.class, "");
         ocIdexContainer.addContainerProperty(EMPRESA_PROPERTY, String.class, "");
         ocIdexContainer.addContainerProperty(LOTE_PROPERTY, String.class, "");
@@ -432,7 +412,6 @@ public class InspectionTaskOCWindow extends Window {
         ocIdexContainer.addContainerProperty(OC_PRECIO_PROPERTY, String.class, "");
         ocIdexContainer.addContainerProperty(OC_TOTAL_PROPERTY, String.class, "");
         ocIdexContainer.addContainerProperty(IDOC_PROPERTY, String.class, "");
-//        ocIdexContainer.addContainerProperty(IDAREA_PROPERTY, String.class, "");
         ocIdexContainer.addContainerProperty(CODIGOOC_PROPERTY, String.class, "");
         ocIdexContainer.addContainerProperty(IDPROJECT_PROPERTY, String.class, "");
         ocIdexContainer.addContainerProperty(ES_NUEVO_PROPERTY, String.class, "NO");
@@ -452,11 +431,6 @@ public class InspectionTaskOCWindow extends Window {
                 if (event.isDoubleClick()) {
                     ocGrid.setReadOnly(true);
                     if (ocGrid.getSelectedRow() != null) {
-//                        if(projectCbx.getValue() == null) {
-//                            Notification.show("Por favor elija un project!", Notification.Type.HUMANIZED_MESSAGE);
-//                            projectCbx.focus();
-//                            return;
-//                        }
                         if (String.valueOf(ocContainer.getContainerProperty(ocGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue()).equals("EN PREPARACION")) {
                             InspectionTaskOCForm inspectionTaskOCForm
                                     = new InspectionTaskOCForm(
@@ -503,7 +477,6 @@ public class InspectionTaskOCWindow extends Window {
         ocIdexGrid.getColumn(IDEX_PROPERTY).setExpandRatio(1);
         ocIdexGrid.getColumn(CUENTA_PROPERTY).setExpandRatio(1);
         ocIdexGrid.getColumn(DESCRIPCION_PROPERTY).setExpandRatio(2);
-//        ocIdexGrid.getColumn(AREA_PROPERTY).setExpandRatio(1);
         ocIdexGrid.getColumn(UNIDAD_PROPERTY).setExpandRatio(1);
         ocIdexGrid.getColumn(EMPRESA_PROPERTY).setExpandRatio(1);
         ocIdexGrid.getColumn(PROVEEDOR_PROPERTY).setExpandRatio(1);
@@ -517,7 +490,6 @@ public class InspectionTaskOCWindow extends Window {
         ocIdexGrid.getColumn(OC_PRECIO_PROPERTY).setExpandRatio(1);
         ocIdexGrid.getColumn(OC_TOTAL_PROPERTY).setExpandRatio(1);
         ocIdexGrid.getColumn(IDOC_PROPERTY).setHidable(true).setHidden(true);
-//        ocIdexGrid.getColumn(IDAREA_PROPERTY).setHidable(true).setHidden(true);
         ocIdexGrid.getColumn(CODIGOOC_PROPERTY).setHidable(true).setHidden(true);
         ocIdexGrid.getColumn(IDPROJECT_PROPERTY).setHidable(true).setHidden(true);
 
@@ -676,11 +648,6 @@ public class InspectionTaskOCWindow extends Window {
             @Override
             public void buttonClick(Button.ClickEvent event) {
                 if (ocGrid.getSelectedRow() != null && ocIdexGrid.getSelectedRow() != null) {
-//                    if(projectCbx.getValue() == null) {
-//                        Notification.show("Por favor elija un project!", Notification.Type.HUMANIZED_MESSAGE);
-//                        projectCbx.focus();
-//                        return;
-//                    }
                     InspectionTaskOCForm inspectionTaskOCForm
                             = new InspectionTaskOCForm(
                             ocGrid.getSelectedRow(),
@@ -771,18 +738,14 @@ public class InspectionTaskOCWindow extends Window {
             String queryString = "";
 
             if (!tareaId.isEmpty()) {
-                queryString = "Select *, usuario.Nombre as NombreUsuario";
-                queryString += " From  visita_inspeccion_tarea_oc";
-                queryString += " INNER JOIN usuario on usuario.IdUsuario = visita_inspeccion_tarea_oc.CreadoUsuario";
-                queryString += " Where IdVisitaInspeccionTarea = " + tareaId;
+                queryString = "SELECT *, usuario.Nombre AS NombreUsuario";
+                queryString += " FROM  visita_inspeccion_tarea_oc";
+                queryString += " INNER JOIN usuario ON usuario.IdUsuario = visita_inspeccion_tarea_oc.CreadoUsuario";
+                queryString += " WHERE IdVisitaInspeccionTarea = " + tareaId;
                 if (!idOC.equals("0")) {
-                    queryString += " And IdVisitaInspeccionTareaOC = " + idOC;
+                    queryString += " AND IdVisitaInspeccionTareaOC = " + idOC;
                 }
-            } else {
-                //
             }
-
-//System.out.println(queryString);
 
             rsRecords = stQuery.executeQuery(queryString);
 
@@ -821,23 +784,15 @@ public class InspectionTaskOCWindow extends Window {
 
     private void crearNuevaOc() {
         try {
-
-//            if(projectCbx.getValue() == null) {
-//                Notification.show("Por favor elija un project!", Notification.Type.HUMANIZED_MESSAGE);
-//                projectCbx.focus();
-//                return;
-//            }
-            queryString = "Select CodigoOC";
-            queryString += " From  visita_inspeccion_tarea_oc ";
-            queryString += " Where IdVisitaInspeccionTarea = " + tareaId;
-            queryString += " Order By CodigoOC Desc";
-            queryString += " Limit 1";
+            queryString = "SELECT CodigoOC";
+            queryString += " FROM  visita_inspeccion_tarea_oc ";
+            queryString += " WHERE IdVisitaInspeccionTarea = " + tareaId;
+            queryString += " ORDER BY CodigoOC DESC";
+            queryString += " LIMIT 1";
 
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
 
-            //012345678901234567
-            //XXYYZZDDMMAACCttcc
             if (rsRecords.next()) { // encontrado la ultima tarea...
                 codigoOc = codigoTarea.substring(0, 16) + String.format("%02d", Integer.valueOf(rsRecords.getString("CodigoOC").substring(16, 18)) + 1);
             } else {
@@ -922,31 +877,15 @@ public class InspectionTaskOCWindow extends Window {
 
                 do {
 
-//                    getSaldoSegunOC(
-//                            idcc,
-//                            rsRecords.getString("IdProject"),
-//                            rsRecords.getString("Idex"),
-//                            rsRecords.getString("NoCuenta"),
-//                            rsRecords.getString("IdArea"),
-//                            rsRecords.getString("IdEmpresa"),
-//                            rsRecords.getString("IdProveedor")
-//                    );
-//
-//                    cantidadTotal = rsRecords.getDouble("Cantidad") + cantidadOC;
-//                    montoTotal = rsRecords.getDouble("Total") + totalOC;
-//                    precioPromedio = rsRecords.getDouble("Precio") + precioOC / cantidadTotal;
-
                     cantidadTotal = rsRecords.getDouble("CantidadTotal");
                     precioPromedio = rsRecords.getDouble("PrecioTotal");
                     montoTotal = cantidadTotal * precioPromedio;
 
                     montoTotal = montoTotal - getSaldoDocumentosContablesAplicados(
-//                    montoTotal = getSaldoDocumentosContablesAplicados(
                             idcc,
                             rsRecords.getString("IdProject"),
                             rsRecords.getString("Idex"),
                             rsRecords.getString("NoCuenta"),
-//                            rsRecords.getString("IdArea"),
                             rsRecords.getString("IdEmpresa"),
                             rsRecords.getString("IdProveedor")
                     );
@@ -963,8 +902,6 @@ public class InspectionTaskOCWindow extends Window {
                         ocIdexContainer.getContainerProperty(itemId, IDEX_PROPERTY).setValue(rsRecords.getString("Idex"));
                         ocIdexContainer.getContainerProperty(itemId, CUENTA_PROPERTY).setValue(rsRecords.getString("NoCuenta"));
                         ocIdexContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).setValue(rsRecords.getString("CuentaDescripcion"));
-//                        ocIdexContainer.getContainerProperty(itemId, IDAREA_PROPERTY).setValue(rsRecords.getString("IdArea"));
-//                        ocIdexContainer.getContainerProperty(itemId, AREA_PROPERTY).setValue(rsRecords.getString("Area"));
                         ocIdexContainer.getContainerProperty(itemId, UNIDAD_PROPERTY).setValue(rsRecords.getString("Unidad"));
                         ocIdexContainer.getContainerProperty(itemId, EMPRESA_PROPERTY).setValue(rsRecords.getString("IdEmpresa"));
                         ocIdexContainer.getContainerProperty(itemId, LOTE_PROPERTY).setValue(rsRecords.getString("Lote"));
@@ -980,7 +917,6 @@ public class InspectionTaskOCWindow extends Window {
                                         idcc,
                                         rsRecords.getString("Idex"),
                                         rsRecords.getString("NoCuenta"),
-//                                        rsRecords.getString("IdArea"),
                                         rsRecords.getString("IdEmpresa"),
                                         rsRecords.getString("IdProveedor")
                                 )
@@ -994,7 +930,6 @@ public class InspectionTaskOCWindow extends Window {
                                     idcc,
                                     rsRecords.getString("Idex"),
                                     rsRecords.getString("NoCuenta"),
-//                                    rsRecords.getString("IdArea"),
                                     rsRecords.getString("IdEmpresa"),
                                     rsRecords.getString("IdProveedor")) == false) {
 
@@ -1029,10 +964,10 @@ public class InspectionTaskOCWindow extends Window {
         try {
             stQuery2 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
-            String queryString = "Select Id ";
-            queryString += " From  project";
-            queryString += " Where Numero = " + idProject;
-            queryString += " And Estatus = 'ACTIVO'";
+            String queryString = "SELECT Id ";
+            queryString += " FROM  project";
+            queryString += " WHERE Numero = " + idProject;
+            queryString += " AND Estatus = 'ACTIVO'";
 
             rsRecords2 = stQuery2.executeQuery(queryString);
 
@@ -1062,16 +997,16 @@ public class InspectionTaskOCWindow extends Window {
         try {
             stQuery2 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
-            String queryString = "Select Precio ";
-            queryString += " From  DetalleItemsCostos";
-            queryString += " Where IdCC = '" + idcc + "'";
-            queryString += " And IdProject = " + idProject;
-            queryString += " And Idex = '" + idex + "'";
-            queryString += " And NoCuenta = '" + noCuenta + "'";
+            String queryString = "SELECT Precio ";
+            queryString += " FROM  DetalleItemsCostos";
+            queryString += " WHERE IdCC = '" + idcc + "'";
+            queryString += " AND IdProject = " + idProject;
+            queryString += " AND Idex = '" + idex + "'";
+            queryString += " AND NoCuenta = '" + noCuenta + "'";
 //            queryString += " And IdArea = " + idArea;
-            queryString += " And IdEmpresa = " + idEmpresa;
-            queryString += " And IdProveedor = " + idProveedor;
-            queryString += " Order By ID Desc Limit 1";
+            queryString += " AND IdEmpresa = " + idEmpresa;
+            queryString += " AND IdProveedor = " + idProveedor;
+            queryString += " ORDER BY ID DESC LIMIT 1";
 
             rsRecords2 = stQuery2.executeQuery(queryString);
 
@@ -1101,19 +1036,15 @@ public class InspectionTaskOCWindow extends Window {
         cantidadOC = 0.00;
         precioOC = 0.00;
 
-        String queryString = "Select SUM(Cantidad) TotalCantidad, SUM(Precio) TotalPrecio, SUM(Total) TotalTotal ";
-        queryString += " From  DetalleItemsCostos ";
-        queryString += " Where IDCC      = '" + CENTROCOSTO + "'";
-        queryString += " And IdProject   = " + PROJECT;
-        queryString += " And Idex        = '" + IDEX + "'";
-        queryString += " And NoCuenta    = '" + CUENTA + "'";
-//        queryString += " And IdArea      = '" + IDAREA + "'";
-        queryString += " And IdEmpresa   = " + EMPRESA;
-        queryString += " And IdProveedor = " + PROVEEDOR;
-        queryString += " And Tipo = 'DOCA'";
-
-//        System.out.println(queryString);
-
+        String queryString = "SELECT SUM(Cantidad) TotalCantidad, SUM(Precio) TotalPrecio, SUM(Total) TotalTotal ";
+        queryString += " FROM  DetalleItemsCostos ";
+        queryString += " WHERE IDCC      = '" + CENTROCOSTO + "'";
+        queryString += " AND IdProject   = " + PROJECT;
+        queryString += " AND Idex        = '" + IDEX + "'";
+        queryString += " AND NoCuenta    = '" + CUENTA + "'";
+        queryString += " AND IdEmpresa   = " + EMPRESA;
+        queryString += " AND IdProveedor = " + PROVEEDOR;
+        queryString += " AND Tipo = 'DOCA'";
 
         try {
 
@@ -1137,7 +1068,6 @@ public class InspectionTaskOCWindow extends Window {
             String PROJECT,
             String IDEX,
             String CUENTA,
-//            String IDAREA,
             String EMPRESA,
             String PROVEEDOR
     ) {
@@ -1145,17 +1075,14 @@ public class InspectionTaskOCWindow extends Window {
         double total = 0.00;
 
         String
-                queryString = "Select  SUM(Total) TotalTotal ";
-        queryString += " From  DocumentosContablesAplicados ";
-        queryString += " Where IDCC      = '" + CENTROCOSTO + "'";
-        queryString += " And IdProject   = " + PROJECT;
-        queryString += " And Idex        = '" + IDEX + "'";
-        queryString += " And NoCuenta    = '" + CUENTA + "'";
-//        queryString += " And IdArea      = '" + IDAREA + "'";
-        queryString += " And IdEmpresa   = " + EMPRESA;
-        queryString += " And IdProveedor = " + PROVEEDOR;
-
-//        System.out.println(queryString);
+                queryString = "SELECT SUM(Total) TotalTotal ";
+        queryString += " FROM  DocumentosContablesAplicados ";
+        queryString += " WHERE IDCC      = '" + CENTROCOSTO + "'";
+        queryString += " AND IdProject   = " + PROJECT;
+        queryString += " AND Idex        = '" + IDEX + "'";
+        queryString += " AND NoCuenta    = '" + CUENTA + "'";
+        queryString += " AND IdEmpresa   = " + EMPRESA;
+        queryString += " AND IdProveedor = " + PROVEEDOR;
 
         try {
 
@@ -1181,7 +1108,6 @@ public class InspectionTaskOCWindow extends Window {
             String CENTROCOSTO,
             String IDEX,
             String CUENTA,
-//            String IDAREA,
             String EMPRESA,
             String PROVEEDOR
     ) {
@@ -1192,18 +1118,15 @@ public class InspectionTaskOCWindow extends Window {
 
             stQuery2 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
-            queryString = "Select * ";
-            queryString += " From visita_inspeccion_tarea_oc_detalle";
-            queryString += " Where IDCC = '" + CENTROCOSTO + "'";
-            queryString += " And IdProject  = " + IDPROJECT;
-            queryString += " And Idex     = '" + IDEX + "'";
-            queryString += " And NoCuenta = '" + CUENTA + "'";
-//            queryString += " And IdArea = '" + IDAREA + "'";
-            queryString += " And IdEmpresa   = " + EMPRESA;
-            queryString += " And IdProveedor = " + PROVEEDOR;
-            queryString += " And IdVisitaInspeccionTareaOC = " + ocContainer.getContainerProperty(ocGrid.getSelectedRow(), IDOC_PROPERTY).getValue();
-
-//System.out.println("Query buscarOC()=" + queryString);
+            queryString = "SELECT * ";
+            queryString += " FROM visita_inspeccion_tarea_oc_detalle";
+            queryString += " WHERE IDCC = '" + CENTROCOSTO + "'";
+            queryString += " AND IdProject  = " + IDPROJECT;
+            queryString += " AND Idex     = '" + IDEX + "'";
+            queryString += " AND NoCuenta = '" + CUENTA + "'";
+            queryString += " AND IdEmpresa   = " + EMPRESA;
+            queryString += " AND IdProveedor = " + PROVEEDOR;
+            queryString += " AND IdVisitaInspeccionTareaOC = " + ocContainer.getContainerProperty(ocGrid.getSelectedRow(), IDOC_PROPERTY).getValue();
 
             rsRecords2 = stQuery2.executeQuery(queryString);
 
@@ -1215,7 +1138,6 @@ public class InspectionTaskOCWindow extends Window {
                 ocIdexContainer.getContainerProperty(itemId, IDOC_PROPERTY).setValue(rsRecords2.getString("IdVisitaInspeccionTareaOCDetalle"));
                 ocIdexContainer.getContainerProperty(itemId, CODIGOOC_PROPERTY).setValue(ocContainer.getContainerProperty(ocGrid.getSelectedRow(), CODIGOOC_PROPERTY).getValue());
 
-//                ocIdexGrid.select(itemId);
                 siTieneOC = true;
 
             } else {
@@ -1231,8 +1153,6 @@ public class InspectionTaskOCWindow extends Window {
             Notification.show("ERROR DE BASE DE DATOS : " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
         }
 
-//        System.out.println("siTieneOC=" + siTieneOC);
-
         return siTieneOC;
     }
 
@@ -1246,19 +1166,15 @@ public class InspectionTaskOCWindow extends Window {
 
         try {
 
-            String queryString = "Select DIC.IdVisitaInspeccionTareaOCDetalle, DIC.IdProject, DIC.NoCuenta, CCC.Descripcion CuentaDescripcion, ";
+            String queryString = "SELECT DIC.IdVisitaInspeccionTareaOCDetalle, DIC.IdProject, DIC.NoCuenta, CCC.Descripcion CuentaDescripcion, ";
             queryString += " DIC.IdEmpresa, DIC.IdProveedor, Prov.Nombre NombreProveedor, ";
             queryString += " DIC.Idex, DIC.Unidad, DIC.Moneda, Lote, ";
             queryString += " DIC.Cantidad, DIC.Precio, DIC.Total";
-            queryString += " From  visita_inspeccion_tarea_oc_detalle DIC";
-            queryString += " Inner Join proveedor Prov On Prov.IdProveedor = DIC.IdProveedor";
-            queryString += " Inner Join centro_costo_cuenta CCC On CCC.CodigoCuentaCentroCosto = DIC.NoCuenta";
-//            queryString += " Inner Join area On area.IdArea = DIC.IdArea";
-            queryString += " Where DIC.IdVisitaInspeccionTareaOC = " + ocContainer.getContainerProperty(ocGrid.getSelectedRow(), IDOC_PROPERTY).getValue();
-//            queryString += " And DIC.IdProject = " + String.valueOf(projectCbx.getValue());
-            queryString += " And DIC.IdCC = '" + idcc + "'";
-
-            System.out.println("agregarOCAlGrid = " + queryString);
+            queryString += " FROM  visita_inspeccion_tarea_oc_detalle DIC";
+            queryString += " INNER JOIN proveedor Prov ON Prov.IdProveedor = DIC.IdProveedor";
+            queryString += " INNER JOIN centro_costo_cuenta CCC ON CCC.CodigoCuentaCentroCosto = DIC.NoCuenta";
+            queryString += " WHERE DIC.IdVisitaInspeccionTareaOC = " + ocContainer.getContainerProperty(ocGrid.getSelectedRow(), IDOC_PROPERTY).getValue();
+            queryString += " AND DIC.IdCC = '" + idcc + "'";
 
             rsRecords2 = stQuery2.executeQuery(queryString);
 
@@ -1273,8 +1189,6 @@ public class InspectionTaskOCWindow extends Window {
                     ocIdexContainer.getContainerProperty(itemId, IDEX_PROPERTY).setValue(rsRecords2.getString("Idex"));
                     ocIdexContainer.getContainerProperty(itemId, CUENTA_PROPERTY).setValue(rsRecords2.getString("NoCuenta"));
                     ocIdexContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).setValue(rsRecords2.getString("CuentaDescripcion"));
-                    //                ocIdexContainer.getContainerProperty(itemId, IDAREA_PROPERTY).setValue(rsRecords2.getString("IdArea"));
-                    //                ocIdexContainer.getContainerProperty(itemId, AREA_PROPERTY).setValue(rsRecords2.getString("Area"));
                     ocIdexContainer.getContainerProperty(itemId, UNIDAD_PROPERTY).setValue(rsRecords2.getString("Unidad"));
                     ocIdexContainer.getContainerProperty(itemId, EMPRESA_PROPERTY).setValue(rsRecords2.getString("IdEmpresa"));
                     ocIdexContainer.getContainerProperty(itemId, LOTE_PROPERTY).setValue(rsRecords2.getString("Lote"));
@@ -1348,8 +1262,6 @@ public class InspectionTaskOCWindow extends Window {
             stQuery.executeUpdate(queryString);
 
             ocContainer.getContainerProperty(ocGrid.getSelectedRow(), ESTATUS_PROPERTY).setValue(estatus);
-
-//            ocGrid.select(ocGrid.getSelectedRow()); // para forzar a refrescar estatus de botones.
 
             this.fillOcIdexGrid();
 
@@ -1477,21 +1389,3 @@ public class InspectionTaskOCWindow extends Window {
     }
 
 }
-/*
-            String queryString =  "Select DIC.Id, DIC.IdProject, DIC.NoCuenta, CCC.Descripcion CuentaDescripcion, ";
-            queryString += " DIC.IdEmpresa, DIC.IdProveedor, Prov.Nombre NombreProveedor, ";
-            queryString += " DIC.Idex, DIC.IdArea, area.Descripcion Area, DIC.Unidad, ";
-            queryString += " SUM(DIC.Cantidad) Cantidad, (SUM(DIC.Total) / SUM(DIC.Cantidad)) PrecioPromedio, ";
-            queryString += " SUM(DIC.Total) TotalTotal, DIC.Moneda ";
-            queryString += " From  DetalleItemsCostos DIC";
-            queryString += " Inner Join proveedor Prov On Prov.IdProveedor = DIC.IdProveedor";
-            queryString += " Inner Join centro_costo_cuenta CCC On CCC.CodigoCuentaCentroCosto = DIC.NoCuenta";
-            queryString += " Inner Join area On area.IdArea = DIC.IdArea";
-            queryString += " Where DIC.IdProject = (Select Numero From  project Where Estatus = 'Activo' And IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId() +")";
-            queryString += " And DIC.Tipo In ('INTINI', 'DOCA')";
-            queryString += " And DIC.IdCC = '" + idcc + "'";
-            queryString += " Group By DIC.IdProject, DIC.NoCuenta, DIC.IdEmpresa, DIC.IdProveedor, DIC.Idex, DIC.IdArea";
-            queryString += " Having TotalTotal != 0.00";
-            queryString += " Order By DIC.IdProject, DIC.Idex, DIC.NoCuenta ";
-
- */

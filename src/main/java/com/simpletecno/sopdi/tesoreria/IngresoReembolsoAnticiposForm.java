@@ -48,7 +48,6 @@ public class IngresoReembolsoAnticiposForm extends Window {
     VerticalLayout mainLayout;
     HorizontalLayout layoutTitle;
     Label titleLbl;
-    ComboBox empresaCbx;
 
     ComboBox tipoIngresoCbx;
     ComboBox proveedorCbx;
@@ -150,6 +149,9 @@ public class IngresoReembolsoAnticiposForm extends Window {
     BigDecimal totalDebe;
     BigDecimal totalHaber;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public IngresoReembolsoAnticiposForm(String codigoPartida) {
         this.codigoPartida = codigoPartida;
 
@@ -168,22 +170,10 @@ public class IngresoReembolsoAnticiposForm extends Window {
         layoutTitle.setMargin(true);
         layoutTitle.setWidth("100%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-
-        titleLbl = new Label("INGRESO A BANCOS REEMBOLSO ANTICIPO DE PROV.");
+        titleLbl = new Label(empresaId + " " + empresaNombre + " INGRESO A BANCOS REEMBOLSO ANTICIPO DE PROV.");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -1337,18 +1327,19 @@ public class IngresoReembolsoAnticiposForm extends Window {
         anticiposContainer.removeAllItems();
 
         queryString = " SELECT contabilidad_partida.CodigoPartida, contabilidad_partida.CodigoCC, contabilidad_partida.IdNomenclatura,";
-        queryString += " contabilidad_nomenclatura.NoCuenta, contabilidad_partida.MonedaDocumento, contabilidad_partida.IdEmpresa, ";
+        queryString += " contabilidad_nomenclatura_empresa.NoCuenta, contabilidad_partida.MonedaDocumento, contabilidad_partida.IdEmpresa, ";
         queryString += " contabilidad_partida.IdProveedor, SUM(contabilidad_partida.Debe) TOTALDEBE, SUM(contabilidad_partida.Haber) TOTALHABER,";
         queryString += " SUM(contabilidad_partida.DebeQuetzales) TOTALDEBEQ, SUM(contabilidad_partida.HaberQuetzales) TOTALHABERQ,";
         queryString += " SUM(DEBE - HABER) TOTALSALDO, SUM(DebeQuetzales - HaberQuetzales) TOTALSALDOQ, contabilidad_partida.NumeroDocumento, ";
         queryString += " ((" + montoTxt.getDoubleValueDoNotThrow() + " / contabilidad_partida.Debe) * contabilidad_partida.DebeQuetzales) ProporcionDebeQ, ";
         queryString += " ((" + montoTxt.getDoubleValueDoNotThrow() + " / contabilidad_partida.Haber) * contabilidad_partida.HaberQuetzales) ProporcionHaberQ";
         queryString += " FROM contabilidad_partida";
-        queryString += " INNER JOIN contabilidad_nomenclatura ON contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+        queryString += " INNER JOIN contabilidad_nomenclatura_empresa ON contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
         queryString += " And contabilidad_partida.IdProveedor = " + proveedorCbx.getValue();
-        queryString += " And contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
+        queryString += " And contabilidad_partida.IdEmpresa = " + empresaId;
         queryString += " AND (trim(contabilidad_partida.CodigoCC) <> '' AND contabilidad_partida.CodigoCC <> '0')";
-        queryString += " AND contabilidad_nomenclatura.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposProveedor();
+        queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposProveedor();
+        queryString += " ANd contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
         queryString += " GROUP BY contabilidad_partida.CodigoCC, contabilidad_partida.IdNomenclatura";
         queryString += " HAVING TOTALSALDO > 0";
 
@@ -1382,35 +1373,13 @@ public class IngresoReembolsoAnticiposForm extends Window {
 
     }
 
-    public void llenarComboEmpresa() {
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     public void llenarComboProveedor() {
         queryString = " SELECT DISTINCT prov.* ";
-        queryString += " FROM proveedor prov";
+        queryString += " FROM proveedor_empresa prov";
         queryString += " WHERE prov.Inhabilitado = 0 ";
         queryString += " AND (ESPROVEEDOR = 1 OR ESRELACIONADA = 1)";
-        queryString += " Order By prov.Nombre";
+        queryString += " ANd prov.IdEmpresa = " + empresaId;
+        queryString += " ORDER BY prov.Nombre";
 
         proveedorCbx.removeAllItems();
 
@@ -1435,9 +1404,10 @@ public class IngresoReembolsoAnticiposForm extends Window {
 
     public void llenarComboCuentaContable() {
 
-        queryString = " SELECT * from contabilidad_nomenclatura";
-        queryString += " where Estatus = 'HABILITADA'";
-        queryString += " Order By N5";
+        queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
+        queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY N5";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1843,7 +1813,7 @@ public class IngresoReembolsoAnticiposForm extends Window {
             return;
         }
 
-        if (((SopdiUI) UI.getCurrent()).esMesCerrado(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+        if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
             Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return;
@@ -1908,32 +1878,32 @@ public class IngresoReembolsoAnticiposForm extends Window {
             codigoPartida = String.valueOf(anticiposGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue());
             contador = 2;
 
-            queryString = " Update  contabilidad_partida ";
+            queryString = " UPDATE  contabilidad_partida ";
 
             if (contador == 2) { ///REBAJAR EL SALDO POR CADA FACTURA SELECCIONADA Y SU MONTO UTILIZADO CORRESPONDIENTE
-                queryString += " Set Saldo = Saldo -" + haber2Txt.getDoubleValueDoNotThrow();
+                queryString += " SET Saldo = Saldo -" + haber2Txt.getDoubleValueDoNotThrow();
             } else if (contador == 3) {
                 System.out.println("entro a contador numero 3");
-                queryString += " Set Saldo = Saldo -" + haber3Txt.getDoubleValueDoNotThrow();
+                queryString += " SET Saldo = Saldo -" + haber3Txt.getDoubleValueDoNotThrow();
             } else if (contador == 4) {
                 System.out.println("entro a contador numero 4");
-                queryString += " Set Saldo = Saldo -" + haber4Txt.getDoubleValueDoNotThrow();
+                queryString += " SET Saldo = Saldo -" + haber4Txt.getDoubleValueDoNotThrow();
             } else if (contador == 5) {
                 queryString += " Set Saldo = Saldo -" + haber5Txt.getDoubleValueDoNotThrow();
             } else if (contador == 6) {
-                queryString += " Set Saldo = Saldo -" + haber6Txt.getDoubleValueDoNotThrow();
+                queryString += " SET Saldo = Saldo -" + haber6Txt.getDoubleValueDoNotThrow();
             } else if (contador == 7) {
-                queryString += " Set Saldo = Saldo -" + haber7Txt.getDoubleValueDoNotThrow();
+                queryString += " SET Saldo = Saldo -" + haber7Txt.getDoubleValueDoNotThrow();
             } else if (contador == 8) {
-                queryString += " Set Saldo = Saldo -" + haber8Txt.getDoubleValueDoNotThrow();
+                queryString += " SET Saldo = Saldo -" + haber8Txt.getDoubleValueDoNotThrow();
             } else if (contador == 9) {
-                queryString += " Set Saldo = Saldo -" + haber9Txt.getDoubleValueDoNotThrow();
+                queryString += " SET Saldo = Saldo -" + haber9Txt.getDoubleValueDoNotThrow();
             } else if (contador == 10) {
-                queryString += " Set Saldo = Saldo -" + haber10Txt.getDoubleValueDoNotThrow();
+                queryString += " SET Saldo = Saldo -" + haber10Txt.getDoubleValueDoNotThrow();
             }
-            queryString += " Where CodigoPartida = '" + codigoPartida + "'";
-            queryString += " And IdEmpresa = " + empresaCbx.getValue();
-            queryString += " And IdProveedor = " + proveedorCbx.getValue();
+            queryString += " WHERE CodigoPartida = '" + codigoPartida + "'";
+            queryString += " AND IdEmpresa = " + empresaId;
+            queryString += " AND IdProveedor = " + proveedorCbx.getValue();
 
             System.out.println("Query actualizar saldo de anticipos :" + queryString);
 
@@ -1949,12 +1919,12 @@ public class IngresoReembolsoAnticiposForm extends Window {
             }
         }
 
-        queryString = " Select * from contabilidad_partida";
-        queryString += " Where NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " And IdProveedor     =  " + String.valueOf(proveedorCbx.getValue());
-        queryString += " And IdEmpresa = " + String.valueOf(empresaCbx.getValue());
-        queryString += " And TipoDocumento = '" + String.valueOf(medioCbx.getValue())  + "'";
-        queryString += " And MonedaDocumento = '" + monedaCbx.getValue() + "'";
+        queryString = "SELECT * FROM contabilidad_partida";
+        queryString += " WHERE NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
+        queryString += " AND IdProveedor     =  " + String.valueOf(proveedorCbx.getValue());
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND TipoDocumento = '" + String.valueOf(medioCbx.getValue())  + "'";
+        queryString += " AND MonedaDocumento = '" + monedaCbx.getValue() + "'";
 
         System.out.println("\n\nQuery=" + queryString + "\n\n");
 
@@ -1977,11 +1947,11 @@ public class IngresoReembolsoAnticiposForm extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "5";
+        codigoPartida = empresaId + año + mes + dia + "5";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + codigoPartida + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = "SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida LIKE '" + codigoPartida + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -2004,14 +1974,14 @@ public class IngresoReembolsoAnticiposForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC, ";
+        queryString = "INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC, ";
         queryString += " TipoDocumento, Fecha, IdProveedor, NombreProveedor, SerieDocumento,";
         queryString += " NumeroDocumento, IdNomenclatura, MonedaDocumento, MontoDocumento, Debe, Haber,";
         queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, Saldo, Descripcion,";
         queryString += " CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values ";
+        queryString += " VALUES ";
         queryString += "(";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'";
@@ -2037,7 +2007,7 @@ public class IngresoReembolsoAnticiposForm extends Window {
 
         //segundo  ingreso
         queryString += ",(";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigo2Txt.getValue() + "'";
@@ -2064,7 +2034,7 @@ public class IngresoReembolsoAnticiposForm extends Window {
         if (cuentaContable3Cbx.getValue() != null) {
             //tercer  ingreso
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo3Txt.getValue() + "'";
@@ -2092,7 +2062,7 @@ public class IngresoReembolsoAnticiposForm extends Window {
         if (cuentaContable4Cbx.getValue() != null) {
             //tercer  ingreso
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo4Txt.getValue() + "'";
@@ -2119,7 +2089,7 @@ public class IngresoReembolsoAnticiposForm extends Window {
         if (cuentaContable5Cbx.getValue() != null) {
             //tercer  ingreso
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo5Txt.getValue() + "'";
@@ -2146,7 +2116,7 @@ public class IngresoReembolsoAnticiposForm extends Window {
         if (cuentaContable6Cbx.getValue() != null) {
             //tercer  ingreso
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo6Txt.getValue() + "'";
@@ -2173,7 +2143,7 @@ public class IngresoReembolsoAnticiposForm extends Window {
         if (cuentaContable7Cbx.getValue() != null) {
             //tercer  ingreso
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo7Txt.getValue() + "'";
@@ -2200,7 +2170,7 @@ public class IngresoReembolsoAnticiposForm extends Window {
         if (cuentaContable8Cbx.getValue() != null) {
             //tercer  ingreso
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo8Txt.getValue() + "'";
@@ -2227,7 +2197,7 @@ public class IngresoReembolsoAnticiposForm extends Window {
         if (cuentaContable9Cbx.getValue() != null) {
             //tercer  ingreso
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo9Txt.getValue() + "'";
@@ -2254,7 +2224,7 @@ public class IngresoReembolsoAnticiposForm extends Window {
         if (cuentaContable10Cbx.getValue() != null) {
             //tercer  ingreso
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo10Txt.getValue() + "'";
@@ -2292,7 +2262,7 @@ public class IngresoReembolsoAnticiposForm extends Window {
 
             Notification.show("Ingreso realizado con exito!", Notification.Type.HUMANIZED_MESSAGE);
 
-            ((IngresoBancosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(String.valueOf(empresaCbx.getValue()));
+            ((IngresoBancosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(empresaId);
 
             close();
         } catch (Exception ex1) {
@@ -2400,7 +2370,7 @@ public class IngresoReembolsoAnticiposForm extends Window {
             queryString += ", FechaUsado = current_timestamp";
             queryString += ", CodigoPartida = '" + codigoPartida + "'";
             queryString += ", Estatus = 'UTILIZADO'";
-            queryString += " Where Codigo = '" + variableTemp + "'";
+            queryString += " WHERE Codigo = '" + variableTemp + "'";
 
             variableTemp = "";
 

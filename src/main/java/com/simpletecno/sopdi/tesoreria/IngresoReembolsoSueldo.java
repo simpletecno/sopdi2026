@@ -37,7 +37,6 @@ import java.util.Date;
 public class IngresoReembolsoSueldo extends Window {
 
     static final String NIT_PROPERTY = "NIT";
-    static final String NOMBRESINCODIGO_PROPERTY = "NSC";
 
     UI mainUI;
     Statement stQuery, stQuerySueldos;

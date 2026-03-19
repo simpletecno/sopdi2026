@@ -48,7 +48,6 @@ public class CierrePeriodoView extends VerticalLayout implements View {
     Statement stQuery;
     ResultSet rsRecords;
 
-    ComboBox empresaCbx;
     ComboBox anioCbx;
     ComboBox cuentaContableCbx;
 
@@ -59,7 +58,6 @@ public class CierrePeriodoView extends VerticalLayout implements View {
     FooterRow footerRow;
 
     NumberField diferenciaSaldos;
-    DateField fechaDt;
 
     static final String ID_PROPERTY = "Id";
     static final String CUENTA_PROPERTY = "Cuenta";
@@ -72,6 +70,9 @@ public class CierrePeriodoView extends VerticalLayout implements View {
 
     static DecimalFormat numberFormat = new DecimalFormat("###,###,##0.00");
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public CierrePeriodoView() {
         this.mainUI = UI.getCurrent();
         setWidth("100%");
@@ -79,27 +80,16 @@ public class CierrePeriodoView extends VerticalLayout implements View {
         setMargin(true);
         setHeightUndefined();
 
-        Label titleLbl = new Label("CIERRE DEL PERIODO CONTABLE");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " CIERRE DEL PERIODO CONTABLE");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-
-        llenarComboEmpresa();
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -108,28 +98,6 @@ public class CierrePeriodoView extends VerticalLayout implements View {
 
         crearGridBalanceSaldos();
 
-    }
-
-    public void llenarComboEmpresa() {
-        String queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void crearGridBalanceSaldos() {
@@ -291,7 +259,7 @@ public class CierrePeriodoView extends VerticalLayout implements View {
         // verificar si el año ya esta cerrado
         String queryString = " SELECT * FROM contabilidad_partida";
         queryString += " WHERE TipoDocumento = 'PARTIDA CIERRE'";
-        queryString += " AND IdEmpresa = " + empresaCbx.getValue();
+        queryString += " AND IdEmpresa = " + empresaId;
         queryString += " AND EXTRACT(YEAR From Fecha) = " + anioCbx.getValue();
 
         try {
@@ -307,12 +275,13 @@ public class CierrePeriodoView extends VerticalLayout implements View {
             BigDecimal totalHaber = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
             BigDecimal diferenciaDeSaldos = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
 
-            queryString = " SELECT contabilidad_balance_saldo.*, contabilidad_nomenclatura.NoCuenta, ";
-            queryString += " contabilidad_nomenclatura.N5,contabilidad_nomenclatura.Reporte  ";
+            queryString = " SELECT contabilidad_balance_saldo.*, contabilidad_nomenclatura_empresa.NoCuenta, ";
+            queryString += " contabilidad_nomenclatura_empresa.N5,contabilidad_nomenclatura_empresa.Reporte  ";
             queryString += " FROM contabilidad_balance_saldo";
-            queryString += " INNER JOIN contabilidad_nomenclatura ON contabilidad_nomenclatura.IdNomenclatura = contabilidad_balance_saldo.IdNomenclatura";
-            queryString += " WHERE contabilidad_balance_saldo.IdEmpresa = " + empresaCbx.getValue();
+            queryString += " INNER JOIN contabilidad_nomenclatura_empresa ON contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_balance_saldo.IdNomenclatura";
+            queryString += " WHERE contabilidad_balance_saldo.IdEmpresa = " + empresaId;
             queryString += " AND contabilidad_balance_saldo.AnioMesCierre = '" + anioCbx.getValue() + "12'";
+            queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
 
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
@@ -401,7 +370,7 @@ public class CierrePeriodoView extends VerticalLayout implements View {
         Calendar fechaCierre = Calendar.getInstance();
         fechaCierre.set(anio, 11, 31);
 
-        String codigoPartidaCierre = empresaCbx.getValue() + String.valueOf(anio) + "31129999"; //= 21202012CIERR  21202101APERT
+        String codigoPartidaCierre = empresaId + String.valueOf(anio) + "31129999"; //= 21202012CIERR  21202101APERT
 
         try {
 
@@ -425,7 +394,7 @@ public class CierrePeriodoView extends VerticalLayout implements View {
                 queryString += " DebeQuetzales, HaberQuetzales, CreadoUsuario, CreadoFechaYHora, ArchivoNombre) ";
                 queryString += " VALUES ";
                 queryString += "(";
-                queryString += String.valueOf(empresaCbx.getValue());
+                queryString += empresaId;
                 queryString += ",'REVISADO'";
                 queryString += ",'" + codigoPartidaCierre + "'";
                 queryString += ",'" + codigoPartidaCierre + "'"; //codigocc
@@ -459,7 +428,7 @@ public class CierrePeriodoView extends VerticalLayout implements View {
             queryString += " DebeQuetzales, HaberQuetzales, CreadoUsuario, CreadoFechaYHora, ArchivoNombre) ";
             queryString += " VALUES ";
             queryString += "(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'REVISADO'";
             queryString += ",'" + codigoPartidaCierre + "'";
             queryString += ",'" + codigoPartidaCierre + "'";
@@ -492,7 +461,7 @@ public class CierrePeriodoView extends VerticalLayout implements View {
 
             fechaCierre.set(anio+1, 0, 1);
 
-            String codigoPartidaApertura = empresaCbx.getValue() + String.valueOf(anio + 1) + "01010000"; //= 21202012CIERR  21202101APERT
+            String codigoPartidaApertura = empresaId + String.valueOf(anio + 1) + "01010000"; //= 21202012CIERR  21202101APERT
 
             double saldoDebe = 0.00;
             double saldoHaber = 0.00;
@@ -520,7 +489,7 @@ public class CierrePeriodoView extends VerticalLayout implements View {
                 queryString += " DebeQuetzales, HaberQuetzales, CreadoUsuario, CreadoFechaYHora, Archivo) ";
                 queryString += " VALUES ";
                 queryString += "(";
-                queryString += String.valueOf(empresaCbx.getValue());
+                queryString += empresaId;
                 queryString += ",'REVISADO'";
                 queryString += ",'" + codigoPartidaApertura + "'";
                 queryString += ",'" + codigoPartidaCierre + "'";
@@ -556,7 +525,7 @@ public class CierrePeriodoView extends VerticalLayout implements View {
             queryString += " DebeQuetzales, HaberQuetzales, CreadoUsuario, CreadoFechaYHora, Referencia) ";
             queryString += " VALUES ";
             queryString += "(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'REVISADO'";
             queryString += ",'" + codigoPartidaApertura + "'";
             queryString += ",'" + codigoPartidaCierre + "'";
@@ -591,7 +560,7 @@ public class CierrePeriodoView extends VerticalLayout implements View {
 
             queryString = "INSERT INTO contabilidad_empresa_cierre (IdEmpresa, Mes, Estatus)";
             queryString += " Values (";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'" + (anio + 1) + "01'";
             queryString += ",'ABIERTO'";
             queryString += ")";
@@ -614,9 +583,10 @@ public class CierrePeriodoView extends VerticalLayout implements View {
         else {
 
             String queryString = "";
-            queryString += " SELECT * FROM contabilidad_nomenclatura";
+            queryString += " SELECT * FROM contabilidad_nomenclatura_empresa";
             queryString += " WHERE Estatus = 'HABILITADA'";
             queryString += " AND IdNomenclatura = " + ((SopdiUI)  UI.getCurrent()).cuentasContablesDefault.getPerdidasGananciasEjercicioAnterior();
+            queryString += " AND IdEmpresa = " + empresaId;
 
             try {
                 stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();

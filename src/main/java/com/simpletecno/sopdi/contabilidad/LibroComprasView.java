@@ -72,8 +72,6 @@ public class LibroComprasView extends VerticalLayout implements View {
     ResultSet rsRecords1;
 
     Button exportExcelBtn;
-    ComboBox empresaCbx;
-    String empresa;
     PopupDateField monthDt;
     NumberField folioTxt;
 
@@ -87,6 +85,9 @@ public class LibroComprasView extends VerticalLayout implements View {
     int cantidadNotaCompra = 0, cantidadNotaServicio = 0;
 
     static DecimalFormat numberFormat = new DecimalFormat("##,###,##0.00");
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public LibroComprasView() {
 
@@ -106,38 +107,21 @@ public class LibroComprasView extends VerticalLayout implements View {
             public void valueChange(Property.ValueChangeEvent event) {
 
                 if (libroComprasGrid != null) {
-                    llenarGridLibroCompras(empresa);
+                    llenarGridLibroCompras(empresaId);
                 }
             }
         });
 
-        Label titleLbl = new Label("LIBRO COMPRAS");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " LIBRO COMPRAS");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
-//        titleLbl.addStyleName("h2_custom");
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-
-        llenarComboEmpresa();
-
-        empresaCbx.addValueChangeListener(event -> {
-            empresa = String.valueOf(event.getProperty().getValue());
-            llenarGridLibroCompras(empresa);
-        });
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl, monthDt);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl, monthDt);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.setComponentAlignment(monthDt, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
@@ -146,10 +130,6 @@ public class LibroComprasView extends VerticalLayout implements View {
         setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
 
         crearTablaLibroCompras();
-
-        empresa = String.valueOf(empresaCbx.getValue());
-
-        llenarGridLibroCompras(empresa);
 
     }
 
@@ -343,9 +323,9 @@ public class LibroComprasView extends VerticalLayout implements View {
 
                     LibroComprasPDF libroComprasPdf
                             = new LibroComprasPDF(
-                                    empresa,
-                                    empresaCbx.getItemCaption(empresaCbx.getValue()),
-                                    getEmpresaNit(),
+                                    empresaId,
+                                    empresaNombre,
+                                    ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyTaxId(),
                                     libroComprasContainer,
                                     Utileria.getFechaMMYYYY(monthDt.getValue()).replaceAll("/", ""),
                                     folioTxt.getValue()
@@ -371,7 +351,7 @@ public class LibroComprasView extends VerticalLayout implements View {
                     excelExport.excludeCollapsedColumns();
                     excelExport.setDisplayTotals(false);
                     String fileexport;
-                    fileexport = "LibroCompras_" + empresaCbx.getItemCaption(empresaCbx.getValue()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + ".xls";
+                    fileexport = "LibroIvaCompras_" + empresaNombre.replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + ".xls";
                     excelExport.setExportFileName(fileexport);
                     excelExport.export();
                 }
@@ -430,7 +410,7 @@ public class LibroComprasView extends VerticalLayout implements View {
             //buscar el ultimo formulario....para obtener el IVA REMANENTE, que debe estar en 7 DEBE.
             String queryString = "SELECT CodigoCC, Fecha, SerieDocumento, NumeroDocumento, NombreProveedor, Debe ";
             queryString += " FROM contabilidad_partida";
-            queryString += " WHERE  IdEmpresa = " + empresaCbx.getValue();
+            queryString += " WHERE  IdEmpresa = " + empresaId;
             queryString += " AND Fecha <= '" + Utileria.getFechaYYYYMMDD_1(monthDt.getValue()) + "'";
             queryString += " AND IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getIvaPorCobrar();  //iva por cobrar
             queryString += " AND DEBE > 0"; // solo las lineas cuenta por cobrar
@@ -467,20 +447,21 @@ public class LibroComprasView extends VerticalLayout implements View {
             itemId = null;
 
             queryString = " SELECT contabilidad_partida.TipoDocumento, contabilidad_partida.SerieDocumento, contabilidad_partida.NumeroDocumento, ";
-            queryString += " contabilidad_partida.CodigoPartida,  contabilidad_nomenclatura.NoCuenta,";
+            queryString += " contabilidad_partida.CodigoPartida,  contabilidad_nomenclatura_empresa.NoCuenta,";
             queryString += " contabilidad_partida.NitProveedor, contabilidad_partida.NombreProveedor, IFNULL(proveedor.Regimen, 'SINREGIMEN') PROV_REGIMEN,";
             queryString += " contabilidad_partida.DebeQuetzales, contabilidad_partida.HaberQuetzales,";
-            queryString += " contabilidad_partida.Fecha, contabilidad_nomenclatura.IdNomenclatura, contabilidad_nomenclatura.Tipo ";
+            queryString += " contabilidad_partida.Fecha, contabilidad_nomenclatura_empresa.IdNomenclatura, contabilidad_nomenclatura_empresa.Tipo ";
             queryString += " FROM contabilidad_partida ";
-            queryString += " INNER JOIN contabilidad_nomenclatura ON contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura ";
+            queryString += " INNER JOIN contabilidad_nomenclatura_empresa ON contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura ";
             queryString += " LEFT JOIN proveedor ON proveedor.IdProveedor = contabilidad_partida.IdProveedor";
-            queryString += " where contabilidad_partida.IdEmpresa = " + empresa;
-            queryString += " and contabilidad_partida.TIPODOCUMENTO IN ('FACTURA', 'NOTA DE CREDITO COMPRA', 'RECIBO CONTABLE')";
-            queryString += " and Extract(YEAR_MONTH From contabilidad_partida.Fecha) = " + utileria.getFechaHoraSinFormato(monthDt.getValue()).substring(0, 6);
-            queryString += " And contabilidad_partida.Estatus <> 'ANULADO'";
-            queryString += " Order By contabilidad_partida.CodigoPartida, contabilidad_partida.Debe Desc";
+            queryString += " WHERE contabilidad_partida.IdEmpresa = " + empresa;
+            queryString += " AND contabilidad_partida.TIPODOCUMENTO IN ('FACTURA', 'NOTA DE CREDITO COMPRA', 'RECIBO CONTABLE')";
+            queryString += " AND Extract(YEAR_MONTH From contabilidad_partida.Fecha) = " + utileria.getFechaHoraSinFormato(monthDt.getValue()).substring(0, 6);
+            queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
+            queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresa;
+            queryString += " ORDER BY contabilidad_partida.CodigoPartida, contabilidad_partida.Debe DESC";
 
-            System.out.println("query libro compras " + queryString);
+//            System.out.println("query libro compras " + queryString);
 
             rsRecords = stQuery.executeQuery(queryString);
 
@@ -774,50 +755,6 @@ public class LibroComprasView extends VerticalLayout implements View {
             }
 
         }
-    }
-
-    public void llenarComboEmpresa() {
-        String queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords1.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords1.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords1.getString("IdEmpresa"), rsRecords1.getString("Empresa"));
-            }
-            rsRecords1.first();
-
-            empresaCbx.select(rsRecords1.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
-    public String getEmpresaNit() {
-        String strNit = "N/A";
-
-        String queryString = " SELECT Nit from contabilidad_empresa ";
-        queryString += " Where IdEmpresa = " + empresa;
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            if (rsRecords1.next()) {
-                strNit = rsRecords1.getString("Nit");
-            }
-
-        } catch (Exception ex1) {
-            System.out.println("Error al buscar NIT de empresa: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-
-        return strNit;
     }
 
     @Override

@@ -64,7 +64,6 @@ public class AutorizarPagoLiquidacionForm extends Window {
     Statement stQuery, stQuery1;
     ResultSet rsRecords, rsRecords1;
 
-    ComboBox empresaCbx;
     String queryString;
 
     NumberField montoLiquidacionSeleccionadaTxt;
@@ -74,6 +73,9 @@ public class AutorizarPagoLiquidacionForm extends Window {
     Button autorizarBtn;
 
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public AutorizarPagoLiquidacionForm() {
         this.mainUI = UI.getCurrent();
@@ -91,22 +93,10 @@ public class AutorizarPagoLiquidacionForm extends Window {
         layoutTitle.setSpacing(true);
         layoutTitle.setMargin(new MarginInfo(true, true, false, true));
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-
-        Label titleLbl = new Label(AutorizacionesPagoView.PAGO_LIQUIDACION);
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " " + AutorizacionesPagoView.PAGO_LIQUIDACION);
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -117,29 +107,6 @@ public class AutorizarPagoLiquidacionForm extends Window {
 
         crearGridLiquidaciones();
         llenarGridLiquidaciones();
-    }
-
-    public void llenarComboEmpresa() {
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords1.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords1.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords1.getString("IdEmpresa"), rsRecords1.getString("Empresa"));
-            }
-            rsRecords1.first();
-
-            empresaCbx.select(rsRecords1.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void crearGridLiquidaciones() {
@@ -337,10 +304,10 @@ public class AutorizarPagoLiquidacionForm extends Window {
             liquidacionContainer.removeAllContainerFilters();
 
             queryString = " SELECT contabilidad_partida.IdLiquidacion, contabilidad_partida.CodigoCC, contabilidad_partida.IdNomenclatura, ";
-            queryString += " contabilidad_partida.IdLiquidador, proveedor.Nombre as NLiquidador";
+            queryString += " contabilidad_partida.IdLiquidador, proveedor_empresa.Nombre as NLiquidador";
             queryString += " FROM contabilidad_partida";
-            queryString += " INNER JOIN proveedor ON proveedor.IDProveedor = contabilidad_partida.IdLiquidador";
-            queryString += " WHERE contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
+            queryString += " INNER JOIN proveedor_empresa ON proveedor_empresa.IDProveedor = contabilidad_partida.IdLiquidador";
+            queryString += " WHERE contabilidad_partida.IdEmpresa = " + empresaId;
             queryString += " AND contabilidad_partida.Fecha >= '2021-01-01' ";
             queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getLiquidacionesCajaChicha();
 //            queryString += " AND contabilidad_partida.TipoDocumento in ('FACTURA', 'RECIBO CONTABLE', 'FORMULARIO', 'RECIBO CORRIENTE')";
@@ -348,6 +315,7 @@ public class AutorizarPagoLiquidacionForm extends Window {
             queryString += " AND contabilidad_partida.MontoAutorizadoPagar = 0";
             queryString += " And proveedor.IdProveedor = contabilidad_partida.IdLiquidador";
             queryString += " AND contabilidad_partida.Estatus = 'CERRADO'";
+            queryString += " AND proveedor_empresa.IdEmpresa = " + empresaId;
             queryString += " GROUP BY contabilidad_partida.IdLiquidacion";
             queryString += " ORDER BY contabilidad_partida.IdLiquidacion";
 
@@ -362,7 +330,7 @@ public class AutorizarPagoLiquidacionForm extends Window {
                     queryString = " SELECT SUM(HABER - DEBE) TOTALSALDO, ";
                     queryString += " SUM(HaberQuetzales - DebeQuetzales) TOTALSALDOQ ";
                     queryString += " FROM contabilidad_partida";
-                    queryString += " WHERE IdEmpresa = " + empresaCbx.getValue();
+                    queryString += " WHERE IdEmpresa = " + empresaId;
                     queryString += " AND CodigoCC = '" + rsRecords.getString("CodigoCC") + "'";
                     queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getLiquidacionesCajaChicha();
 //                    queryString += " AND contabilidad_partida.IdLiquidacion = " + rsRecords.getString("IdLiquidacion");
@@ -434,22 +402,22 @@ public class AutorizarPagoLiquidacionForm extends Window {
                 return;
             }
 
-            queryString = "Update contabilidad_partida Set ";
+            queryString = "UPDATE contabilidad_partida SET ";
             queryString += " MontoAutorizadoPagar = " + montoPendienteChequeTxt.getDoubleValueDoNotThrow();
-            queryString += " Where IdLiquidacion = " + String.valueOf(liquidacionContainer.getContainerProperty(liquidacionGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
+            queryString += " WHERE IdLiquidacion = " + String.valueOf(liquidacionContainer.getContainerProperty(liquidacionGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
             queryString += " AND IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getLiquidacionesCajaChicha();;
-            queryString += " And IdEmpresa = " + String.valueOf(empresaCbx.getValue());
+            queryString += " And IdEmpresa = " + empresaId;
 
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);
 
-            queryString = "  Insert Into autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
+            queryString = "  INSERT INTO autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
             queryString += " Fecha, Moneda, Monto, CodigoCC, CodigoCCRelacionado, CuentaContableLiquidar, ";
             queryString += " Objetivo, CreadoUsuario, CreadoFechaYHora)";
-            queryString += " Values ";
+            queryString += " VALUES ";
             queryString += "(";
             queryString += "'" + AutorizacionesPagoView.PAGO_LIQUIDACION + "'";
-            queryString += "," + String.valueOf(empresaCbx.getValue());
+            queryString += "," + empresaId;
             queryString += "," + String.valueOf(liquidacionContainer.getContainerProperty(liquidacionGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue());
             queryString += ",current_date";
             queryString += ",'QUETZALES'";

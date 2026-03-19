@@ -61,6 +61,7 @@ public class EstimacionPDF extends Window {
             = VaadinService.getCurrent()
                     .getBaseDirectory().getAbsolutePath() + "/pdfreceipts/";
 
+
     public EstimacionPDF(
             String idEmpresa, 
             String empresaNombre, 

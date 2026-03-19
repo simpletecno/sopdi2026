@@ -84,7 +84,6 @@ public class EstimacionesView extends VerticalLayout implements View {
     Button nextBtn;
     Button consultarBtn;
     Button prevBtn;
-    Button exportExcelBtn;
     List<String> empresaLst;
     ListIterator<String> listIterator;
     Label empresaLbl;
@@ -292,7 +291,6 @@ public class EstimacionesView extends VerticalLayout implements View {
 
         estimacionesGrid = new Grid("", container);
 
-//        estimacionesGrid.addStyleName("smallgrid");
         estimacionesGrid.setImmediate(true);
         estimacionesGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
         estimacionesGrid.setDescription("Seleccione un registro.");
@@ -336,24 +334,6 @@ public class EstimacionesView extends VerticalLayout implements View {
             }
 
         });
-        
-
-//        estimacionesGrid.addListener(new ItemClickEvent.ItemClickListener() {
-//            public void itemClick(ItemClickEvent event) {
-//                estimacionesGrid.select(event.getItemId());
-//                if (event.isDoubleClick()) {
-//                    if (estimacionesGrid.getSelectedRow() != null) {
-//                        InspectionForm newInspectionForm = new InspectionForm(
-//                                String.valueOf(estimacionesGrid.getContainerDataSource().getItem(estimacionesGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue()),
-//                                String.valueOf(estimacionesGrid.getContainerDataSource().getItem(estimacionesGrid.getSelectedRow()).getItemProperty(CODIGO_VISITA_PROPERTY).getValue()));
-//                        mainUI.addWindow(newInspectionForm);
-//                        newInspectionForm.center();
-//                        newInspectionForm.fillData();
-//                        newInspectionForm.motivoCbx.focus();
-//                    }
-//                }
-//            }
-//        });
 
         HeaderRow filterRow = estimacionesGrid.appendHeaderRow();
 

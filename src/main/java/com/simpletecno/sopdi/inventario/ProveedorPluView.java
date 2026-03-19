@@ -46,19 +46,19 @@ public class ProveedorPluView extends Window {
     Statement stQuery;
     ResultSet rsRecords;
     String queryString;
-    Button inhabilitarBtn;
     Button exportExcelBtn;
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public ProveedorPluView() {
 
         Responsive.makeResponsive(this);
-//        setMargin(true);
-//        setSpacing(true);
         this.mainUI = UI.getCurrent();
 
         setContent(mainLayout);
 
-        Label titleLbl = new Label("PLUs de Proveedores");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " PLUs de Proveedores");
         titleLbl.addStyleName(ValoTheme.LABEL_H1);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -236,10 +236,10 @@ public class ProveedorPluView extends Window {
                     Notification.show("Por favor, seleccione el registro correspondiente.", Notification.Type.WARNING_MESSAGE);
                 } else {
 
-                    queryString = " select * from orden_compra_detalle opd";
-                    queryString += " inner join orden_compra oc on opd.IdOrdenCompra = oc.IdOrdenCompra";
-                    queryString += " where opd.PluPrv = " + String.valueOf(container.getContainerProperty(plusGrid.getSelectedRow(), PLU_PROPERTY).getValue());
-                    queryString += " and oc.IdProveedor = " + String.valueOf(container.getContainerProperty(plusGrid.getSelectedRow(), ID_PROVEEDOR_PROPERTY).getValue());
+                    queryString = " SELECT * FROM orden_compra_detalle opd";
+                    queryString += " INNER JOIN orden_compra oc ON opd.IdOrdenCompra = oc.IdOrdenCompra";
+                    queryString += " WHERE opd.PluPrv = " + String.valueOf(container.getContainerProperty(plusGrid.getSelectedRow(), PLU_PROPERTY).getValue());
+                    queryString += " AND oc.IdProveedor = " + String.valueOf(container.getContainerProperty(plusGrid.getSelectedRow(), ID_PROVEEDOR_PROPERTY).getValue());
 
                     try {
 
@@ -250,8 +250,8 @@ public class ProveedorPluView extends Window {
                             Notification.show("La cuenta seleccionada contiene movimientos en ordenes de compra, no se puede eliminar.", Notification.Type.ERROR_MESSAGE);
                         } else {
 
-                            queryString = " delete from proveedor_plu";
-                            queryString += " where Id = " + String.valueOf(container.getContainerProperty(plusGrid.getSelectedRow(), ID_PROPERTY).getValue());
+                            queryString = " DELETE FROM proveedor_plu";
+                            queryString += " WHERE Id = " + String.valueOf(container.getContainerProperty(plusGrid.getSelectedRow(), ID_PROPERTY).getValue());
 
                             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                             stQuery.executeUpdate(queryString);
@@ -306,10 +306,10 @@ public class ProveedorPluView extends Window {
     public void llenarTabla() {
         container.removeAllItems();
 
-        queryString = "  select plu.*, ccc.CodigoCuentaCentroCosto, ccc.Descripcion DescripcionCCC, prv.Nombre NombreProveedor";
-        queryString += " from proveedor_plu plu";
-        queryString += " inner join centro_costo_cuenta ccc on ccc.IdCuentaCentroCosto = plu.IdCuentaCentroCosto";
-        queryString += " inner join proveedor prv on plu.IdProveedor = prv.IdProveedor";
+        queryString = "  SELECT plu.*, ccc.CodigoCuentaCentroCosto, ccc.Descripcion DescripcionCCC, prv.Nombre NombreProveedor";
+        queryString += " FROM proveedor_plu plu";
+        queryString += " INNER JOIN centro_costo_cuenta ccc ON ccc.IdCuentaCentroCosto = plu.IdCuentaCentroCosto";
+        queryString += " INNER JOIN proveedor prv ON plu.IdProveedor = prv.IdProveedor";
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

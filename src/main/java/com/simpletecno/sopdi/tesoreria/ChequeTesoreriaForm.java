@@ -31,13 +31,11 @@ import java.util.logging.Logger;
 public class ChequeTesoreriaForm extends Window {
 
     static final String NIT_PROPERTY = "NIT";
-    static final String NOMBRESINCODIGO_PROPERTY = "NSC";
 
     VerticalLayout mainLayout;
     UI mainUI;
 
     HorizontalLayout layoutTitle;
-    ComboBox empresaCbx;
     Label titleLbl;
 
     BigDecimal totalDebe;
@@ -117,6 +115,9 @@ public class ChequeTesoreriaForm extends Window {
     String queryString, codigoPartida;
     String variableTemp = "";
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public ChequeTesoreriaForm() {
 
         this.mainUI = UI.getCurrent();
@@ -134,22 +135,11 @@ public class ChequeTesoreriaForm extends Window {
         layoutTitle.setMargin(true);
         layoutTitle.setWidth("100%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-
-        titleLbl = new Label("CHEQUES TESORERIA");
+        titleLbl = new Label(empresaId
+                 + " " + empresaNombre + " CHEQUES TESORERIA");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -162,95 +152,13 @@ public class ChequeTesoreriaForm extends Window {
 
     }
 
-    public void llenarComboEmpresa() {
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
-    /*
-    public void llenarProveedor() {
-        String prov = "";
-        try {
-
-            queryString = " SELECT prov.* ";
-            queryString += " FROM proveedor prov";
-            queryString += " WHERE prov.Inhabilitado = 0 ";
-            queryString += " AND prov.EsCliente = 1";
-            queryString += " Order By prov.Nombre";
-
-            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-            stQuery2 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-            stQuery3 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords = stQuery.executeQuery(queryString);
-
-            if (rsRecords.next()) {
-                do {
-
-                    queryString = " SELECT * from contabilidad_partida ";
-                    queryString += " WHERE IdNomenclatura = 6";
-                    queryString += " And TipoDocumento = 'FACTURA VENTA' ";
-                    queryString += " And IdProveedor = " + rsRecords.getString("IdProveedor");
-                    queryString += " And IdEmpresa = " + empresaCbx.getValue();
-                    
-                    rsRecords2 = stQuery2.executeQuery(queryString);
-
-                    if (rsRecords2.next()) {
-                        do {
-
-                            queryString = " SELECT  ";
-                            queryString += " SUM(DEBE - HABER) as TOTALSALDO, SUM(DebeQuetzales - HaberQuetzales) as TOTALSALDOQ ";
-                            queryString += " FROM contabilidad_partida";
-                            queryString += " WHERE CodigoCC = '" + rsRecords2.getString("CodigoCC") + "'";
-                            queryString += " AND IdNomenclatura = 6";
-                            queryString += " GROUP BY CodigoCC, IdNomenclatura";
-                            queryString += " HAVING TOTALSALDO > 0";
-                            
-                            rsRecords3 = stQuery3.executeQuery(queryString);
-
-                            if (rsRecords3.next()) {
-                                if (!prov.equals(rsRecords.getString("IdProveedor"))) {
-                                    proveedorCbx.addItem(rsRecords.getString("IDProveedor"));
-                                    proveedorCbx.setItemCaption(rsRecords.getString("IDProveedor"), rsRecords.getString("Nombre"));
-                                    proveedorCbx.getItem(rsRecords.getString("IDProveedor")).getItemProperty(NIT_PROPERTY).setValue(rsRecords.getString("NIT"));
-                                }
-                            }
-                            prov = rsRecords.getString("IdProveedor");
-                        } while (rsRecords2.next());
-                    }
-
-                } while (rsRecords.next());
-
-            }
-        } catch (Exception e) {
-            System.out.println("Error en busqueda proveedores con saldo " + e);
-            e.printStackTrace();
-        }
-    }
-*/
     public void llenarComboProveedor() {
         queryString = " SELECT prov.* ";
-        queryString += " FROM proveedor prov";
-        queryString += " WHERE N0 in (4, 6, 7, 9)";
+        queryString += " FROM proveedor_empresa prov";
+//        queryString += " WHERE N0 in (4, 6, 7, 9)";
         //queryString += " AND prov.EsCliente = 1";
-        queryString += " Order By prov.Nombre";
+        queryString += " AND prov.EmpresaId = '" + empresaId + "'";
+        queryString += " ORDER BY prov.Nombre";
 
         proveedorCbx.removeAllItems();
 
@@ -272,9 +180,10 @@ public class ChequeTesoreriaForm extends Window {
 
     public void llenarComboCuentaContable() {
 
-        queryString = " SELECT * from contabilidad_nomenclatura";
-        queryString += " where Estatus = 'HABILITADA'";
-        queryString += " Order By N5";
+        queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
+        queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " AND EmpresaId = '" + empresaId + "'";
+        queryString += " ORDER BY N5";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -716,76 +625,6 @@ public class ChequeTesoreriaForm extends Window {
                         }
 
                     }
-
-//                    queryString = " select * from contabilidad_partida ";
-//                    queryString += " where IdProveedor = " + proveedorCbx.getValue();
-//                    queryString += " and IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getEnganches();
-//                    queryString += " and IdEmpresa = " + empresaCbx.getValue();
-//                    queryString += " and Saldo > 0.00 ";
-//
-//                    try {
-//                        stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-//                        rsRecords = stQuery.executeQuery(queryString);
-//
-//                        if (rsRecords.next()) {
-//                            do {
-//                                if (cuentaContable3Cbx.getValue() == null) {
-//                                    cuentaContable3Cbx.select(rsRecords.getString("IdNomenclatura"));
-//                                    haber3Txt.setValue(rsRecords.getDouble("Debe"));
-//                                    debe3Txt.setValue(rsRecords.getDouble("Haber"));
-//                                    codigo3Txt.setValue(rsRecords.getString("CodigoCC"));
-//                                    codigoEnganches.add(rsRecords.getString("CodigoCC"));
-//                                } else if (cuentaContable4Cbx.getValue() == null) {
-//                                    cuentaContable4Cbx.select(rsRecords.getString("IdNomenclatura"));
-//                                    haber4Txt.setValue(rsRecords.getDouble("Debe"));
-//                                    debe4Txt.setValue(rsRecords.getDouble("Haber"));
-//                                    codigo4Txt.setValue(rsRecords.getString("CodigoCC"));
-//                                    codigoEnganches.add(rsRecords.getString("CodigoCC"));
-//                                } else if (cuentaContable5Cbx.getValue() == null) {
-//                                    cuentaContable5Cbx.select(rsRecords.getString("IdNomenclatura"));
-//                                    haber5Txt.setValue(rsRecords.getDouble("Debe"));
-//                                    debe5Txt.setValue(rsRecords.getDouble("Haber"));
-//                                    codigo5Txt.setValue(rsRecords.getString("CodigoCC"));
-//                                    codigoEnganches.add(rsRecords.getString("CodigoCC"));
-//                                } else if (cuentaContable6Cbx.getValue() == null) {
-//                                    cuentaContable6Cbx.select(rsRecords.getString("IdNomenclatura"));
-//                                    haber6Txt.setValue(rsRecords.getDouble("Debe"));
-//                                    debe6Txt.setValue(rsRecords.getDouble("Haber"));
-//                                    codigo6Txt.setValue(rsRecords.getString("CodigoCC"));
-//                                    codigoEnganches.add(rsRecords.getString("CodigoCC"));
-//                                } else if (cuentaContable7Cbx.getValue() == null) {
-//                                    cuentaContable7Cbx.select(rsRecords.getString("IdNomenclatura"));
-//                                    haber7Txt.setValue(rsRecords.getDouble("Debe"));
-//                                    debe7Txt.setValue(rsRecords.getDouble("Haber"));
-//                                    codigo7Txt.setValue(rsRecords.getString("CodigoCC"));
-//                                    codigoEnganches.add(rsRecords.getString("CodigoCC"));
-//                                } else if (cuentaContable8Cbx.getValue() == null) {
-//                                    cuentaContable8Cbx.select(rsRecords.getString("IdNomenclatura"));
-//                                    haber8Txt.setValue(rsRecords.getDouble("Debe"));
-//                                    debe8Txt.setValue(rsRecords.getDouble("Haber"));
-//                                    codigo8Txt.setValue(rsRecords.getString("CodigoCC"));
-//                                    codigoEnganches.add(rsRecords.getString("CodigoCC"));
-//                                } else if (cuentaContable9Cbx.getValue() == null) {
-//                                    cuentaContable9Cbx.select(rsRecords.getString("IdNomenclatura"));
-//                                    haber9Txt.setValue(rsRecords.getDouble("Debe"));
-//                                    debe9Txt.setValue(rsRecords.getDouble("Haber"));
-//                                    codigo9Txt.setValue(rsRecords.getString("CodigoCC"));
-//                                    codigoEnganches.add(rsRecords.getString("CodigoCC"));
-//                                } else if (cuentaContable10Cbx.getValue() == null) {
-//                                    cuentaContable10Cbx.select(rsRecords.getString("IdNomenclatura"));
-//                                    haber10Txt.setValue(rsRecords.getDouble("Debe"));
-//                                    debe10Txt.setValue(rsRecords.getDouble("Haber"));
-//                                    codigo10Txt.setValue(rsRecords.getString("CodigoCC"));
-//                                    codigoEnganches.add(rsRecords.getString("CodigoCC"));
-//                                }
-//
-//                            } while (rsRecords.next());
-//                        }
-//
-//                    } catch (Exception ex1) {
-//                        System.out.println("Error al listar engaches: " + ex1.getMessage());
-//                        ex1.printStackTrace();
-//                    }
                 }
             }
         });
@@ -1333,14 +1172,14 @@ public class ChequeTesoreriaForm extends Window {
 
         facturasContainer.removeAllItems();
 
-        queryString = " SELECT * from contabilidad_partida ";
+        queryString = " SELECT * FROM contabilidad_partida ";
         queryString += " WHERE TipoDocumento IN ('CHEQUE')";
-        queryString += " And IdProveedor = " + proveedorCbx.getValue();
-        queryString += " And IdEmpresa = " + empresaCbx.getValue();
-        queryString += " And IdConciliacion = 0";
-        queryString += " And Estatus <> 'ANULADO'";
-        queryString += " And IdNomenclatura in (" + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal() + ", " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaExtranjera() + ")";
-        queryString += " And Fecha < '" + fechaInicial + "'";
+        queryString += " AND IdProveedor = " + proveedorCbx.getValue();
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND IdConciliacion = 0";
+        queryString += " AND Estatus <> 'ANULADO'";
+        queryString += " AND IdNomenclatura in (" + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal() + ", " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaExtranjera() + ")";
+        queryString += " AND Fecha < '" + fechaInicial + "'";
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO,"QUERY BUSCAR CHEQUES NO CONSILIADOS DE UN PROVEEDOR (CIENTE) : " + queryString);
 
@@ -1387,49 +1226,6 @@ public class ChequeTesoreriaForm extends Window {
             Notification.show("ERROR AL LEER CHEQUE : " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
             ex.printStackTrace();
         }
-        /*
-        queryString = " SELECT *, ";
-        queryString += " SUM(contabilidad_partida.Debe) TOTALDEBE, SUM(contabilidad_partida.Haber) TOTALHABER,";
-        queryString += " SUM(contabilidad_partida.DebeQuetzales) TOTALDEBEQ, SUM(contabilidad_partida.HaberQuetzales) TOTALHABERQ, ";
-        queryString += " SUM(DEBE - HABER) TOTALSALDO, SUM(DebeQuetzales - HaberQuetzales) TOTALSALDOQ ";
-        queryString += " FROM contabilidad_partida";
-        queryString += " INNER JOIN contabilidad_nomenclatura ON contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
-        queryString += " WHERE Fecha >= '2015-01-01' AND contabilidad_partida.IdLiquidacion = 0";
-        queryString += " AND (trim(contabilidad_partida.CodigoCC) <> '' AND contabilidad_partida.CodigoCC <> '0')";
-        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
-        queryString += " And contabilidad_partida.IdProveedor = " + proveedorCbx.getValue();
-        queryString += " AND contabilidad_nomenclatura.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getCientes();
-        queryString += " AND contabilidad_partida.MontoAutorizadoPagar = 0 ";
-        queryString += " AND contabilidad_partida.MontoAplicarAnticipo = 0 ";
-        queryString += " GROUP BY contabilidad_partida.CodigoCC, contabilidad_partida.IdNomenclatura";
-        queryString += " HAVING TOTALSALDO > 0";
-        queryString += " Order by contabilidad_partida.NombreProveedor";
-
-        System.out.println("Query para listar tabla documentos pagar" + queryString);
-
-        try {
-            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords = stQuery.executeQuery(queryString);
-
-            if (rsRecords.next()) { //  encontrado
-                do {
-                    Object itemId = facturasContainer.addItem();
-
-                    facturasContainer.getContainerProperty(itemId, CODIGO_PARTIDA_PROPERTY).setValue(rsRecords.getString("CodigoPartida"));
-                    facturasContainer.getContainerProperty(itemId, CODIGO_CC_PROPERTY).setValue(rsRecords.getString("CodigoCC"));
-                    facturasContainer.getContainerProperty(itemId, NUMERO_DOCUMENTO_PROPERTY).setValue(rsRecords.getString("NumeroDocumento") + " " + rsRecords.getString("SerieDocumento"));
-                    facturasContainer.getContainerProperty(itemId, MONEDA_DOCUMENTO_PROPERTY).setValue(rsRecords.getString("MonedaDocumento"));
-                    facturasContainer.getContainerProperty(itemId, MONTO_DOCUMENTO_PROPERTY).setValue(rsRecords.getString("TOTALSALDO"));
-
-                } while (rsRecords.next());
-            }
-
-        } catch (Exception ex) {
-            System.out.println("Error al listar tabla de DOCUMENTOS : " + ex);
-            Notification.show("ERROR AL LEER DOCUMENTOS AUTORIZADOS PARA PAGOS : " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
-            ex.printStackTrace();
-        }
-         */
     }
 
     public boolean validarCamposParaIngresarChequesNoConciliados() {
@@ -1559,11 +1355,11 @@ public class ChequeTesoreriaForm extends Window {
 
             codigoPartida = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue());
 
-            queryString = " Update  contabilidad_partida ";
-            queryString += " Set Saldo = Saldo - " + String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(MONTO_PAGADO_PROPERTY).getValue()).replaceAll(",", "");
-            queryString += " Where CodigoPartida = '" + codigoPartida + "'";
-            queryString += " And IdEmpresa = " + empresaCbx.getValue();
-            queryString += " And IdProveedor = " + proveedorCbx.getValue();
+            queryString = " UPDATE  contabilidad_partida ";
+            queryString += " SET Saldo = Saldo - " + String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(MONTO_PAGADO_PROPERTY).getValue()).replaceAll(",", "");
+            queryString += " WHERE CodigoPartida = '" + codigoPartida + "'";
+            queryString += " AND IdEmpresa = " + empresaId;
+            queryString += " AND IdProveedor = " + proveedorCbx.getValue();
 
             System.out.println("Query actualizar saldo de facturas :" + queryString);
 
@@ -1581,11 +1377,11 @@ public class ChequeTesoreriaForm extends Window {
         if (codigoEnganches.size() > 0) {
             for (int i = 0; i < codigoEnganches.size(); i++) {
 
-                queryString = " Update  contabilidad_partida ";
-                queryString += " Set Saldo = 0";
-                queryString += " Where CodigoPartida = '" + codigoEnganches.get(i) + "'";
-                queryString += " And IdEmpresa = " + empresaCbx.getValue();
-                queryString += " And IdProveedor = " + proveedorCbx.getValue();
+                queryString = " UPDATE  contabilidad_partida ";
+                queryString += " SET Saldo = 0";
+                queryString += " WHERE CodigoPartida = '" + codigoEnganches.get(i) + "'";
+                queryString += " AND IdEmpresa = " + empresaId;
+                queryString += " AND IdProveedor = " + proveedorCbx.getValue();
 
                 System.out.println("Query actualizar saldo de enganches :" + queryString);
                 try {
@@ -1603,12 +1399,12 @@ public class ChequeTesoreriaForm extends Window {
 
     public void ingresarChequeTesoreria() {
 
-        queryString = " Select * from contabilidad_partida";
-        queryString += " Where NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " And IdProveedor     =  " + String.valueOf(proveedorCbx.getValue());
-        queryString += " And IdEmpresa = " + String.valueOf(empresaCbx.getValue());
-        queryString += " And TipoDocumento = '" + String.valueOf(medioCbx.getValue())  + "'";
-        queryString += " And MonedaDocumento = '" + monedaCbx.getValue() + "'";
+        queryString = " SELECT * FROM contabilidad_partida";
+        queryString += " WHERE NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
+        queryString += " AND IdProveedor     =  " + String.valueOf(proveedorCbx.getValue());
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND TipoDocumento = '" + String.valueOf(medioCbx.getValue())  + "'";
+        queryString += " AND MonedaDocumento = '" + monedaCbx.getValue() + "'";
 
         System.out.println("\n\nQuery=" + queryString + "\n\n");
 
@@ -1631,11 +1427,11 @@ public class ChequeTesoreriaForm extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "5";
+        codigoPartida = empresaId + año + mes + dia + "5";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + codigoPartida + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = " SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida LIKE '" + codigoPartida + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1658,12 +1454,12 @@ public class ChequeTesoreriaForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC, ";
+        queryString = "INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC, ";
         queryString += " TipoDocumento, Fecha, IdProveedor, NombreProveedor, NumeroDocumento, IdNomenclatura,";
         queryString += " MonedaDocumento, MontoDocumento, Debe, Haber, DebeQuetzales, HaberQuetzales, TipoCambio, Saldo,";
         queryString += " Descripcion, CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values (";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += " VALUES (";
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",''";
@@ -1690,7 +1486,7 @@ public class ChequeTesoreriaForm extends Window {
                 || haber2Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo2Txt.getValue() + "'";   /// CODIGOCC
@@ -1718,7 +1514,7 @@ public class ChequeTesoreriaForm extends Window {
                 || haber3Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo3Txt.getValue() + "'";   /// CODIGOCC
@@ -1747,7 +1543,7 @@ public class ChequeTesoreriaForm extends Window {
                 || haber4Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo4Txt.getValue() + "'";   /// CODIGOCC
@@ -1775,7 +1571,7 @@ public class ChequeTesoreriaForm extends Window {
                 || haber5Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo5Txt.getValue() + "'";   /// CODIGOCC
@@ -1803,7 +1599,7 @@ public class ChequeTesoreriaForm extends Window {
                 || haber6Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo6Txt.getValue() + "'";   /// CODIGOCC
@@ -1830,7 +1626,7 @@ public class ChequeTesoreriaForm extends Window {
                 || haber7Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo7Txt.getValue() + "'";   /// CODIGOCC
@@ -1858,7 +1654,7 @@ public class ChequeTesoreriaForm extends Window {
                 || haber8Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo8Txt.getValue() + "'";   /// CODIGOCC
@@ -1886,7 +1682,7 @@ public class ChequeTesoreriaForm extends Window {
                 || haber9Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo9Txt.getValue() + "'";   /// CODIGOCC
@@ -1914,7 +1710,7 @@ public class ChequeTesoreriaForm extends Window {
                 || haber10Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo10Txt.getValue() + "'";   /// CODIGOCC
@@ -1958,7 +1754,7 @@ public class ChequeTesoreriaForm extends Window {
             facturasGrid.getSelectionModel().reset();
             facturasContainer.removeAllItems();
 
-            ((IngresoBancosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(String.valueOf(empresaCbx.getValue()));
+            ((IngresoBancosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(empresaId);
 
             Notification notif = new Notification("PAGO REGISTRADO EXITOSAMENTE.",
                     Notification.Type.HUMANIZED_MESSAGE);
@@ -2074,7 +1870,7 @@ public class ChequeTesoreriaForm extends Window {
             queryString += ", FechaUsado = current_timestamp";
             queryString += ", CodigoPartida = '" + codigoPartida + "'";
             queryString += ", Estatus = 'UTILIZADO'";
-            queryString += " Where Codigo = '" + variableTemp + "'";
+            queryString += " WHERE Codigo = '" + variableTemp + "'";
 
             stQuery.executeUpdate(queryString);
 

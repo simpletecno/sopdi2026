@@ -44,6 +44,9 @@ public class EmpleadoAsistenciaTabletView extends VerticalLayout implements View
 
     VerticalLayout mainLayout = new VerticalLayout();
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public EmpleadoAsistenciaTabletView() {
 
         this.mainUI = UI.getCurrent();
@@ -51,7 +54,7 @@ public class EmpleadoAsistenciaTabletView extends VerticalLayout implements View
         setMargin(false);
         setSpacing(true);
 
-        Label titleLbl = new Label("ASISTENCIA DIARIA DE TRABAJO TABLET");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " ASISTENCIA DIARIA DE TRABAJO TABLET");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -129,11 +132,7 @@ public class EmpleadoAsistenciaTabletView extends VerticalLayout implements View
         planBitacoraGrid.setHeightByRows(15);
         planBitacoraGrid.setWidth("100%");
         planBitacoraGrid.setResponsive(true);
-//        planBitacoraGrid.setEditorBuffered(false);
         planBitacoraGrid.setSizeFull();
- //       planBitacoraGrid.setEditorEnabled(true);
- //       planBitacoraGrid.getColumn(ESTATUS_PROPERTY).setEditorField(getComboState());
- //       planBitacoraGrid.getColumn(RAZON_PROPERTY).setEditorField(getEditTextRazon());
         planBitacoraGrid.addItemClickListener((event) -> {
             if (event != null) {
                 if(event.isDoubleClick()) {
@@ -155,7 +154,7 @@ public class EmpleadoAsistenciaTabletView extends VerticalLayout implements View
 
                         stQuery.executeUpdate(queryString);
 
-                        queryString = "UPDATE proveedor SET ";
+                        queryString = "UPDATE proveedor_empresa SET ";
                         queryString += " EstatusTrabajo = 'PRESENTE'";
                         queryString += ",Razon = ''";
                         queryString += " WHERE IdProveedor = " + String.valueOf(planbBitacoraContainer.getContainerProperty(event.getItemId(), IDEMPLEADO_PROPERTY).getValue());
@@ -253,7 +252,7 @@ public class EmpleadoAsistenciaTabletView extends VerticalLayout implements View
 
             queryString = " SELECT BITA.*, PROV.IdProveedor, PROV.Nombre NombreEmpleado, PROV.Cargo, PROV.TipoAsignacion";
             queryString += " FROM empleado_asistencia BITA";
-            queryString += " INNER JOIN proveedor PROV ON PROV.IdProveedor = BITA.IdEmpleado ";
+            queryString += " INNER JOIN proveedor_empresa PROV ON PROV.IdProveedor = BITA.IdEmpleado ";
             queryString += " WHERE BITA.Fecha = '" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += " AND   PROV.Inhabilitado = 0";
             queryString += " AND   PROV.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
@@ -306,13 +305,13 @@ public class EmpleadoAsistenciaTabletView extends VerticalLayout implements View
     }
 
     private void crearBitacora() {
-        queryString = "Insert Into empleado_asistencia (IdEmpleado, Cargo, Fecha, Estatus, Razon, EsDefinitiva, CreadoFechaYHora, CreadoIdUsuario)";
+        queryString = "INSERT INTO empleado_asistencia (IdEmpleado, Cargo, Fecha, Estatus, Razon, EsDefinitiva, CreadoFechaYHora, CreadoIdUsuario)";
         queryString += " SELECT IdProveedor, Cargo, '" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "', 'AUSENTE', Razon, 0, current_timestamp, " + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
-        queryString += " FROM proveedor ";
+        queryString += " FROM proveedor_proveedor ";
         queryString += " WHERE EsPlanilla = 1 ";
         queryString += " AND   Inhabilitado = 0";
         queryString += " AND   EstatusTrabajo <> 'DE BAJA'";
-        queryString += " AND   IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND   IdEmpresa = " + empresaId;
         queryString += " AND   ISNULL(FechaIngreso) = 0 ";
         queryString += " AND   ISNULL(FechaEgreso) = 1 ";
 
@@ -337,7 +336,7 @@ public class EmpleadoAsistenciaTabletView extends VerticalLayout implements View
 
             queryString = " SELECT BITA.*, PROV.IdProveedor, PROV.Nombre NombreEmpleado, PROV.TipoAsignacion";
             queryString += " FROM empleado_asistencia BITA ";
-            queryString += " INNER JOIN proveedor PROV ON PROV.IdProveedor = BITA.IdEmpleado ";
+            queryString += " INNER JOIN proveedor_empresa PROV ON PROV.IdProveedor = BITA.IdEmpleado ";
             queryString += " WHERE BITA.Fecha = '" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += " AND   PROV.EsPlanilla = 1";
             queryString += " AND   PROV.Inhabilitado = 0";

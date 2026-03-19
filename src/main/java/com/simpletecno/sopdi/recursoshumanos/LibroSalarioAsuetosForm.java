@@ -32,6 +32,9 @@ public class LibroSalarioAsuetosForm extends Window {
 
     List<Asueto> asuetoList = new ArrayList<>();
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public LibroSalarioAsuetosForm(int anio){
         this.anio = anio;
 
@@ -62,7 +65,7 @@ public class LibroSalarioAsuetosForm extends Window {
         headerLayout.setMargin(false);
         headerLayout.setWidth("95%");
 
-        empresalbl = new Label(((SopdiUI)mainUI).sessionInformation.getStrAccountingCompanySmallName());
+        empresalbl = new Label(empresaId + " " + empresaNombre + " LIBRO SALARIOS ASUETO");
         empresalbl.addStyleName(ValoTheme.LABEL_H2);
         empresalbl.setResponsive(true);
         empresalbl.setWidth("50%");

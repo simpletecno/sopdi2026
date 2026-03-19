@@ -200,11 +200,6 @@ public class OrdenTrabajoForm extends Window {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();            
             rsRecords = stQuery.executeQuery (queryString);
 
-//            ComboBox solicitadoPorCbx;
-//            ComboBox autorizadoPorCbx;
-//            TextArea instruccionesTxt;
-//            CheckBox seAdjuntaPlanosChk;
-
             if(rsRecords.next()) { //  encontrado
                 numeroOrdenTxt.setReadOnly(false);
                 numeroOrdenTxt.setValue(rsRecords.getString("NumeroOrdenTrabajo"));
@@ -275,7 +270,7 @@ System.out.println(queryString);
 
         comboBox.addItem("");
 
-        String queryString = "Select * From proveedor ";
+        String queryString = "SELECT * FROM proveedor ";
         queryString += " WHERE EsComite = 1";
         queryString += " AND   IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
 
@@ -311,7 +306,7 @@ System.out.println(queryString);
             queryString =  "INSERT INTO orden_trabajo ";
             queryString += "(IdEmpresa, IdProyecto, NumeroOrdenTrabajo, Fecha, IdCC, Idex, EtapaIdex, Tipo, IcluyeMatariales, ";
             queryString += " IdOrdenCambio, SolicitadoPor, AutorizadoPor, Instrucciones, SeAdjuntanPlanos, CreadoFechaYHora, CreadoUsuario)";
-            queryString += " Values (";
+            queryString += " VALUES (";
             queryString +=  ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
             queryString += ",'"  + numeroOrdenTxt.getValue() + "'";
@@ -331,7 +326,7 @@ System.out.println(queryString);
             queryString += ")";
         }
         else {
-            queryString =  "Update orden_trabajo Set ";
+            queryString =  "UPDATE orden_trabajo SET ";
             queryString += " Fecha = '"  + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += ",IdCentroCosto = '"  + idexCbx.getContainerProperty(idexCbx.getValue(), "IdCentroCosto").getValue() + "'";
             queryString += ",Idex = '"  + idexCbx.getValue() + "'";
@@ -343,7 +338,7 @@ System.out.println(queryString);
             queryString += ",AutorizadoPor = "  + autorizadoPorCbx.getValue();
             queryString += ",Instrucciones = '"  + instruccionesTxt.getValue() + "'";
             queryString += ",SeAdjuntanPlanos = '"  + (seAdjuntaPlanosChk.getValue() ? "SI" : "NO") + "'";
-            queryString += " Where Id = " + idOrdenTrabajo;
+            queryString += " WHERE Id = " + idOrdenTrabajo;
         }
 System.out.println("queryString="+queryString);
         try {

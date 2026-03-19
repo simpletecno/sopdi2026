@@ -41,8 +41,6 @@ public class DocumentosPorLiquidar2View extends VerticalLayout implements View {
 
     static final String CODIGO_PARTIDA_PROPERTY = "Partida";
 
-    ComboBox empresaCbx;
-
     ComboBox tipoConsultaCbx;
 
     IndexedContainer documentosContainer = new IndexedContainer();
@@ -59,6 +57,9 @@ public class DocumentosPorLiquidar2View extends VerticalLayout implements View {
 
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public DocumentosPorLiquidar2View() {
         this.mainUI = UI.getCurrent();
         setResponsive(true);
@@ -68,15 +69,6 @@ public class DocumentosPorLiquidar2View extends VerticalLayout implements View {
         layoutTitle.setSpacing(true);
         layoutTitle.setMargin(new MarginInfo(false, true, false, true));
         layoutTitle.setWidth("100%");
-
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
 
         tipoConsultaCbx = new ComboBox("TIPO DE CUENTA : ");
         tipoConsultaCbx.setNewItemsAllowed(false);
@@ -94,13 +86,10 @@ public class DocumentosPorLiquidar2View extends VerticalLayout implements View {
 
         llenarComboTiposConsulta();
 
-        Label titleLbl = new Label("DOCUMENTOS POR LIQUIDAR");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " DOCUMENTOS POR LIQUIDAR");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(tipoConsultaCbx);
         layoutTitle.setComponentAlignment(tipoConsultaCbx, Alignment.BOTTOM_RIGHT);
@@ -116,31 +105,6 @@ public class DocumentosPorLiquidar2View extends VerticalLayout implements View {
 
     }
 
-    public void llenarComboEmpresa() {
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-    
     public void crearGridDocumentos() {
 
         HorizontalLayout reportLayout = new HorizontalLayout();
@@ -312,9 +276,10 @@ public class DocumentosPorLiquidar2View extends VerticalLayout implements View {
         tipoConsultaCbx.clear();
 
         String queryString = " SELECT N3 ";
-        queryString += " FROM contabilidad_nomenclatura ";
+        queryString += " FROM contabilidad_nomenclatura_empresa ";
         queryString += " WHERE Estatus='HABILITADA'";
         queryString += " AND PorLiquidar = 1";
+        queryString += " AND IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
         queryString += " GROUP BY N3";
         queryString += " ORDER BY N3";
 
@@ -348,11 +313,11 @@ public class DocumentosPorLiquidar2View extends VerticalLayout implements View {
 
         queryString = " SELECT * ";
         queryString += " FROM contabilidad_cuentas_por_liquidar";
-        queryString += " WHERE IdEmpresa = " + empresaCbx.getValue();
-        queryString += " AND IdNomenclatura In (Select IdNomenclatura From contabilidad_nomenclatura Where N3 = '" + tipoConsultaCbx.getValue() + "')";
+        queryString += " WHERE IdEmpresa = " + empresaId;
+        queryString += " AND IdNomenclatura IN (SELECT IdNomenclatura FROM contabilidad_nomenclatura_empresa WHERE N3 = '" + tipoConsultaCbx.getValue() + "' AND IDEMPRESA = " + empresaId + ")";
         queryString += " ORDER BY IdNomenclatura, IdProveedor ";
 
-System.out.println("--> " + queryString);
+System.out.println("--> DOCUMENTOS POR LIQUIDAR = " + queryString);
 
         try {
 
@@ -454,11 +419,9 @@ System.out.println("--> " + queryString);
 
         queryString = " SELECT * ";
         queryString += " FROM contabilidad_partida";
-        queryString += " WHERE IdEmpresa = " + empresaCbx.getValue();
+        queryString += " WHERE IdEmpresa = " + empresaId;
         queryString += " AND   CodigoCC = '" + documentosContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_CC_PROPERTY).getValue() + "'";
         queryString += " AND   IdNomenclatura = " + documentosContainer.getContainerProperty(documentosGrid.getSelectedRow(), IDNOMENCLATURA_PROPERTY).getValue();
-
-System.out.println("query para mostrar ciuenta corriente : " + queryString);
 
         try {
             stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

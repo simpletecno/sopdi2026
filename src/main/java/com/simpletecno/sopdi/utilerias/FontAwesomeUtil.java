@@ -2,6 +2,8 @@ package com.simpletecno.sopdi.utilerias;
 
 import com.vaadin.server.FontAwesome;
 
+//para iconos en menu principal
+
 public class FontAwesomeUtil {
     public static FontAwesome fromName(String name) {
         FontAwesome[] arr = FontAwesome.values();

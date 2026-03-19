@@ -31,8 +31,6 @@ import java.util.Locale;
 public class LibroSalariosView extends VerticalLayout implements View {
 
     UI mainUI;
-    ComboBox empresaCbx;
-    String empresa;
     Utileria utileria;
 
     String filePath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath() + "/projectfiles/";
@@ -89,18 +87,15 @@ public class LibroSalariosView extends VerticalLayout implements View {
 
     Label nombreProveedorLbl;
 
-    Button decargarSiguienteBtn;
     Button siguienteBtn;
     Button excelBtn;
     Button anteriorBtn;
-    Button descargarAnteriorBtn;
 
     Button changeDateBtn;
 
     Statement stQuery;
     ResultSet rsRecords1;
     String queryString1;
-    ResultSet rsRecords2;
     String queryString2;
 
     Double[] asuetoArray = new Double[12];
@@ -112,6 +107,8 @@ public class LibroSalariosView extends VerticalLayout implements View {
 
     HSSFSheet sheet;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public LibroSalariosView(){
         this.utileria = new Utileria();
@@ -122,36 +119,19 @@ public class LibroSalariosView extends VerticalLayout implements View {
         setSpacing(true);
         setResponsive(true);
 
-        Label titleLbl = new Label("Libro de Salarios");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Libro de Salarios");
         if (mainUI.getPage().getBrowserWindowWidth() >= 736) {
             titleLbl.addStyleName(ValoTheme.LABEL_H2);
         }
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
 
-        empresaCbx = new ComboBox("Empresa:");
-        if (mainUI.getPage().getBrowserWindowWidth() >= 736) {
-            empresaCbx.setWidth("400px");
-        }
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        if (mainUI.getPage().getBrowserWindowWidth() >= 736) {
-            empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        }
-
-        llenarComboEmpresa();
-
-        empresa = String.valueOf(empresaCbx.getValue());
-
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -416,40 +396,16 @@ public class LibroSalariosView extends VerticalLayout implements View {
         buttonExcelLayout.setComponentAlignment(layout, Alignment.BOTTOM_RIGHT);
     }
 
-    public void llenarComboEmpresa() {
-        queryString1 = " SELECT * from contabilidad_empresa";
-        queryString1 += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        empresaCbx.addContainerProperty("Nit", String.class, "");
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords1 = stQuery.executeQuery(queryString1);
-
-            while (rsRecords1.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords1.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords1.getString("IdEmpresa"), rsRecords1.getString("Empresa"));
-                empresaCbx.getContainerProperty(rsRecords1.getString("IdEmpresa"), "Nit").setValue(rsRecords1.getString("NIT"));
-            }
-            rsRecords1.first();
-
-            empresaCbx.select(rsRecords1.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar Combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     public void llenarProveedores(){
         String id;
         if(!proveedorCbx.isEmpty()) proveedorCbx.removeAllItems();
 
         queryString1 =  "SELECT p.IDProveedor, p.Nombre, p.Cargo, p.Nit, (" + anioCbx.getValue() + " - YEAR(p.FechaNacimiento)) AS Edad, ";
         queryString1 +=        "p.DPI, p.AfiliacionIGSS, p.Genero, p.Nacionalidad, p.FechaIngreso, p.FechaEgreso, ec.Descripcion ";
-        queryString1 += "FROM proveedor p ";
+        queryString1 += "FROM proveedor_empresa p ";
         queryString1 += "INNER JOIN empleado_cargo ec on p.Cargo = ec.Cargo ";
-        queryString1 += "AND ec.IdEmpresa =  " + ((SopdiUI)mainUI).sessionInformation.getStrAccountingCompanyId() + " ";
+        queryString1 += "AND ec.IdEmpresa = " + empresaId;
+        queryString1 += "AND p.IdEmpresa = " + empresaId;
         queryString1 += "WHERE  YEAR(FechaEgreso) >= " + anioCbx.getValue() + " ";
         queryString1 += "OR ISNULL(FechaEgreso) ";
         queryString1 += "AND EsPlanilla = 1 ";
@@ -496,8 +452,9 @@ public class LibroSalariosView extends VerticalLayout implements View {
         queryString1 += "INNER JOIN planilla_detalle pd ON pe.id = pd.IdPlanilla ";
         queryString1 += "AND pe.FechaInicio >= '" + anioCbx.getValue() + "-01-01' ";
         queryString1 += "AND pe.FechaInicio < '" + (((int)anioCbx.getValue()) + 1) + "-01-01' ";
-        queryString1 += "INNER JOIN proveedor p ON p.IDProveedor = pd.IdEmpleado ";
+        queryString1 += "INNER JOIN proveedor_empresa p ON p.IDProveedor = pd.IdEmpleado ";
         queryString1 += "AND IdEmpleado = " + proveedorCbx.getValue() +  " ";
+        queryString1 += "AND p.IdEmpresa = " + empresaId + " ";
         queryString1 += "WHERE pe.Tipo IN ('Salario', 'Liquidacion') OR pe.Tipo LIKE '%Provi%' ";
         queryString1 += "ORDER BY Mes";
 
@@ -540,9 +497,7 @@ public class LibroSalariosView extends VerticalLayout implements View {
                         diasTrabajados = diasPeriodo - diasAsuetoSeptimos;
                         horasTrabajadas = diasTrabajados * 8;
 
-
                         horasExtraTrabajadas = (rsRecords1.getDouble("HorasExtra") + rsRecords1.getDouble("HorasExtraII"));
-
 
                         if(rsRecords1.getString("Tipo").equals("Salario")){
                             SimpleDateFormat formatoFecha = new SimpleDateFormat("dd-MMM-yyyy", new Locale("es", "ES"));
@@ -579,7 +534,6 @@ public class LibroSalariosView extends VerticalLayout implements View {
                             horasTrabajadas = 0d;
                             horasExtraTrabajadas = 0d;
                         }
-
 
                         salarioTotal = sueldoBase + rsRecords1.getDouble("SalarioExtraordinario") + otrosSalarios + rsRecords1.getDouble("Vacaciones");
                         salarioDescuento = rsRecords1.getDouble("Descuento1") + rsRecords1.getDouble("Descuento3") + otrasDeducciones;
@@ -674,7 +628,7 @@ public class LibroSalariosView extends VerticalLayout implements View {
         queryString1 += "FROM asueto_empresa ae ";
         queryString1 += "LEFT JOIN asueto_fecha af ON af.IdAsueto = ae.Id ";
         queryString1 += "AND af.Anio IN " + anioCbx.getItemIds().toString().replace("[", "(").replace("]", ")") + " ";
-        queryString1 += "WHERE ae.IdEmpresa = " + ((SopdiUI)mainUI).sessionInformation.getStrAccountingCompanyId();
+        queryString1 += "WHERE ae.IdEmpresa = " + empresaId;
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -700,7 +654,7 @@ public class LibroSalariosView extends VerticalLayout implements View {
             queryString2 += "       ae.MesDefault, ";
             queryString2 += "       ae.DiaDefault ";
             queryString2 += "FROM asueto_empresa ae ";
-            queryString2 += "WHERE ae.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+            queryString2 += "WHERE ae.IdEmpresa = " + empresaId;
 
             try {
                 stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -815,14 +769,6 @@ public class LibroSalariosView extends VerticalLayout implements View {
         styleDatos.setFont(font5);
         styleDatos.setAlignment(CellStyle.ALIGN_CENTER);
 
-        int recordCount = 0;
-
-        Item item;
-
-
-        //             Fila            Columna               Contenido
-        //sheet.getRow(---).createCell(-------).setCellValue(---------);
-
         Cell cell = null;
 
         cell = sheet.getRow(4).createCell(0);
@@ -830,7 +776,7 @@ public class LibroSalariosView extends VerticalLayout implements View {
         cell.setCellStyle(styleTitulo);
 
         cell = sheet.getRow(5).createCell(0);
-        cell.setCellValue((String) empresaCbx.getContainerProperty(empresaCbx.getValue(), "Nit").getValue());
+        cell.setCellValue(((SopdiUI)UI.getCurrent()).sessionInformation.getStrAccountingCompanyTaxId());
         cell.setCellStyle(styleTitulo);
 
         cell = sheet.getRow(10).createCell(0);
@@ -910,7 +856,7 @@ public class LibroSalariosView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent viewChangeEvent) {
-
+        Page.getCurrent().setTitle("Libro de Salario");
     }
 
     public class OnDemandStreamResource implements StreamResource.StreamSource {

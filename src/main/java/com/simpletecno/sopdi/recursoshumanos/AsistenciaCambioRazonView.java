@@ -41,6 +41,9 @@ public class AsistenciaCambioRazonView extends VerticalLayout implements View {
 
     VerticalLayout mainLayout = new VerticalLayout();
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public AsistenciaCambioRazonView() {
 
         this.mainUI = UI.getCurrent();
@@ -48,7 +51,7 @@ public class AsistenciaCambioRazonView extends VerticalLayout implements View {
         setMargin(false);
         setSpacing(true);
 
-        Label titleLbl = new Label("ASISTENCIA DIARIA DE TRABAJO");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " ASISTENCIA DIARIA DE TRABAJO");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -153,16 +156,13 @@ public class AsistenciaCambioRazonView extends VerticalLayout implements View {
                     }
 
                     queryString = "UPDATE empleado_asistencia SET ";
-//                    queryString += " Estatus = '" + String.valueOf(groupBitacoraContainer.getContainerProperty(objectItem, ESTATUS_PROPERTY).getValue()) + "'";
                     queryString += " Razon   = '" + String.valueOf(groupBitacoraContainer.getContainerProperty(objectItem, RAZON_PROPERTY).getValue()) + "'";
                     queryString += ",EsDefinitiva = 1";
                     queryString += " WHERE Id = " + String.valueOf(groupBitacoraContainer.getContainerProperty(objectItem, IDBITACORA_PROPERTY).getValue());
 
                     stQuery.executeUpdate(queryString);
 
-                    queryString = "UPDATE proveedor SET ";
-//                    queryString += " GrupoTrabajo = '" + String.valueOf(groupBitacoraContainer.getContainerProperty(objectItem, GRUPONOMBRE_PROPERTY).getValue()) + "'";
-//                    queryString += ",EstatusTrabajo = '" + String.valueOf(groupBitacoraContainer.getContainerProperty(objectItem, ESTATUS_PROPERTY).getValue()) + "'";
+                    queryString = "UPDATE proveedor_empresa SET ";
                     queryString += " Razon   = '" + String.valueOf(groupBitacoraContainer.getContainerProperty(objectItem, RAZON_PROPERTY).getValue()) + "'";
                     queryString += " WHERE IdProveedor = " + String.valueOf(groupBitacoraContainer.getContainerProperty(objectItem, IDEMPLEADO_PROPERTY).getValue());
 
@@ -230,7 +230,7 @@ public class AsistenciaCambioRazonView extends VerticalLayout implements View {
         razonAusenciaCbx.addItem("");
 
         String queryString = "";
-        queryString += " SELECT * from razon_ausencia";
+        queryString += " SELECT * FROM razon_ausencia";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -256,10 +256,7 @@ public class AsistenciaCambioRazonView extends VerticalLayout implements View {
         comboBox.clear();
         comboBox.setWidth("15em");
 
-//        comboBox.addItem("PRESENTE");
         comboBox.addItem("AUSENTE");
-//        comboBox.addItem("DE BAJA");
-//        comboBox.select("PRESENTE");
         comboBox.select("AUSENTE");
 
         return comboBox;
@@ -281,14 +278,13 @@ public class AsistenciaCambioRazonView extends VerticalLayout implements View {
 
             queryString = " SELECT BITA.*, PROV.IdProveedor, PROV.Nombre NombreEmpleado, PROV.GrupoTrabajo, PROV.TipoAsignacion";
             queryString += " FROM empleado_asistencia BITA";
-            queryString += " INNER JOIN proveedor PROV ON PROV.IdProveedor = BITA.IdEmpleado AND PROV.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+            queryString += " INNER JOIN proveedor_empresa PROV ON PROV.IdProveedor = BITA.IdEmpleado AND PROV.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
             queryString += " WHERE BITA.Fecha = '" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += " AND   PROV.Inhabilitado = 0";
-//            queryString += " AND   PROV.GrupoTrabajo <> ''";
+            queryString += " AND   PROV.EsPlanilla = 1";
+            queryString += " AND   PROV.IdEmpresa = " + empresaId;
             queryString += " AND   BITA.Estatus = 'AUSENTE'";
             queryString += " ORDER BY PROV.Nombre";
-
-System.out.println("queryBITACORA=" + queryString);
 
             rsRecords = stQuery.executeQuery(queryString);
 

@@ -21,7 +21,7 @@ import java.sql.Statement;
  */
 public class EmpresaCuentaEquivalenteForm extends Window {
 
-    static final String CUENTA = "Cuenta";
+    static final String CUENTA = "Cuenta ";
 
     public String idempresa = null;
     public String idempresa_1 = null;

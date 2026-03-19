@@ -11,7 +11,6 @@ public class CargoEditarFrom extends Window {
     static String CARGO_PROPERTY = "Cargo / Puesto";
     static String DESCRIPCION_PROPERTY = "Descripcion";
 
-
     FormLayout mainForm;
     TextField cargoTxt;
     TextArea descripcionTxt;

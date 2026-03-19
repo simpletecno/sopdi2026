@@ -49,7 +49,6 @@ import java.util.logging.Logger;
 public class OrdenCompraForm extends Window {
 
     String idOrdenCompra;
-    String empresa;
 
     UI mainUI;
     Statement stQuery = null, stQuery2 = null, stQuery3 = null;
@@ -125,11 +124,12 @@ public class OrdenCompraForm extends Window {
 
     Label titleLbl;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public OrdenCompraForm(String idOrdenCompra) {
         this.mainUI = UI.getCurrent();
         this.idOrdenCompra = idOrdenCompra;
-
-        empresa = ((SopdiUI)UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
 
         setWidth("95%");
         setHeight("90%");
@@ -155,10 +155,10 @@ public class OrdenCompraForm extends Window {
         titleLayout.setWidth("100%");
 
         if(idOrdenCompra.trim().isEmpty()) {
-            titleLbl = new Label("NUEVA ORDEN DE COMPRA");
+            titleLbl = new Label(empresaId  + " " + empresaNombre + " NUEVA ORDEN DE COMPRA");
         }
         else {
-            titleLbl = new Label("EDITAR ORDEN DE COMPRA : " + idOrdenCompra);
+            titleLbl = new Label(empresaId  + " " + empresaNombre + " EDITAR ORDEN DE COMPRA : " + idOrdenCompra);
         }
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName(Runo.LABEL_H2);
@@ -823,8 +823,9 @@ public class OrdenCompraForm extends Window {
 
     private void llenarComboContactoObra() {
         queryString = " SELECT * ";
-        queryString += " FROM proveedor";
+        queryString += " FROM proveedor_empresa";
         queryString += " WHERE Inhabilitado = 0 AND EsContactoObra = 1 ";
+        queryString += " AND IdEmpresa = " + empresaId;
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -878,12 +879,12 @@ public class OrdenCompraForm extends Window {
     }
 
     private void llenarComboProveedor() {
-        queryString = " SELECT proveedor.IdProveedor, proveedor.Nombre, ";
-        queryString += " proveedor.DiasCredito, proveedor.AnticipoUnidad, proveedor.Regimen ";
-        queryString += " FROM proveedor";
+        queryString = " SELECT IdProveedor, Nombre, ";
+        queryString += " DiasCredito, Regimen ";
+        queryString += " FROM proveedor_empresa";
         queryString += " WHERE EsProveedor = 1";
         queryString += " AND Inhabilitado = 0";
-        queryString += " AND N0 IN (6,7)";
+        queryString += " AND IdEmpresa = " + empresaId;
         queryString += " ORDER BY proveedor.Nombre";
 
         try {
@@ -895,7 +896,7 @@ public class OrdenCompraForm extends Window {
                     proveedorCbx.addItem(rsRecords.getString("IdProveedor"));
                     proveedorCbx.setItemCaption(rsRecords.getString("IdProveedor"), rsRecords.getString("Nombre"));
                     proveedorCbx.getContainerProperty(rsRecords.getString("IdProveedor"), "DiasCredito").setValue(rsRecords.getString("DiasCredito"));
-                    proveedorCbx.getContainerProperty(rsRecords.getString("IdProveedor"), "PorcentajeAnticipo").setValue(rsRecords.getString("AnticipoUnidad"));
+                    proveedorCbx.getContainerProperty(rsRecords.getString("IdProveedor"), "PorcentajeAnticipo").setValue("0");
                     proveedorCbx.getContainerProperty(rsRecords.getString("IdProveedor"), "Regimen").setValue(rsRecords.getString("Regimen"));
 //                    System.out.println("Proveedor=" + rsRecords.getString("Nombre") + " DiasCredito=" + rsRecords.getString("DiasCredito") + " Anticipo=" + rsRecords.getString("AnticipoUnidad"));
                 } while (rsRecords.next());
@@ -943,7 +944,7 @@ public class OrdenCompraForm extends Window {
         queryString += " FROM contabilidad_partida";
         queryString += " INNER JOIN contabilidad_nomenclatura ON contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
         queryString += " WHERE contabilidad_partida.IdProveedor = " + proveedorCbx.getValue();
-        queryString += " AND contabilidad_partida.IdEmpresa = " + empresa;
+        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
         queryString += " AND contabilidad_partida.MonedaDocumento = '" + monedaCbx.getValue() + "'";
         queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposProveedor();
         queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
@@ -1015,12 +1016,13 @@ public class OrdenCompraForm extends Window {
             queryString += " FROM  DetalleItemsCostos DITEMC";
             queryString += " INNER JOIN project PROJ On PROJ.Numero = DITEMC.IdProject And PROJ.Estatus = 'ACTIVO'";
             queryString += " INNER JOIN project_tarea PROJT On PROJT.IdProject = PROJ.Id And PROJT.Idex = DITEMC.Idex";
-            queryString += " LEFT JOIN proveedor Prov On Prov.IdProveedor = DITEMC.IdProveedor";
-            queryString += " WHERE DITEMC.IdEmpresa = " + empresa;
+            queryString += " LEFT JOIN proveedor_empresa Prov On Prov.IdProveedor = DITEMC.IdProveedor";
+            queryString += " WHERE DITEMC.IdEmpresa = " + empresaId;
             queryString += " AND DITEMC.IDCC IN " + buscarCentrosCostoDIC();
             queryString += " AND DITEMC.IdProveedor = " + proveedorCbx.getValue();
             queryString += " AND DITEMC.Tipo In ('INTINI','DOCA')";  //60111  lote 104
             queryString += " And DITEMC.Moneda = '" + monedaCbx.getValue() + "'";
+            queryString += " AND Prov.IdEmpresa = " + empresaId;
         }
         else { // 2=orden de compra parcial
             queryString = "SELECT DITEMC.IdCC, DITEMC.Idex, PROJT.Descripcion IdexDescripcion, DITEMC.NoCuenta, DITEMC.IdArea,";
@@ -1029,12 +1031,13 @@ public class OrdenCompraForm extends Window {
             queryString += " FROM  DetalleItemsCostos DITEMC";
             queryString += " INNER JOIN project PROJ On PROJ.Numero = DITEMC.IdProject And PROJ.Estatus = 'ACTIVO'";
             queryString += " INNER JOIN project_tarea PROJT On PROJT.IdProject = PROJ.Id And PROJT.Idex = DITEMC.Idex";
-            queryString += " LEFT JOIN proveedor Prov On Prov.IdProveedor = DITEMC.IdProveedor";
-            queryString += " WHERE DITEMC.IdEmpresa = " + empresa;
+            queryString += " LEFT JOIN proveedor_empresa Prov On Prov.IdProveedor = DITEMC.IdProveedor";
+            queryString += " WHERE DITEMC.IdEmpresa = " + empresaId;
             queryString += " AND DITEMC.IDCC IN " + buscarCentrosCostoDIC();
             queryString += " AND DITEMC.IdProveedor = " + proveedorCbx.getValue();
             queryString += " AND DITEMC.Tipo IN ('INTINI','DOCA')";  //60111  lote 104
             queryString += " AND DITEMC.Moneda = '" + monedaCbx.getValue() + "'";
+            queryString += " AND Prov.IdEmpresa = " + empresaId;
         }
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "TipoOrdenCompra=" + tipoOrdenCompraCbx.getValue() + " buscarDIC()Query = " + queryString);
@@ -1220,11 +1223,12 @@ public class OrdenCompraForm extends Window {
         queryString = "SELECT DITEMC.IDCC, SUM(DITEMC.Total) TotalTotal ";
         queryString += " FROM  DetalleItemsCostos DITEMC";
         queryString += " INNER JOIN project On project.Numero = DITEMC.IdProject And project.Estatus = 'ACTIVO'";
-        queryString += " LEFT JOIN proveedor Prov On Prov.IdProveedor = DITEMC.IdProveedor";
-        queryString += " WHERE DITEMC.IdEmpresa = " + empresa;
+        queryString += " LEFT JOIN proveedor_empresa Prov On Prov.IdProveedor = DITEMC.IdProveedor";
+        queryString += " WHERE DITEMC.IdEmpresa = " + empresaId;
         queryString += " AND DITEMC.IdProveedor = " + proveedorCbx.getValue();
         queryString += " AND DITEMC.Tipo In ('INTINI','DOCA')";
         queryString += " AND DITEMC.Moneda = '" + monedaCbx.getValue() + "'";
+        queryString += " AND Prov.IdEmpresa = " + empresaId;
         queryString += " GROUP BY DITEMC.IDCC";
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "buscarCentrosCostoDIC=" + queryString);
@@ -1258,14 +1262,14 @@ public class OrdenCompraForm extends Window {
             String CENTROCOSTO) {
 
         String
-        queryString =  "Select SUM(DOCA.Total) TotalTotal ";
-        queryString += " From  DocumentosContablesAplicados DOCA";
-        queryString += " Inner Join project On project.Numero = DOCA.IdProject And project.Estatus = 'ACTIVO'";
-        queryString += " Where  DOCA.Idex     = '" + IDEX + "'";
-        queryString += " And DOCA.IDCC = '" + CENTROCOSTO + "'";
-        queryString += " And DOCA.IdEmpresa   = " + empresa;
-        queryString += " And DOCA.IdProveedor = " + proveedorCbx.getValue();
-        queryString += " And DOCA.Moneda = '" + monedaCbx.getValue() + "'";
+        queryString =  "SELECT SUM(DOCA.Total) TotalTotal ";
+        queryString += " FROM  DocumentosContablesAplicados DOCA";
+        queryString += " INNER JOIN project ON project.Numero = DOCA.IdProject AND project.Estatus = 'ACTIVO'";
+        queryString += " WHERE  DOCA.Idex     = '" + IDEX + "'";
+        queryString += " AND DOCA.IDCC = '" + CENTROCOSTO + "'";
+        queryString += " AND DOCA.IdEmpresa   = " + empresaId;
+        queryString += " AND DOCA.IdProveedor = " + proveedorCbx.getValue();
+        queryString += " AND DOCA.Moneda = '" + monedaCbx.getValue() + "'";
 
 //        System.out.println(queryString);
 
@@ -1292,13 +1296,13 @@ public class OrdenCompraForm extends Window {
     private double getSaldoIdcc(String CENTROCOSTO) {
 
         String
-                queryString =  "Select SUM(DOCA.Total) TotalTotal ";
-        queryString += " From  DocumentosContablesAplicados DOCA ";
-        queryString += " Inner Join project On project.Numero = DOCA.IdProject And project.Estatus = 'ACTIVO'";
-        queryString += " Where DOCA.IdEmpresa   = " + empresa;
-        queryString += " And DOCA.IdProveedor = " + proveedorCbx.getValue();
-        queryString += " And DOCA.IDCC = '" + CENTROCOSTO + "'";
-        queryString += " And DOCA.Moneda = '" + monedaCbx.getValue() + "'";
+                queryString =  "SELECT SUM(DOCA.Total) TotalTotal ";
+        queryString += " FROM  DocumentosContablesAplicados DOCA ";
+        queryString += " INNER JOIN project ON project.Numero = DOCA.IdProject AND project.Estatus = 'ACTIVO'";
+        queryString += " WHERE DOCA.IdEmpresa   = " + empresaId;
+        queryString += " AND DOCA.IdProveedor = " + proveedorCbx.getValue();
+        queryString += " AND DOCA.IDCC = '" + CENTROCOSTO + "'";
+        queryString += " AND DOCA.Moneda = '" + monedaCbx.getValue() + "'";
 
         Logger.getLogger(IntegracionItemCostos.class.getName()).log(Level.INFO, queryString);
 
@@ -1325,10 +1329,11 @@ public class OrdenCompraForm extends Window {
     private void buscarProductos(String cuenta) {
         queryString = "  SELECT *, proveedor.Nombre NombreProveedor";
         queryString += " FROM proveedor_plu ";
-        queryString += " INNER JOIN proveedor on proveedor_plu.IdProveedor = proveedor.IdProveedor ";
+        queryString += " INNER JOIN proveedor_empresa on proveedor_plu.IdProveedor = proveedor_empresa.IdProveedor ";
         queryString += " INNER JOIN centro_costo_cuenta ON centro_costo_cuenta.IdCuentaCentroCosto = proveedor_plu.IdCuentaCentroCosto ";
         queryString += " WHERE proveedor_plu.IdProveedor = " + proveedorCbx.getValue();
         queryString += " AND centro_costo_cuenta.CodigoCuentaCentroCosto = " + cuenta;
+        queryString += " AND proveedor_empresa.IdEmpresa = " + empresaId;
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
 
@@ -1358,7 +1363,7 @@ public class OrdenCompraForm extends Window {
     private void buscarCC() {
         queryString = " SELECT * FROM centro_costo ";
         queryString += " WHERE Inhabilitado = 0";
-        queryString += " AND IdEmpresa = " + ((SopdiUI)mainUI).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND IdEmpresa = " + empresaId;
         queryString += " ORDER BY CodigoCentroCosto";
 
         try {
@@ -1444,7 +1449,7 @@ public class OrdenCompraForm extends Window {
 
                 queryString =  "SELECT MAX(CorrelativoOC) UltimaOC ";
                 queryString += " FROM  orden_compra ";
-                queryString += " WHERE IdEmpresa = " + empresa;
+                queryString += " WHERE IdEmpresa = " + empresaId;
                 queryString += " AND   IdProveedor = " + proveedorCbx.getValue();
                 queryString += " AND   IdProyecto  = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
 
@@ -1474,7 +1479,7 @@ public class OrdenCompraForm extends Window {
                 queryString += " CreadoFechaYHora, CreadoUsuario)";
                 queryString += " VALUES ";
                 queryString += "(" + tipoOrdenCompraCbx.getValue();
-                queryString += ",'NOC" + empresa + "_" + proveedorCbx.getValue() + String.format("%04d", siguienteOrdenCompra ) + "'";
+                queryString += ",'NOC" + empresaId + "_" + proveedorCbx.getValue() + String.format("%04d", siguienteOrdenCompra ) + "'";
                 queryString += "," + siguienteOrdenCompra;
                 queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
                 queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
@@ -1781,18 +1786,19 @@ public class OrdenCompraForm extends Window {
                 idccContainer.getContainerProperty(itemId,"IDCC").setValue(sheet.getRow(linea).getCell(0).getStringCellValue());
                 idccContainer.getContainerProperty(itemId,"IDEX").setValue(sheet.getRow(linea).getCell(1).getStringCellValue());
 
-                queryString = "Select DITEMC.IDCC, DITEMC.IDEX, PROJT.Descripcion IdexDescripcion, SUM(DITEMC.Total) TotalTotal ";
-                queryString += " From  DetalleItemsCostos DITEMC";
-                queryString += " Inner Join project PROJ On PROJ.Numero = DITEMC.IdProject And PROJ.Estatus = 'ACTIVO'";
-                queryString += " Inner Join project_tarea PROJT On PROJT.IdProject = PROJ.Id And PROJT.Idex = DITEMC.Idex";
-                queryString += " Left Join proveedor Prov On Prov.IdProveedor = DITEMC.IdProveedor";
-                queryString += " Where DITEMC.IdEmpresa = " + empresa;
-                queryString += " And DITEMC.IDCC = '" + sheet.getRow(linea).getCell(0).getStringCellValue() + "'";
-                queryString += " And DITEMC.IDEX = '" + sheet.getRow(linea).getCell(1).getStringCellValue() + "'";
-                queryString += " And DITEMC.IdProveedor = " + proveedorCbx.getValue();
-                queryString += " And DITEMC.Tipo In ('INTINI','DOCA')";
-                queryString += " And DITEMC.Moneda = '" + monedaCbx.getValue() + "'";
-                queryString += " Group By Idcc, Idex, IdexDescripcion";
+                queryString = "SELECT DITEMC.IDCC, DITEMC.IDEX, PROJT.Descripcion IdexDescripcion, SUM(DITEMC.Total) TotalTotal ";
+                queryString += " FROM  DetalleItemsCostos DITEMC";
+                queryString += " INNER JOIN project PROJ ON PROJ.Numero = DITEMC.IdProject AND PROJ.Estatus = 'ACTIVO'";
+                queryString += " INNER JOIN project_tarea PROJT On PROJT.IdProject = PROJ.Id And PROJT.Idex = DITEMC.Idex";
+                queryString += " LEFT JOIN proveedor_empresa Prov On Prov.IdProveedor = DITEMC.IdProveedor";
+                queryString += " WHERE DITEMC.IdEmpresa = " + empresaId;
+                queryString += " AND DITEMC.IDCC = '" + sheet.getRow(linea).getCell(0).getStringCellValue() + "'";
+                queryString += " AND DITEMC.IDEX = '" + sheet.getRow(linea).getCell(1).getStringCellValue() + "'";
+                queryString += " AND DITEMC.IdProveedor = " + proveedorCbx.getValue();
+                queryString += " AND DITEMC.Tipo In ('INTINI','DOCA')";
+                queryString += " AND DITEMC.Moneda = '" + monedaCbx.getValue() + "'";
+                queryString += " AND Prov.IdEmpresa = " + empresaId;
+                queryString += " GROUP BY Idcc, Idex, IdexDescripcion";
 
                 Logger.getLogger(this.getClass().getName()).log(Level.INFO, "buscarDICCargaArchivo() = " + queryString);
 

@@ -61,13 +61,9 @@ public class FacturasVentaPDF extends Window {
     static final DecimalFormat df1 = new DecimalFormat("###,##0.00");
 
     String fileName;
-    String queryString;
-
-    UI mainUI;
     String idEmpresa;
     String empresaNombre;
     String empresaNit;
-    String tipoReporte;
     String desde;
     String hasta;
     IndexedContainer documentosContainer;

@@ -286,9 +286,9 @@ public class EmpresasContablesForm extends Window {
     public void llenarCampos() {
         try {
 
-            queryString = " select *";
-            queryString += " from contabilidad_empresa";
-            queryString += " where IdEmpresa = " + idEmpresaEdit;
+            queryString = " SELECT *";
+            queryString += " FROM contabilidad_empresa";
+            queryString += " WHERE IdEmpresa = " + idEmpresaEdit;
 
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
@@ -351,10 +351,10 @@ public class EmpresasContablesForm extends Window {
                 return;
             }
             if (idEmpresaEdit.equals("0")) {
-                queryString = "Insert Into contabilidad_empresa (IdEmpresa, Empresa, NombreCorto, Nit, " +
+                queryString = "INSERT INTO contabilidad_empresa (IdEmpresa, Empresa, NombreCorto, Nit, " +
                         "IdUltimaLiquidacion, RecibeEnganches, UsuarioFEL, ClaveFEL, UsuarioToken, " +
                         "Regimen, CodigoProductoExentoFel, Logo)";
-                queryString += " Values (";
+                queryString += " VALUES (";
                 queryString += " " + idEmpresaTxt.getValue();
                 queryString += ",'" + nombreTxt.getValue() + "'";
                 queryString += ",'" + nombreCortoTxt.getValue() + "'";
@@ -373,7 +373,7 @@ public class EmpresasContablesForm extends Window {
                 queryString += ",?";
                 queryString += ")";
             } else {
-                queryString = "Update contabilidad_empresa Set ";
+                queryString = "UPDATE contabilidad_empresa SET ";
                 queryString += " Empresa = '" + nombreTxt.getValue() + "'";
                 queryString += ",NombreCorto = '" + nombreCortoTxt.getValue() + "'";
                 queryString += ",Nit = '" + nitTxt.getValue() + "'";
@@ -389,7 +389,7 @@ public class EmpresasContablesForm extends Window {
                 queryString += ", Regimen = '" + regimenCbx.getValue() + "'";
                 queryString += ", CodigoProductoExentoFel = '" + codigoProductoExcelFELTxt.getValue() + "'";
                 queryString += ",Logo = ?";
-                queryString += " Where IdEmpresa = " + idEmpresaEdit;
+                queryString += " WHERE IdEmpresa = " + idEmpresaEdit;
             }
 
             stPreparedQuery  = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().prepareStatement(queryString);

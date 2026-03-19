@@ -81,8 +81,6 @@ public class CargarProjectTareas extends Window {
     TreeTable tareasTable;
 
     public static Locale locale = new Locale("ES", "GT");
-    static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
-    static DecimalFormat numberFormat2 = new DecimalFormat("##,###");
 
     int linea = 0;
 
@@ -397,10 +395,10 @@ public class CargarProjectTareas extends Window {
                             getContent().setEnabled(false);
 
                             try {
-                                queryString = "Select Numero";
-                                queryString += " From  project";
-                                queryString += " Where IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
-                                queryString += " And Numero = " + numeroTxt.getValue();
+                                queryString = "SELECT Numero";
+                                queryString += " FROM  project";
+                                queryString += " WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
+                                queryString += " AND Numero = " + numeroTxt.getValue();
 
                                 stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                                 rsRecords = stQuery.executeQuery(queryString);
@@ -464,9 +462,9 @@ public class CargarProjectTareas extends Window {
         try {
             ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(false);
 
-            queryString = "Insert Into project (IdEmpresa, IdProyecto, Numero, Fase, Descripcion,";
+            queryString = "INSERT INTO project (IdEmpresa, IdProyecto, Numero, Fase, Descripcion,";
             queryString += " Etiqueta, IdVisita, CreadoUsuario, CreadoFecha, ArchivoNombre) ";
-            queryString += " Values ( ";
+            queryString += " VALUES ( ";
             queryString += " " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
             queryString += "," + numeroTxt.getValue();
@@ -571,7 +569,7 @@ public class CargarProjectTareas extends Window {
 
 //System.out.println("predecesores="+predecesores + " sucesures="+sucesores);
 
-                queryString = "Insert  Into project_tarea (";
+                queryString = "INSERT INTO project_tarea (";
                 queryString += " IdProject, Numero, IdTareaProject, IdTareaPadre, ";
                 queryString += " IdentificadorExclusivo, IdexAnt, IDEX, IdCentroCosto, Descripcion, DiasDuracion, ";
                 queryString += " FechaInicio, FechaFin, IdPredecesores, IdSucesores, FechaRealInicio, FechaRealFin, Id,";
@@ -582,7 +580,7 @@ public class CargarProjectTareas extends Window {
                 queryString += " Critica, DLI, NoEst, NoPrograma, RH3, RH4, RH5, RH6, CodigoEstilo, ";
                 queryString += " NombreVentas, NombreTecnico, IdNivel, CodPlanos, IdProveedor ";
                 queryString += ")";
-                queryString += " Values ( ";
+                queryString += " VALUES ( ";
                 queryString += " " + idProject;
                 queryString += "," + numeroTxt.getValue();
                 queryString += "," + task.getID();

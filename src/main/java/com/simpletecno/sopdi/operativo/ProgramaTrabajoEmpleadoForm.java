@@ -164,8 +164,8 @@ System.out.println("query RHRH=" + queryString);
         String queryString;
 
         try {
-            queryString =  "Insert Into plan_trabajo_idex_rh (idPlanTrabajoIdex, IdEmpleado, EsJefe, Cargo)";
-            queryString += " Values (";
+            queryString =  "INSERT INTO plan_trabajo_idex_rh (idPlanTrabajoIdex, IdEmpleado, EsJefe, Cargo)";
+            queryString += " VALUES (";
             queryString +=  idPlanTrabajoIdex;
             queryString += ","  + empleadoCbx.getValue();
             queryString += ",'" + empleadoCbx.getContainerProperty(empleadoCbx.getValue(), "esJefe").getValue() + "'";

@@ -44,8 +44,6 @@ public class OrdenTrabajoView extends VerticalLayout implements View {
     DateField finDt;
     Button consultarBtn;
 
-    static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
-
     ComboBox empresaCbx;
 
     public OrdenTrabajoView() {
@@ -258,8 +256,8 @@ System.out.println(queryString);
         empresaCbx.setTextInputAllowed(false);
         empresaCbx.setNullSelectionAllowed(false);
 
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString = " SELECT * FROM contabilidad_empresa";
+        queryString += " WHERE IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);

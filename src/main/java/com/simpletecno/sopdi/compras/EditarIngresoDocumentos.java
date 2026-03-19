@@ -19,7 +19,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
@@ -44,7 +43,6 @@ public class EditarIngresoDocumentos extends Window {
     TextField nitProveedorTxt;
 
     ComboBox tipoDocumentoCbx;
-    ComboBox empresaCbx;
     ComboBox proveedorCbx;
     ComboBox monedaCbx;
     ComboBox ordenCompraCbx;
@@ -113,7 +111,6 @@ public class EditarIngresoDocumentos extends Window {
 
     static final String NIT_PROPERTY = "Eliminar";
 
-    UI mainUI;
     Statement stQuery, stQuery2;
     PreparedStatement stPreparedQuery;
     ResultSet rsRecords, rsRecords2;
@@ -121,15 +118,15 @@ public class EditarIngresoDocumentos extends Window {
     BigDecimal totalDebe;
     BigDecimal totalHaber;
 
-    static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
-    static DecimalFormat numberFormat2 = new DecimalFormat("#,###,##0");
-
     String queryString;
     String variableTemp = "";
-    String codigoPartidaEdit;
+    String codigoPartidaEdit = "";
     String estatusPartidaEdit;
     String nuevoCodigoPartida;
     String descripcionEdit;
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public EditarIngresoDocumentos(String codigoPartida, String descripcion) {
 
@@ -146,23 +143,15 @@ public class EditarIngresoDocumentos extends Window {
         layoutTitle.setMargin(true);
         layoutTitle.setWidth("100%");
 
-        this.mainUI = UI.getCurrent();
         setResponsive(true);
         setWidth("98%");
         setHeight("98%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        llenarComboEmpresa();
-        empresaCbx.select(empresaCbx.getItemIds().iterator().next());
+        String titulo = empresaId+ " " + empresaNombre + " EDITAR DOCUMENTOS";
 
-        Label titleLbl = new Label("EDITAR DOCUMENTOS");
+        Label titleLbl = new Label( titulo);
         titleLbl.addStyleName(ValoTheme.LABEL_H3);
         titleLbl.addStyleName("h3_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -832,20 +821,12 @@ public class EditarIngresoDocumentos extends Window {
 
         grabarBtn = new Button("Grabar");
         grabarBtn.setIcon(FontAwesome.SAVE);
-        grabarBtn.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                insertTablaFactura();
-            }
-        });
+        grabarBtn.addClickListener((Button.ClickListener) event -> insertTablaFactura());
 
         cerrarFacturasBtn = new Button("Cerrar factura");
         cerrarFacturasBtn.setIcon(FontAwesome.CHECK);
-        cerrarFacturasBtn.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                //comprobarBalance();
-            }
+        cerrarFacturasBtn.addClickListener((Button.ClickListener) event -> {
+            //comprobarBalance();
         });
 
         layoutHorizontal.addComponent(cuentaContableCbx);
@@ -951,8 +932,8 @@ public class EditarIngresoDocumentos extends Window {
     public void llenarComboCentroCosto() {
 
         queryString = " SELECT * from centro_costo";
-        queryString += " WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
-        queryString += " AND IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString += " WHERE IdProyecto = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectId();
+        queryString += " AND IdEmpresa = " + empresaId;
         queryString += " AND Inhabilitado = 0";
 
         try {
@@ -992,7 +973,6 @@ public class EditarIngresoDocumentos extends Window {
                 if (contador == 0) {
                     estatusPartidaEdit = rsRecords2.getString("Estatus");
                     ordenCompraCbx.select(rsRecords2.getString("IdOrdenCompra"));
-                    empresaCbx.select(rsRecords2.getString("IdEmpresa"));
                     tipoDocumentoCbx.select(rsRecords2.getString("TipoDocumento"));
                     serieTxt.setValue(rsRecords2.getString("SerieDocumento"));
                     numeroTxt.setValue(rsRecords2.getString("NumeroDocumento"));
@@ -1077,7 +1057,6 @@ public class EditarIngresoDocumentos extends Window {
 
             }
             montoTxt.setValue(montoFactura);
-            empresaCbx.setReadOnly(false);
             serieTxt.setReadOnly(false);
             numeroTxt.setReadOnly(false);
             nitProveedorTxt.setReadOnly(false);
@@ -1237,24 +1216,6 @@ public class EditarIngresoDocumentos extends Window {
         }
     }
 
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     public void insertTablaFactura() {
 
         try {
@@ -1306,13 +1267,13 @@ public class EditarIngresoDocumentos extends Window {
         totalDebe.setScale(2, BigDecimal.ROUND_HALF_UP);
         totalHaber.setScale(2, BigDecimal.ROUND_HALF_UP);
 
-        if (((SopdiUI) UI.getCurrent()).esMesCerrado(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+        if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
             Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return;
         }
-        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
-            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(String.valueOf(empresaCbx.getValue())), Notification.Type.WARNING_MESSAGE);
+        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(empresaId), Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return;
         }
@@ -1419,7 +1380,7 @@ public class EditarIngresoDocumentos extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        nuevoCodigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "1";
+        nuevoCodigoPartida = empresaId + año + mes + dia + "1";
 
         queryString = " select codigoPartida from contabilidad_partida ";
         queryString += " where codigoPartida like '" + nuevoCodigoPartida + "%'";
@@ -1473,7 +1434,7 @@ public class EditarIngresoDocumentos extends Window {
         //// ingreso del haber
         if (cuentaContableCbx.getValue() != null && haberTxt.getDoubleValueDoNotThrow() > 0) {
             queryString += "(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'" + estatusPartidaEdit + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
             queryString += ",'" + nuevoCodigoPartida + "'"; //codigoCC
@@ -1506,7 +1467,7 @@ public class EditarIngresoDocumentos extends Window {
             }
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
-            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+            queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             if (nombreArchvivo == null && tipoArchivo == null) {
                 queryString += ",null";
@@ -1531,7 +1492,7 @@ public class EditarIngresoDocumentos extends Window {
                 || (cuentaContable1Cbx.getValue() != null && haber1Txt.getDoubleValueDoNotThrow() > 0)) {
 
             queryString += "(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'" + estatusPartidaEdit + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";//codigoCC
@@ -1567,7 +1528,7 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
-            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+            queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ",null";
             queryString += ",'0'";
@@ -1584,7 +1545,7 @@ public class EditarIngresoDocumentos extends Window {
                 || (cuentaContable2Cbx.getValue() != null && haber2Txt.getDoubleValueDoNotThrow() > 0)) {
 
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'" + estatusPartidaEdit + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";//codigoCC
@@ -1620,7 +1581,7 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
-            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+            queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ",null";
             queryString += ",'0'";
@@ -1637,7 +1598,7 @@ public class EditarIngresoDocumentos extends Window {
                 || (cuentaContable3Cbx.getValue() != null && haber3Txt.getDoubleValueDoNotThrow() > 0)) {
 
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'" + estatusPartidaEdit + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";//codigoCC
@@ -1673,7 +1634,7 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
-            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+            queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ",null";
             queryString += ",'0'";
@@ -1690,7 +1651,7 @@ public class EditarIngresoDocumentos extends Window {
                 || (cuentaContable4Cbx.getValue() != null && haber4Txt.getDoubleValueDoNotThrow() > 0)) {
 
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'" + estatusPartidaEdit + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";//codigoCC
@@ -1726,7 +1687,7 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
-            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+            queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ",null";
             queryString += ",'0'";
@@ -1742,7 +1703,7 @@ public class EditarIngresoDocumentos extends Window {
                 || (cuentaContable5Cbx.getValue() != null && haber5Txt.getDoubleValueDoNotThrow() > 0)) {
 
             queryString += ",(  ";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'" + estatusPartidaEdit + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";//codigoCC
@@ -1778,7 +1739,7 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
-            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+            queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ",null";
             queryString += ",'0'";
@@ -1794,7 +1755,7 @@ public class EditarIngresoDocumentos extends Window {
                 || (cuentaContable6Cbx.getValue() != null && haber6Txt.getDoubleValueDoNotThrow() > 0)) {
 
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'" + estatusPartidaEdit + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";//codigoCC
@@ -1830,7 +1791,7 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
-            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+            queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ",null";
             queryString += ",'0'";
@@ -1847,7 +1808,7 @@ public class EditarIngresoDocumentos extends Window {
                 || (cuentaContable7Cbx.getValue() != null && haber7Txt.getDoubleValueDoNotThrow() > 0)) {
 
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'" + estatusPartidaEdit + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";//codigoCC
@@ -1883,7 +1844,7 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
-            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+            queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ",null";
             queryString += ",'0'";
@@ -1900,7 +1861,7 @@ public class EditarIngresoDocumentos extends Window {
                 || (cuentaContable8Cbx.getValue() != null && haber8Txt.getDoubleValueDoNotThrow() > 0)) {
 
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'" + estatusPartidaEdit + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";//codigoCC
@@ -1936,7 +1897,7 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
-            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+            queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ",null";
             queryString += ",'0'";
@@ -1953,7 +1914,7 @@ public class EditarIngresoDocumentos extends Window {
                 || (cuentaContable9Cbx.getValue() != null && haber9Txt.getDoubleValueDoNotThrow() > 0)) {
 
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'" + estatusPartidaEdit + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";//codigoCC
@@ -1989,7 +1950,7 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
-            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+            queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ",null";
             queryString += ",'0'";
@@ -2006,7 +1967,7 @@ public class EditarIngresoDocumentos extends Window {
                 || (cuentaContable10Cbx.getValue() != null && haber10Txt.getDoubleValueDoNotThrow() > 0)) {
 
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'" + estatusPartidaEdit + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";
             queryString += ",'" + nuevoCodigoPartida + "'";//codigoCC
@@ -2042,7 +2003,7 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
-            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+            queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ",null";
             queryString += ",'0'";
@@ -2070,7 +2031,7 @@ System.out.println(queryString);
                 stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                 stQuery.executeUpdate(queryString);
             } else {
-                stPreparedQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(queryString);
+                stPreparedQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().prepareStatement(queryString);
                 stPreparedQuery.setBinaryStream(1, documentStreamResource.getStream().getStream(), documentStreamResource.getStream().getStream().available());
                 stPreparedQuery.executeUpdate();
             }
@@ -2084,6 +2045,8 @@ System.out.println(queryString);
             notif.setIcon(FontAwesome.CHECK);
             notif.show(Page.getCurrent());
 
+            UI mainUI = UI.getCurrent();
+
             if (mainUI.getNavigator().getCurrentView().getClass().getSimpleName().equals("FacturaVentaView")) {
                 Object selectedObject = ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).facturasVentaGrid.getSelectedRow();
                 ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).container.getContainerProperty(selectedObject, IMAGEN_PROPERTY).setValue("Visualizar");
@@ -2093,7 +2056,7 @@ System.out.println(queryString);
                 ((IngresoDocumentosView) (mainUI.getNavigator().getCurrentView())).documentsContainer.getContainerProperty(selectedObject, IMAGEN_PROPERTY).setValue("Visualizar");
             }
 
-            ((IngresoDocumentosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(String.valueOf(empresaCbx.getValue()), 0);
+            ((IngresoDocumentosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(empresaId, 0);
 
             Notification.show("Registro agregado exitosamente!", Notification.Type.TRAY_NOTIFICATION);
 
@@ -2124,8 +2087,8 @@ System.out.println(queryString);
 
     public void llenarComboOrdenCompra() {
         queryString = " SELECT * FROM orden_compra ";
-        queryString += " Where IdEmpresa = " + String.valueOf(empresaCbx.getValue());
-        queryString += " AND IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();;
+        queryString += " Where IdEmpresa = " + empresaId;
+        queryString += " AND IdProyecto = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectId();;
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -2143,10 +2106,11 @@ System.out.println(queryString);
     }
 
     public void llenarComboProveedor() {
-        queryString = " SELECT * from proveedor ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0";
         queryString += " AND EsProveedor = 1";
-        queryString += " Order By Nombre ";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY Nombre ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();

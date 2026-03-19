@@ -122,9 +122,6 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
     public IndexedContainer cuentaCorrienteContainer = new IndexedContainer();
     Grid.FooterRow footerCC;
 
-    ComboBox empresaCbx;
-    String empresa;
-
     OptionGroup fechaOpcion;
     DateField inicioDt;
     DateField finDt;
@@ -153,6 +150,9 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
     VerticalLayout reportLayoutPartida = new VerticalLayout();
     EnvironmentVars enviromentsVars;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public IngresoDocumentosView() {
 
         reportLayoutPartida.setEnabled(false);
@@ -163,33 +163,17 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
 
         enviromentsVars = new EnvironmentVars();
 
-        Label titleLbl = new Label("DOCUMENTOS");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " DOCUMENTOS COMPRA");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-
-        llenarComboEmpresa();
-
-        empresaCbx.addValueChangeListener(event -> {
-            empresa = String.valueOf(event.getProperty().getValue());
-            llenarTablaFactura(empresa, 0);
-        });
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -199,10 +183,8 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
         crearTablaFacturas();
         createTablaPartidaYCuentaCorriente();
 
-        empresa = String.valueOf(empresaCbx.getValue());
-
         if (partidaDocumentosGrid != null) {
-            llenarTablaFactura(empresa, 0);
+            llenarTablaFactura(empresaId, 0);
         }
     }
 
@@ -248,7 +230,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
         consultarBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                llenarTablaFactura(empresa, 0);
+                llenarTablaFactura(empresaId, 0);
             }
         });
 
@@ -259,7 +241,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
             @Override
             public void buttonClick(Button.ClickEvent event) {
                 vanderaIsr = 1; /// buscar las facturas pendeitnes de isr
-                llenarTablaFactura(empresa, 0);
+                llenarTablaFactura(empresaId, 0);
             }
         });
 
@@ -510,8 +492,6 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
             @Override
             public void buttonClick(Button.ClickEvent event) {
                 IngresoDocumentosForm newDocument = new IngresoDocumentosForm();
-                newDocument.empresaCbx.select(empresa);
-                newDocument.empresaCbx.setReadOnly(true);
                 newDocument.llenarComboOrdenCompra();
                 UI.getCurrent().addWindow(newDocument);
                 newDocument.center();
@@ -526,12 +506,12 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
         generarPDFHoy.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                llenarTablaFactura(empresa, 1);
+                llenarTablaFactura(empresaId, 1);
                 if (documentsContainer.size() > 0) {
                     IngresoDocumentosPDF ingresoDocumentosPDF
                             = new IngresoDocumentosPDF(
-                            empresa,
-                            empresaCbx.getItemCaption(empresaCbx.getValue()),
+                            empresaId,
+                            ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName(),
                             getEmpresaNit(),
                             documentsContainer,
                             Utileria.getFechaDDMMYYYY(new java.util.Date()),
@@ -560,8 +540,8 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
                 if (documentsContainer.size() > 0) {
                     IngresoDocumentosPDF ingresoDocumentosPDF
                             = new IngresoDocumentosPDF(
-                            empresa,
-                            empresaCbx.getItemCaption(empresaCbx.getValue()),
+                            empresaId,
+                            ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName(),
                             getEmpresaNit(),
                             documentsContainer,
                             Utileria.getFechaDDMMYYYY(inicioDt.getValue()),
@@ -627,28 +607,6 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
         addComponent(reportLayout);
 
         setComponentAlignment(reportLayout, Alignment.MIDDLE_CENTER);
-    }
-
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords2 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords2.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords2.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords2.getString("IdEmpresa"), rsRecords2.getString("Empresa"));
-            }
-            rsRecords2.first();
-
-            empresaCbx.select(rsRecords2.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar Combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void createTablaPartidaYCuentaCorriente() {
@@ -795,7 +753,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
 
                     TransaccionesEspecialesForm nuevaTransaccion
                             = new TransaccionesEspecialesForm(
-                            empresa,
+                            empresaId,
                             String.valueOf(documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()),
                             "NOTA DE CREDITO COMPRA",
                             2
@@ -808,7 +766,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
                 } else if (String.valueOf(documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), TIPODOCUMENTO_PROPERTY).getValue()).equals("CONSTANCIA ISR COMPRA")) {
                     TransaccionesEspecialesForm nuevaTransaccion
                             = new TransaccionesEspecialesForm(
-                            empresa,
+                            empresaId,
                             String.valueOf(documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()),
                             "CONSTANCIA ISR COMPRA",
                             2
@@ -850,7 +808,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
                     queryString = " SELECT * FROM contabilidad_partida ";
                     queryString += " WHERE CodigoCC = '" + String.valueOf(documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()) + "'";
                     queryString += " AND IdNomenclatura IN (" + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getProveedores() + "," + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAbastos() + ")";
-                    queryString += " AND IdEmpresa =" + empresaCbx.getValue();
+                    queryString += " AND IdEmpresa =" + empresaId;
                     queryString += " AND TipoDocumento = 'EXENCIÓN IVA'";
                     queryString += " AND Estatus <> 'ANULADO' ";
 //System.out.println(queryString);
@@ -871,7 +829,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
                         } else {
                             ExencionIvaInfileForm exencionIvaForm
                                     = new ExencionIvaInfileForm(
-                                    empresa,
+                                    empresaId,
                                     String.valueOf(documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()),
                                     String.valueOf(documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), TIPODOCUMENTO_PROPERTY).getValue())
                             );
@@ -909,7 +867,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
                     queryString = " SELECT * FROM contabilidad_partida ";
                     queryString += " WHERE CodigoCC = '" + String.valueOf(documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()) + "'";
                     queryString += " AND IdNomenclatura IN (" + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getProveedores() + "," + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAbastos() + ")";
-                    queryString += " AND IdEmpresa =" + empresaCbx.getValue();
+                    queryString += " AND IdEmpresa =" + empresaId;
                     queryString += " AND TipoDocumento = 'CONSTANCIA ISR COMPRA'";
 //System.out.println(queryString);
                     try {
@@ -929,7 +887,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
                         } else {
                             TransaccionesEspecialesForm nuevaTransaccionIsr
                                     = new TransaccionesEspecialesForm(
-                                    empresa,
+                                    empresaId,
                                     String.valueOf(documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()),
                                     "CONSTANCIA ISR COMPRA",
                                     1
@@ -964,7 +922,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
                 if (String.valueOf(documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), TIPODOCUMENTO_PROPERTY).getValue()).equals("FACTURA")) {
                     NotaCreditoCompra nuevaNotaCredito
                             = new NotaCreditoCompra(
-                            empresa,
+                            empresaId,
                             documentsContainer,
                             documentosGrid.getSelectedRow(),
                             String.valueOf(documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()),
@@ -1015,7 +973,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
                                         stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                                         stQuery.executeUpdate(queryString);
 
-                                        llenarTablaFactura(empresa, 0);
+                                        llenarTablaFactura(empresaId, 0);
 
                                     } catch (SQLException ex) {
                                         System.out.println("Error al intentar modificar estatus a REVISADO" + ex);
@@ -1056,7 +1014,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
                                         stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                                         stQuery.executeUpdate(queryString);
 
-                                        llenarTablaFactura(empresa, 0);
+                                        llenarTablaFactura(empresaId, 0);
 
                                     } catch (SQLException ex) {
                                         System.out.println("Error al intentar modificar estatus a ANULADO" + ex);
@@ -1100,14 +1058,14 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
         footer.getCell(DEBE_PROPERTY).setText(numberFormat.format(totalDebe));
         footer.getCell(HABER_PROPERTY).setText(numberFormat.format(totalHaber));
 
-        queryString = " select contabilidad_partida.IdPartida, contabilidad_partida.CodigoPartida, contabilidad_partida.MonedaDocumento,";
+        queryString = " SELECT contabilidad_partida.IdPartida, contabilidad_partida.CodigoPartida, contabilidad_partida.MonedaDocumento,";
         queryString += " contabilidad_partida.Debe, contabilidad_partida.Haber, contabilidad_partida.CodigoCC,";
         queryString += " contabilidad_nomenclatura.N5, contabilidad_nomenclatura.NoCuenta, contabilidad_partida.IdNomenclatura ";
-        queryString += " from contabilidad_partida,contabilidad_nomenclatura";
-        queryString += " where contabilidad_partida.CodigoPartida = '" + codigoPartida + "'";
-        queryString += " and contabilidad_partida.IdEmpresa = " + empresa;
-        queryString += " and contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
-        queryString += " Order By Haber Desc";
+        queryString += " FROM contabilidad_partida,contabilidad_nomenclatura";
+        queryString += " WHERE contabilidad_partida.CodigoPartida = '" + codigoPartida + "'";
+        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
+        queryString += " AND contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+        queryString += " ORDER BY Haber DESC";
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -1172,21 +1130,21 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
         footerCC.getCell(DEBE_PROPERTY).setText(numberFormat.format(totalDebe));
         footerCC.getCell(HABER_PROPERTY).setText(numberFormat.format(totalHaber));
 
-        queryString = " select contabilidad_partida.Fecha, contabilidad_partida.SerieDocumento, ";
+        queryString = " SELECT contabilidad_partida.Fecha, contabilidad_partida.SerieDocumento, ";
         queryString += " contabilidad_partida.NumeroDocumento, contabilidad_partida.TipoDocumento, ";
         queryString += " contabilidad_partida.CodigoPartida, contabilidad_partida.MonedaDocumento, ";
         queryString += " contabilidad_partida.Debe, contabilidad_partida.Haber ";
-        queryString += " from contabilidad_partida";
-        queryString += " where contabilidad_partida.CodigoCC = '" + codigoCC + "' ";
-        queryString += " And contabilidad_partida.IdNomenclatura In (" +  ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getProveedores() + "," + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposProveedor() + "," +  ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getInstituciones() + "," + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAbastos() + ") ";
-        if(codigoCC.equals(empresa + CODIGOCC_ABASTOS)) {
-            queryString += " And (contabilidad_partida.SerieDocumento = '" + serie + "' And NumeroDocumento = '" + numero + "') ";
+        queryString += " FROM contabilidad_partida";
+        queryString += " WHERE contabilidad_partida.CodigoCC = '" + codigoCC + "' ";
+        queryString += " AND contabilidad_partida.IdNomenclatura In (" +  ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getProveedores() + "," + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposProveedor() + "," +  ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getInstituciones() + "," + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAbastos() + ") ";
+        if(codigoCC.equals(empresaId + CODIGOCC_ABASTOS)) {
+            queryString += " AND (contabilidad_partida.SerieDocumento = '" + serie + "' And NumeroDocumento = '" + numero + "') ";
             queryString += "  OR contabilidad_partida.TipoDocumento IN ('CHEQUE', 'NOTA DEBITO', 'TRANSFERENCIA', 'PAGO DOCUMENTO', 'CONSTANCIA ISR COMPRA') ";
         }
-        queryString += " and contabilidad_partida.Estatus <> 'ANULADO' ";
-        queryString += " and contabilidad_partida.IdEmpresa = " + empresa + " ";
+        queryString += " AND contabilidad_partida.Estatus <> 'ANULADO' ";
+        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId + " ";
 //        queryString += " and DATE_FORMAT(contabilidad_partida.Fecha,\"%d-%m-%Y\") >= '" + fecha + "'";
-        queryString += " Order By Haber Desc";
+        queryString += " ORDER BY Haber DESC";
        
 //System.out.println("QUERY llenarTablaCC Ingreso Documentos: " + queryString);
 
@@ -1291,7 +1249,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
                     }
                 }
 
-                queryString += " AND contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
+                queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
                 queryString += " AND contabilidad_partida.IdLiquidacion = 0";
                 if (!documentTxt.getValue().trim().isEmpty()) {
                     queryString += " AND contabilidad_partida.NumeroDocumento Like '%" + documentTxt.getValue().trim() + "%'";
@@ -1299,7 +1257,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
                 if (vanderaIsr == 1) {
                     queryString += " AND contabilidad_partida.Referencia = 'SI'";  // Para listado de facturas pendientes de IRS
                 }
-                queryString += " AND proveedor_empresa.IdEmpresa = " + empresaCbx.getValue();
+                queryString += " AND proveedor_empresa.IdEmpresa = " + empresaId;
                 queryString += " GROUP by contabilidad_partida.CodigoPartida ";
                 queryString += " ORDER BY contabilidad_partida.Fecha, contabilidad_partida.IdNomenclatura DESC ";
 
@@ -1691,16 +1649,16 @@ System.out.println("Query busqueda FACTURAS/DOCUMENTO COMPRA/GASTO : " + querySt
                             queryString += " WHERE CodigoCC IN (SELECT A.CodigoCC FROM contabilidad_partida A";
                             queryString += "                    WHERE A.CodigoPartida = '" + codigoPartida + "'";
                             queryString += "                    AND   A.IdNomenclatura = " + ((SopdiUI)UI.getCurrent()).cuentasContablesDefault.getIvaPorCobrar();
-                            queryString += "                    AND   A.IdEmpresa = " + empresa + ")";
+                            queryString += "                    AND   A.IdEmpresa = " + empresaId+ ")";
                             queryString += " AND IdNomenclatura = " + ((SopdiUI)UI.getCurrent()).cuentasContablesDefault.getIvaPorCobrar();
-                            queryString += " AND IdEmpresa = " + empresa;
+                            queryString += " AND IdEmpresa = " + empresaId;
 
                             stQuery2.executeQuery(queryString);
                         }
 
                         queryString = " DELETE FROM contabilidad_partida";
                         queryString += " WHERE CodigoPartida = '" + codigoPartida + "'";
-                        queryString += " and IdEmpresa = " + empresa;
+                        queryString += " AND IdEmpresa = " + empresaId;
 
                         stQuery2.executeQuery(queryString);
 
@@ -1720,11 +1678,11 @@ System.out.println("Query busqueda FACTURAS/DOCUMENTO COMPRA/GASTO : " + querySt
 
     public void guardarArchivo(Object selectedObject, String codigoPartida, String fileName) {
         try {
-            queryString = " Update contabilidad_partida set  ";
+            queryString = " UPDATE contabilidad_partida SET  ";
             queryString += "  ArchivoNombre ='" + fileName + "'";
             queryString += ", ArchivoTipo ='" + parametro2 + "'";
             queryString += ", ArchivoPeso = " + parametro3;
-            queryString += " where CodigoPartida = '" + codigoPartida + "'";
+            queryString += " WHERE CodigoPartida = '" + codigoPartida + "'";
 
             PreparedStatement stPreparedQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(queryString);
             stPreparedQuery.executeUpdate();
@@ -1741,8 +1699,8 @@ System.out.println("Query busqueda FACTURAS/DOCUMENTO COMPRA/GASTO : " + querySt
     public String getEmpresaNit() {
         String strNit = "N/A";
 
-        String queryString = " SELECT Nit from contabilidad_empresa ";
-        queryString += " Where IdEmpresa = " + empresa;
+        String queryString = " SELECT Nit FROM contabilidad_empresa ";
+        queryString += " WHERE IdEmpresa = " + empresaId;
 
         try {
             stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1768,7 +1726,7 @@ System.out.println("Query busqueda FACTURAS/DOCUMENTO COMPRA/GASTO : " + querySt
             excelExport.setDisplayTotals(false);
             String fileexport;
 // produccion            fileexport = (empresa + "_" + empresaLbl.getValue().substring(5, empresaLbl.getValue().length()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é","") + "_INTEGRACION_CAMBIOS.xlsx").replaceAll(" ", "").replaceAll(",", "");
-            fileexport = (empresa + "_" + empresaCbx.getItemCaption(empresaCbx.getValue()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + "_DOCUMENTOS.xls").replaceAll(" ", "").replaceAll(",", "");
+            fileexport = (empresaId + "_" + ((SopdiUI)UI.getCurrent()).sessionInformation.getStrAccountingCompanyName().replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + "_DOCUMENTOS.xls").replaceAll(" ", "").replaceAll(",", "");
             excelExport.setExportFileName(fileexport);
             excelExport.export();
         }

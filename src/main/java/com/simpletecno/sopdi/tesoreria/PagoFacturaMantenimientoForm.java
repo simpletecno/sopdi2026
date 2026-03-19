@@ -28,6 +28,7 @@ import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.vaadin.ui.NumberField;
@@ -56,7 +57,6 @@ public class PagoFacturaMantenimientoForm extends Window {
     ArrayList<String> noDocaList;
 
     VerticalLayout mainLayout = new VerticalLayout();
-    ComboBox empresaCbx;
 
     ComboBox medioCbx;
     ComboBox proveedorCbx;
@@ -119,6 +119,9 @@ public class PagoFacturaMantenimientoForm extends Window {
     BigDecimal totalHaber;
     double valorFacturaPorPagar;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public PagoFacturaMantenimientoForm() {
 
         this.mainUI = UI.getCurrent();
@@ -140,23 +143,10 @@ public class PagoFacturaMantenimientoForm extends Window {
         setWidth("95%");
         setHeight("85%");
 
-        Label titleLbl = new Label("PAGO DE FACTURA DE MANTENIMIENTO");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " PAGO DE FACTURA DE MANTENIMIENTO");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-        empresaCbx.setReadOnly(true);
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -170,27 +160,6 @@ public class PagoFacturaMantenimientoForm extends Window {
         crearBoton();
         llenarComboCuentaContable();
 
-    }
-
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * FROM contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords1.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords1.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords1.getString("IdEmpresa"), rsRecords1.getString("Empresa"));
-            }
-
-            empresaCbx.select(empresaCbx.getItemIds().iterator().next());
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar cuentas a cargar: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void crearCamposFormulario() {
@@ -1021,14 +990,12 @@ public class PagoFacturaMantenimientoForm extends Window {
     }
 
     public void llenarComboFacturasPagar() {
-        queryString = " SELECT * from contabilidad_Partida ";
+        queryString = " SELECT * FROM contabilidad_partida ";
         queryString += " WHERE IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getClientes();
-        queryString += " And TipoDocumento In ('FACTURA VENTA', 'RECIBO CONTABLE') ";
-        queryString += " And IdProveedor = " + proveedorCbx.getValue();
+        queryString += " AND TipoDocumento IN ('FACTURA VENTA', 'RECIBO CONTABLE') ";
+        queryString += " AND IdProveedor = " + proveedorCbx.getValue();
 
         facturasPorPagarCbx.removeAllItems();
-
-        System.out.println("QUERY BUSCAR FACTURAS VENTA DE UN PROVEEDOR (CIENTE) : " + queryString);
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -1062,10 +1029,11 @@ public class PagoFacturaMantenimientoForm extends Window {
     }
 
     public void llenarComboProveedor() {
-        queryString = " SELECT * from proveedor ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0 ";
         queryString += " AND EsCliente = 1";
-        queryString += " Order By Nombre";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY Nombre";
 
         proveedorCbx.removeAllItems();
 
@@ -1087,9 +1055,10 @@ public class PagoFacturaMantenimientoForm extends Window {
 
     public void llenarComboCuentaContable() {
 
-        queryString = " SELECT * from contabilidad_nomenclatura";
-        queryString += " where Estatus = 'HABILITADA'";
-        queryString += " Order By N5";
+        queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
+        queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY N5";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1161,13 +1130,11 @@ public class PagoFacturaMantenimientoForm extends Window {
 
         try {
 
-            queryString = " select * from contabilidad_partida ";
-            queryString += " where IdProveedor = " + proveedorCbx.getValue();
-            queryString += " and IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposClientes();
-            queryString += " and IdEmpresa = " + empresaCbx.getValue();
-            queryString += " and Saldo > 0.00 ";
-
-            System.out.println("mostrar anticipos " + queryString);
+            queryString = "SELECT * FROM contabilidad_partida ";
+            queryString += " WHERE IdProveedor = " + proveedorCbx.getValue();
+            queryString += " AND IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposClientes();
+            queryString += " AND IdEmpresa = " + empresaId;
+            queryString += " AND Saldo > 0.00 ";
 
             int contador = 0;
 
@@ -1292,12 +1259,12 @@ public class PagoFacturaMantenimientoForm extends Window {
                 contador = contador + 1;
             }
 
-            queryString = " SELECT * from contabilidad_Partida ";
+            queryString = " SELECT * FROM contabilidad_partida ";
             queryString += " WHERE IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getClientes();
-            queryString += " And TipoDocumento = 'FACTURA VENTA' ";
+            queryString += " AND TipoDocumento = 'FACTURA VENTA' ";
             queryString += " And Saldo > 0.00";
-            queryString += " And IdProveedor = " + proveedorCbx.getValue();
-            queryString += " And CodigoPartida = " + facturasPorPagarCbx.getValue();
+            queryString += " AND IdProveedor = " + proveedorCbx.getValue();
+            queryString += " AND CodigoPartida = " + facturasPorPagarCbx.getValue();
 
 //            System.out.println("mostrar el monto " + queryString);
 
@@ -1352,9 +1319,9 @@ public class PagoFacturaMantenimientoForm extends Window {
 
         for (int i = 0; i < codigoDepositosList.size(); i++) {
 
-            queryString = " Update  contabilidad_partida ";
-            queryString += " Set Saldo = 0";
-            queryString += " Where CodigoPartida = '" + codigoDepositosList.get(i) + "'";
+            queryString = " UPDATE  contabilidad_partida ";
+            queryString += " SET Saldo = 0";
+            queryString += " WHERE CodigoPartida = '" + codigoDepositosList.get(i) + "'";
 //            System.out.println("update 1" + queryString);
             try {
                 stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1366,9 +1333,9 @@ public class PagoFacturaMantenimientoForm extends Window {
             }
         }
 
-        queryString = " Update  contabilidad_partida ";
-        queryString += " Set Saldo = 0";
-        queryString += " Where CodigoPartida = '" + facturasPorPagarCbx.getValue() + "'";
+        queryString = " UPDATE  contabilidad_partida ";
+        queryString += " SET Saldo = 0";
+        queryString += " WHERE CodigoPartida = '" + facturasPorPagarCbx.getValue() + "'";
 //        System.out.println("update 2" + queryString);
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1451,11 +1418,11 @@ public class PagoFacturaMantenimientoForm extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "5";
+        codigoPartida = empresaId + año + mes + dia + "5";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + codigoPartida + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = "SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida LIKE '" + codigoPartida + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1478,14 +1445,14 @@ public class PagoFacturaMantenimientoForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC, ";
+        queryString = " INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC, ";
         queryString += " TipoDocumento, TipoEnganche, Referencia, Fecha, IdProveedor,  NombreProveedor,";
         queryString += " SerieDocumento, NumeroDocumento, IdNomenclatura, MonedaDocumento, Debe, Haber,";
         queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, Saldo, Descripcion,TipoDoca, NoDoca,";
         queryString += " CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values ";
+        queryString += " VALUES ";
         queryString += "(";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'";
@@ -1516,7 +1483,7 @@ public class PagoFacturaMantenimientoForm extends Window {
                 || (cuentaContable2Cbx.getValue() != null && haber2Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
 
@@ -1563,7 +1530,7 @@ public class PagoFacturaMantenimientoForm extends Window {
                 || (cuentaContable3Cbx.getValue() != null && haber3Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
 
@@ -1608,7 +1575,7 @@ public class PagoFacturaMantenimientoForm extends Window {
         if ((cuentaContable4Cbx.getValue() != null && debe4Txt.getDoubleValueDoNotThrow() != 0.00)
                 || (cuentaContable4Cbx.getValue() != null && haber4Txt.getDoubleValueDoNotThrow() != 0.00)) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
 
@@ -1654,7 +1621,7 @@ public class PagoFacturaMantenimientoForm extends Window {
                 || (cuentaContable5Cbx.getValue() != null && haber5Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
 
@@ -1699,7 +1666,7 @@ public class PagoFacturaMantenimientoForm extends Window {
                 || (cuentaContable6Cbx.getValue() != null && haber6Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
 
@@ -1744,7 +1711,7 @@ public class PagoFacturaMantenimientoForm extends Window {
         if ((cuentaContable7Cbx.getValue() != null && debe7Txt.getDoubleValueDoNotThrow() != 0.00)
                 || (cuentaContable7Cbx.getValue() != null && haber7Txt.getDoubleValueDoNotThrow() != 0.00)) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             if (codigoDepositosList.size() > 5) {
@@ -1789,7 +1756,7 @@ public class PagoFacturaMantenimientoForm extends Window {
                 || (cuentaContable8Cbx.getValue() != null && haber8Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             if (codigoDepositosList.size() > 6) {
@@ -1835,7 +1802,7 @@ public class PagoFacturaMantenimientoForm extends Window {
                 || (cuentaContable9Cbx.getValue() != null && haber9Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             if (codigoDepositosList.size() > 7) {
@@ -1880,7 +1847,7 @@ public class PagoFacturaMantenimientoForm extends Window {
                 || (cuentaContable10Cbx.getValue() != null && haber10Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             if (codigoDepositosList.size() > 8) {
@@ -1924,7 +1891,7 @@ public class PagoFacturaMantenimientoForm extends Window {
         if ((cuentaContable11Cbx.getValue() != null && debe11Txt.getDoubleValueDoNotThrow() != 0.00)
                 || (cuentaContable11Cbx.getValue() != null && haber11Txt.getDoubleValueDoNotThrow() != 0.00)) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             if (codigoDepositosList.size() > 9) {
@@ -1970,7 +1937,7 @@ public class PagoFacturaMantenimientoForm extends Window {
                 || (cuentaContable12Cbx.getValue() != null && haber12Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             if (codigoDepositosList.size() > 10) {
@@ -2015,7 +1982,7 @@ public class PagoFacturaMantenimientoForm extends Window {
                 || (cuentaContable13Cbx.getValue() != null && haber13Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             if (codigoDepositosList.size() > 11) {
@@ -2060,7 +2027,7 @@ public class PagoFacturaMantenimientoForm extends Window {
                 || (cuentaContable14Cbx.getValue() != null && haber14Txt.getDoubleValueDoNotThrow() != 0.00)) {
 
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             if (codigoDepositosList.size() > 12) {

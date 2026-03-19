@@ -50,17 +50,15 @@ public class AsignarProveedorProductoForm extends Window {
 
     VerticalLayout mainForm;
 
-    ComboBox estatusCbx;
-
-    Button guardarBtn;
-    Button salirBtn;
-
     public IndexedContainer proveedorContainer = new IndexedContainer();
     Grid proveedorGrid;
     public static final String ID_PROVEEDOR_PROPERTY = "Id Proveedor";
     public static final String NOMBRE_PROPERTY = "Nombre";
     public static final String PLU_PROPERTY = "PLU";
     public static final String PRECIO_PROPERTY = "Precio referencia";
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public AsignarProveedorProductoForm(String idProducto, String nombre, String noCuenta, String idProveedor) {
 
@@ -85,7 +83,7 @@ public class AsignarProveedorProductoForm extends Window {
         titleLayout.setMargin(new MarginInfo(true, false, false, false));
         titleLayout.setWidth("100%");
 
-        Label titleLbl = new Label("FORMULARIO ASIGNACIÓN DE PROVEEDORES AL PRODUCTO ");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " FORMULARIO ASIGNACIÓN DE PROVEEDORES AL PRODUCTO ");
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName(Runo.LABEL_H2);
 
@@ -233,8 +231,9 @@ public class AsignarProveedorProductoForm extends Window {
             proveedorContainer.removeAllItems();
 
             queryString = " SELECT *";
-            queryString += " FROM proveedor";
+            queryString += " FROM proveedor_empresa";
             queryString += " WHERE EsProveedor = 1";
+            queryString += " AND IdEmpresa = " + empresaId;
 
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             stQuery2 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -275,9 +274,10 @@ public class AsignarProveedorProductoForm extends Window {
 
             queryString = " SELECT *, proveedor.Nombre AS nombreProveedor, proveedor.IdProveedor as IdProv";
             queryString += " FROM proveedor_productos";
-            queryString += " INNER JOIN proveedor on proveedor_productos.IdProveedor = proveedor.IdProveedor";
+            queryString += " INNER JOIN proveedor_empresa on proveedor_productos.IdProveedor = proveedor_empresa.IdProveedor";
             queryString += " WHERE proveedor_productos.IdProveedor = " + idProveedor;
             queryString += " AND IdProducto = " + idProducto;
+            queryString += " AND proveedor_empresa.IdEmpresa = " + empresaId;
             
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
@@ -314,13 +314,13 @@ public class AsignarProveedorProductoForm extends Window {
                     rsRecords = stQuery.executeQuery(queryString);
 
                     if (rsRecords.next()) {
-                        queryString = "  UPDATE proveedor_productos set"; 
+                        queryString = "  UPDATE proveedor_productos SET";
                         queryString += " PLU ='" + String.valueOf(item.getItemProperty(PLU_PROPERTY).getValue()) + "'";
                         queryString += ",Precio ="+ String.valueOf(item.getItemProperty(PRECIO_PROPERTY).getValue());
                         queryString += " WHERE Id =" + rsRecords.getString("Id");
                     } else {
-                        queryString = "  Insert Into proveedor_productos(IdProveedor, IdProducto, PLU, PLUDescripcion, Precio) ";
-                        queryString += " Values ";
+                        queryString = "  INSERT INTO proveedor_productos(IdProveedor, IdProducto, PLU, PLUDescripcion, Precio) ";
+                        queryString += " VALUES ";
                         queryString += "(";
                         queryString += String.valueOf(item.getItemProperty(ID_PROVEEDOR_PROPERTY).getValue());
                         queryString += "," + idProducto;

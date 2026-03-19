@@ -43,7 +43,6 @@ public class NotaDebitoBancoForm extends Window {
     VerticalLayout mainLayout;
     HorizontalLayout layoutTitle;
     Label titleLbl;
-    ComboBox empresaCbx;
 
     ComboBox tipoEgresoCbx;
     ComboBox proveedorCbx;
@@ -82,6 +81,9 @@ public class NotaDebitoBancoForm extends Window {
 
     String tipo;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public NotaDebitoBancoForm(String tipo) {
         this.tipo = tipo;
         this.mainUI = UI.getCurrent();
@@ -99,22 +101,10 @@ public class NotaDebitoBancoForm extends Window {
         layoutTitle.setMargin(true);
         layoutTitle.setWidth("100%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-
-        titleLbl = new Label("NOTA DEBITO BANCOS");
+        titleLbl = new Label(empresaId + " " + empresaNombre + " NOTA DEBITO BANCOS");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -542,32 +532,10 @@ public class NotaDebitoBancoForm extends Window {
 
     }
 
-    public void llenarComboEmpresa() {
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     public void llenarComboProveedor() {
-        queryString = " SELECT * FROM proveedor ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0";
+        queryString += " AND IdEmpresa = " + empresaId;
         queryString += " ORDER BY Nombre";
 
         proveedorCbx.removeAllItems();
@@ -597,10 +565,10 @@ public class NotaDebitoBancoForm extends Window {
 
     public void llenarComboCuentaContable() {
 
-        queryString = " SELECT * FROM contabilidad_nomenclatura";
+        queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
         queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " AND IDEmpresa = " + empresaId;
         queryString += " ORDER BY N5";
-
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -630,10 +598,10 @@ public class NotaDebitoBancoForm extends Window {
             ex1.printStackTrace();
         }
 
-
-        queryString = " SELECT * FROM contabilidad_nomenclatura";
+        queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
         queryString += " WHERE Estatus = 'HABILITADA'";
         queryString += " AND ID4 = 11";
+        queryString += " AND IDEmpresa = " + empresaId;
         queryString += " ORDER BY N5";
 
         try {
@@ -705,7 +673,7 @@ public class NotaDebitoBancoForm extends Window {
             e.printStackTrace();            
         }
         
-        if (((SopdiUI) UI.getCurrent()).esMesCerrado(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+        if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
             Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return;
@@ -785,11 +753,11 @@ public class NotaDebitoBancoForm extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "3";
+        codigoPartida = empresaId + año + mes + dia + "3";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + codigoPartida + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = "SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida LIKE '" + codigoPartida + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -812,14 +780,14 @@ public class NotaDebitoBancoForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
+        queryString = "INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
         queryString += " TipoDocumento, Fecha, IdProveedor, NombreProveedor, SerieDocumento,";
         queryString += " NumeroDocumento, IdNomenclatura, MonedaDocumento, MontoDocumento, Debe, Haber,";
         queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, Saldo, Descripcion,";
         queryString += " CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values ";
+        queryString += " VALUES ";
         queryString += "(";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",''"; //codigocc
@@ -845,7 +813,7 @@ public class NotaDebitoBancoForm extends Window {
 
         //segundo  ingreso
         queryString += ",(";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'";
@@ -872,7 +840,7 @@ public class NotaDebitoBancoForm extends Window {
         if (cuentaContable3Cbx.getValue() != null) {
             //tercer  ingreso
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",''"; //cdigocc
@@ -910,7 +878,7 @@ public class NotaDebitoBancoForm extends Window {
 
             Notification.show("Egreso registrado con exito!", Notification.Type.HUMANIZED_MESSAGE);
 
-            ((IngresoBancosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(String.valueOf(empresaCbx.getValue()));
+            ((IngresoBancosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(empresaId);
 
             close();
         } catch (Exception ex1) {
@@ -985,7 +953,7 @@ public class NotaDebitoBancoForm extends Window {
             queryString += ", FechaUsado = current_timestamp";
             queryString += ", CodigoPartida = '" + codigoPartida +"'";
             queryString += ", Estatus = 'UTILIZADO'";
-            queryString += " Where Codigo = '" + variableTemp +"'";
+            queryString += " WHERE Codigo = '" + variableTemp +"'";
             
             variableTemp = "";
 

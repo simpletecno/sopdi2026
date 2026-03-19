@@ -43,7 +43,6 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
 
     public Statement stQuery = null, stQuery1 = null;
     public ResultSet rsRecords = null, rsRecords1 = null;
-    static PreparedStatement stPreparedQuery;
 
     public IndexedContainer taskContainer = new IndexedContainer();
     Grid inspectionsTaskTrackGrid;
@@ -98,8 +97,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
     public InspectionsTaskTrackView() {
         this.mainUI = UI.getCurrent();
 
-//        Responsive.makeResponsive(this);
-        setMargin(true);
+        setMargin(false);
         setSpacing(true);
         setHeightUndefined();
 
@@ -120,11 +118,12 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
         });
 
         ordenCambioOg.setStyleName("horizontal");
-        ordenCambioOg.addItems("Todas", "Sin Orden de cambio", "Con Orden de cambio");
+        ordenCambioOg.addItems("Todas", "Sin OC", "Con OC");
         ordenCambioOg.select("Todas");
         ordenCambioOg.addValueChangeListener( e -> {
             fillInspectionsTaskGrid();
         });
+        ordenCambioOg.setDescription("OC=Orden de Cambio");
 
 //        archivadoChbx.addStyleName(ValoTheme.CHECKBOX_LARGE);
         archivadoChbx.addValueChangeListener(e -> {
@@ -169,7 +168,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
         HorizontalLayout ocLayout = new HorizontalLayout();
         ocLayout.setWidth("100%");
         ocLayout.addStyleName("rcorners3");
-        ocLayout.setResponsive(true);
+//        ocLayout.setResponsive(true);
         ocLayout.setHeightUndefined();
         ocLayout.setMargin(new MarginInfo(true, false, true, false));
 
@@ -643,7 +642,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
 
         Button budgetBtn = new Button("Presupuesto");
         budgetBtn.setIcon(FontAwesome.CALCULATOR);
-        budgetBtn.setWidth(120, Sizeable.UNITS_PIXELS);
+//        budgetBtn.setWidth(120, Sizeable.UNITS_PIXELS);
         budgetBtn.setDescription("Presupuesto PRELIMINAR");
         budgetBtn.addListener(new Button.ClickListener() {
             @Override
@@ -700,7 +699,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
 
         Button imagenBtn = new Button("Img/Fotos");
         imagenBtn.setIcon(FontAwesome.PICTURE_O);
-        imagenBtn.setWidth(110, Sizeable.UNITS_PIXELS);
+//        imagenBtn.setWidth(110, Sizeable.UNITS_PIXELS);
         imagenBtn.setDescription("Imagenes y fotos");
         imagenBtn.addListener(new Button.ClickListener() {
             @Override
@@ -723,7 +722,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
 
         Button notesBtn = new Button("Seguimiento");
         notesBtn.setIcon(FontAwesome.BARS);
-        notesBtn.setWidth(110, Sizeable.UNITS_PIXELS);
+//        notesBtn.setWidth(110, Sizeable.UNITS_PIXELS);
         notesBtn.setDescription("Notas de seguimiento u observaciones");
         notesBtn.addListener(new Button.ClickListener() {
             @Override
@@ -743,7 +742,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
 
         Button archivarBtn = new Button("Archivar");
         archivarBtn.setIcon(FontAwesome.ARCHIVE);
-        archivarBtn.setWidth(110, Sizeable.UNITS_PIXELS);
+//        archivarBtn.setWidth(110, Sizeable.UNITS_PIXELS);
         archivarBtn.setDescription("Archivar tarea");
         archivarBtn.addStyleName(ValoTheme.BUTTON_DANGER);
         archivarBtn.addListener(new Button.ClickListener() {

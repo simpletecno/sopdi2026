@@ -40,8 +40,6 @@ public class NotaCreditoVentaInfileForm extends Window {
     VerticalLayout mainLayout;
     VerticalLayout headerLayout;
 
-    /* title */
-    ComboBox empresaCbx;
     Date fechaHoy;
 
     ComboBox tipoFacturaVentaCbx;
@@ -53,7 +51,6 @@ public class NotaCreditoVentaInfileForm extends Window {
     TextField numeroTxt;
     ComboBox monedaNotaCbx;
     ComboBox monedaDocBaseCbx;
-    SegmentedField segmentedField;
 
     ToggleSwitch modoOg;  // Si se agrega La seria y numero manualmente o no
 
@@ -71,12 +68,7 @@ public class NotaCreditoVentaInfileForm extends Window {
     String variableTemp = "";
     String xmlRequest;
     String xmlResponse;
-    String referencia = "";
-    String nombre = "";
-    String direccion = "";
-    String telefono = "";
     String UUIDDocumentoBase = "";
-    String UUIDNotaCredito = "";
     File pdfFile = null;
 
     InfileClient infileClient;
@@ -117,6 +109,9 @@ public class NotaCreditoVentaInfileForm extends Window {
 
     Map<Integer, String> centroCostoMap = new HashMap<>();
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public NotaCreditoVentaInfileForm(
             String codigoPartidaFactura,
             String serieFactura,
@@ -146,26 +141,12 @@ public class NotaCreditoVentaInfileForm extends Window {
         this.mainUI = UI.getCurrent();
         setResponsive(true);
         setWidth("80%");
-//        setHeight("100%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("95%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        empresaCbx.addItem(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId());
-        empresaCbx.setItemCaption(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId(), ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName() + " : " +  ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyRegimen());
-        empresaCbx.select(empresaCbx.getItemIds().iterator().next());
-
-        Label titleLbl = new Label("NOTA DE CREDITO FACTURA VENTA");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " NOTA DE CREDITO FACTURA VENTA");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
 
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
 
@@ -356,9 +337,7 @@ public class NotaCreditoVentaInfileForm extends Window {
         secondLineHaderLayout.setComponentAlignment(modoOg, Alignment.BOTTOM_RIGHT);
         secondLineHaderLayout.setComponentAlignment(monedaDocBaseCbx, Alignment.MIDDLE_RIGHT);
 
-
         llenarComboCliente();
-
     }
 
     private void createDocumentDetail() {
@@ -595,9 +574,7 @@ public class NotaCreditoVentaInfileForm extends Window {
             montoResultadotxt.setValue(0.00);
             montoResultadotxt.setEnabled(false);
 
-
             motonResultantetxtlist.add(montoResultadotxt);
-
 
             // Orden en el Layout
             layoutHorizontal.addComponents(cantidadTxt, tipoDocumento, productoCbx, razonTxt, centroCostoCbx, montotxt, notaMontotxt, montoResultadotxt);
@@ -605,7 +582,6 @@ public class NotaCreditoVentaInfileForm extends Window {
             centralVerticalLayout.addComponent(layoutHorizontal);
             centralVerticalLayout.setComponentAlignment(layoutHorizontal, Alignment.MIDDLE_CENTER);
         }
-
 
         actualizarUltimoCentroCosto(numeroProductos);
 
@@ -665,10 +641,11 @@ public class NotaCreditoVentaInfileForm extends Window {
 
     public void llenarComboCliente() {
 
-        queryString = " SELECT * from proveedor ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0 ";
         queryString += " AND EsCliente = 1";
-        queryString += " Order By Nombre";
+        queryString += " ANd IdEmpresa = " + empresaId;
+        queryString += " ORDER BY Nombre";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -724,7 +701,6 @@ public class NotaCreditoVentaInfileForm extends Window {
         }
     }
 
-
     public void llenarDatosFactura() {
 
         exenta = false;
@@ -733,8 +709,8 @@ public class NotaCreditoVentaInfileForm extends Window {
         queryString += "FROM contabilidad_partida cp ";
         queryString += "INNER JOIN producto_venta_empresa pve ON cp.IdProducto = pve.IdProducto ";
         queryString += "WHERE cp.CodigoPartida = '" + codigoPartidaFactura + "' ";
-        queryString += "AND cp.IdEmpresa = " + empresaCbx.getValue() + " ";
-        queryString += "AND pve.IdEmpresa = " + empresaCbx.getValue() + " ";
+        queryString += "AND cp.IdEmpresa = " + empresaId;
+        queryString += "AND pve.IdEmpresa = " + empresaId;
         queryString += "AND pve.Especial = 0 ";
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO,"QUERY BUSCAR FACTURA VENTA  : " + queryString);
@@ -877,13 +853,13 @@ public class NotaCreditoVentaInfileForm extends Window {
             return false;
         }
 
-        if (((SopdiUI) UI.getCurrent()).esMesCerrado(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+        if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
             Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return false;
         }
-        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
-            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(String.valueOf(empresaCbx.getValue())), Notification.Type.WARNING_MESSAGE);
+        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(empresaId), Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return false;
         }
@@ -935,37 +911,17 @@ public class NotaCreditoVentaInfileForm extends Window {
             return false;
         }
 
-
-
-//        totalHaber = new BigDecimal(haber1Txt.getDoubleValueDoNotThrow()
-//                + haber2Txt.getDoubleValueDoNotThrow() + haber3Txt.getDoubleValueDoNotThrow()
-//                + haber4Txt.getDoubleValueDoNotThrow() + haber5Txt.getDoubleValueDoNotThrow()
-//                + haber6Txt.getDoubleValueDoNotThrow() + haber7Txt.getDoubleValueDoNotThrow()
-//                + haber8Txt.getDoubleValueDoNotThrow()).setScale(2, BigDecimal.ROUND_HALF_UP);
-//
-//        totalHaber.setScale(2, BigDecimal.ROUND_HALF_UP);
-
-//        if (totalHaber.doubleValue() != montoTxt.getDoubleValueDoNotThrow()) {
-//            Notification notif = new Notification("EL MONTO DEL DEBE Y EL HABER NO COINCIDEN!. MONTO DEL DEBE : " + montoTxt.getDoubleValueDoNotThrow() + " MONTO DEL HABER : " + totalHaber.doubleValue(),
-//                    Notification.Type.ERROR_MESSAGE);
-//            notif.setDelayMsec(1500);
-//            notif.setPosition(Position.MIDDLE_CENTER);
-//            notif.setIcon(FontAwesome.WARNING);
-//            notif.show(Page.getCurrent());
-//            return false;
-//        }
-
-        queryString = " Select * from contabilidad_partida";
-        queryString += " Where SerieDocumento  = '" + serieTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " And   NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
+        queryString = " SELECT * FROM contabilidad_partida";
+        queryString += " WHERE SerieDocumento  = '" + serieTxt.getValue().toUpperCase().trim() + "'";
+        queryString += " AND   NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
 //        queryString += " And   IdProveedor     =  " + String.valueOf(clienteCbx.getValue());
         if(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getIvaPorPagar() != null) {
-            queryString += " And   TipoDocumento = 'FACTURA VENTA'";
+            queryString += " AND   TipoDocumento = 'FACTURA VENTA'";
         }
         else {
-            queryString += " And   TipoDocumento = 'RECIBO CONTABLE VENTA'";
+            queryString += " AND   TipoDocumento = 'RECIBO CONTABLE VENTA'";
         }
-        queryString += " And   IdEmpresa = " + empresaCbx.getValue();
+        queryString += " AND   IdEmpresa = " + empresaId;
 
         try {
             rsRecords = stQuery.executeQuery(queryString);
@@ -1026,16 +982,14 @@ public class NotaCreditoVentaInfileForm extends Window {
         );
     }
 
-//
-
     private void insertarPartidas() {
 
-        queryString = " Insert Into proveedor_cuentacorriente (IdEmpresa,IdProveedor, Fecha,";
+        queryString = " INSERT INTO proveedor_cuentacorriente (IdEmpresa,IdProveedor, Fecha,";
         queryString += " TipoDocumento, SerieDocumento,NumeroDocumento, MonedaDocumento, ";
         queryString += " Monto, MontoQuetzales, TipoCambio ";
         queryString += ", IdUsuarioAutorizoPago,CreadoFechayHora,CreadoUsuario)";
         queryString += " Values(";
-        queryString += empresaCbx.getValue();
+        queryString += empresaId;
         queryString += "," + clienteCbx.getValue();
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += ",'NOTA DE CREDITO VENTA'";
@@ -1058,7 +1012,7 @@ public class NotaCreditoVentaInfileForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, CodigoPartida, CodigoCC,";
+        queryString = " INSERT INTO contabilidad_partida (IdEmpresa, CodigoPartida, CodigoCC,";
         queryString += " TipoDocumento, Fecha, IdOrdenCompra, IdProveedor, NITProveedor, NombreProveedor,";
         queryString += " SerieDocumento, NumeroDocumento, IdNomenclatura, MonedaDocumento, MontoDocumento, ";
         queryString += " Debe, Haber, DebeQuetzales, HaberQuetzales, TipoCambio, Saldo, Estatus, ";
@@ -1066,7 +1020,7 @@ public class NotaCreditoVentaInfileForm extends Window {
         queryString += " CreadoUsuario, CreadoFechaYHora, Archivo, ArchivoTipo, ArchivoPeso, ArchivoNombre, ";
         queryString += " IdCentroCosto, CodigoCentroCosto, UUID, FechaYHoraCertificacion, XmlRequest, XmlResponse, IdProducto";
         queryString += ")";
-        queryString += " Values ";
+        queryString += " VALUES ";
 
         for (int i = 0; i < productoNotaList.size(); i++ ){
 
@@ -1140,7 +1094,6 @@ public class NotaCreditoVentaInfileForm extends Window {
             }
         }
 
-
         queryString = queryString.substring(0, queryString.length() - 1);
 
         try {
@@ -1157,8 +1110,6 @@ public class NotaCreditoVentaInfileForm extends Window {
             notif.show(Page.getCurrent());
         }
 
-
-
     Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
 
     if (!variableTemp.isEmpty()) {
@@ -1173,7 +1124,7 @@ public class NotaCreditoVentaInfileForm extends Window {
     notif.setIcon(FontAwesome.CHECK);
     notif.show(Page.getCurrent());
 
-    ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta(String.valueOf(empresaCbx.getValue()));
+    ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta();
 
     // Insertamos El espejo de Guatefactura
     insertarDocumentoElectronico(codigoPartidaNC);
@@ -1204,7 +1155,6 @@ public class NotaCreditoVentaInfileForm extends Window {
         queryString +=  ", '" + ((SopdiUI)mainUI).sessionInformation.getStrAccountingCompanyId() + "'";
         queryString +=  ", 'INGRESADO')";
 
-
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY DOCUMENTO ELECTROCNICO : " + queryString);
 
         try {
@@ -1212,7 +1162,7 @@ public class NotaCreditoVentaInfileForm extends Window {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);
 
-            ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta(String.valueOf(empresaCbx.getValue()));
+            ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta();
 
             close();
 
@@ -1246,7 +1196,7 @@ public class NotaCreditoVentaInfileForm extends Window {
             queryString += ", FechaUsado = current_timestamp";
             queryString += ", CodigoPartida = '" + codigoPartida + "'";
             queryString += ", Estatus = 'UTILIZADO'";
-            queryString += " Where Codigo = '" + variableTemp + "'";
+            queryString += " WHERE Codigo = '" + variableTemp + "'";
 
             variableTemp = "";
 

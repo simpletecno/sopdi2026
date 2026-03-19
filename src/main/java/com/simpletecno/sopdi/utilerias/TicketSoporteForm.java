@@ -112,7 +112,7 @@ public class TicketSoporteForm extends Window {
         descripcionTxt.setRequiredError("POR FAVOR INGRESE LA DESCRIPCION.");
         descripcionTxt.setInputPrompt("describa el asunto de manera clara y con detalle");
 
-        puntoReferenciaTxt = new TextArea("Punto de referencia : ");
+        puntoReferenciaTxt = new TextArea("DATO de referencia : ");
         puntoReferenciaTxt.setWidth("100%");
         puntoReferenciaTxt.setHeight("50px");
         puntoReferenciaTxt.setRequired(true);

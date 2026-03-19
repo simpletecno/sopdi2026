@@ -103,10 +103,8 @@ public final class ProgramaTrabajoCalificacionWindow extends Window {
         MarginInfo marginInfo = new MarginInfo(true, true, true, true);
 
         mainLayout = new VerticalLayout();
-//        mainLayout.setMargin(marginInfo);
         mainLayout.setSpacing(true);
         mainLayout.addStyleName("rcorners3");
-//        mainLayout.setSizeFull();
 
         setContent(mainLayout);
 
@@ -375,13 +373,13 @@ System.out.println("\n\nQuery Calificacioes de " + tipo + " --> "  + queryString
 
     private void llenarGridSupervisiones() {
 
-        String queryString = "Select plan_trabajo_idex_su.*, prv.Nombre, car.Descripcion ";
-        queryString += " From plan_trabajo_idex_su ";
-        queryString += " Inner Join proveedor prv On prv.IdProveedor = plan_trabajo_idex_su.IdEmpleado";
-        queryString += " Inner Join calidad_listas_detalle car On car.Id = plan_trabajo_idex_su.IdCaracteristica ";
-        queryString += " Where plan_trabajo_idex_su.IdPlanTrabajoIdex = " + programaTrabajoIdex;
-        queryString += " And prv.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
-        queryString += " And LENGTH(TRIM(plan_trabajo_idex_su.Comentario)) > 0";
+        String queryString = "SELECT plan_trabajo_idex_su.*, prv.Nombre, car.Descripcion ";
+        queryString += " FROM plan_trabajo_idex_su ";
+        queryString += " INNER JOIN proveedor prv ON prv.IdProveedor = plan_trabajo_idex_su.IdEmpleado";
+        queryString += " INNER JOIN calidad_listas_detalle car ON car.Id = plan_trabajo_idex_su.IdCaracteristica ";
+        queryString += " WHERE plan_trabajo_idex_su.IdPlanTrabajoIdex = " + programaTrabajoIdex;
+        queryString += " AND prv.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND LENGTH(TRIM(plan_trabajo_idex_su.Comentario)) > 0";
         queryString += " ORDER BY plan_trabajo_idex_su.Id";
 
         try {

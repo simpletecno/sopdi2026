@@ -246,8 +246,6 @@ public class CostCenterAccountForm extends Window {
         queryString += " From  centro_costo_cuenta ";
         queryString += " Where IdCuentaCentroCosto = " + idCentroCostoTxt.getValue();
 
-//System.out.println("\n\n"+queryString);
-
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();            
             rsRecords = stQuery.executeQuery (queryString);

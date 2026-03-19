@@ -67,7 +67,6 @@ public class PlanoShowPDF extends Window {
 
         @Override
         public InputStream getStream() {
-            // Here we return the pdf contents as a byte-array
             return new ByteArrayInputStream(os.toByteArray());
         }
     }

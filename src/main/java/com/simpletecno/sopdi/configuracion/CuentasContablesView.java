@@ -315,8 +315,8 @@ public class CuentasContablesView extends VerticalLayout implements View {
                     Notification.show("Por favor, seleccione el registro correspondiente.", Notification.Type.WARNING_MESSAGE);
                 } else {
 
-                    queryString = " select * from contabilidad_partida";
-                    queryString += " where IdNomenclatura = " + String.valueOf(container.getContainerProperty(cuentasContablesGrid.getSelectedRow(), ID_NOMENCLATURA_PROPERTY).getValue());
+                    queryString = " SELECT * FROM contabilidad_partida";
+                    queryString += " WHERE IdNomenclatura = " + String.valueOf(container.getContainerProperty(cuentasContablesGrid.getSelectedRow(), ID_NOMENCLATURA_PROPERTY).getValue());
 
                     try {
 
@@ -327,8 +327,8 @@ public class CuentasContablesView extends VerticalLayout implements View {
                             Notification.show("La cuenta seleccionada contiene movimientos en partidas no se puede eliminar.", Notification.Type.ERROR_MESSAGE);
                         } else {
 
-                            queryString = " delete from contabilidad_nomenclatura";
-                            queryString += " where IdNomenclatura = " + String.valueOf(container.getContainerProperty(cuentasContablesGrid.getSelectedRow(), ID_NOMENCLATURA_PROPERTY).getValue());
+                            queryString = " DELETE FROM contabilidad_nomenclatura";
+                            queryString += " WHERE IdNomenclatura = " + String.valueOf(container.getContainerProperty(cuentasContablesGrid.getSelectedRow(), ID_NOMENCLATURA_PROPERTY).getValue());
                             ;
 
                             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

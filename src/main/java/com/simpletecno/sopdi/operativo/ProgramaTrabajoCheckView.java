@@ -27,7 +27,6 @@ public class ProgramaTrabajoCheckView extends VerticalLayout implements View {
     ComboBox empresaCbx;
     String empresa;
 
-//    static final String ESTATUS_PROPERTY = "Estatus";
     // Tabla Tarea
     static final String ID_PROPERTY = "ID";
     static final String IDCC_PROPERTY = "IDCC";
@@ -50,9 +49,6 @@ public class ProgramaTrabajoCheckView extends VerticalLayout implements View {
     static final String INICIO_PROPERTY = "Inicio";
     static final String RAZON_FIN_PROPERTY = "Razon Fin";
     static final String FIN_PROPERTY = "Fin";
-
-    private String fechaInicioReal;
-    private String fechaFinReal;
 
     public IndexedContainer idexContainer = new IndexedContainer();
     public IndexedContainer tiemposContainer = new IndexedContainer();
@@ -119,7 +115,6 @@ public class ProgramaTrabajoCheckView extends VerticalLayout implements View {
         addComponent(titleLayout);
         setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
 
-
         createIdexGrid();
 
         // Si es un telemfono o un jefe
@@ -146,8 +141,8 @@ public class ProgramaTrabajoCheckView extends VerticalLayout implements View {
     }
 
     public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString = " SELECT * FROM contabilidad_empresa";
+        queryString += " WHERE IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -345,12 +340,9 @@ public class ProgramaTrabajoCheckView extends VerticalLayout implements View {
             idexGrid.getColumn(DESCRIPCION_PROPERTY).setExpandRatio(3);
             idexGrid.getColumn(FECHAINICIO_PROPERTY).setExpandRatio(2);
             idexGrid.getColumn(FECHAFINAL_PROPERTY).setExpandRatio(2);
-            //        idexGrid.getColumn(ESTATUS_PROPERTY).setExpandRatio(2);
             idexGrid.getColumn(FECHAINICIOREAL_PROPERTY).setExpandRatio(2);
             idexGrid.getColumn(FECHAFINAREAL_PROPERTY).setExpandRatio(2);
         }
-
-//System.out.println("Browser Window With="+mainUI.getPage().getBrowserWindowWidth());
 
         if(mainUI.getPage().getBrowserWindowWidth() <= 736) {
             idexGrid.getColumn(FECHAINICIOREAL_PROPERTY).setHidable(true).setHidden(true);
@@ -360,19 +352,15 @@ public class ProgramaTrabajoCheckView extends VerticalLayout implements View {
             idexGrid.getColumn(ID_NIVEL_PROPERTY).setHidable(true).setHidden(true);
         }
 
-        idexGrid.addSelectionListener(new SelectionEvent.SelectionListener() {
-            @Override
-            public void select(SelectionEvent event
-            ) {
-                if (idexGrid.getSelectedRow() != null) {
-                    if(mainUI.getPage().getBrowserWindowWidth() <= 736 || ((SopdiUI) mainUI).sessionInformation.getStrUserProfileName().contains("JEFE")) {
-                        creatRolTiempo((String) idexContainer.getContainerProperty(idexGrid.getSelectedRow(), IDEX_PROPERTY).getValue());
-                    }
-                    else {
-                        fillTiemposGrid((String) idexContainer.getContainerProperty(idexGrid.getSelectedRow(), IDEX_PROPERTY).getValue());
-                    }
+        idexGrid.addSelectionListener((SelectionEvent.SelectionListener) event -> {
+            if (idexGrid.getSelectedRow() != null) {
+                if(mainUI.getPage().getBrowserWindowWidth() <= 736 || ((SopdiUI) mainUI).sessionInformation.getStrUserProfileName().contains("JEFE")) {
+                    creatRolTiempo((String) idexContainer.getContainerProperty(idexGrid.getSelectedRow(), IDEX_PROPERTY).getValue());
                 }
-            };
+                else {
+                    fillTiemposGrid((String) idexContainer.getContainerProperty(idexGrid.getSelectedRow(), IDEX_PROPERTY).getValue());
+                }
+            }
         });
 
         Grid.HeaderRow filterRow = idexGrid.appendHeaderRow();

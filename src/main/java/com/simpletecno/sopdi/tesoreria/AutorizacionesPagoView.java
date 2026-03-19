@@ -36,8 +36,6 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
     static public final String DEVOLUCION_PRESTAMO_TERCERO = "DEVOLUCION PRESTAMO";
     static public final String ANTICIPO_PROVEEDOR_OC = "ANTICIPO A PROVEEDOR OC";
 
-    ComboBox empresaCbx;
-
     Button anticiposProveedorBtn;
     Button anticiposSueldoBtn;
     Button anticipoHonorarioBtn;
@@ -58,6 +56,9 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
 
     String queryString;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public AutorizacionesPagoView() {
 
         this.mainUI = UI.getCurrent();
@@ -65,17 +66,7 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
         setSpacing(true);
         setMargin(false);
 
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-
-        llenarComboEmpresa();
-
-        Label titleLbl = new Label("AUTORIZAR PAGOS DE....");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " AUTORIZAR PAGOS DE....");
         if (mainUI.getPage().getBrowserWindowWidth() >= 736) {
             titleLbl.addStyleName(ValoTheme.LABEL_H2);
         }
@@ -90,8 +81,7 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(true);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.BOTTOM_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -100,28 +90,6 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
 
         crearBotones();
 
-    }
-
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void crearBotones() {
@@ -175,7 +143,6 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
 
         anticiposSueldoBtn = new Button(ANTICIPO_SUELDOS);
         anticiposSueldoBtn.setIcon(FontAwesome.BATTERY_1);
-        //anticiposSueldoBtn.setDescription(ANTICIPO_HONORARIOS);
         anticiposSueldoBtn.setWidth("17em");
         anticiposSueldoBtn.setHeight("5em");
         anticiposSueldoBtn.addListener(new Button.ClickListener() {
@@ -366,6 +333,6 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
-        Page.getCurrent().setTitle("Sopdi - Autorizaciones de pagos");
+        Page.getCurrent().setTitle("Sopdi - Autorizar pagos");
     }
 }

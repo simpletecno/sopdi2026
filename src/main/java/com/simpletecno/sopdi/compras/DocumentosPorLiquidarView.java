@@ -36,8 +36,6 @@ public class DocumentosPorLiquidarView extends VerticalLayout implements View {
     static final String DEBE_PROPERTY = "DEBE";
     static final String HABER_PROPERTY = "HABER";
 
-    ComboBox empresaCbx;
-
     OptionGroup tipoDocumentoOg;
 
     IndexedContainer documentosContainer = new IndexedContainer();
@@ -53,6 +51,9 @@ public class DocumentosPorLiquidarView extends VerticalLayout implements View {
     
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public DocumentosPorLiquidarView() {
         this.mainUI = UI.getCurrent();
         setResponsive(true);
@@ -62,15 +63,6 @@ public class DocumentosPorLiquidarView extends VerticalLayout implements View {
         layoutTitle.setSpacing(true);
         layoutTitle.setMargin(new MarginInfo(false, true, false, true));
         layoutTitle.setWidth("100%");
-
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
 
         tipoDocumentoOg = new OptionGroup("Elija una opción");
         tipoDocumentoOg.addItems("FACTURAS", "ANTICIPOS");
@@ -82,16 +74,13 @@ public class DocumentosPorLiquidarView extends VerticalLayout implements View {
             llenarGridDocumentos();
         });
 
-        Label titleLbl = new Label("DOCUMENTOS POR LIQUIDAR");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " DOCUMENTOS POR LIQUIDAR");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
 
         layoutTitle.addComponent(tipoDocumentoOg);
         layoutTitle.setComponentAlignment(tipoDocumentoOg, Alignment.MIDDLE_LEFT);
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -104,31 +93,6 @@ public class DocumentosPorLiquidarView extends VerticalLayout implements View {
 
     }
 
-    public void llenarComboEmpresa() {
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-    
     public void crearGridDocumentos() {
 
         HorizontalLayout reportLayout = new HorizontalLayout();
@@ -266,7 +230,7 @@ public class DocumentosPorLiquidarView extends VerticalLayout implements View {
 
         queryString = " SELECT * ";
         queryString += " FROM contabilidad_partida";
-        queryString += " WHERE IdEmpresa = " + empresaCbx.getValue();
+        queryString += " WHERE IdEmpresa = " + empresaId;
         queryString += " AND   Extract(YEAR From Fecha) >= 2019";
         if(tipoDocumentoOg.getValue().equals("FACTURAS")) {
             queryString += " AND   Upper(TipoDocumento) IN ('FACTURA','RECIBO','RECIBO CONTABLE','RECIBO CORRIENTE','FORMULARIO IVA',";
@@ -277,9 +241,7 @@ public class DocumentosPorLiquidarView extends VerticalLayout implements View {
             queryString += " AND   Upper(TipoDocumento) IN ('CHEQUE','TRANSFERENCIA') ";
             queryString += " AND   IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposProveedor();
         }
-        queryString += " ORDER by contabilidad_partida.CodigoPartida";
-
-System.out.println("query para mostrar ciuenta corriente : " + queryString);
+        queryString += " ORDER BY contabilidad_partida.CodigoPartida";
 
         try {
 
@@ -296,7 +258,7 @@ System.out.println("query para mostrar ciuenta corriente : " + queryString);
                     queryString = " SELECT ";
                     queryString += " SUM(HABER - DEBE) TOTALSALDO, SUM(HaberQuetzales - DebeQuetzales) TOTALSALDOQ ";
                     queryString += " FROM contabilidad_partida";
-                    queryString += " WHERE IdEmpresa = " + empresaCbx.getValue();
+                    queryString += " WHERE IdEmpresa = " + empresaId;
                     queryString += " AND CodigoCC = '" + rsRecords.getString("CodigoCC") + "'";
                     queryString += " AND contabilidad_partida.IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
 
@@ -332,7 +294,7 @@ System.out.println("query para mostrar ciuenta corriente : " + queryString);
             }// NO HAY DOCUMENTOS
 
         } catch (Exception ex) {
-            System.out.println("Error al listar grid anticipos factura : " + ex);
+            System.out.println("Error al listar grid anticipos factura : " + ex + " " + queryString);
             ex.printStackTrace();
         }
     }
@@ -348,7 +310,7 @@ System.out.println("query para mostrar ciuenta corriente : " + queryString);
 
         queryString = " SELECT * ";
         queryString += " FROM contabilidad_partida";
-        queryString += " WHERE IdEmpresa = " + empresaCbx.getValue();
+        queryString += " WHERE IdEmpresa = " + empresaId;
         queryString += " AND   CodigoCC = '" + documentosContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_CC_PROPERTY).getValue() + "'";
         if(tipoDocumentoOg.getValue().equals("FACTURAS")) {
             queryString += " AND   IdNomenclatura IN (" + ((SopdiUI) mainUI).cuentasContablesDefault.getProveedores() + "," + ((SopdiUI) mainUI).cuentasContablesDefault.getInstituciones() + ")";
@@ -356,8 +318,6 @@ System.out.println("query para mostrar ciuenta corriente : " + queryString);
         else {
             queryString += " AND   IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposProveedor();
         }
-
-System.out.println("query para mostrar ciuenta corriente : " + queryString);
 
         try {
             stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -389,7 +349,7 @@ System.out.println("query para mostrar ciuenta corriente : " + queryString);
                 } while (rsRecords1.next());
             }
         } catch (Exception ex) {
-            System.out.println("Error al listar grid cuenta corriente : " + ex);
+            System.out.println("Error al listar grid cuenta corriente : " + ex + " " + queryString);
             ex.printStackTrace();
         }
     }

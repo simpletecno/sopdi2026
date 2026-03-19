@@ -58,7 +58,6 @@ public class InspectionTaskOCForm extends Window {
     NumberField totalTxt;
     ComboBox monedaCbx;
     ComboBox proveedorCbx;
-    ComboBox empresaCbx;
 
     UI mainUI;
 
@@ -191,9 +190,6 @@ public class InspectionTaskOCForm extends Window {
         areaCbx.setInvalidAllowed(false);
         areaCbx.setNullSelectionAllowed(false);
         llenarComboArea();
-//        if(esNuevoDesdeSeleccionado) {
-//            areaCbx.select(String.valueOf(indexedContainer.getContainerProperty(itemObjectDIC, InspectionTaskOCWindow.IDAREA_PROPERTY).getValue()));
-//        }
 
         loteTxt =  new TextField("Lote :");
         loteTxt.setWidth("20em");
@@ -318,17 +314,6 @@ public class InspectionTaskOCForm extends Window {
             proveedorCbx.select(String.valueOf(indexedContainer.getContainerProperty(itemObjectDIC, InspectionTaskOCWindow.PROVEEDOR_PROPERTY).getValue()).split(" ")[0]);
         }
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setWidth("20em");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-        if(esNuevoDesdeSeleccionado) {
-            empresaCbx.select(String.valueOf(indexedContainer.getContainerProperty(itemObjectDIC, InspectionTaskOCWindow.EMPRESA_PROPERTY).getValue()));
-        }
-
         ocForm.addComponent(tipoCbx);
         ocForm.addComponent(idProjectTxt);
         ocForm.addComponent(centroCostoTxt);
@@ -343,7 +328,6 @@ public class InspectionTaskOCForm extends Window {
         ocForm.addComponent(precioTxt);
         ocForm.addComponent(totalTxt);
         ocForm.addComponent(proveedorCbx);
-        ocForm.addComponent(empresaCbx);
 
         mainLayout.addComponent(ocForm);
         mainLayout.setComponentAlignment(ocForm, Alignment.MIDDLE_CENTER);
@@ -415,7 +399,6 @@ public class InspectionTaskOCForm extends Window {
         queryString += " INNER JOIN project p ON p.Id  = pt.IdProject";
         queryString += " WHERE  p.Estatus  = 'ACTIVO'";
         queryString += " AND pt.IdCentroCosto = '" + idcc + "'";
-//        queryString += " AND pt.ModoTarea  = 'SI' ";
 
         Logger.getLogger(InspectionTaskOCForm.class.getName()).log(Level.INFO, "QueryLlenarComboIDex()="+queryString);
 
@@ -440,11 +423,10 @@ public class InspectionTaskOCForm extends Window {
 
     private void llenarComboCuentas() {
 
-        String queryString = "Select * ";
-        queryString += " From centro_costo_cuenta ";
-        queryString += " Where IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
+        String queryString = "SELECT * ";
+        queryString += " FROM centro_costo_cuenta ";
+        queryString += " WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
 
-// System.out.println("queryComboCCC=" + queryString);
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
@@ -471,9 +453,10 @@ public class InspectionTaskOCForm extends Window {
         proveedorCbx.removeAllItems();
 
         String queryString = " SELECT *";
-        queryString += " FROM proveedor";
+        queryString += " FROM proveedor_empresa";
         queryString += " WHERE Inhabilitado = '0'";
         queryString += " AND (EsProveedor = '1' Or EsRelacionada = '1')" ;
+        queryString += " AND (IdEmpresa = '" + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -496,7 +479,7 @@ public class InspectionTaskOCForm extends Window {
 
         areaCbx.removeAllItems();
 
-        String queryString = " SELECT * FROM area Order By IdArea";
+        String queryString = " SELECT * FROM area ORDER BY IdArea";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -515,29 +498,6 @@ public class InspectionTaskOCForm extends Window {
         }
     }
 
-    private void llenarComboEmpresa() {
-
-        empresaCbx.removeAllItems();
-
-        String queryString = "";
-        queryString += " SELECT * from contabilidad_empresa";
-//        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     private void fillData() {
         try {
 
@@ -547,11 +507,11 @@ public class InspectionTaskOCForm extends Window {
 //System.out.println("0 " + this.idVisitaInspeccionTareaOcDetalle.trim().equals("0"));
 
             if(this.idVisitaInspeccionTareaOcDetalle.trim().equals("0") == false) { // para actualizar oc detalle
-                queryString = "Select OCD.*, CCC.Descripcion, CC.Lote LoteCC ";
-                queryString += " From visita_inspeccion_tarea_oc_detalle OCD";
-                queryString += " Inner Join centro_costo_cuenta CCC on CCC.CodigoCuentaCentroCosto = OCD.NoCuenta";
-                queryString += " Inner Join centro_costo CC on CC.IdCentroCosto = OCD.IdCC";
-                queryString += " Where OCD.IdVisitaInspeccionTareaOCDetalle = " + idVisitaInspeccionTareaOcDetalle;
+                queryString = "SELECT OCD.*, CCC.Descripcion, CC.Lote LoteCC ";
+                queryString += " FROM visita_inspeccion_tarea_oc_detalle OCD";
+                queryString += " INNER JOIN centro_costo_cuenta CCC ON CCC.CodigoCuentaCentroCosto = OCD.NoCuenta";
+                queryString += " INNER JOIN centro_costo CC ON CC.IdCentroCosto = OCD.IdCC";
+                queryString += " WHERE OCD.IdVisitaInspeccionTareaOCDetalle = " + idVisitaInspeccionTareaOcDetalle;
 
 //System.out.println("1 " + queryString);
 
@@ -576,15 +536,14 @@ public class InspectionTaskOCForm extends Window {
                     totalTxt.setValue(rsRecords.getDouble("Total"));
                     monedaCbx.select(rsRecords.getString("Moneda"));
                     proveedorCbx.select(rsRecords.getString("IdProveedor"));
-                    empresaCbx.select(rsRecords.getString("IdEmpresa"));
                 }
             }
             else { //buscar por detalle item costos
-                queryString = "Select DIC.*, CCC.Descripcion, CC.Lote LoteCC ";
-                queryString += " From DetalleItemsCostos DIC";
-                queryString += " Inner Join centro_costo_cuenta CCC on CCC.CodigoCuentaCentroCosto = DIC.NoCuenta";
-                queryString += " Inner Join centro_costo CC on CC.IdCentroCosto = DIC.IdCC";
-                queryString += " Where DIC.Id = " + idDIC;
+                queryString = "SELECT DIC.*, CCC.Descripcion, CC.Lote LoteCC ";
+                queryString += " FROM DetalleItemsCostos DIC";
+                queryString += " INNER JOIN centro_costo_cuenta CCC ON CCC.CodigoCuentaCentroCosto = DIC.NoCuenta";
+                queryString += " INNER JOIN centro_costo CC ON CC.IdCentroCosto = DIC.IdCC";
+                queryString += " WHERE DIC.Id = " + idDIC;
 
 System.out.println("2 " + queryString);
 
@@ -611,9 +570,6 @@ System.out.println("2 " + queryString);
                     totalTxt.setValue(rsRecords.getDouble("Total"));
                     monedaCbx.select(rsRecords.getString("Moneda"));
                     proveedorCbx.select(rsRecords.getString("IdProveedor"));
-                    empresaCbx.select(rsRecords.getString("IdEmpresa"));
-System.out.println(rsRecords.getString("IdProveedor"));
-System.out.println(rsRecords.getString("IdEmpresa"));
                 }
             }
 
@@ -634,7 +590,6 @@ System.out.println(rsRecords.getString("IdEmpresa"));
                 unidadTxt.setReadOnly(true);
                 monedaCbx.setReadOnly(true);
                 proveedorCbx.setReadOnly(true);
-                empresaCbx.setReadOnly(true);
                 cantidadTxt.focus();
             }
         } catch (Exception ex) {
@@ -701,20 +656,20 @@ System.out.println(rsRecords.getString("IdEmpresa"));
                 queryString += ", " + precioTxt.getDoubleValueDoNotThrow();
                 queryString += ", " + (cantidadTxt.getDoubleValueDoNotThrow() * precioTxt.getDoubleValueDoNotThrow());
                 queryString += ",'" + monedaCbx.getValue() + "'";
-                queryString += ", " + empresaCbx.getValue();
+                queryString += ", " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
                 queryString += ", " + proveedorCbx.getValue();
                 queryString += ")";
             }
             else {
                 if (totalTxt.getDoubleValueDoNotThrow() != 0.00) {
-                    queryString = "Update visita_inspeccion_tarea_oc_detalle Set ";
+                    queryString = "UPDATE visita_inspeccion_tarea_oc_detalle SET ";
                     queryString += " Cantidad = " + cantidadTxt.getDoubleValueDoNotThrow();
                     queryString += ",Precio   = " + precioTxt.getDoubleValueDoNotThrow();
                     queryString += ",Total    = " + (cantidadTxt.getDoubleValueDoNotThrow() * precioTxt.getDoubleValueDoNotThrow());
-                    queryString += " Where idVisitaInspeccionTareaOcDetalle  = " + idVisitaInspeccionTareaOcDetalle;
+                    queryString += " WHERE idVisitaInspeccionTareaOcDetalle  = " + idVisitaInspeccionTareaOcDetalle;
                 } else {
-                    queryString = "Delete from visita_inspeccion_tarea_oc_detalle";
-                    queryString += " Where idVisitaInspeccionTareaOcDetalle  = " + idVisitaInspeccionTareaOcDetalle;
+                    queryString = "DELETE FROM visita_inspeccion_tarea_oc_detalle";
+                    queryString += " WHERE idVisitaInspeccionTareaOcDetalle  = " + idVisitaInspeccionTareaOcDetalle;
                 }
             }
 

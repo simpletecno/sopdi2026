@@ -33,23 +33,13 @@ import java.util.logging.Logger;
 public class IngresoBancosTrasladosForm extends Window {
 
     static final String NIT_PROPERTY = "NIT";
-    static final String NOMBRESINCODIGO_PROPERTY = "NSC";
 
     UI mainUI;
     Statement stQuery;
     ResultSet rsRecords;
-    Statement stQuery1;
-    Statement stQuery2;
-    ResultSet rsRecords1;
-    ResultSet rsRecords2;
     String queryString;
 
-    ArrayList<String> codigoDepositosList;
-    ArrayList<String> tipoDocaList;
-    ArrayList<String> noDocaList;
-
     VerticalLayout mainLayout = new VerticalLayout();
-    ComboBox empresaCbx;
 
     ComboBox medioCbx;
     ComboBox proveedorCbx;
@@ -77,8 +67,8 @@ public class IngresoBancosTrasladosForm extends Window {
     String codigoPartida;
     DateField fechaDt;
 
-    BigDecimal totalDebe;
-    BigDecimal totalHaber;
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public IngresoBancosTrasladosForm(String empresa, String codigoPartida) {
         this.empresa = empresa;
@@ -103,24 +93,10 @@ public class IngresoBancosTrasladosForm extends Window {
         setWidth("95%");
         setHeight("50%");
 
-        Label titleLbl = new Label("Ingreso por traslado empresas relacionadas");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Ingreso por traslado empresas relacionadas");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-        empresaCbx.select(empresa);
-        empresaCbx.setReadOnly(true);
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -136,29 +112,6 @@ public class IngresoBancosTrasladosForm extends Window {
 
         if (!codigoPartida.trim().isEmpty()) {
 //            llenarDatos();
-        }
-
-    }
-
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * FROM contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-
-            rsRecords.first();
-//            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar cuentas a cargar: " + ex1.getMessage());
-            ex1.printStackTrace();
         }
     }
 
@@ -505,9 +458,10 @@ public class IngresoBancosTrasladosForm extends Window {
     }
 
     public void llenarComboProveedor() {
-        queryString = " SELECT * from proveedor ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0 ";
-        queryString += " Order By Nombre";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY Nombre";
 
         proveedorCbx.removeAllItems();
 
@@ -529,9 +483,10 @@ public class IngresoBancosTrasladosForm extends Window {
 
     public void llenarComboCuentaContable() {
 
-        queryString = " SELECT * from contabilidad_nomenclatura";
-        queryString += " where Estatus = 'HABILITADA'";
-        queryString += " Order By N5";
+        queryString = " SELECT * from contabilidad_nomenclatura_empresa";
+        queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY N5";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -603,11 +558,11 @@ public class IngresoBancosTrasladosForm extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "5";
+        codigoPartida = empresaId + año + mes + dia + "5";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + codigoPartida + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = "SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida LIKE '" + codigoPartida + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -630,14 +585,14 @@ public class IngresoBancosTrasladosForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, ";
+        queryString = "INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, ";
         queryString += " TipoDocumento, Fecha, IdProveedor, NombreProveedor, SerieDocumento,";
         queryString += " NumeroDocumento, IdNomenclatura, MonedaDocumento, MontoDocumento, Debe, Haber,";
         queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, Saldo, Descripcion,";
         queryString += " CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values ";
+        queryString += " VALUES ";
         queryString += "(";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
@@ -661,7 +616,7 @@ public class IngresoBancosTrasladosForm extends Window {
 
         //segundo  ingreso
         queryString += ",(";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
@@ -686,7 +641,7 @@ public class IngresoBancosTrasladosForm extends Window {
 
         if (cuentaContable3Cbx.getValue() != null && debe3Txt.getDoubleValueDoNotThrow() != 0.00) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
@@ -711,7 +666,7 @@ public class IngresoBancosTrasladosForm extends Window {
         }
         if (cuentaContable3Cbx.getValue() != null && haber3Txt.getDoubleValueDoNotThrow() != 0.00) {
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
@@ -799,8 +754,8 @@ public class IngresoBancosTrasladosForm extends Window {
             @Override
             public void buttonClick(Button.ClickEvent event) {
                 if (!codigoPartida.trim().isEmpty()) {
-                    queryString = " DELETE from contabilidad_partida ";
-                    queryString += " where CodigoPartida  = '" + codigoPartida + "'";
+                    queryString = " DELETE FROM contabilidad_partida ";
+                    queryString += " WHERE CodigoPartida  = '" + codigoPartida + "'";
 
                     try {
                         stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();

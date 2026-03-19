@@ -29,13 +29,11 @@ public class IgssPorDeclararForm extends Window {
 
     UI mainUI;
 
-    ComboBox empresaCbx;
-
     DateField finDt;
     Button buscarBtn;
 
-    Statement stQuery, stQuery1, stQuery2;
-    ResultSet rsRecords, rsRecords1, rsRecords2;
+    Statement stQuery;
+    ResultSet rsRecords;
 
     String queryString;
 
@@ -82,6 +80,9 @@ public class IgssPorDeclararForm extends Window {
     double laboralSegunIGSS_N = 0;
     double patronalSegunIGSS_N = 0;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public IgssPorDeclararForm() {
         this.mainUI = UI.getCurrent();
         setResponsive(true);
@@ -96,15 +97,6 @@ public class IgssPorDeclararForm extends Window {
         layoutTitle.setSpacing(true);
         layoutTitle.setMargin(true);
         layoutTitle.setWidth("100%");
-
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
 
         finDt = new DateField("FECHAS DE PLANILLAS AL : ");
         finDt.setDateFormat("dd/MM/yyyy");
@@ -126,13 +118,10 @@ public class IgssPorDeclararForm extends Window {
             }
         });
         
-        Label titleLbl = new Label("IGSS POR DECLARAR");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " IGSS POR DECLARAR");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(finDt);
         layoutTitle.setComponentAlignment(finDt, Alignment.MIDDLE_CENTER);
@@ -149,12 +138,6 @@ public class IgssPorDeclararForm extends Window {
         createGridDetails();
         createGridIgssFooter();
 
-    }
-
-    public void llenarComboEmpresa() {
-        empresaCbx.addItem(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId());
-        empresaCbx.setItemCaption(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId(), ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName());
-        empresaCbx.select(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId());
     }
 
     public void createGridDetails() {
@@ -407,7 +390,7 @@ public class IgssPorDeclararForm extends Window {
             queryString = "SELECT CodigoCC, TipoDocumento, IdNomenclatura, Fecha, SerieDocumento, NumeroDocumento, ";
             queryString += " DebeQuetzales, HaberQuetzales, NombreProveedor, CodigoPartida ";
             queryString += " FROM contabilidad_partida";
-            queryString += " WHERE  IdEmpresa = " + empresaCbx.getValue();
+            queryString += " WHERE  IdEmpresa = " + empresaId;
             queryString += " AND Fecha <= '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "'";
             queryString += " AND IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getCuotaPatronalIgssPorPagar();
             queryString += " AND UPPER(TipoDocumento) = 'PLANILLA'";
@@ -441,7 +424,7 @@ public class IgssPorDeclararForm extends Window {
             queryString = "SELECT CodigoCC, TipoDocumento, IdNomenclatura, Fecha, SerieDocumento, NumeroDocumento, ";
             queryString += " NombreProveedor, DebeQuetzales, HaberQuetzales, CodigoPartida ";
             queryString += " FROM contabilidad_partida ";
-            queryString += " WHERE  contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
+            queryString += " WHERE  contabilidad_partida.IdEmpresa = " +empresaId;
             queryString += " AND Fecha <= '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "'";
             queryString += " AND IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getCuotaLaboralIgssPorPagar();
             queryString += " AND UPPER(TipoDocumento) = 'PLANILLA'";
@@ -521,12 +504,12 @@ public class IgssPorDeclararForm extends Window {
         patronalSegunIGSS_N = patronoalSegunIgss.getDoubleValueDoNotThrow();
         //-----
 
-        if (((SopdiUI) UI.getCurrent()).esMesCerrado(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(new Date()))) {
+        if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresaId, Utileria.getFechaYYYYMMDD_1(new Date()))) {
             Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
             return;
         }
-        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(new Date()))) {
-            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(String.valueOf(empresaCbx.getValue())), Notification.Type.WARNING_MESSAGE);
+        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(empresaId, Utileria.getFechaYYYYMMDD_1(new Date()))) {
+            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(empresaId), Notification.Type.WARNING_MESSAGE);
             return;
         }
         if (this.serieTxt.getValue().trim().isEmpty()) {
@@ -573,11 +556,11 @@ public class IgssPorDeclararForm extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        String codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "1";
+        String codigoPartida = empresaId + año + mes + dia + "1";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + codigoPartida + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = " SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida like '" + codigoPartida + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -598,12 +581,12 @@ public class IgssPorDeclararForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Select * from contabilidad_partida";
-        queryString += " Where SerieDocumento  = '" + serieTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " And NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " And IdEmpresa = " + String.valueOf(empresaCbx.getValue());
-        queryString += " And TipoDocumento = 'RECIBO CONTABLE'";
-        queryString += " And MonedaDocumento = 'QUETZALES'";
+        queryString = " SELECT * FROM contabilidad_partida";
+        queryString += " WHERE SerieDocumento  = '" + serieTxt.getValue().toUpperCase().trim() + "'";
+        queryString += " AND NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND TipoDocumento = 'RECIBO CONTABLE'";
+        queryString += " AND MonedaDocumento = 'QUETZALES'";
 
         try {
             rsRecords = stQuery.executeQuery(queryString);
@@ -619,14 +602,14 @@ public class IgssPorDeclararForm extends Window {
         }
 
         /// Ingreso del haber
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
+        queryString = " INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
         queryString += " TipoDocumento, Fecha, IdOrdenCompra, IdProveedor, NITProveedor, NombreProveedor,";
         queryString += " SerieDocumento, NumeroDocumento, IdNomenclatura, MonedaDocumento, MontoDocumento, Debe, Haber,";
         queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, Saldo, IdLiquidador, Descripcion, Referencia,";
         queryString += " CreadoUsuario, CreadoFechaYHora, Archivo, ArchivoTipo, ArchivoPeso, ArchivoNombre)";
         queryString += " Values ";
         queryString += " (";
-        queryString += empresaCbx.getValue();
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'"; //codigoCC
@@ -662,7 +645,7 @@ public class IgssPorDeclararForm extends Window {
         for (Object itemId : igssPatronalContainer.getItemIds()) {
             if (igssPatronalDetailGrid.isSelected(itemId)) {
                 queryString += ",(";
-                queryString += empresaCbx.getValue();
+                queryString += empresaId;
                 queryString += ",'INGRESADO'";
                 queryString += ",'" + codigoPartida + "'";
                 queryString += ",'" + igssPatronalContainer.getContainerProperty(itemId, CODIGO_PROPERTY).getValue().toString() + "'"; //codigoCC
@@ -700,7 +683,7 @@ public class IgssPorDeclararForm extends Window {
         for (Object itemId : igssLaboralContainer.getItemIds()) {
             if (igssLaboralDetailGrid.isSelected(itemId)) {
                 queryString += ",(";
-                queryString += empresaCbx.getValue();
+                queryString += empresaId;
                 queryString += ",'INGRESADO'";
                 queryString += ",'" + codigoPartida + "'";
                 queryString += ",'" + igssLaboralContainer.getContainerProperty(itemId, CODIGO_PROPERTY).getValue().toString() + "'"; //codigoCC
@@ -739,7 +722,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "totalIgssPatronal -
         if (totalIgssPatronal - patronoalSegunIgss.getDoubleValueDoNotThrow() < 0) {
 Logger.getLogger(this.getClass().getName()).log(Level.INFO, "1...");
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoPartida + "'"; //codigoCC
@@ -776,7 +759,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "1...");
         if (totalIgssPatronal - patronoalSegunIgss.getDoubleValueDoNotThrow() > 0) {
 Logger.getLogger(this.getClass().getName()).log(Level.INFO, "2...");
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoPartida + "'"; //codigoCC
@@ -813,7 +796,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "2...");
         if (totalIgssLaboral - laboralSegunIgss.getDoubleValueDoNotThrow() < 0) {
 Logger.getLogger(this.getClass().getName()).log(Level.INFO, "3...");
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoPartida + "'"; //codigoCC
@@ -850,7 +833,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "3...");
         if (totalIgssLaboral - laboralSegunIgss.getDoubleValueDoNotThrow() > 0) {
 Logger.getLogger(this.getClass().getName()).log(Level.INFO, "4...");
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoPartida + "'"; //codigoCC
@@ -888,7 +871,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "4...");
 
 Logger.getLogger(this.getClass().getName()).log(Level.INFO, "5...");
             queryString += " ,(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoPartida + "'"; //codigoCC
@@ -995,7 +978,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "5...");
             notif.setIcon(FontAwesome.CHECK);
             notif.show(Page.getCurrent());
 
-            ((IngresoDocumentosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(String.valueOf(empresaCbx.getValue()), 0);
+            ((IngresoDocumentosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(empresaId, 0);
 
             close();
 

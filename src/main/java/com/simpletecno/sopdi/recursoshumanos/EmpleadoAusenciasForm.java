@@ -96,7 +96,7 @@ public class   EmpleadoAusenciasForm extends Window {
         setWidth("80%");
         setHeight("80%");
 
-        setCaption("Ausencia DEL EMPLEADO: " + idEmpleado);
+        setCaption("Ausencia del COLABORADOR: " + idEmpleado);
 
         marginInfo = new MarginInfo(true, true, true, true);
 

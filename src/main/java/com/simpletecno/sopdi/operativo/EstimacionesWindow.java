@@ -103,7 +103,6 @@ public class EstimacionesWindow extends Window {
     String empresaNombre = "";
     String proveedorId = "0";
     String proveedorNombre = "";
-    String moneda = "QUETZALES";
     String estatus = "NUEVA";
           
     UI mainUI;

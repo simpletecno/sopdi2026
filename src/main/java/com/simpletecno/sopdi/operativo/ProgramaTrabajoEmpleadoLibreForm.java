@@ -76,11 +76,8 @@ public class ProgramaTrabajoEmpleadoLibreForm extends Window {
         rhGrid = new Grid("", rhContainer);
         rhGrid.setWidth("100%");
         rhGrid.setImmediate(true);
-//        rhGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
-//        rhGrid.setDescription("Seleccione un registro.");
         rhGrid.setHeightMode(HeightMode.ROW);
         rhGrid.setHeightByRows(15);
-       //rhGrid.setSizeFull();
 
         mainLayout.addComponent(rhGrid);
 
@@ -88,19 +85,16 @@ public class ProgramaTrabajoEmpleadoLibreForm extends Window {
         generarExcel.setIcon(FontAwesome.FILE_EXCEL_O);
         generarExcel.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
-        generarExcel.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                if (rhContainer.size() > 0) {
-                    exportToExcel();
-                } else {
-                    Notification notif = new Notification("La vista no contiene registros disponibles..",
-                            Notification.Type.WARNING_MESSAGE);
-                    notif.setDelayMsec(1500);
-                    notif.setPosition(Position.MIDDLE_CENTER);
-                    notif.setIcon(FontAwesome.WARNING);
-                    notif.show(Page.getCurrent());
-                }
+        generarExcel.addClickListener((Button.ClickListener) event -> {
+            if (rhContainer.size() > 0) {
+                exportToExcel();
+            } else {
+                Notification notif = new Notification("La vista no contiene registros disponibles..",
+                        Notification.Type.WARNING_MESSAGE);
+                notif.setDelayMsec(1500);
+                notif.setPosition(Position.MIDDLE_CENTER);
+                notif.setIcon(FontAwesome.WARNING);
+                notif.show(Page.getCurrent());
             }
         });
 

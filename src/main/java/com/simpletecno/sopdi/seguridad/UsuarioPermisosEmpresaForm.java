@@ -30,7 +30,6 @@ public class UsuarioPermisosEmpresaForm extends Window {
     Button saveBtn;
 
     Statement stQuery = null;
-    static PreparedStatement stPreparedQuery;
     ResultSet rsRecords = null;
 
     IndexedContainer permisosContainer = new IndexedContainer();
@@ -151,8 +150,8 @@ public class UsuarioPermisosEmpresaForm extends Window {
 
             //INSERT
 
-            queryString =  "Insert Into usuario_permisos_empresa (IdUsuario, IdEmpresa)";
-            queryString += " Values ";
+            queryString =  "INSERT INTO usuario_permisos_empresa (IdUsuario, IdEmpresa)";
+            queryString += " VALUES ";
 
             for(Object selectedItem: permisosGrid.getSelectedRows()) {
                 queryString += "(";

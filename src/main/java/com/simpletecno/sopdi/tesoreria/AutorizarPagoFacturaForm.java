@@ -70,8 +70,6 @@ public class AutorizarPagoFacturaForm extends Window {
     static final String SALDO2_PROPERTY = "Saldo";
     static final String UTILIZAR_PROPERTY = "Utilizar";
 
-    ComboBox empresaCbx;
-
     IndexedContainer facturasContainer = new IndexedContainer();
     Grid facturasGrid;
 
@@ -101,6 +99,9 @@ public class AutorizarPagoFacturaForm extends Window {
 
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public AutorizarPagoFacturaForm() {
         this.mainUI = UI.getCurrent();
         setResponsive(true);
@@ -116,16 +117,7 @@ public class AutorizarPagoFacturaForm extends Window {
         layoutTitle.setMargin(new MarginInfo(false, true, false, true));
         layoutTitle.setWidth("100%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-
-        Label titleLbl = new Label("Autorizar " + AutorizacionesPagoView.PAGO_DOCUMENTO);
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Autorizar " + AutorizacionesPagoView.PAGO_DOCUMENTO);
         if (mainUI.getPage().getBrowserWindowWidth() >= 736) {
             titleLbl.addStyleName(ValoTheme.LABEL_H2);
         }
@@ -134,9 +126,6 @@ public class AutorizarPagoFacturaForm extends Window {
         }
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -150,31 +139,6 @@ public class AutorizarPagoFacturaForm extends Window {
 
     }
 
-    public void llenarComboEmpresa() {
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords1.next()) { //  encontrado
-
-                empresaCbx.addItem(rsRecords1.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords1.getString("IdEmpresa"), rsRecords1.getString("Empresa"));
-            }
-            rsRecords1.first();
-
-            empresaCbx.select(rsRecords1.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     public void crearGridFactura() {
 
         HorizontalLayout documentosLayout = new HorizontalLayout();
@@ -182,8 +146,6 @@ public class AutorizarPagoFacturaForm extends Window {
         documentosLayout.addStyleName("rcorners3");
         documentosLayout.setMargin(new MarginInfo(false, true, false, true));
         documentosLayout.setResponsive(true);
-//        documentosLayout.setSizeUndefined();
-//        documentosLayout.addStyleName(ValoTheme.LAYOUT_HORIZONTAL_WRAPPING);
 
         facturasContainer.addContainerProperty(TIPO_DOCUMENTO_PROPERTY, String.class, null);
         facturasContainer.addContainerProperty(ID_PROVEEDOR_PROPERTY, String.class, null);
@@ -369,8 +331,7 @@ public class AutorizarPagoFacturaForm extends Window {
 
         queryString = " SELECT * ";
         queryString += " FROM contabilidad_partida";
-        queryString += " WHERE IdEmpresa = " + empresaCbx.getValue();
-        //queryString += " AND   Extract(YEAR From Fecha) >= 2019";
+        queryString += " WHERE IdEmpresa = " + empresaId;
         queryString += " AND   Upper(TipoDocumento) IN ('FACTURA','RECIBO','RECIBO CONTABLE','RECIBO CORRIENTE','FORMULARIO IVA',";
         queryString += " 'FORMULARIO ISR', 'FORMULARIO ISR RETENIDO', 'FORMULARIO ISO', 'FORMULARIO RECTIFICACION', 'FORMULARIO ISR OPCIONAL MENSUAL')";
         queryString += " AND   IdNomenclatura IN (" + ((SopdiUI) mainUI).cuentasContablesDefault.getProveedores() + "," + ((SopdiUI) mainUI).cuentasContablesDefault.getInstituciones() + ")";
@@ -378,7 +339,7 @@ public class AutorizarPagoFacturaForm extends Window {
         queryString += " AND   MontoAplicarAnticipo = 0 ";
         queryString += " AND   Estatus <> 'ANULADO'";
         if(!((SopdiUI) mainUI).sessionInformation.getStrUserProfileName().equals("ADMINISTRADOR")) {
-            queryString += " AND IdProveedor In (SELECT IdProveedor FROM proveedor WHERE ESAUTORIZADOPAGAR = 1)";
+            queryString += " AND IdProveedor In (SELECT IdProveedor FROM proveedor_empresa WHERE ESAUTORIZADOPAGAR = 1 AND IdEmpresa = " + empresaId + ")";
         }
         queryString += " ORDER by contabilidad_partida.CodigoPartida";
 
@@ -397,7 +358,7 @@ public class AutorizarPagoFacturaForm extends Window {
                     queryString = " SELECT ";
                     queryString += " SUM(HABER - DEBE) TOTALSALDO, SUM(HaberQuetzales - DebeQuetzales) TOTALSALDOQ ";
                     queryString += " FROM contabilidad_partida";
-                    queryString += " WHERE IdEmpresa = " + empresaCbx.getValue();
+                    queryString += " WHERE IdEmpresa = " + empresaId;
                     queryString += " AND CodigoCC = '" + rsRecords.getString("CodigoCC") + "'";
                     queryString += " AND contabilidad_partida.IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
                     queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
@@ -536,8 +497,6 @@ public class AutorizarPagoFacturaForm extends Window {
 
         autorizarBtn = new Button("Autorizar");
         autorizarBtn.setIcon(FontAwesome.SAVE);
-//        autorizarBtn.setWidth("60%");
-//        autorizarBtn.setHeight("80%");
         autorizarBtn.setStyleName(ValoTheme.BUTTON_PRIMARY);
         autorizarBtn.addClickListener(new Button.ClickListener() {
             @Override
@@ -547,7 +506,6 @@ public class AutorizarPagoFacturaForm extends Window {
         });
 
         salirBtn = new Button("Salir");
-//        salirBtn.setWidth("7em");
         salirBtn.setStyleName(ValoTheme.BUTTON_DANGER);
         salirBtn.addClickListener(new Button.ClickListener() {
             @Override
@@ -633,7 +591,6 @@ public class AutorizarPagoFacturaForm extends Window {
 
         double total = 0.00;
         double montoCheque = 0.00;
-        double utilizarAnticipos = 0.00;
 
         for (Object itemId : anticiposPagoContainer.getItemIds()) {
             Item item = anticiposPagoContainer.getItem(itemId);
@@ -641,7 +598,6 @@ public class AutorizarPagoFacturaForm extends Window {
 
             total += Double.valueOf(String.valueOf(propertyValue));
         }
-//        utilizarAnticipos = Double.parseDouble(String.valueOf(anticiposPagoFooter.getCell(UTILIZAR_PROPERTY).getText().replaceAll(",", "")));
         totalUtilizarAnticiposTxt.setReadOnly(false);
         totalUtilizarAnticiposTxt.setValue(total);
         totalUtilizarAnticiposTxt.setReadOnly(true);
@@ -671,15 +627,16 @@ public class AutorizarPagoFacturaForm extends Window {
         queryString = " SELECT contabilidad_partida.CodigoPartida, contabilidad_partida.CodigoCC, SUM(DEBE) MontoAnticipo, ";
         queryString += " SUM(DEBE - HABER) TOTALSALDO, SUM(DebeQuetzales - HaberQuetzales) TOTALSALDOQ, contabilidad_partida.Fecha";
         queryString += " FROM contabilidad_partida";
-        queryString += " INNER JOIN contabilidad_nomenclatura ON contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+        queryString += " INNER JOIN contabilidad_nomenclatura_empresa ON contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
         queryString += " WHERE contabilidad_partida.IdProveedor = " + proveedorSeleccionado;
-        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
+        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
         queryString += " AND contabilidad_partida.MonedaDocumento = '" + tipoMonedaSeleccionado + "'";
         queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposProveedor();
 //        queryString += " AND contabilidad_partida.TipoDocumento In ('CHEQUE', 'TRANSFERENCIA', 'NOTA DE CREDITO', 'DEPOSITO', 'PAGO DOCUMENTO','FORMULARIO ISR OPCIONAL MENSUAL' )";
 //        queryString += " AND EXTRACT(YEAR FROM Fecha) >= '2020' ";
         queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
 //        queryString += " AND contabilidad_partida.CodigoCC Not In (Select CodigoCCRelacionado from autorizacion_pago ) ";
+        queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
         queryString += " GROUP BY contabilidad_partida.CodigoCC";
         queryString += " HAVING TOTALSALDO > 0";
 
@@ -697,7 +654,7 @@ public class AutorizarPagoFacturaForm extends Window {
                     queryString = " SELECT IFNULL(SUM(Monto),0) TOTALOCUPADO";
                     queryString += " FROM autorizacion_pago";
                     queryString += " WHERE IdProveedor = " + proveedorSeleccionado;
-                    queryString += " AND IdEmpresa = " + empresaCbx.getValue();
+                    queryString += " AND IdEmpresa = " + empresaId;
                     queryString += " AND CodigoCCRelacionado = '" + rsRecords.getString("CodigoCC") + "'";
 
                     Logger.getLogger(this.getClass().getName()).log(Level.INFO, "-->query obtener saldo real anticipo : " + queryString);
@@ -745,25 +702,25 @@ public class AutorizarPagoFacturaForm extends Window {
 
             montoAplicarAnticipo = totalUtilizarAnticiposTxt.getDoubleValueDoNotThrow() + Double.valueOf(String.valueOf(facturasContainer.getContainerProperty(facturasGrid.getSelectedRow(), MONTO_ANTICIPO_PROPERTY).getValue()).replaceAll("Q.", "").replaceAll("\\$.", "").replaceAll(",", ""));
 
-            queryString = "Update contabilidad_partida Set ";
+            queryString = "UPDATE contabilidad_partida SET ";
             queryString += " MontoAutorizadoPagar = " + montoAuotizadoPagar;
             queryString += ", MontoAplicarAnticipo = " + montoAplicarAnticipo;
             //           queryString += ", Saldo = " + nuevoSaldo;
-            queryString += " Where CodigoPartida = '" + String.valueOf(facturasContainer.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
-            queryString += " and IdEmpresa = " + String.valueOf(empresaCbx.getValue());
+            queryString += " WHERE CodigoPartida = '" + String.valueOf(facturasContainer.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
+            queryString += " AND IdEmpresa = " + empresaId;
 
             Logger.getLogger(this.getClass().getName()).log(Level.INFO, Utileria.getFechaDDMMYYYY_HHMM() + " actualizar FACTURA AUTORIZADA PARA PAGAR..." + queryString);
 
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);
 
-            queryString = "  Insert Into autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
+            queryString = "  INSERT INTO autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
             queryString += " Fecha, Moneda, Monto, CodigoCC, CodigoCCRelacionado, CuentaContableLiquidar, ";
             queryString += " Objetivo, CreadoUsuario, CreadoFechaYHora)";
-            queryString += " Values ";
+            queryString += " VALUES ";
             queryString += "(";
             queryString += "'" + AutorizacionesPagoView.PAGO_DOCUMENTO + "'";
-            queryString += "," + String.valueOf(empresaCbx.getValue());
+            queryString += "," + empresaId;
             queryString += "," + String.valueOf(facturasContainer.getContainerProperty(facturasGrid.getSelectedRow(), ID_PROVEEDOR_PROPERTY).getValue());
             queryString += ",current_date";
             queryString += ",'" + String.valueOf(facturasContainer.getContainerProperty(facturasGrid.getSelectedRow(), MONEDA_PROPERTY).getValue()) + "'";
@@ -820,19 +777,19 @@ public class AutorizarPagoFacturaForm extends Window {
 
                 if (montoUtilizarVariable > 0) {
 
-                    queryString = " Delete From autorizacion_pago ";
-                    queryString += " Where CodigoCCRelacionado = '" + codigoCCAnticipo + "'";
-                    queryString += " And   CodigoCC = '" + codigoCC + "'";
+                    queryString = " DELETE FROM autorizacion_pago ";
+                    queryString += " WHERE CodigoCCRelacionado = '" + codigoCCAnticipo + "'";
+                    queryString += " AND   CodigoCC = '" + codigoCC + "'";
 
                     stQuery.executeUpdate(queryString);
 
-                    queryString = "  Insert Into autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
+                    queryString = "  INSERT INTO autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
                     queryString += " Fecha, Moneda, Monto, CodigoCC, CodigoCCRelacionado, CuentaContableLiquidar, ";
                     queryString += " Objetivo, CreadoUsuario, CreadoFechaYHora)";
-                    queryString += " Values ";
+                    queryString += " VALUES ";
                     queryString += "(";
                     queryString += "'" + AutorizacionesPagoView.PAGO_DOCUMENTO + "'";
-                    queryString += "," + String.valueOf(empresaCbx.getValue());
+                    queryString += "," + empresaId;
                     queryString += "," + proveedorSeleccionado;
                     queryString += ",current_date";
                     queryString += ",'" + moneda + "'";

@@ -135,8 +135,8 @@ public class ProgramaTrabajoSupervisionTextWindow extends Window {
         try {
 
             String queryString = "";
-            queryString = "Insert Into plan_trabajo_idex_su (IdPlanTrabajoIdex, IdUsuario, IdCaracteristica, IdEmpleado, FechaYHora, Comentario)";
-            queryString += " Values (";
+            queryString = "INSERT INTO plan_trabajo_idex_su (IdPlanTrabajoIdex, IdUsuario, IdCaracteristica, IdEmpleado, FechaYHora, Comentario)";
+            queryString += " VALUES (";
             queryString += idPlanTrabajoIdex;
             queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
             queryString += "," + idCaracteristica;

@@ -57,6 +57,9 @@ public class EmpleadoAsistenciaView extends VerticalLayout implements View {
 
     VerticalLayout mainLayout = new VerticalLayout();
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public EmpleadoAsistenciaView() {
 
         this.mainUI = UI.getCurrent();
@@ -64,7 +67,7 @@ public class EmpleadoAsistenciaView extends VerticalLayout implements View {
         setMargin(false);
         setSpacing(true);
 
-        Label titleLbl = new Label("ASISTENCIA DIARIA PLAN DE TRABAJO");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " ASISTENCIA DIARIA PLAN DE TRABAJO");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -169,7 +172,6 @@ public class EmpleadoAsistenciaView extends VerticalLayout implements View {
         planBitacoraGrid.getColumn(IDBITACORA_PROPERTY).setExpandRatio(1).setHidden(true).setHidable(true);
         planBitacoraGrid.getColumn(IDEMPLEADO_PROPERTY).setExpandRatio(1);
         planBitacoraGrid.getColumn(EMPLEADO_PROPERTY).setExpandRatio(3);
-//        groupBitacoraGrid.getColumn(GRUPONOMBRE_PROPERTY).setExpandRatio(1);
         planBitacoraGrid.getColumn(HORASEXTRA_PROPERTY).setExpandRatio(1);
         planBitacoraGrid.getColumn(HORASEXTRAII_PROPERTY).setExpandRatio(1);
         planBitacoraGrid.getColumn(EVENTO_PROPERTY).setExpandRatio(1);
@@ -207,8 +209,7 @@ public class EmpleadoAsistenciaView extends VerticalLayout implements View {
 
                     stQuery.executeUpdate(queryString);
 
-                    queryString = "UPDATE proveedor SET ";
-//                    queryString += " GrupoTrabajo = '" + String.valueOf(planbBitacoraContainer.getContainerProperty(objectItem, GRUPONOMBRE_PROPERTY).getValue()) + "'";
+                    queryString = "UPDATE proveedor_empresa SET ";
                     queryString += " EstatusTrabajo = '" + String.valueOf(planbBitacoraContainer.getContainerProperty(objectItem, ESTATUS_PROPERTY).getValue()) + "'";
                     queryString += ",Razon   = '" + String.valueOf(planbBitacoraContainer.getContainerProperty(objectItem, RAZON_PROPERTY).getValue()) + "'";
                     if(String.valueOf(planbBitacoraContainer.getContainerProperty(objectItem, ESTATUS_PROPERTY).getValue()).equals("DE BAJA")){
@@ -326,7 +327,7 @@ public class EmpleadoAsistenciaView extends VerticalLayout implements View {
         razonAusenciaCbx.addItem("");
 
         String queryString = "";
-        queryString += " SELECT * from razon_ausencia";
+        queryString += " SELECT * FROM razon_ausencia";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -462,7 +463,7 @@ public class EmpleadoAsistenciaView extends VerticalLayout implements View {
             queryString = " SELECT BITA.*, PROV.IdProveedor, PROV.Nombre NombreEmpleado, ";
             queryString += " PROV.Cargo, PROV.TipoAsignacion, PROV.FechaIngreso";
             queryString += " FROM empleado_asistencia BITA";
-            queryString += " INNER JOIN proveedor PROV ON PROV.IdProveedor = BITA.IdEmpleado ";
+            queryString += " INNER JOIN proveedor_empresa PROV ON PROV.IdProveedor = BITA.IdEmpleado ";
             queryString += " WHERE BITA.Fecha = '" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += " AND   PROV.Inhabilitado = 0";
             queryString += " AND   PROV.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
@@ -524,7 +525,7 @@ public class EmpleadoAsistenciaView extends VerticalLayout implements View {
     private void crearBitacora() {
         queryString = "Insert Into empleado_asistencia (IdEmpleado, Cargo, Fecha, Estatus, Razon, EsDefinitiva, CreadoFechaYHora, CreadoIdUsuario)";
         queryString += " SELECT IdProveedor, Cargo, '" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "', EstatusTrabajo, Razon, 0, current_timestamp, " + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
-        queryString += " FROM proveedor ";
+        queryString += " FROM proveedor_empresa ";
         queryString += " WHERE EsPlanilla = 1 ";
         queryString += " AND   Inhabilitado = 0";
         queryString += " AND   EstatusTrabajo <> 'DE BAJA'";
@@ -555,7 +556,7 @@ public class EmpleadoAsistenciaView extends VerticalLayout implements View {
 
             queryString = " SELECT BITA.*, PROV.IdProveedor, PROV.Nombre NombreEmpleado, PROV.TipoAsignacion";
             queryString += " FROM empleado_asistencia BITA ";
-            queryString += " INNER JOIN proveedor PROV ON PROV.IdProveedor = BITA.IdEmpleado ";
+            queryString += " INNER JOIN proveedor_empresa PROV ON PROV.IdProveedor = BITA.IdEmpleado ";
             queryString += " WHERE BITA.Fecha = '" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += " AND   PROV.Inhabilitado = 0";
             queryString += " AND   PROV.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
@@ -632,7 +633,6 @@ public class EmpleadoAsistenciaView extends VerticalLayout implements View {
             excelExport.excludeCollapsedColumns();
             excelExport.setDisplayTotals(false);
             String fileexport;
-// produccion            fileexport = (empresa + "_" + empresaLbl.getValue().substring(5, empresaLbl.getValue().length()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é","") + "_INTEGRACION_CAMBIOS.xlsx").replaceAll(" ", "").replaceAll(",", "");
             fileexport = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + "_" + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyName().replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + "_ASISTENCIA.xls";
             excelExport.setExportFileName(fileexport);
             excelExport.export();

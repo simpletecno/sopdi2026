@@ -6,7 +6,6 @@
 package com.simpletecno.sopdi.contabilidad;
 
 import com.simpletecno.sopdi.SopdiUI;
-import com.simpletecno.sopdi.utilerias.Utileria;
 import com.vaadin.addon.tableexport.DefaultTableHolder;
 import com.vaadin.addon.tableexport.ExcelExport;
 import com.vaadin.addon.tableexport.TableHolder;
@@ -26,7 +25,6 @@ import com.vaadin.ui.Grid;
 import com.vaadin.ui.Grid.FooterRow;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
-import com.vaadin.ui.PopupDateField;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
@@ -50,16 +48,12 @@ public class HistorialAniosCerradosView extends VerticalLayout implements View {
     ResultSet rsRecords, rsRecords1, rsRecords2;
 
     ComboBox anioCbx;
-    
-    ComboBox empresaCbx;
-    String empresa;
 
     IndexedContainer balanceSaldosContainer;
     Grid balanceSaldosGrid;
     FooterRow footerRow;
 
     Button exportExcelBtn;
-    PopupDateField monthDt;
     NumberField diferenciaSaldos;
 
     static final String ID_PROPERTY = "Id";
@@ -72,7 +66,8 @@ public class HistorialAniosCerradosView extends VerticalLayout implements View {
 
     static DecimalFormat numberFormat = new DecimalFormat("###,###,##0.00");
 
-    static final Utileria UTILERIA = new Utileria();
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public HistorialAniosCerradosView() {
         this.mainUI = UI.getCurrent();
@@ -81,34 +76,17 @@ public class HistorialAniosCerradosView extends VerticalLayout implements View {
         setMargin(true);
         setHeightUndefined();
 
-        Label titleLbl = new Label("HISTORIAL AÑOS CERRAADOS");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " HISTORIAL AÑOS CERRAADOS");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
 //        titleLbl.addStyleName("h2_custom");
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-
-        llenarComboEmpresa();
-
-        empresaCbx.addValueChangeListener(event -> {
-            empresa = String.valueOf(event.getProperty().getValue());
-            llenarGridBalanceSaldos();
-        });
-
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -116,31 +94,6 @@ public class HistorialAniosCerradosView extends VerticalLayout implements View {
         setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
 
         crearGridBalanceSaldos();
-
-        empresa = String.valueOf(empresaCbx.getValue());
-
-    }
-
-    public void llenarComboEmpresa() {
-        String queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords1.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords1.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords1.getString("IdEmpresa"), rsRecords1.getString("Empresa"));
-            }
-            rsRecords1.first();
-
-            empresaCbx.select(rsRecords1.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void crearGridBalanceSaldos() {
@@ -312,7 +265,7 @@ public class HistorialAniosCerradosView extends VerticalLayout implements View {
                     excelExport.excludeCollapsedColumns();
                     excelExport.setDisplayTotals(false);
                     String fileexport;
-                    fileexport = "BalanceSaldos_" + empresaCbx.getItemCaption(empresaCbx.getValue()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + ".xls";
+                    fileexport = "BalanceSaldos_" + empresaNombre.replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + ".xls";
                     excelExport.setExportFileName(fileexport);
                     excelExport.export();
                 }
@@ -352,9 +305,9 @@ public class HistorialAniosCerradosView extends VerticalLayout implements View {
 
             for (int i = 0; i < anios.size(); i++) { // Recorrer array con años
 
-                String queryString = " SELECT * from contabilidad_partida"; // buscar si el año tiene partida inicial
-                queryString += " where Descripcion like 'PARTIDA INICIAL %'";
-                queryString += " And Extract(YEAR From Fecha) =" + anios.get(i);
+                String queryString = " SELECT * FROM contabilidad_partida"; // buscar si el año tiene partida inicial
+                queryString += " WHERE Descripcion LIKE 'PARTIDA INICIAL %'";
+                queryString += " AND Extract(YEAR FROM Fecha) =" + anios.get(i);
 
                 stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                 rsRecords = stQuery.executeQuery(queryString);
@@ -362,9 +315,9 @@ public class HistorialAniosCerradosView extends VerticalLayout implements View {
                 if (rsRecords.next()) { // El año tiene partida inicial
 
                     // verificar si el año ya esta cerrado
-                    queryString = " SELECT * from contabilidad_partida";
-                    queryString += " where Descripcion like 'PARTIDA CIERRE %'";
-                    queryString += " And Extract(YEAR From Fecha) =" + anios.get(i);
+                    queryString = " SELECT * FROM contabilidad_partida";
+                    queryString += " WHERE Descripcion LIKE 'PARTIDA CIERRE %'";
+                    queryString += " AND Extract(YEAR FROM Fecha) =" + anios.get(i);
 
                     stQuery2 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                     rsRecords2 = stQuery2.executeQuery(queryString);
@@ -401,9 +354,10 @@ public class HistorialAniosCerradosView extends VerticalLayout implements View {
 
         Object itemId;
 
-        String queryString = " SELECT * from contabilidad_nomenclatura";
-        queryString += " where Estatus = 'HABILITADA'";
-        queryString += " Order By Cast(NoCuenta AS UNSIGNED)";
+        String queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
+        queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY Cast(NoCuenta AS UNSIGNED)";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -414,13 +368,13 @@ public class HistorialAniosCerradosView extends VerticalLayout implements View {
 
                 do {
 
-                    queryString = " Select IfNull(SUM(contabilidad_partida.DebeQuetzales), 0.00) as DEBEQ,";
-                    queryString += " IfNull(SUM(contabilidad_partida.HaberQuetzales), 0.00) as HABERQ ";
-                    queryString += " From contabilidad_partida";
-                    queryString += " Where contabilidad_partida.IdEmpresa = " + empresa;
-                    queryString += " And contabilidad_partida.IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
-                    queryString += " And contabilidad_partida.Estatus <> 'ANULADO'";
-                    queryString += " And Extract(YEAR From contabilidad_partida.Fecha) = " + anioCbx.getValue();
+                    queryString = " SELECT IfNull(SUM(contabilidad_partida.DebeQuetzales), 0.00) AS DEBEQ,";
+                    queryString += " IfNull(SUM(contabilidad_partida.HaberQuetzales), 0.00) AS HABERQ ";
+                    queryString += " FROM contabilidad_partida";
+                    queryString += " WHERE contabilidad_partida.IdEmpresa = " + empresaId;
+                    queryString += " AND contabilidad_partida.IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
+                    queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
+                    queryString += " AND Extract(YEAR From contabilidad_partida.Fecha) = " + anioCbx.getValue();
 
                     rsRecords1 = stQuery1.executeQuery(queryString);
                     rsRecords1.next();

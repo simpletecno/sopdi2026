@@ -51,7 +51,6 @@ public class NotaCreditoVentaForm extends Window {
     VerticalLayout headerLayout;
 
     /* title */
-    ComboBox empresaCbx;
     Date fechaHoy;
 
     ComboBox tipoFacturaVentaCbx;
@@ -66,7 +65,6 @@ public class NotaCreditoVentaForm extends Window {
     ComboBox monedaDocBaseCbx;
     
     NumberField tasaCambioTxt;
-    NumberField montoTxt;
 
     Button grabarBtn;
 
@@ -74,7 +72,6 @@ public class NotaCreditoVentaForm extends Window {
     Statement stQuery;
     ResultSet rsRecords;
     Statement stQuery2;
-    ResultSet rsRecords2;
     String queryString;
 
     String variableTemp = "";
@@ -117,6 +114,9 @@ public class NotaCreditoVentaForm extends Window {
 
     List<TextField> razontxtList = new ArrayList<>();
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public NotaCreditoVentaForm(
             String codigoPartidaFactura,
             String serieFactura,
@@ -146,24 +146,11 @@ public class NotaCreditoVentaForm extends Window {
         setWidth("80%");
 //        setHeight("100%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("95%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        empresaCbx.addItem(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId());
-        empresaCbx.setItemCaption(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId(), ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName() + " : " +  ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyRegimen());
-        empresaCbx.select(empresaCbx.getItemIds().iterator().next());
-
-        Label titleLbl = new Label("NOTA DE CREDITO FACTURA VENTA");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " NOTA DE CREDITO FACTURA VENTA");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
 
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
 
@@ -552,7 +539,7 @@ public class NotaCreditoVentaForm extends Window {
 
     public void llenarComboCentroCosto() {
 
-        queryString = " SELECT * from centro_costo";
+        queryString = " SELECT * FROM centro_costo";
         queryString += " WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
         queryString += " AND IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
 
@@ -575,10 +562,11 @@ public class NotaCreditoVentaForm extends Window {
 
     public void llenarComboCliente() {
 
-        queryString = " SELECT * from proveedor ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0 ";
         queryString += " AND EsCliente = 1";
-        queryString += " Order By Nombre";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY Nombre";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -607,8 +595,8 @@ public class NotaCreditoVentaForm extends Window {
         queryString += "FROM contabilidad_partida cp ";
         queryString += "INNER JOIN producto_venta_empresa pve ON cp.IdProducto = pve.IdProducto ";
         queryString += "WHERE cp.CodigoPartida = '" + codigoPartidaFactura + "' ";
-        queryString += "AND cp.IdEmpresa = " + empresaCbx.getValue() + " ";
-        queryString += "AND pve.IdEmpresa = " + empresaCbx.getValue() + " ";
+        queryString += "AND cp.IdEmpresa = " + empresaId;
+        queryString += "AND pve.IdEmpresa = " + empresaId;
         queryString += "AND pve.Especial = 0 ";
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO,"QUERY BUSCAR FACTURA VENTA  : " + queryString);
@@ -697,13 +685,13 @@ public class NotaCreditoVentaForm extends Window {
             return false;
         }
 
-        if (((SopdiUI) UI.getCurrent()).esMesCerrado(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+        if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
             Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return false;
         }
-        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
-            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(String.valueOf(empresaCbx.getValue())), Notification.Type.WARNING_MESSAGE);
+        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(empresaId), Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return false;
         }
@@ -754,38 +742,17 @@ public class NotaCreditoVentaForm extends Window {
             Notification.show("Por favor ingrese el monto de la factura.", Notification.Type.WARNING_MESSAGE);
             return false;
         }
-
-
-
-//        totalHaber = new BigDecimal(haber1Txt.getDoubleValueDoNotThrow()
-//                + haber2Txt.getDoubleValueDoNotThrow() + haber3Txt.getDoubleValueDoNotThrow()
-//                + haber4Txt.getDoubleValueDoNotThrow() + haber5Txt.getDoubleValueDoNotThrow()
-//                + haber6Txt.getDoubleValueDoNotThrow() + haber7Txt.getDoubleValueDoNotThrow()
-//                + haber8Txt.getDoubleValueDoNotThrow()).setScale(2, BigDecimal.ROUND_HALF_UP);
-//
-//        totalHaber.setScale(2, BigDecimal.ROUND_HALF_UP);
-
-//        if (totalHaber.doubleValue() != montoTxt.getDoubleValueDoNotThrow()) {
-//            Notification notif = new Notification("EL MONTO DEL DEBE Y EL HABER NO COINCIDEN!. MONTO DEL DEBE : " + montoTxt.getDoubleValueDoNotThrow() + " MONTO DEL HABER : " + totalHaber.doubleValue(),
-//                    Notification.Type.ERROR_MESSAGE);
-//            notif.setDelayMsec(1500);
-//            notif.setPosition(Position.MIDDLE_CENTER);
-//            notif.setIcon(FontAwesome.WARNING);
-//            notif.show(Page.getCurrent());
-//            return false;
-//        }
-
-        queryString = " Select * from contabilidad_partida";
-        queryString += " Where SerieDocumento  = '" + serieTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " And   NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
+        queryString = " SELECT * FROM contabilidad_partida";
+        queryString += " WHERE SerieDocumento  = '" + serieTxt.getValue().toUpperCase().trim() + "'";
+        queryString += " AND   NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
 //        queryString += " And   IdProveedor     =  " + String.valueOf(clienteCbx.getValue());
         if(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getIvaPorPagar() != null) {
-            queryString += " And   TipoDocumento = 'FACTURA VENTA'";
+            queryString += " AND   TipoDocumento = 'FACTURA VENTA'";
         }
         else {
-            queryString += " And   TipoDocumento = 'RECIBO CONTABLE VENTA'";
+            queryString += " AND   TipoDocumento = 'RECIBO CONTABLE VENTA'";
         }
-        queryString += " And   IdEmpresa = " + empresaCbx.getValue();
+        queryString += " AND   IdEmpresa = " + empresaId;
 
         try {
             rsRecords = stQuery.executeQuery(queryString);
@@ -1001,7 +968,6 @@ public class NotaCreditoVentaForm extends Window {
     private void obtenerFacturaPdf(String serie, String numero) {
         Utileria utileria = new Utileria();
 
-        long fileSize = 0;
         byte[] ba1 = new byte[1024];
         int baLength;
 
@@ -1053,18 +1019,17 @@ public class NotaCreditoVentaForm extends Window {
 
     private void insertarPartidas() {
 
-
         String fecha = Utileria.getFechaYYYYMMDD_1(fechaDt.getValue());
         String ultimoEncontrado;
         String dia = fecha.substring(8, 10);
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        String codigoPartidaNC = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "0";
+        String codigoPartidaNC = empresaId + año + mes + dia + "0";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + codigoPartidaNC + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = " SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida LIKE '" + codigoPartidaNC + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1085,12 +1050,12 @@ public class NotaCreditoVentaForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into proveedor_cuentacorriente (IdEmpresa,IdProveedor, Fecha,";
+        queryString = " INSERT INTO proveedor_cuentacorriente (IdEmpresa,IdProveedor, Fecha,";
         queryString += " TipoDocumento, SerieDocumento,NumeroDocumento, MonedaDocumento, ";
         queryString += " Monto, MontoQuetzales, TipoCambio ";
         queryString += ", IdUsuarioAutorizoPago,CreadoFechayHora,CreadoUsuario)";
-        queryString += " Values(";
-        queryString += empresaCbx.getValue();
+        queryString += " VALUES (";
+        queryString += empresaId;
         queryString += "," + clienteCbx.getValue();
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += ",'NOTA DE CREDITO VENTA'";
@@ -1113,7 +1078,7 @@ public class NotaCreditoVentaForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, CodigoPartida, CodigoCC,";
+        queryString = " INSERT INTO contabilidad_partida (IdEmpresa, CodigoPartida, CodigoCC,";
         queryString += " TipoDocumento, Fecha, IdOrdenCompra, IdProveedor, NITProveedor, NombreProveedor,";
         queryString += " SerieDocumento, NumeroDocumento, IdNomenclatura, MonedaDocumento, MontoDocumento, ";
         queryString += " Debe, Haber, DebeQuetzales, HaberQuetzales, TipoCambio, Saldo, Estatus, ";
@@ -1121,7 +1086,7 @@ public class NotaCreditoVentaForm extends Window {
         queryString += " CreadoUsuario, CreadoFechaYHora, Archivo, ArchivoTipo, ArchivoPeso, ArchivoNombre, ";
         queryString += " IdCentroCosto, CodigoCentroCosto, UUID, FechaYHoraCertificacion, XmlRequest, XmlResponse, IdProducto";
         queryString += ")";
-        queryString += " Values ";
+        queryString += " VALUES ";
 
         for (int i = 0; i < productoList.size(); i++ ){
 
@@ -1195,7 +1160,6 @@ public class NotaCreditoVentaForm extends Window {
             }
         }
 
-
         queryString = queryString.substring(0, queryString.length() - 1);
 
         try {
@@ -1212,8 +1176,6 @@ public class NotaCreditoVentaForm extends Window {
             notif.show(Page.getCurrent());
         }
 
-
-
     Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
 
     if (!variableTemp.isEmpty()) {
@@ -1228,7 +1190,7 @@ public class NotaCreditoVentaForm extends Window {
     notif.setIcon(FontAwesome.CHECK);
     notif.show(Page.getCurrent());
 
-    ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta(String.valueOf(empresaCbx.getValue()));
+    ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta();
 
     // Insertamos El espejo de Guatefactura
     insertarDocumentoElectronico(codigoPartidaNC);
@@ -1244,7 +1206,7 @@ public class NotaCreditoVentaForm extends Window {
         queryString +=  "Telefono, NumeroAutorizacion, Referencia, IdTipo, Estado, FechaCreacionFel)";
         queryString +=  "VALUES (";
         queryString +=  "1"; // IMPORTANTE, ESTO CAMBIARA EN UN FUTURO, RECORDAR FUTURA API
-        queryString +=  ", " + empresaCbx.getValue();
+        queryString +=  ", " + empresaId;
         queryString +=  ", '" + codigoPartida + "'";
         queryString +=  ", '" + serieTxt.getValue() + "'";
         queryString +=  ", " + numeroTxt.getValue();
@@ -1257,7 +1219,6 @@ public class NotaCreditoVentaForm extends Window {
         queryString +=  ", 'INGRESADO'";
         queryString +=  ", current_timestamp)";
 
-
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY DOCUMENTO ELECTROCNICO : " + queryString);
 
         try {
@@ -1265,7 +1226,7 @@ public class NotaCreditoVentaForm extends Window {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);
 
-            ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta(String.valueOf(empresaCbx.getValue()));
+            ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta();
 
             close();
 
@@ -1299,7 +1260,7 @@ public class NotaCreditoVentaForm extends Window {
             queryString += ", FechaUsado = current_timestamp";
             queryString += ", CodigoPartida = '" + codigoPartida + "'";
             queryString += ", Estatus = 'UTILIZADO'";
-            queryString += " Where Codigo = '" + variableTemp + "'";
+            queryString += " WHERE Codigo = '" + variableTemp + "'";
 
             variableTemp = "";
 

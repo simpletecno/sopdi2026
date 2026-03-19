@@ -92,10 +92,23 @@ public class Utileria {
         return "01001";
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Utileria utileria = (Utileria) o;
+        return Objects.equals(referencia, utileria.referencia);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(referencia);
+    }
+
     /**
      *
      */
     public Utileria() {
+
         java.util.GregorianCalendar today = new java.util.GregorianCalendar();
         int x = new Double(Math.random() * 999).intValue();
 

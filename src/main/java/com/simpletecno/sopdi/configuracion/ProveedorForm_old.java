@@ -102,7 +102,7 @@ public class ProveedorForm_old extends Window {
         setWidth("95%");
         setHeight("95%");       // idem para la altura
 
-        setCaption("PROVEEDORES/CLIENTES/OTROS");
+        setCaption("OLD PROVEEDORES/CLIENTES/OTROS OLD");
 
         marginInfo = new MarginInfo(true, true, true, true);
 

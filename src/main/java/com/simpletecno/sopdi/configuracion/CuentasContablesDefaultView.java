@@ -22,6 +22,7 @@ import java.util.logging.Logger;
  * @author user
  */
 public class CuentasContablesDefaultView extends VerticalLayout implements View {
+
     UI mainUI;
     Statement stQuery;
     ResultSet rsRecords;

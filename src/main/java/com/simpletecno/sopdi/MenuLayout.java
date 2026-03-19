@@ -29,12 +29,11 @@ import com.vaadin.ui.themes.ValoTheme;
 public class MenuLayout extends HorizontalLayout {
 
     CssLayout contentArea = new CssLayout();
-
     CssLayout menuArea = new CssLayout();
 
     public MenuLayout() {
         setSizeFull();
-        
+
         menuArea.setPrimaryStyleName(ValoTheme.MENU_ROOT);
 
         contentArea.setPrimaryStyleName("valo-content");

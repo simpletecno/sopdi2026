@@ -94,7 +94,6 @@ public class IntegracionActual extends VerticalLayout {
             public void buttonClick ( Button.ClickEvent event )
             {
                 if(integracionContainer.size() > 0) {
-//                    PronetWebPayMain.getInstance().mainWindow.getWindow().showNotification("EN CONSTRUCCION!");            
                     exportToExcel();
                 }
             }
@@ -329,18 +328,19 @@ public class IntegracionActual extends VerticalLayout {
         integracionContainer.removeAllItems();
         documentosFooter.getCell(TOTAL_PROPERTY).setText("0.00");
 
-        String queryString = "";
+        String queryString;
         
-        queryString =  "Select DITEMC.NoCuenta, DITEMC.Descripcion, DITEMC.IdCC, Prov.IdProveedor, ";
+        queryString =  "SELECT DITEMC.NoCuenta, DITEMC.Descripcion, DITEMC.IdCC, Prov.IdProveedor, ";
         queryString += " Prov.Nombre ProveedorNombre, DITEMC.Lote, DITEMC.IdProject, DITEMC.Moneda, DITEMC.Idex, ";
         queryString += " SUM(DITEMC.Total / DITEMC.Cantidad) PrecioTotal, SUM(DITEMC.Cantidad) CantidadTotal, SUM(DITEMC.Total) TotalTotal ";
-        queryString += " From  DetalleItemsCostos DITEMC";
-        queryString += " Left Join proveedor Prov On Prov.IdProveedor = DITEMC.IdProveedor";
-        queryString += " Where DITEMC.IdEmpresa = " + empresa;
-        queryString += " And DITEMC.Tipo In ('INTINI', 'DOCA')";
-        queryString += " Group By DITEMC.NoCuenta, DITEMC.Descripcion, DITEMC.IdCC, Prov.IdProveedor, ";
+        queryString += " FROM  DetalleItemsCostos DITEMC";
+        queryString += " LEFT JOIN proveedor_empresa Prov On Prov.IdProveedor = DITEMC.IdProveedor";
+        queryString += " WHERE DITEMC.IdEmpresa = " + empresa;
+        queryString += " AND DITEMC.Tipo IN ('INTINI', 'DOCA')";
+        queryString += " AND Prov.IdEmpresa = " + empresa;
+        queryString += " GROUP BY DITEMC.NoCuenta, DITEMC.Descripcion, DITEMC.IdCC, Prov.IdProveedor, ";
         queryString += " Prov.Nombre, DITEMC.Lote, DITEMC.IdProject, DITEMC.Moneda, DITEMC.Idex";
-        queryString += " Order By DITEMC.NoCuenta";
+        queryString += " ORDER BY DITEMC.NoCuenta";
 
 System.out.println("\n\n"+queryString);
 
@@ -351,8 +351,6 @@ System.out.println("\n\n"+queryString);
 
             if(rsRecords.next()) { //  encontrado
 
-                double cantidad;
-                BigDecimal total;
                 BigDecimal granTotal = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
 
                 do {
@@ -439,10 +437,4 @@ System.out.println("\n\n"+queryString);
         }    
     }    
 
-    void setTableTitle(String tableTitle) {
-        if(integracionGrid != null) {
-            integracionGrid.setCaption(tableTitle);
-            integracionGrid.setDescription(tableTitle);
-        }            
-    }
 }

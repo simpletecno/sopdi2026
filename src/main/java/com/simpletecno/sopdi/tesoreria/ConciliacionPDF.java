@@ -84,7 +84,7 @@ public class ConciliacionPDF extends Window {
 
             e.setSource(pdfResourceConcinciliacion);
             setContent(e);
-            // despues de llamar Pdf()  fileName y tiene la ruta completa del archivo
+
             File file = new File(fileName);
             file.delete();
 

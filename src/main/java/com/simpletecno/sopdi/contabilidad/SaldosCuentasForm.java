@@ -33,6 +33,9 @@ public class SaldosCuentasForm extends Window {
     NumberField debeTxt;
     NumberField haberTxt;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public SaldosCuentasForm(String idNomenclatura) {
         this.idNomenclatura = idNomenclatura;
         this.mainUI = UI.getCurrent();
@@ -45,7 +48,7 @@ public class SaldosCuentasForm extends Window {
         contentLayout.setSpacing(true);
         contentLayout.setMargin(true);
 
-        Label titleLbl = new Label("SALDOS DE CUENTAS");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre +  " SALDOS DE CUENTAS");
         titleLbl.addStyleName(ValoTheme.LABEL_H1);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");

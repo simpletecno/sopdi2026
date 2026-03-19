@@ -101,9 +101,9 @@ public class InspectionTaskImageWindow extends Window {
         
         try {
             
-            queryString = "Select * ";
-            queryString += " From visita_inspeccion_tarea_imagen";
-            queryString += " Where IdVisitaInspeccionTarea = " + idVisitaInspeccionTarea;
+            queryString = "SELECT * ";
+            queryString += " FROM visita_inspeccion_tarea_imagen";
+            queryString += " WHERE IdVisitaInspeccionTarea = " + idVisitaInspeccionTarea;
 
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery (queryString);
@@ -241,9 +241,6 @@ public class InspectionTaskImageWindow extends Window {
                 UploadStateWindow window = new UploadStateWindow();
 
                 singleUpload = new MultiFileUpload(handler,window, false);
-        //        singleUpload.setCaption("Cargar archivo");
-        //        singleUpload2.setRootDirectory(newDoc.getAbsolutePath());
-        //        singleUpload.setPanelCaption("Buscar");
                 singleUpload.setIcon(FontAwesome.UPLOAD);
                 singleUpload.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
                 singleUpload.setImmediate(true);
@@ -331,9 +328,6 @@ public class InspectionTaskImageWindow extends Window {
                 UploadStateWindow window = new UploadStateWindow();
 
                 singleUpload = new MultiFileUpload(handler,window, false);
-        //        singleUpload.setCaption("Cargar archivo");
-        //        singleUpload2.setRootDirectory(newDoc.getAbsolutePath());
-        //        singleUpload.setPanelCaption("Buscar");
                 singleUpload.setIcon(FontAwesome.UPLOAD);
                 singleUpload.addStyleName(ValoTheme.BUTTON_ICON_ALIGN_TOP);
                 singleUpload.setImmediate(true);
@@ -372,8 +366,8 @@ public class InspectionTaskImageWindow extends Window {
                 
         String queryString;
         
-        queryString =  "Insert Into visita_inspeccion_tarea_imagen (IdVisitaInspeccionTarea, Archivo, ArchivoTipo, ArchivoPeso, ArchivoNombre)";
-        queryString += " Values (";
+        queryString =  "INSERT INTO visita_inspeccion_tarea_imagen (IdVisitaInspeccionTarea, Archivo, ArchivoTipo, ArchivoPeso, ArchivoNombre)";
+        queryString += " VALUES (";
         queryString += " "  + idVisitaInspeccionTarea;
         queryString += ",?";
         queryString += ",'" + mimeType + "'";
@@ -393,27 +387,6 @@ public class InspectionTaskImageWindow extends Window {
             rsRecords.next();
 
             int newImagenId = rsRecords.getInt(1);
-/*                               
-            Button deleteBtn = new Button("");
-            deleteBtn.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
-            deleteBtn.setData(newImagenId);
-            deleteBtn.setIcon(FontAwesome.TRASH);
-            deleteBtn.setDescription("Eliminar");
-            deleteBtn.addClickListener( new Button.ClickListener()
-            {
-                @Override
-                public void buttonClick ( Button.ClickEvent event )
-                {
-                    deleteInspeccionImagen(String.valueOf(event.getButton().getData()));
-                }
-            });
-
-            Image image1 = new Image(fileName, logoStreamResource);
-            image1.setWidth("200px");
-            image1.setHeight("200px"); 
-
-            imageTable.addItem(new Object[] {imageTable.size()+1, image1, deleteBtn}, newImagenId);
-  */
             this.fillInspectionTaskImages();
             
             Notification.show("OPERACION EXITOSA!", Notification.Type.HUMANIZED_MESSAGE);
@@ -438,16 +411,14 @@ public class InspectionTaskImageWindow extends Window {
     public void deleteInspeccionImagen(String idVisitaInspeccionTareaImagen) {
         String queryString;
         
-        queryString =  "Delete From visita_inspeccion_tarea_imagen";
-        queryString += " Where IdVisitaInspeccionTareaImagen = " + idVisitaInspeccionTareaImagen;
+        queryString =  "DELETE FROM visita_inspeccion_tarea_imagen";
+        queryString += " WHERE IdVisitaInspeccionTareaImagen = " + idVisitaInspeccionTareaImagen;
         
 //System.out.println("deeteImagenQuery="+queryString);
                 
         try {
             stQuery  = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);
-
-//            imageTable.removeItem(Integer.valueOf(idVisitaInspeccionTareaImagen));
 
             this.fillInspectionTaskImages();
             

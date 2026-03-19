@@ -64,7 +64,6 @@ public class ProjectTaskView extends VerticalLayout implements View {
     ProgressBar progressBar;
 
     public static Locale locale = new Locale("ES", "GT");
-//    static DecimalFormat numberFormat = new DecimalFormat("#,###,###.##");
 
     UI mainUI;
 
@@ -72,10 +71,8 @@ public class ProjectTaskView extends VerticalLayout implements View {
         this.mainUI = UI.getCurrent();
 
         setSpacing(true);
-//        setCaption("Projects y tareas");
         Page.getCurrent().setTitle("Projects y tareas");
 
-//        marginInfo = new MarginInfo(true,true,true,true);
         marginInfo = new MarginInfo(true, false, false, false);
 
         createProjectsLayout();
@@ -153,14 +150,7 @@ public class ProjectTaskView extends VerticalLayout implements View {
                 if (projectsContainer.size() > 0) {
                     if (projectsGrid.getSelectedRow() != null) {
                         try {
-                            // Open the file for writing.
-
-//System.out.println(String.valueOf(projectsContainer.getContainerProperty(projectsGrid.getSelectedRow(),ARCHIVO_PROPERTY).getValue()));
-
                             File downloadFile = new File(String.valueOf(projectsContainer.getContainerProperty(projectsGrid.getSelectedRow(),"archivo").getValue()));
-//System.out.println("toPath = " + downloadFile.toPath().toString());
-
-//System.out.println("existe = " + Files.exists(downloadFile.toPath()));
 
                             final byte docBytes[] = Files.readAllBytes(downloadFile.toPath());
 
@@ -204,23 +194,12 @@ public class ProjectTaskView extends VerticalLayout implements View {
                             downloadW.setContent(downLayout);
                             downloadW.center();
 
-                            ((SopdiUI) mainUI).addWindow(downloadW);
-                            /***
-                             final StreamResource resource = new StreamResource(() -> {
-                             return new ByteArrayInputStream(docBytes);
-                             //                            }, String.valueOf(projectsContainer.getContainerProperty(DESCRIPCION_PROPERTY, projectsGrid.getSelectedRow()).getValue()));
-                             }, "testdownload.txt");
-
-                             downloader.setFileDownloadResource(resource);
-                             downloader.download();
-                             ***/
                         } catch (final Exception e) {
                             new Notification("Could not open file",
                                     e.getMessage(),
                                     Notification.Type.ERROR_MESSAGE)
                                     .show(Page.getCurrent());
                             e.printStackTrace();
-                            return;
                         }
                     }
                     else {
@@ -278,15 +257,7 @@ public class ProjectTaskView extends VerticalLayout implements View {
             @Override
             public void buttonClick(Button.ClickEvent event) {
                 if (projectsContainer.size() > 0) {
-                    if (projectsGrid.getSelectedRow() != null) {
-//                        IdexRecursoTrabajoWindow idexRecursoTrabajoViewdexRecursoTrabajoView
-//                                = new IdexRecursoTrabajoWindow(
-//                                String.valueOf(projectsContainer.getContainerProperty(projectsGrid.getSelectedRow(),"numero").getValue()),
-//                                String.valueOf(projectsContainer.getContainerProperty(projectsGrid.getSelectedRow(),"descripción").getValue())
-//                        );
-//                        mainUI.addWindow(idexRecursoTrabajoViewdexRecursoTrabajoView);
-//                        idexRecursoTrabajoViewdexRecursoTrabajoView.center();
-                    } else {
+                    if (projectsGrid.getSelectedRow() == null) {
                         Notification.show("Por favor seleccione el project correspondiente.", Notification.Type.WARNING_MESSAGE);
                     }
                 }
@@ -296,7 +267,6 @@ public class ProjectTaskView extends VerticalLayout implements View {
         progressBar = new ProgressBar();
         progressBar.setValue(0.01f);
         progressBar.setImmediate(true);
-//        progressBar.setSizeFull();
         progressBar.setVisible(false);
 
         notasBtn = new Button("Notas");
@@ -368,19 +338,6 @@ public class ProjectTaskView extends VerticalLayout implements View {
 
                 public void textChange(FieldEvents.TextChangeEvent event) {
                     fillTasks();
-//                    descripcionTxt.setValue("");
-//
-//                    Container.Filterable f = (Container.Filterable)
-//                            tareasTable.getContainerDataSource();
-//
-//                    // Remove old filter
-//                    if (filter != null)
-//                        f.removeContainerFilter(filter);
-//
-//                    // Set new filter for the "Name" column
-//                    filter = new SimpleStringFilter("IDEX", event.getText(),
-//                            true, false);
-//                    f.addContainerFilter(filter);
                 }
         });
 
@@ -498,12 +455,10 @@ public class ProjectTaskView extends VerticalLayout implements View {
 
         String queryString = "";
 
-        queryString = "Select *";
-        queryString += " From  project";
-        queryString += " Where IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
-        queryString += " Order By Numero";
-
-//System.out.println("\n\n"+queryString);
+        queryString = "SELECT *";
+        queryString += " FROM  project";
+        queryString += " WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
+        queryString += " ORDER BY Numero";
 
         try {
 
@@ -533,7 +488,6 @@ public class ProjectTaskView extends VerticalLayout implements View {
             System.out.println("Error al intentar leer registros de projects : " + ex.getMessage());
             Notification.show("Error al intentar leer registros de projects..!", Notification.Type.ERROR_MESSAGE);
         }
-
     }
 
     public void fillTasks() {
@@ -558,14 +512,14 @@ public class ProjectTaskView extends VerticalLayout implements View {
 
         String queryString = "";
 
-        queryString = "Select *";
-        queryString += " From  project_tarea";
-        queryString += " Where IdProject = " + String.valueOf(projectsContainer.getContainerProperty(projectsGrid.getSelectedRow(), "idProject").getValue());
+        queryString = "SELECT *";
+        queryString += " FROM  project_tarea";
+        queryString += " WHERE IdProject = " + String.valueOf(projectsContainer.getContainerProperty(projectsGrid.getSelectedRow(), "idProject").getValue());
         if (codigoTareaTxt.getValue().trim().isEmpty() == false) {
-            queryString += " And IDEX = '" + codigoTareaTxt.getValue().trim() + "'";
+            queryString += " AND IDEX = '" + codigoTareaTxt.getValue().trim() + "'";
         }
         if (descripcionTxt.getValue().trim().isEmpty() == false) {
-            queryString += " And Descripcion Like '%" + descripcionTxt.getValue().trim() + "%'";
+            queryString += " AND Descripcion Like '%" + descripcionTxt.getValue().trim() + "%'";
         }
 
 //System.out.println("\n\nQueryProyectTask="+queryString);
@@ -576,8 +530,6 @@ public class ProjectTaskView extends VerticalLayout implements View {
             rsRecords = stQuery.executeQuery(queryString);
 
             if (rsRecords.next()) { //  encontrado
-
-                Utileria utileria = new Utileria();
 
                 int primerRegistro = rsRecords.getInt("IdTareaProject");
 
@@ -645,12 +597,6 @@ public class ProjectTaskView extends VerticalLayout implements View {
                             rsRecords.getDouble("IdProveedor")
                     }, rsRecords.getInt("IdTareaProject"));
 
-//                    tareasTable.setValue(rsRecords.getInt("IdTarea"));
-//                    if (rsRecords.getInt("IdTareaPadre") > 0) {
-//                        tareasTable.setParent(rsRecords.getInt("IdTareaProject"), rsRecords.getInt("IdTareaPadre"));
-//                        tareasTable.setCollapsed(rsRecords.getInt("IdTareaPadre"), false);
-//                    }
-//
                 } while (rsRecords.next());
 
                 progressBar.setVisible(false);
@@ -675,13 +621,13 @@ public class ProjectTaskView extends VerticalLayout implements View {
 
         String queryString = "";
 
-        queryString =  "Select Moneda, Idex, SUM(Total) TotalTotal ";
-        queryString += " From  DetalleItemsCostos ";
-        queryString += " Where IdProject = " + String.valueOf(projectsContainer.getContainerProperty(projectsGrid.getSelectedRow(), "numero").getValue());;
+        queryString =  "SELECT Moneda, Idex, SUM(Total) TotalTotal ";
+        queryString += " FROM  DetalleItemsCostos ";
+        queryString += " WHERE IdProject = " + String.valueOf(projectsContainer.getContainerProperty(projectsGrid.getSelectedRow(), "numero").getValue());;
 //        queryString += " And CAST(Idex AS SIGNED)= " + String.valueOf(projectsContainer.getContainerProperty(projectsGrid.getSelectedRow(), NUMERO_PROPERTY).getValue()) + IDEX;
-        queryString += " And Idex = '" + IDEX + "'";
-        queryString += " And Tipo In ('INTINI', 'DOCA')";
-        queryString += " Group By Moneda, Idex";
+        queryString += " AND Idex = '" + IDEX + "'";
+        queryString += " AND Tipo IN ('INTINI', 'DOCA')";
+        queryString += " GROUP BY Moneda, Idex";
 
 //        System.out.println("\n"+queryString);
 
@@ -718,10 +664,6 @@ public class ProjectTaskView extends VerticalLayout implements View {
         excelExport = new ExcelExport(tableToExport);
         excelExport.excludeCollapsedColumns();
         excelExport.setExportFileName("PROJECT_" + projectsContainer.getContainerProperty(projectsGrid.getSelectedRow(), "numero").getValue() + ".xls");
-
-//        String mainTitle = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectName() + " - TAREAS AL: " + new Utileria().getFechaYYYYMMDD_1(new Date());
-//
-//        excelExport.setReportTitle(mainTitle);
 
         excelExport.export();
 
@@ -767,71 +709,4 @@ public class ProjectTaskView extends VerticalLayout implements View {
         // TODO Auto-generated method stub
 
     }
-
 }
-
-/***
-    File downloadFile = new File(String.valueOf(projectsContainer.getContainerProperty(projectsGrid.getSelectedRow(),"archivo").getValue()));
-
-
-    final byte docBytes[] = Files.readAllBytes(downloadFile.toPath());
-
-    final StreamResource resource = new StreamResource(() -> {
-        return new ByteArrayInputStream(docBytes);
-//                            }, String.valueOf(projectsContainer.getContainerProperty(DESCRIPCION_PROPERTY, projectsGrid.getSelectedRow()).getValue()));
-    }, downloadFile.getName());
-
-                            resource.setMIMEType("application/mpp");
-
-                                    BrowserFrame downBrowser = new BrowserFrame();
-                                    downBrowser.setSizeFull();
-                                    downBrowser.setSource(resource);
-
-                                    Window downloadW = new Window();
-                                    downloadW.setWidth("500");
-                                    downloadW.setHeight("120");
-
-                                    VerticalLayout downLayout = new VerticalLayout();
-                                    downLayout.setSpacing(true);
-                                    downLayout.setMargin(true);
-                                    downLayout.addStyleName("rcorners1");
-
-                                    Button closeBtn = new Button("Documento descargado !, click aqui para cerrar.");
-                                    closeBtn.setIcon(FontAwesome.CLOSE);
-                                    closeBtn.setWidth(350, Sizeable.UNITS_PIXELS);
-                                    closeBtn.addClickListener(new Button.ClickListener() {
-@Override
-public void buttonClick(Button.ClickEvent event) {
-        downLayout.removeAllComponents();
-        downloadW.setContent(null);
-        downloadW.detach();
-        ((SopdiUI) mainUI).removeWindow(downloadW);
-        }
-        });
-
-        downLayout.addComponent(closeBtn);
-        downLayout.setComponentAlignment(closeBtn, Alignment.TOP_CENTER);
-        downLayout.addComponent(downBrowser);
-
-        downloadW.setContent(downLayout);
-        downloadW.center();
-
-        ((SopdiUI) mainUI).addWindow(downloadW);
-        /***
-         final StreamResource resource = new StreamResource(() -> {
-         return new ByteArrayInputStream(docBytes);
-         //                            }, String.valueOf(projectsContainer.getContainerProperty(DESCRIPCION_PROPERTY, projectsGrid.getSelectedRow()).getValue()));
-         }, "testdownload.txt");
-
-         downloader.setFileDownloadResource(resource);
-         downloader.download();
-         *** /
-        } catch (final Exception e) {
-        new Notification("Could not open file",
-        e.getMessage(),
-        Notification.Type.ERROR_MESSAGE)
-        .show(Page.getCurrent());
-        e.printStackTrace();
-        return;
-        }
- ****/

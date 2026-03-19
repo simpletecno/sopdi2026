@@ -45,7 +45,6 @@ public final class ProgramaTrabajoEmpleadosView extends VerticalLayout implement
     protected static final String IDEMPLEADO_PROPERTY = "IdEmpleado";
     protected static final String NOMBRE_PROPERTY = "Nombre";
     protected static final String CARGO_PROPERTY = "Cargo";
-//    protected static final String GRUPO_PROPERTY = "Grupo";
     protected static final String TIPOASIGNACION_PROPERTY = "Tipo asignación";
     protected static final String ESJEFE_PROPERTY = "ES JEFE";
     protected static final String ESTATUS_PROPERTY = "Estatus";
@@ -75,8 +74,6 @@ public final class ProgramaTrabajoEmpleadosView extends VerticalLayout implement
     public ProgramaTrabajoEmpleadosView() {
 
         setResponsive(true);
-//        setWidth("100%");
-//        setHeight("100%");
 
         MarginInfo marginInfo = new MarginInfo(true, true, true, true);
 
@@ -84,7 +81,6 @@ public final class ProgramaTrabajoEmpleadosView extends VerticalLayout implement
         mainLayout.setSpacing(true);
         mainLayout.setMargin(marginInfo);
         mainLayout.addStyleName("rcorners1");
-//        mainLayout.setSizeFull();
 
         addComponent(mainLayout);
 
@@ -133,13 +129,6 @@ public final class ProgramaTrabajoEmpleadosView extends VerticalLayout implement
                         if (String.valueOf(enGrupoContainer.getContainerProperty(objectItem, ESJEFE_PROPERTY).getValue()).equals("SI")) {
 
                             bandera = true;
-//                            bandera = false;
-//
-//                            if(String.valueOf(enGrupoContainer.getContainerProperty(objectItem, ESJEFE_PROPERTY).getValue()).equals("SI"))
-//                            {
-//                                verificarJefes(String.valueOf(enGrupoContainer.getContainerProperty(objectItem, GRUPO_PROPERTY).getValue()),
-//                                        String.valueOf(enGrupoContainer.getContainerProperty(objectItem, NOMBRE_PROPERTY).getValue()));
-//                            }
                             if (bandera == true) {
                                 queryString = " UPDATE proveedor SET ";
 //                                queryString += " GrupoTrabajo = '" + String.valueOf(enGrupoContainer.getContainerProperty(objectItem, GRUPO_PROPERTY).getValue()) + "'";
@@ -251,7 +240,6 @@ public final class ProgramaTrabajoEmpleadosView extends VerticalLayout implement
         indexedContainer.addContainerProperty(IDEMPLEADO_PROPERTY, String.class, null);
         indexedContainer.addContainerProperty(NOMBRE_PROPERTY, String.class, null);
         indexedContainer.addContainerProperty(CARGO_PROPERTY, String.class, null);
-//        indexedContainer.addContainerProperty(GRUPO_PROPERTY, String.class, null);
         indexedContainer.addContainerProperty(TIPOASIGNACION_PROPERTY, String.class, null);
         indexedContainer.addContainerProperty(ESJEFE_PROPERTY, String.class, null);
         indexedContainer.addContainerProperty(ESTATUS_PROPERTY, String.class, null);
@@ -265,13 +253,10 @@ public final class ProgramaTrabajoEmpleadosView extends VerticalLayout implement
         grid.setHeightByRows(15);
         grid.setResponsive(true);
         grid.setEditorBuffered(false);
-//        grid.setSizeFull();
         grid.setEditorEnabled(true);
-//        grid.getColumn(GRUPO_PROPERTY).setEditorField(getComboGroup());
         grid.getColumn(TIPOASIGNACION_PROPERTY).setEditorField(getComboAsignacion());
         grid.getColumn(ESTATUS_PROPERTY).setEditorField(getComboState());
         grid.getColumn(RAZON_PROPERTY).setEditorField(getEditTextRazon());
-//        grid.getColumn(ESJEFE_PROPERTY).setEditorField(getComboEsJefe());
         grid.getColumn(CARGO_PROPERTY).setEditorField(getComboCargo());
         grid.addItemClickListener((event) -> {
             if (event != null) {
@@ -285,20 +270,10 @@ public final class ProgramaTrabajoEmpleadosView extends VerticalLayout implement
         grid.getColumn(IDEMPLEADO_PROPERTY).setExpandRatio(1);
         grid.getColumn(NOMBRE_PROPERTY).setExpandRatio(4);
         grid.getColumn(CARGO_PROPERTY).setExpandRatio(1);
-//        grid.getColumn(GRUPO_PROPERTY).setExpandRatio(3);
         grid.getColumn(TIPOASIGNACION_PROPERTY).setExpandRatio(2);
         grid.getColumn(ESJEFE_PROPERTY).setExpandRatio(1);
         grid.getColumn(ESTATUS_PROPERTY).setExpandRatio(2);
         grid.getColumn(RAZON_PROPERTY).setExpandRatio(3);
-
-        grid.addSelectionListener(new SelectionListener() {
-            @Override
-            public void select(SelectionEvent event) {
-                if (grid.getSelectedRow() != null) {
-//                    mostrarAnticipos();
-                }
-            }
-        });
 
         HeaderRow filterRow = grid.appendHeaderRow();
 
@@ -342,29 +317,8 @@ public final class ProgramaTrabajoEmpleadosView extends VerticalLayout implement
         });
         cell0.setComponent(filterField0);
 
-//        HeaderCell cellA = filterRow.getCell(GRUPO_PROPERTY);
-//
-//        TextField filterFieldA = new TextField();
-//        filterFieldA.addStyleName(ValoTheme.TEXTFIELD_TINY);
-//        filterFieldA.setInputPrompt("Filtrar");
-//        filterFieldA.setColumns(15);
-
-//        filterFieldA.addTextChangeListener(change -> {
-//            indexedContainer.removeContainerFilters(GRUPO_PROPERTY);
-//
-//            // (Re)create the filter if necessary
-//            if (!change.getText().isEmpty()) {
-//                indexedContainer.addContainerFilter(
-//                        new SimpleStringFilter(GRUPO_PROPERTY,
-//                                change.getText(), true, false));
-//            }
-//            setTotal(indexedContainer, grid, gridFooter);
-//        });
-//        cellA.setComponent(filterFieldA);
-
         gridFooter.getCell(NOMBRE_PROPERTY).setText("Totales");
         gridFooter.getCell(NOMBRE_PROPERTY).setStyleName("rightalign");
-//        gridFooter.getCell(GRUPO_PROPERTY).setText("0");
 
         reportLayout.addComponent(grid);
         reportLayout.setComponentAlignment(grid, Alignment.MIDDLE_CENTER);
@@ -493,7 +447,6 @@ public final class ProgramaTrabajoEmpleadosView extends VerticalLayout implement
     public void fillGrid(String tipo, IndexedContainer indexedContainer, Grid grid, Grid.FooterRow gridFooter) {
 
         indexedContainer.removeAllItems();
-//        gridFooter.getCell(GRUPO_PROPERTY).setText("0");
 
         String queryString;
 
@@ -522,7 +475,7 @@ public final class ProgramaTrabajoEmpleadosView extends VerticalLayout implement
         queryString += " AND IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
         queryString += " ORDER BY Nombre";
 
-        System.out.println("\n\n" + queryString);
+Logger.getLogger(this.getClass().getName()).log(Level.INFO, "\n\n" + queryString);
 
         try {
 
@@ -544,8 +497,6 @@ public final class ProgramaTrabajoEmpleadosView extends VerticalLayout implement
                     indexedContainer.getContainerProperty(itemId, RAZON_PROPERTY).setValue(rsRecords.getString("Razon"));
 
                 } while (rsRecords.next());
-
-//                gridFooter.getCell(GRUPO_PROPERTY).setText(String.valueOf(indexedContainer.size()) + " empleados.");
             }
         } catch (Exception ex) {
             Logger.getLogger(ProgramaTrabajoEmpleadosView.class.getName()).log(Level.SEVERE, null, ex);

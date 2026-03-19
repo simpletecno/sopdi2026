@@ -1,6 +1,7 @@
 package com.simpletecno.sopdi.configuracion;
 
 public class CuentasContablesDefault {
+
     private String idEmpresa;
     private String proveedores;
     private String clientes;

@@ -17,7 +17,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 /**
- *
+ * PERMISOS DE USUARIO
  * @author joseaguirre
  */
 public class UsuarioPermisosForm extends Window {

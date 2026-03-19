@@ -27,10 +27,6 @@ public class DetalleItemCosto {
     String codItemProveedor;
     String idVisita;
 
-    public DetalleItemCosto() {
-        //
-    }
-
     public int getId() {
         return Id;
     }

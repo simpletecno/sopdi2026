@@ -56,8 +56,6 @@ public class FacturaVentaForm extends Window {
     VerticalLayout mainLayout;
     VerticalLayout headerLayout;
 
-    /* title */
-    ComboBox empresaCbx;
     Date fechaHoy;
 
     ComboBox tipoFacturaVentaCbx;
@@ -105,8 +103,6 @@ public class FacturaVentaForm extends Window {
     UI mainUI;
     Statement stQuery;
     ResultSet rsRecords;
-    Statement stQuery2;
-    ResultSet rsRecords2;
     String queryString;
 
     String xmlRequest;
@@ -118,6 +114,9 @@ public class FacturaVentaForm extends Window {
     String direccion = "";
     String telefono = "";
     File pdfFile = null;
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public FacturaVentaForm(String codigoPartidaFactura) {
         mainLayout = new VerticalLayout();
@@ -136,24 +135,11 @@ public class FacturaVentaForm extends Window {
         setWidth("90%");
         setHeight("90%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("95%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        empresaCbx.addItem(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId());
-        empresaCbx.setItemCaption(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId(), ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName() + " : " +  ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyRegimen());
-        empresaCbx.select(empresaCbx.getItemIds().iterator().next());
-
-        Label titleLbl = new Label("FACTURA VENTA");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " FACTURA VENTA");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
 
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
 
@@ -260,7 +246,7 @@ public class FacturaVentaForm extends Window {
         nitClienteTxt.setWidth("100%");
 
         nit_cui_passCbx = new ComboBox("NIT, DPI o Pasaporte: ");
-        nit_cui_passCbx.setDescription("Que ID se usara para indentificar al Cliente, \n\t- NIT \n\t- DPI \n\t- Pasaporte");
+        nit_cui_passCbx.setDescription("Que ID se usará para indentificar al Cliente, \n\t- NIT \n\t- DPI \n\t- Pasaporte");
         nit_cui_passCbx.setWidth("100%");
 //        if(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId().equals("11")) {
         if(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyRegimen().equals("EXENTA")) {
@@ -401,8 +387,7 @@ public class FacturaVentaForm extends Window {
         queryString = " SELECT * FROM centro_costo";
         queryString += " WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
         queryString += " AND Inhabilitado = 0";
-        queryString += " AND IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
-
+        queryString += " AND IdEmpresa = " + empresaId;
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -411,7 +396,6 @@ public class FacturaVentaForm extends Window {
             if (rsRecords.next()) {
                 do {
                     centroCostoCbx.addItem(rsRecords.getString("CodigoCentroCosto"));
-//                    centroCostoCbx.setItemCaption(rsRecords.getString("CodigoCentroCosto"), rsRecords.getString("CodigoCentroCosto") + " " + rsRecords.getString("Grupo"));
                     centroCostoCbx.setItemCaption(rsRecords.getString("CodigoCentroCosto"), rsRecords.getString("CodigoCentroCosto") );
                 } while (rsRecords.next());
             }
@@ -634,10 +618,11 @@ public class FacturaVentaForm extends Window {
 
     public void llenarComboCliente() {
 
-        queryString = " SELECT * from proveedor ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0 ";
         queryString += " AND EsCliente = 1";
-        queryString += " Order By Nombre";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY Nombre";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -666,9 +651,9 @@ public class FacturaVentaForm extends Window {
         queryString = " SELECT SUM(DEBE - HABER) as TOTALFACTURADO ";
         queryString += " FROM contabilidad_partida ";
         queryString += " WHERE IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getClientes();
-        queryString += " And TipoDocumento IN ('FACTURA VENTA', 'RECIBO CONTABLE',  'RECIBO CONTABLE VENTA')";
-        queryString += " And IdEmpresa = " + empresaCbx.getValue();
-        queryString += " And Extract(YEAR_MONTH FROM Fecha) = " + Utileria.getFechaYYYYMM(new java.util.Date());
+        queryString += " AND TipoDocumento IN ('FACTURA VENTA', 'RECIBO CONTABLE',  'RECIBO CONTABLE VENTA')";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND Extract(YEAR_MONTH FROM Fecha) = " + Utileria.getFechaYYYYMM(new java.util.Date());
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO,"QUERY BUSCAR ACUMULADO FACTURAS VENTA DEl MES : " + queryString);
 
@@ -741,7 +726,7 @@ public class FacturaVentaForm extends Window {
 
     public void llenarComboProductoServicio() {
         queryString = "SELECT * from producto_venta_empresa ";
-        queryString += "WHERE IdEmpresa = " + empresaCbx.getValue() + " ";
+        queryString += "WHERE IdEmpresa = " + empresaId;
         queryString += "AND Especial = 0 ";
 
 //Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
@@ -770,20 +755,14 @@ public class FacturaVentaForm extends Window {
     }
 
     public void llenarComboCuentaContable() {
-/*      Original
-        queryString = " SELECT * from contabilidad_nomenclatura";
-        queryString += " WHERE FiltrarIngresoDocumentos = 'S'";
-        queryString += " AND Estatus = 'HABILITADA'";
-        queryString += " AND UPPER(N1) = 'INGRESOS'";
-        queryString += " ORDER BY N5";
-*/
-//      Test para Donaciones
-        queryString = "SELECT * FROM contabilidad_nomenclatura cn, producto_venta_empresa pve ";
+
+        queryString = "SELECT * FROM contabilidad_nomenclatura_empresa cn, producto_venta_empresa pve ";
         queryString += "WHERE cn.FiltrarIngresoDocumentos = 'S' ";
         queryString += "AND cn.IdNomenclatura = pve.IdNomenclatura ";
         queryString += "AND Estatus = 'HABILITADA' ";
         queryString += "AND UPPER(N1) = 'INGRESOS' ";
         queryString += "AND pve.Especial = 0 ";
+        queryString += "AND cn.IdEmpresa = " + empresaId;
         queryString += "ORDER BY N5";
 
 //Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
@@ -814,23 +793,6 @@ public class FacturaVentaForm extends Window {
     }
 
     public void insertTablaFactura() {
-    /* 16/05/2025 Ya no se hara uso de esto.
-    //  ---  Verificar Que no se repitan Cuentas  ---
-        for(int i = 0; i < TOTAL_PRODUCTOS; i++) {
-            Object temp1 = cuentaContableList.get(i).getValue();
-            if(temp1 != null){
-                for(int j = 0; j < TOTAL_PRODUCTOS; j++) {
-                    Object temp2 = cuentaContableList.get(j).getValue();
-                    if(temp2 != null){
-                        if(temp2.equals(temp1) && (i != j)){
-                            Notification.show("No puede utilizar la misma cuenta para dos registros de la partida.", Notification.Type.ERROR_MESSAGE);
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-        */
         if (datosValidos()) {
             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "DATOS VALIDOS OK!");
             if (!((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyFelUser().trim().isEmpty() && modoOg.getValue()) {
@@ -876,13 +838,13 @@ public class FacturaVentaForm extends Window {
             return false;
         }
 
-        if (((SopdiUI) UI.getCurrent()).esMesCerrado(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+        if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
             Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return false;
         }
-        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
-            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(String.valueOf(empresaCbx.getValue())), Notification.Type.WARNING_MESSAGE);
+        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(empresaId), Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return false;
         }
@@ -920,35 +882,16 @@ public class FacturaVentaForm extends Window {
             return false;
         }
 
-//        totalHaber = new BigDecimal(montoList.get(i).getDoubleValueDoNotThrow()
-//                + haber2Txt.getDoubleValueDoNotThrow() + haber3Txt.getDoubleValueDoNotThrow()
-//                + haber4Txt.getDoubleValueDoNotThrow() + haber5Txt.getDoubleValueDoNotThrow()
-//                + haber6Txt.getDoubleValueDoNotThrow() + haber7Txt.getDoubleValueDoNotThrow()
-//                + haber8Txt.getDoubleValueDoNotThrow()).setScale(2, BigDecimal.ROUND_HALF_UP);
-//
-//        totalHaber.setScale(2, BigDecimal.ROUND_HALF_UP);
-
-//        if (totalHaber.doubleValue() != montoTxt.getDoubleValueDoNotThrow()) {
-//            Notification notif = new Notification("EL MONTO DEL DEBE Y EL HABER NO COINCIDEN!. MONTO DEL DEBE : " + montoTxt.getDoubleValueDoNotThrow() + " MONTO DEL HABER : " + totalHaber.doubleValue(),
-//                    Notification.Type.ERROR_MESSAGE);
-//            notif.setDelayMsec(1500);
-//            notif.setPosition(Position.MIDDLE_CENTER);
-//            notif.setIcon(FontAwesome.WARNING);
-//            notif.show(Page.getCurrent());
-//            return false;
-//        }
-
         queryString = " Select * from contabilidad_partida";
         queryString += " Where SerieDocumento  = '" + serieTxt.getValue().toUpperCase().trim() + "'";
         queryString += " And   NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
-//        queryString += " And   IdProveedor     =  " + String.valueOf(clienteCbx.getValue());
         if(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getIvaPorPagar() != null) {
             queryString += " And   TipoDocumento = 'FACTURA VENTA'";
         }
         else {
             queryString += " And   TipoDocumento = 'RECIBO CONTABLE VENTA'";
         }
-        queryString += " And   IdEmpresa = " + empresaCbx.getValue();
+        queryString += " And   IdEmpresa = " + empresaId;
 
         try {
             rsRecords = stQuery.executeQuery(queryString);
@@ -1260,11 +1203,11 @@ public class FacturaVentaForm extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        String codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "0";
+        String codigoPartida = empresaId + año + mes + dia + "0";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + codigoPartida + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = " SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida LIKE '" + codigoPartida + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1285,12 +1228,12 @@ public class FacturaVentaForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into proveedor_cuentacorriente (IdEmpresa,IdProveedor, Fecha,";
+        queryString = " INSERT INTO proveedor_cuentacorriente (IdEmpresa,IdProveedor, Fecha,";
         queryString += " TipoDocumento, SerieDocumento,NumeroDocumento, MonedaDocumento, ";
         queryString += " Monto, MontoQuetzales, TipoCambio ";
         queryString += ", IdUsuarioAutorizoPago,CreadoFechayHora,CreadoUsuario)";
-        queryString += " Values(";
-        queryString += empresaCbx.getValue();
+        queryString += " VALUES(";
+        queryString += empresaId;
         queryString += "," + clienteCbx.getValue();
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         if(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getIvaPorPagar() != null) {
@@ -1318,7 +1261,7 @@ public class FacturaVentaForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida,CodigoCC, ";
+        queryString = " INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida,CodigoCC, ";
         queryString += " TipoDocumento, TipoVenta, Fecha, IdProveedor, NitProveedor, NombreProveedor,";
         queryString += " SerieDocumento, NumeroDocumento, IdNomenclatura, MonedaDocumento, MontoDocumento, Debe, Haber,";
         queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, Saldo, Descripcion, Referencia,IdCentroCosto, CodigoCentroCosto,";
@@ -1327,7 +1270,7 @@ public class FacturaVentaForm extends Window {
         queryString += ")";
         queryString += " Values ";
         queryString += "(";
-        queryString += empresaCbx.getValue();
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'";
@@ -1379,7 +1322,7 @@ public class FacturaVentaForm extends Window {
         for(int i = 0; i < TOTAL_PRODUCTOS; i++) {
             if (cuentaContableList.get(i).getValue() != null && montoList.get(i).getDoubleValueDoNotThrow() != 0) {
                 queryString += ",(";
-                queryString += empresaCbx.getValue();
+                queryString += empresaId;
                 queryString += ",'INGRESADO'";
                 queryString += ",'" + codigoPartida + "'";
                 queryString += ",'" + codigoPartida + "'";
@@ -1439,7 +1382,7 @@ public class FacturaVentaForm extends Window {
 System.out.println("entra a insertar linea del iva.  exentaChb.getValue()=" + exentaChb.getValue() + " getIvaPorPagar()=" + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getIvaPorPagar());
             //// INSERTAR EL IVA
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoPartida + "'";
@@ -1494,7 +1437,7 @@ System.out.println("entra a insertar linea del iva.  exentaChb.getValue()=" + ex
             if (retieneIsrLbl.getValue().isEmpty()) { //
                 //// ISR GASTO
                 queryString += ",(";
-                queryString += empresaCbx.getValue();
+                queryString += empresaId;
                 queryString += ",'INGRESADO'";
                 queryString += ",'" + codigoPartida + "'";
                 queryString += ",'" + codigoPartida + "'";
@@ -1533,7 +1476,7 @@ System.out.println("entra a insertar linea del iva.  exentaChb.getValue()=" + ex
 
                 //// ISR OPCIONAL MENSUAL POR PAGAR
                 queryString += ",(";
-                queryString += empresaCbx.getValue();
+                queryString += empresaId;
                 queryString += ",'INGRESADO'";
                 queryString += ",'" + codigoPartida + "'";
                 queryString += ",'" + codigoPartida + "'";
@@ -1590,7 +1533,7 @@ System.out.println("entra a insertar linea del iva.  exentaChb.getValue()=" + ex
             notif.setIcon(FontAwesome.CHECK);
             notif.show(Page.getCurrent());
 
-            ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta(String.valueOf(empresaCbx.getValue()));
+            ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta();
 
             close();
 
@@ -1626,7 +1569,7 @@ System.out.println("entra a insertar linea del iva.  exentaChb.getValue()=" + ex
         queryString +=  "Telefono, NumeroAutorizacion, Referencia, IdTipo, Estado, FechaCreacionFel)";
         queryString +=  "VALUES (";
         queryString +=  "1"; // IMPORTANTE, ESTO CAMBIARA EN UN FUTURO, RECORDAR FUTURA API
-        queryString +=  ", " + empresaCbx.getValue();
+        queryString +=  ", " + empresaId;
         queryString +=  ", '" + codigoPartida + "'";
         queryString +=  ", '" + serieTxt.getValue() + "'";
         queryString +=  ", " + numeroTxt.getValue();
@@ -1639,7 +1582,6 @@ System.out.println("entra a insertar linea del iva.  exentaChb.getValue()=" + ex
         queryString +=  ", 'INGRESADO'";
         queryString +=  ", current_timestamp)";
 
-
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY DOCUMENTO ELECTROCNICO : " + queryString);
 
         try {
@@ -1647,7 +1589,7 @@ System.out.println("entra a insertar linea del iva.  exentaChb.getValue()=" + ex
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);
 
-            ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta(String.valueOf(empresaCbx.getValue()));
+            ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta();
 
             close();
 
@@ -1672,18 +1614,6 @@ System.out.println("entra a insertar linea del iva.  exentaChb.getValue()=" + ex
         }
     }
 
-    private void buscarProveedorPorNit() {
-        for (Iterator<?> i = clienteCbx.getItemIds().iterator(); i.hasNext();) {
-            String id = (String) i.next();
-            Item item = clienteCbx.getItem(id);
-
-            if (nitClienteTxt.getValue().equals(String.valueOf(item.getItemProperty(NIT_PROPERTY).getValue()).trim())) {
-                clienteCbx.select(id);
-                break;
-            }
-        }
-    }
-
     public void cambiarEstatusToken(String codigoPartida) {
 
         try {
@@ -1693,7 +1623,7 @@ System.out.println("entra a insertar linea del iva.  exentaChb.getValue()=" + ex
             queryString += ", FechaUsado = current_timestamp";
             queryString += ", CodigoPartida = '" + codigoPartida + "'";
             queryString += ", Estatus = 'UTILIZADO'";
-            queryString += " Where Codigo = '" + variableTemp + "'";
+            queryString += " WHERE Codigo = '" + variableTemp + "'";
 
             variableTemp = "";
 

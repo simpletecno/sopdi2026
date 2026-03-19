@@ -47,8 +47,8 @@ public class TicketsSoporteView extends VerticalLayout implements View {
     String parametro1 = "", parametro2 = "";
     Long parametro3 = 0L;
     long fileSize;
-    EnvironmentVars enviromentsVars = new EnvironmentVars();
-    
+    EnvironmentVars enviromentsVars;
+
     public Grid ticketsGrid;
     public IndexedContainer ticketsContainer = new IndexedContainer();
     static final String ID_PROPERTY = "Id";

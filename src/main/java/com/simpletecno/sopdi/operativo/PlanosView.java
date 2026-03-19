@@ -264,7 +264,7 @@ public class PlanosView extends VerticalLayout implements View {
                                     stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                                     stQuery.executeUpdate(queryString);
 
-                                    Notification.show("Plano eliminado con exito!", Notification.Type.HUMANIZED_MESSAGE);
+                                    Notification.show("Plano eliminado exitosamente!", Notification.Type.HUMANIZED_MESSAGE);
 
                                     llenarTablaPlanos();
                                 } catch (SQLException ex) {
@@ -361,7 +361,6 @@ public class PlanosView extends VerticalLayout implements View {
             String filePath = environmentsVars.getDtePath();
 
             String fileName = filePath + "planos/" + ((SopdiUI) mainUI).sessionInformation.getStrProjectId() + "/" + idPlano;
-//            com.sun.istack.logging.Logger.getLogger(this.getClass()).log(Level.INFO, fileName);
             final byte docBytes[] = Files.readAllBytes(new File(fileName).toPath());
 
             if (docBytes == null) {

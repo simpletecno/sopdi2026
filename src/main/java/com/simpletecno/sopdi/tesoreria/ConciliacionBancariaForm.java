@@ -90,6 +90,9 @@ public class ConciliacionBancariaForm extends Window {
     BigDecimal ingresosMes = new BigDecimal(0.00).setScale(2, RoundingMode.FLOOR);
     BigDecimal egresosMes = new BigDecimal(0.00).setScale(2, RoundingMode.FLOOR);
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public ConciliacionBancariaForm(String idConciliacion) {
         this.idConciliacion = idConciliacion;
         this.mainUI = UI.getCurrent();
@@ -104,7 +107,7 @@ public class ConciliacionBancariaForm extends Window {
 
         setContent(mainLayout);
 
-        Label titleLbl = new Label("LIBRO CONCILIACIÓN BANCARIA DE " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName().toUpperCase());
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " LIBRO CONCILIACIÓN BANCARIA DE " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName().toUpperCase());
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -617,8 +620,9 @@ public class ConciliacionBancariaForm extends Window {
 
         queryString = " SELECT CB.*, CN.N5 ";
         queryString += " FROM contabilidad_cuentas_bancos CB ";
-        queryString += " INNER JOIN contabilidad_nomenclatura AS CN ON CB.IdNomenclatura = CN.IdNomenclatura ";
-        queryString += " WHERE CB.IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString += " INNER JOIN contabilidad_nomenclatura_empresa AS CN ON CB.IdNomenclatura = CN.IdNomenclatura ";
+        queryString += " WHERE CB.IdEmpresa = " + empresaId;
+        queryString += " AND CN.IdEmpresa = " + empresaId;
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -688,7 +692,7 @@ public class ConciliacionBancariaForm extends Window {
                 notif.show(Page.getCurrent());
             }
 
-            queryString = "  SELECT * FROM contabilidad_partida";
+            queryString = "SELECT * FROM contabilidad_partida";
             queryString += " WHERE IdNomenclatura = " + cuentaContableCbx.getValue();
             queryString += " AND Fecha between ";
             queryString += " '2020-01-01'";
@@ -826,10 +830,10 @@ public class ConciliacionBancariaForm extends Window {
 
             if (idConciliacion.trim().isEmpty()) {
 
-                queryString = "  Insert Into contabilidad_conciliacion_bancaria(IdCuentaBanco, IdEmpresa, IdNomenclatura,  AnioMes, SaldoInicialContable, ";
+                queryString = "INSERT INTO contabilidad_conciliacion_bancaria(IdCuentaBanco, IdEmpresa, IdNomenclatura,  AnioMes, SaldoInicialContable, ";
                 queryString += " SaldoFinalContable, EgresosNoConciliado_Monto, IngresosNoConciliado_Monto,  ";
                 queryString += " Correlativo, TotalIngresos, TotalEgresos, SaldoFinalBanco, CreadoUsuario , CreadoFechaYHora, Estatus)";
-                queryString += " Values ";
+                queryString += " VALUES ";
                 queryString += "(";
                 queryString += "" + idRegistroCuentaBancos;
                 queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
@@ -884,22 +888,22 @@ public class ConciliacionBancariaForm extends Window {
             for (Object itemId : egresosContainer.getItemIds()) {
                 Item item = egresosContainer.getItem(itemId);
 
-                queryString = " Update  contabilidad_partida ";
+                queryString = " UPDATE  contabilidad_partida ";
                 if (egresosGrid.isSelected(itemId)) {
-                    queryString += " Set IdConciliacion = " + idConciliacion;
+                    queryString += " SET IdConciliacion = " + idConciliacion;
                 } else {
-                    queryString += " Set IdConciliacion = 0 ";
+                    queryString += " SET IdConciliacion = 0 ";
                 }
-                queryString += " Where CodigoPartida = '" + String.valueOf(item.getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
+                queryString += " WHERE CodigoPartida = '" + String.valueOf(item.getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
                 queryString += " AND IdNomenclatura = " + cuentaContableCbx.getValue();
 
                 stQuery.executeUpdate(queryString);
 
                 if (!egresosGrid.isSelected(itemId)) { ///INSERTAR EN LA TABLA RESPALDO PARA NO CONCILIADOS POR MES
 
-                    queryString = "  Insert Into conciliacion_bancaria_noconciliados(IdCuentaBanco, IdConciliacion, IdEmpresa, IdNomenclatura,  AnioMes, CodigoPartida, NumeroDocumento, ";
+                    queryString = "INSERT INTO conciliacion_bancaria_noconciliados(IdCuentaBanco, IdConciliacion, IdEmpresa, IdNomenclatura,  AnioMes, CodigoPartida, NumeroDocumento, ";
                     queryString += "  Fecha, Descripcion, Monto, Tipo)";
-                    queryString += " Values ";
+                    queryString += " VALUES ";
                     queryString += "(";
                     queryString += "" + idRegistroCuentaBancos;
                     queryString += "," + idConciliacion;
@@ -922,22 +926,22 @@ public class ConciliacionBancariaForm extends Window {
             for (Object itemId : ingresosContainer.getItemIds()) {
                 Item item = ingresosContainer.getItem(itemId);
 
-                queryString = " Update  contabilidad_partida ";
+                queryString = " UPDATE  contabilidad_partida ";
                 if (ingresosGrid.isSelected(itemId)) {
-                    queryString += " Set IdConciliacion = " + idConciliacion;
+                    queryString += " SET IdConciliacion = " + idConciliacion;
                 } else {
-                    queryString += " Set IdConciliacion = 0 ";
+                    queryString += " SET IdConciliacion = 0 ";
                 }
-                queryString += " Where CodigoPartida = '" + String.valueOf(item.getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
+                queryString += " WHERE CodigoPartida = '" + String.valueOf(item.getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
                 queryString += " AND IdNomenclatura = " + cuentaContableCbx.getValue();
 
                 stQuery.executeUpdate(queryString);
 
                 if (!ingresosGrid.isSelected(itemId)) { ///INSERTAR EN LA TABLA RESPALDO PARA NO CONCILIADOS POR MES
 
-                    queryString = "  Insert Into conciliacion_bancaria_noconciliados(IdCuentaBanco, IdConciliacion, IdEmpresa, IdNomenclatura,  AnioMes, CodigoPartida, NumeroDocumento, ";
+                    queryString = "INSERT Into conciliacion_bancaria_noconciliados(IdCuentaBanco, IdConciliacion, IdEmpresa, IdNomenclatura,  AnioMes, CodigoPartida, NumeroDocumento, ";
                     queryString += "  Fecha, Descripcion, Monto, Tipo)";
-                    queryString += " Values ";
+                    queryString += " VALUES ";
                     queryString += "(";
                     queryString += "" + idRegistroCuentaBancos;
                     queryString += "," + idConciliacion;
@@ -988,10 +992,10 @@ public class ConciliacionBancariaForm extends Window {
 
         try {
 
-            queryString = " Update  contabilidad_conciliacion_bancaria ";
-            queryString += " Set Estatus = 'FINALIZADA'";
-            queryString += " Where Correlativo = '" + conciliacionTxt.getValue() + "'";
-            queryString += " And IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+            queryString = " UPDATE contabilidad_conciliacion_bancaria ";
+            queryString += " SET Estatus = 'FINALIZADA'";
+            queryString += " WHERE Correlativo = '" + conciliacionTxt.getValue() + "'";
+            queryString += " AND IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
 
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);
@@ -1011,8 +1015,8 @@ public class ConciliacionBancariaForm extends Window {
     public String getEmpresaNit() {
         String strNit = "N/A";
 
-        queryString = " SELECT Nit from contabilidad_empresa ";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString = " SELECT Nit FROM contabilidad_empresa ";
+        queryString += " WHERE IdEmpresa = " + empresaId;
 
         try {
             stQuery2 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1033,11 +1037,12 @@ public class ConciliacionBancariaForm extends Window {
     public String getNombreBanco() {
         String nombreBanco = "";
 
-        queryString = " SELECT *, CCB.IdProveedor,CCB.NoCuenta, proveedor.Nombre";
+        queryString = " SELECT *, CCB.IdProveedor,CCB.NoCuenta, proveedor_empresa.Nombre";
         queryString += " FROM contabilidad_conciliacion_bancaria AS CB";
         queryString += " INNER JOIN contabilidad_cuentas_bancos AS CCB on CB.IdCuentaBanco = CCB.IdCuentaBanco";
-        queryString += " INNER JOIN proveedor on CCB.IdProveedor = proveedor.IDProveedor";
+        queryString += " INNER JOIN proveedor_empresa on CCB.IdProveedor = proveedor_empresa.IDProveedor";
         queryString += " WHERE CB.IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND proveedor_empresa.IdEmpresa = " + empresaId;
         queryString += " AND CB.AnioMes = '" + Utileria.getFechaYYYYMM(mesDt.getValue()).replaceAll("/", "") + "'";
         queryString += " AND CB.IdConciliacionBancaria = " + idConciliacion;
 

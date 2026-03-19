@@ -24,7 +24,6 @@ public class TokenForm extends Window {
     VerticalLayout mainLayout;
     
     TextField tokenTxt;
-    Button grabarBtn;
     Button enviarBtn;
 
     UI mainUI;

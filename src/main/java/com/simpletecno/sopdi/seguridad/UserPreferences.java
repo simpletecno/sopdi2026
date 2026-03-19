@@ -64,7 +64,7 @@ public class UserPreferences extends Window implements Button.ClickListener
     public UserPreferences() {
         
         setSizeFull();
-        setCaption("Edición de perfil");
+        setCaption("Preferencias de usuario");
 
         acceptBtn    = new Button("Aceptar");
         acceptBtn.setIcon(FontAwesome.CHECK);

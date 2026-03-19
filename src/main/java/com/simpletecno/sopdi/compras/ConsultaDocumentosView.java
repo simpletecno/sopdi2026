@@ -92,6 +92,9 @@ public class ConsultaDocumentosView extends VerticalLayout implements View {
     VerticalLayout reportLayoutPartida = new VerticalLayout();
     EnvironmentVars enviromentsVars;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public ConsultaDocumentosView() {
 
         reportLayoutPartida.setEnabled(false);
@@ -102,7 +105,7 @@ public class ConsultaDocumentosView extends VerticalLayout implements View {
 
         enviromentsVars = new EnvironmentVars();
 
-        Label titleLbl = new Label("DOCUMENTOS");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " DOCUMENTOS");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -347,12 +350,13 @@ public class ConsultaDocumentosView extends VerticalLayout implements View {
         totalDebe = 0.00;
         totalHaber = 0.00;
 
-        queryString = " select contabilidad_partida.IdPartida, contabilidad_partida.MonedaDocumento,";
+        queryString = " SELECT contabilidad_partida.IdPartida, contabilidad_partida.MonedaDocumento,";
         queryString += " contabilidad_partida.Debe, contabilidad_partida.Haber,";
-        queryString += " contabilidad_nomenclatura.N5, contabilidad_nomenclatura.NoCuenta";
-        queryString += " from contabilidad_partida,contabilidad_nomenclatura";
-        queryString += " where contabilidad_partida.CodigoPartida = '" + codigoPartida + "'";
-        queryString += " and  contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";               
+        queryString += " contabilidad_nomenclatura_empresa.N5, contabilidad_nomenclatura_empresa.NoCuenta";
+        queryString += " FROM contabilidad_partida,contabilidad_nomenclatura_empresa";
+        queryString += " WHERE contabilidad_partida.CodigoPartida = '" + codigoPartida + "'";
+        queryString += " AND  contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+        queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + ((SopdiUI)mainUI).sessionInformation.getStrAccountingCompanyId();
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -422,12 +426,13 @@ public class ConsultaDocumentosView extends VerticalLayout implements View {
             queryString += " FROM contabilidad_partida ";
             queryString += " INNER JOIN contabilidad_empresa On contabilidad_empresa.IdEmpresa = contabilidad_partida.IdEmpresa";
             queryString += " INNER JOIN usuario on usuario.IdUsuario = contabilidad_partida.CreadoUsuario";
-            queryString += " LEFT JOIN proveedor ON proveedor.IDProveedor = contabilidad_partida.IdProveedor";
+            queryString += " LEFT JOIN proveedor_empresa ON proveedor_empresa.IDProveedor = contabilidad_partida.IdProveedor";
             queryString += " LEFT JOIN orden_compra ON orden_compra.Id = contabilidad_partida.IdOrdenCompra";
             queryString += " WHERE contabilidad_partida.NumeroDocumento Like '%" + documentTxt.getValue().trim() + "%'";
             if (!String.valueOf(tipoTransaccionCbx.getValue()).equals("<<TODAS>>")) {
                 queryString += " And contabilidad_partida.TipoDocumento = '" + String.valueOf(tipoTransaccionCbx.getValue()) + "'";
             }
+            queryString += " AND proveedor_empresa.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
             queryString += " GROUP by contabilidad_partida.CodigoPartida ";
             queryString += " ORDER By contabilidad_partida.Fecha";
 
@@ -746,11 +751,11 @@ public class ConsultaDocumentosView extends VerticalLayout implements View {
     
     public void guardarArchivo(Object selectedObject, String codigoPartida, String fileName) {
         try {
-            queryString = " Update contabilidad_partida set  ";
+            queryString = " UPDATE contabilidad_partida set  ";
             queryString += "  ArchivoNombre ='" + fileName + "'";
             queryString += ", ArchivoTipo ='" + parametro2 + "'";
             queryString += ", ArchivoPeso = " + parametro3;
-            queryString += " where CodigoPartida = '" + codigoPartida + "'";
+            queryString += " WHERE CodigoPartida = '" + codigoPartida + "'";
 
             PreparedStatement stPreparedQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(queryString);
             stPreparedQuery.executeUpdate();

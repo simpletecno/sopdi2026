@@ -10,6 +10,7 @@ import org.vaadin.ui.NumberField;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+//tipo de cambio del Banco de Guatemala
 public class TasaCambioForm extends Window {
     
     VerticalLayout mainLayout;
@@ -83,7 +84,8 @@ public class TasaCambioForm extends Window {
     
     public void insertarTasa(){
         
-        queryString = " INSERT INTO contabilidad_tasa_cambio (Fecha, Tasa, CreadoUsuario, CreadoFechaYHora) Values ( ";
+        queryString = " INSERT INTO contabilidad_tasa_cambio (Fecha, Tasa, CreadoUsuario, CreadoFechaYHora) ";
+        queryString += " VALUES ( ";
         queryString += " current_date()";
         queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();

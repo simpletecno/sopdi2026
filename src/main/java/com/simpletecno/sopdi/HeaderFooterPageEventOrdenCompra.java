@@ -80,8 +80,6 @@ public class HeaderFooterPageEventOrdenCompra extends PdfPageEventHelper {
     Statement stQuery = null;
     ResultSet rsRecords;
 
-    static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
-
     @Override
     public void onStartPage(PdfWriter writer, Document document) {
         try {

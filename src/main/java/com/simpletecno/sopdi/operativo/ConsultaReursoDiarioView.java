@@ -48,9 +48,10 @@ public class ConsultaReursoDiarioView extends VerticalLayout implements View {
     ResultSet rsRecords;
     Statement stQuery1;
     ResultSet rsRecords1;
-    Statement stQuery2;
-    ResultSet rsRecords2;
     String queryString;
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public ConsultaReursoDiarioView() {
 
@@ -59,7 +60,7 @@ public class ConsultaReursoDiarioView extends VerticalLayout implements View {
         setMargin(true);
         setSpacing(true);
 
-        Label titleLbl = new Label("DISPONIBILIDAD DE RH1 Y RH2");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " DISPONIBILIDAD DE RH1 Y RH2");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -374,7 +375,7 @@ public class ConsultaReursoDiarioView extends VerticalLayout implements View {
 
         //2. Leer los registros de tabla proveedor donde cargo = RH1 o RH2 (done)
         queryString = "SELECT COUNT(*) RHCONTRATADO";
-        queryString += " FROM proveedor";
+        queryString += " FROM proveedor_empresa";
         queryString += " WHERE EsPlanilla = 1";
         queryString += " AND Cargo = '" + cargo + "'";
         queryString += " AND EstatusTrabajo NOT IN ('DE BAJA', 'AUSENTE')";

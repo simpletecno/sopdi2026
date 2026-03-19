@@ -1,9 +1,6 @@
 package com.simpletecno.sopdi;
 
 import com.simpletecno.sopdi.utilerias.EChartsComponent;
-import com.simpletecno.sopdi.utilerias.Utileria;
-import com.vaadin.data.util.IndexedContainer;
-import com.vaadin.icons.VaadinIcons;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;
@@ -18,13 +15,12 @@ import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class DashboardView extends VerticalLayout implements View {
 
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
+    static DecimalFormat numberFormat2 = new DecimalFormat("#.#####");
     public Statement stQuery = null;
     public Statement stQuery1 = null;
     public ResultSet rsRecords = null;
@@ -91,7 +87,7 @@ public class DashboardView extends VerticalLayout implements View {
                 createBadget("Facturas Por Pagar", numberFormat.format(getTotalFacturasPorPagar())),
                 createBadget("Formularios por Pagar", numberFormat.format(getTotalFormulariosPorPagar())),
                 createBadget("Caja Chica por Liquidar", numberFormat.format(getTotalCajaChicaPorLiquidar())),
-                createBadget("Facturas por Cobrar", numberFormat.format(getTotalFacturasPorCobrarr()))
+                createBadget("Tipo de cambio hoy", numberFormat2.format(((SopdiUI) UI.getCurrent()).sessionInformation.getFltExchangeRate()))
         );
     }
 

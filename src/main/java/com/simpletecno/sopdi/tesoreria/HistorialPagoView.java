@@ -84,8 +84,6 @@ public class HistorialPagoView extends VerticalLayout implements View {
     DateField inicioDt;
     DateField finDt;
 
-    ComboBox empresaCbx;
-    String empresa;
     Button excelBtn;
 
     UI mainUI;
@@ -107,8 +105,9 @@ public class HistorialPagoView extends VerticalLayout implements View {
     int contador = 0;
 
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
-    static DecimalFormat numberFormat2 = new DecimalFormat("#,###,##0");
-    static DecimalFormat numberFormat3 = new DecimalFormat("######0.00");
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public HistorialPagoView() {
 
@@ -132,32 +131,16 @@ public class HistorialPagoView extends VerticalLayout implements View {
             }
         });
 
-        Label titleLbl = new Label("HISTORIAL DE PAGOS");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " HISTORIAL DE PAGOS");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-
-        llenarComboEmpresa();
-
-        empresaCbx.addValueChangeListener(event -> {
-            empresa = String.valueOf(event.getProperty().getValue());
-            llenarGridHistorialPagos(empresa);
-        });
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl, excelBtn);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl, excelBtn);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.setComponentAlignment(excelBtn, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
@@ -166,30 +149,7 @@ public class HistorialPagoView extends VerticalLayout implements View {
         setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
 
         agregarHistorialPagos();
-        empresa = String.valueOf(empresaCbx.getValue());
-        llenarGridHistorialPagos(empresa);
-    }
-
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords2 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords2.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords2.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords2.getString("IdEmpresa"), rsRecords2.getString("Empresa"));
-            }
-            rsRecords2.first();
-
-            empresaCbx.select(rsRecords2.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
+        llenarGridHistorialPagos();
     }
 
     public void agregarHistorialPagos() {
@@ -222,7 +182,7 @@ public class HistorialPagoView extends VerticalLayout implements View {
         consultarBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                llenarGridHistorialPagos(empresa);
+                llenarGridHistorialPagos();
             }
         });
 
@@ -353,8 +313,8 @@ public class HistorialPagoView extends VerticalLayout implements View {
 
                 PagoChequesPDF Pagocheques
                         = new PagoChequesPDF(
-                                empresa,
-                                empresaCbx.getItemCaption(empresaCbx.getValue()),
+                                empresaId,
+                                empresaNombre,
                                 codigoPartida,
                                 "0",
                                 nombre,
@@ -534,7 +494,7 @@ public class HistorialPagoView extends VerticalLayout implements View {
         addComponent(historialPagosLayout);
     }
 
-    public void llenarGridHistorialPagos(String empresa) {
+    public void llenarGridHistorialPagos() {
         footerHistorial.getCell(VALOR_PROPERTY).setText("0.00");
         footerHistorial.getCell(MONTO_QUETZALES_PROPERTY).setText("0.00");
 
@@ -543,17 +503,17 @@ public class HistorialPagoView extends VerticalLayout implements View {
         totalMonto = 0.00;
         totalQueztales = 0.00;
 
-        queryString = "Select Distinct contabilidad_partida.IdPartida, contabilidad_partida.CodigoPartida, contabilidad_partida.Fecha, ";
+        queryString = "SELECT DISTINCT contabilidad_partida.IdPartida, contabilidad_partida.CodigoPartida, contabilidad_partida.Fecha, ";
         queryString += " contabilidad_partida.TipoDocumento, contabilidad_partida.NumeroDocumento, contabilidad_partida.IdNomenclatura,";
         queryString += " contabilidad_partida.TipoDOCA, contabilidad_partida.NoDOCA, contabilidad_partida.Estatus,";
         queryString += " contabilidad_partida.MonedaDocumento, contabilidad_partida.TipoCambio,  ";
         queryString += " contabilidad_partida.IdProveedor, contabilidad_partida.NombreProveedor, contabilidad_partida.NombreCheque, ";
-        queryString += " Debe as Total, usuario.Nombre as uNombre, contabilidad_nomenclatura.N5, contabilidad_partida.Descripcion,  ";
+        queryString += " Debe AS Total, usuario.Nombre AS uNombre, contabilidad_nomenclatura.N5, contabilidad_partida.Descripcion,  ";
         queryString += " contabilidad_partida.MontoDocumento";
-        queryString += " From contabilidad_partida,usuario, contabilidad_nomenclatura  ";
-        queryString += " Where contabilidad_partida.IdEmpresa = " + empresa;
-        queryString += " And contabilidad_partida.TipoDocumento In ('CHEQUE', 'TRANSFERENCIA', 'NOTA DE DEBITO', 'PAGO DOCUMENTO VENTA')";
-        queryString += " And contabilidad_partida.IdNomenclatura In (";
+        queryString += " FROM contabilidad_partida,usuario, contabilidad_nomenclatura  ";
+        queryString += " Where contabilidad_partida.IdEmpresa = " + empresaId;
+        queryString += " AND contabilidad_partida.TipoDocumento In ('CHEQUE', 'TRANSFERENCIA', 'NOTA DE DEBITO', 'PAGO DOCUMENTO VENTA')";
+        queryString += " AND contabilidad_partida.IdNomenclatura In (";
         if(((SopdiUI) mainUI).cuentasContablesDefault.getBancosMonedaLocal() != null){
             queryString += ((SopdiUI) mainUI).cuentasContablesDefault.getBancosMonedaLocal();
         }
@@ -561,9 +521,9 @@ public class HistorialPagoView extends VerticalLayout implements View {
             queryString += " ," + ((SopdiUI) mainUI).cuentasContablesDefault.getBancosMonedaExtranjera();
         }
         queryString += ")";
-        queryString += " And contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura ";
-        queryString += " And usuario.IdUsuario = contabilidad_partida.CreadoUsuario   ";
-        queryString += " And (contabilidad_partida.Fecha BETWEEN ";
+        queryString += " AND contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura ";
+        queryString += " AND usuario.IdUsuario = contabilidad_partida.CreadoUsuario   ";
+        queryString += " AND (contabilidad_partida.Fecha BETWEEN ";
         queryString += "     '" + Utileria.getFechaYYYYMMDD_1(inicioDt.getValue()) + "'";
         queryString += " AND '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "')";
 
@@ -648,7 +608,7 @@ public class HistorialPagoView extends VerticalLayout implements View {
             excelExport.excludeCollapsedColumns();
             excelExport.setDisplayTotals(false);
             String fileexport;
-            fileexport = (empresa + "_" + empresaCbx.getItemCaption(empresaCbx.getValue()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("Ã±", "n").replaceAll("Ã‘", "N").replaceAll("Ã³", "o").replaceAll("Ã©", "") + "_DOCUMENTOS.xls").replaceAll(" ", "").replaceAll(",", "");
+            fileexport = (empresaId + "_" + empresaNombre.replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("Ã±", "n").replaceAll("Ã‘", "N").replaceAll("Ã³", "o").replaceAll("Ã©", "") + "_DOCUMENTOS.xls").replaceAll(" ", "").replaceAll(",", "");
             excelExport.setExportFileName(fileexport);
             excelExport.export();
         }
@@ -668,8 +628,9 @@ public class HistorialPagoView extends VerticalLayout implements View {
 
                 if (String.valueOf(item.getItemProperty(TIPO_PROPERTY).getValue()).equals("CHEQUE")) {
 
-                    queryString = "Select * from proveedor";
-                    queryString += " Where IdProveedor = " + String.valueOf(item.getItemProperty(ID_PROVEEDOR_PROPERTY).getValue());
+                    queryString = "SELECT * FROM proveedor_empresa";
+                    queryString += " WHERE IdProveedor = " + String.valueOf(item.getItemProperty(ID_PROVEEDOR_PROPERTY).getValue());
+                    queryString += " AND IdEmpresa = " + empresaId;
                     //queryString += " And EsPlanilla = 1 ";
 
                     stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -677,10 +638,10 @@ public class HistorialPagoView extends VerticalLayout implements View {
 
                     if (rsRecords.next()) {
 
-                        queryString = "Select * from contabilidad_cuentas_bancos";
-                        queryString += " Where IdEmpresa = " + empresaCbx.getValue();
-                        queryString += " and IdNomenclatura = " + String.valueOf(item.getItemProperty(ID_NOMENCLATURA_PROPERTY).getValue());
-                        queryString += " and Moneda = '" + String.valueOf(item.getItemProperty(MONEDA_PROPERTY).getValue() + "'");
+                        queryString = "SELECT * FROM contabilidad_cuentas_bancos";
+                        queryString += " WHERE IdEmpresa = " +empresaId;
+                        queryString += " AND IdNomenclatura = " + String.valueOf(item.getItemProperty(ID_NOMENCLATURA_PROPERTY).getValue());
+                        queryString += " AND Moneda = '" + String.valueOf(item.getItemProperty(MONEDA_PROPERTY).getValue() + "'");
 
                         stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                         rsRecords2 = stQuery1.executeQuery(queryString);
@@ -704,7 +665,7 @@ public class HistorialPagoView extends VerticalLayout implements View {
             }
         }
 
-        filePath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath() + "/pdfreceipts/" + empresaCbx.getValue()+"_CHEQUES"+ ".txt";
+        filePath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath() + "/pdfreceipts/" + empresaId+"_CHEQUES"+ ".txt";
 //DESARROLLO filePath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath() + "\\" +empresaCbx.getValue() + "_CHEQUES" + ".txt";
 
         controlador.crearArchivo(filePath, listaCheques);

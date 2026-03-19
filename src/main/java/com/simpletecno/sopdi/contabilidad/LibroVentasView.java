@@ -67,8 +67,6 @@ public class LibroVentasView extends VerticalLayout implements View {
     ResultSet rsRecords1;
 
     Button exportExcelBtn;
-    ComboBox empresaCbx;
-    String empresa;
     PopupDateField monthDt;
     NumberField folioTxt;
 
@@ -79,6 +77,9 @@ public class LibroVentasView extends VerticalLayout implements View {
     int totalFacturasVenta = 0;
 
     int cntFacturasPeqCon = 0, cntFacturasNoAfecto = 0, cntFacturastVenta = 0, cntFacturasServicio = 0;
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public LibroVentasView() {
 
@@ -98,49 +99,31 @@ public class LibroVentasView extends VerticalLayout implements View {
             public void valueChange(Property.ValueChangeEvent event) {
 
                 if (libroVentasGrid != null) {
-                    llenarGridLibroVentas(empresa);
+                    llenarGridLibroVentas();
                 }
             }
         });
 
-        Label titleLbl = new Label("LIBRO VENTAS");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " LIBRO IVA VENTAS");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
 //        titleLbl.addStyleName("h2_custom");
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-
-        llenarComboEmpresa();
-
-        empresaCbx.addValueChangeListener(event -> {
-            empresa = String.valueOf(event.getProperty().getValue());
-            llenarGridLibroVentas(empresa);
-        });
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl, monthDt);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl, monthDt);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
         addComponent(titleLayout);
         setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
 
-        empresa = String.valueOf(empresaCbx.getValue());
-
         crearTablaLibroVentas();
 
-        llenarGridLibroVentas(empresa);
+        llenarGridLibroVentas();
 
     }
 
@@ -307,9 +290,9 @@ public class LibroVentasView extends VerticalLayout implements View {
 
                     LibroVentasPDF libroVentasPdf
                             = new LibroVentasPDF(
-                                    empresa,
-                                    empresaCbx.getItemCaption(empresaCbx.getValue()),
-                                    getEmpresaNit(),
+                                    empresaId,
+                                    empresaNombre,
+                                    ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyTaxId(),
                                     libroVentasContainer,
                                     Utileria.getFechaMMYYYY(monthDt.getValue()).replaceAll("/", ""),
                                     folioTxt.getValue()
@@ -335,7 +318,7 @@ public class LibroVentasView extends VerticalLayout implements View {
                     excelExport.excludeCollapsedColumns();
                     excelExport.setDisplayTotals(false);
                     String fileexport;
-                    fileexport = "LibroVentas_" + empresaCbx.getItemCaption(empresaCbx.getValue()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + ".xls";
+                    fileexport = "LibroIVAVentas_" + empresaNombre.replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + ".xls";
                     excelExport.setExportFileName(fileexport);
                     excelExport.export();
                 }
@@ -357,7 +340,7 @@ public class LibroVentasView extends VerticalLayout implements View {
         setComponentAlignment(layoutTablaLibroVentas, Alignment.MIDDLE_CENTER);
     }
 
-    public void llenarGridLibroVentas(String empresa) {
+    public void llenarGridLibroVentas() {
 
         if (libroVentasContainer == null) {
             return;
@@ -387,19 +370,19 @@ public class LibroVentasView extends VerticalLayout implements View {
 
         try {
 
-            queryString = " select contabilidad_partida.SerieDocumento, contabilidad_partida.NumeroDocumento, ";
-            queryString += " contabilidad_partida.CodigoPartida,  contabilidad_nomenclatura.NoCuenta,";
+            queryString = " SELECT contabilidad_partida.SerieDocumento, contabilidad_partida.NumeroDocumento, ";
+            queryString += " contabilidad_partida.CodigoPartida,  contabilidad_nomenclatura_empresa.NoCuenta,";
             queryString += " contabilidad_partida.NitProveedor, contabilidad_partida.NombreProveedor,";
             queryString += " contabilidad_partida.DebeQuetzales, contabilidad_partida.HaberQuetzales,";
-            queryString += " contabilidad_partida.Fecha, contabilidad_nomenclatura.Tipo ";
-            queryString += " from contabilidad_partida,contabilidad_nomenclatura";
-            queryString += " where contabilidad_partida.IdEmpresa  = " + empresa;
-            queryString += " And contabilidad_partida.TipoDocumento IN ('FACTURA VENTA', 'CONSTANCIA RETENCION IVA')";
-            queryString += " and contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
-            queryString += " and Extract(YEAR_MONTH From contabilidad_partida.Fecha) = " + utileria.getFechaHoraSinFormato(monthDt.getValue()).substring(0, 6);
-//            queryString += " Order By contabilidad_partida.CodigoPartida, contabilidad_nomenclatura.NoCuenta";
+            queryString += " contabilidad_partida.Fecha, contabilidad_nomenclatura_empresa.Tipo ";
+            queryString += " FROM contabilidad_partida,contabilidad_nomenclatura";
+            queryString += " WHERE contabilidad_partida.IdEmpresa  = " + empresaId;
+            queryString += " AND contabilidad_partida.TipoDocumento IN ('FACTURA VENTA', 'CONSTANCIA RETENCION IVA')";
+            queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+            queryString += " AND Extract(YEAR_MONTH From contabilidad_partida.Fecha) = " + utileria.getFechaHoraSinFormato(monthDt.getValue()).substring(0, 6);
             queryString += " And contabilidad_partida.Estatus <> 'ANULADO'";
-            queryString += " Order By contabilidad_partida.CodigoPartida, contabilidad_partida.Debe Desc";
+            queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
+            queryString += " ORDER BY contabilidad_partida.CodigoPartida, contabilidad_partida.Debe Desc";
 
             System.out.println("\nQUERY LIBRO VENTAS = " + queryString + "\n");
 
@@ -529,52 +512,8 @@ public class LibroVentasView extends VerticalLayout implements View {
 
     }
 
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords1.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords1.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords1.getString("IdEmpresa"), rsRecords1.getString("Empresa"));
-            }
-            rsRecords1.first();
-
-            empresaCbx.select(rsRecords1.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
-    public String getEmpresaNit() {
-        String strNit = "N/A";
-
-        queryString = " SELECT Nit from contabilidad_empresa ";
-        queryString += " Where IdEmpresa = " + empresa;
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            if (rsRecords1.next()) {
-                strNit = rsRecords1.getString("Nit");
-            }
-
-        } catch (Exception ex1) {
-            System.out.println("Error al buscar NIT de empresa: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-
-        return strNit;
-    }
-
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
-        Page.getCurrent().setTitle("Sopdi - Libro ventas");
+        Page.getCurrent().setTitle("Sopdi - Libro IVA ventas");
     }
 }

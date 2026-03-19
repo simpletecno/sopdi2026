@@ -61,7 +61,7 @@ public class MovimientoForm extends Window {
         Label titleLbl;
 
         if (idMovimiento.trim().isEmpty()) {
-            titleLbl = new Label("NUEVO MOVIMIENTO");
+            titleLbl = new Label("NUEVO MOVIMIENTO DE INVENTARIO");
             titleLbl.setSizeUndefined();
             titleLbl.addStyleName(Runo.LABEL_H2);
         } else {

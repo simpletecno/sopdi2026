@@ -64,9 +64,6 @@ public class LibroBalanceDeSaldosView extends VerticalLayout implements View {
     CheckBox omitirSinMovimientoChk;
     Button alDiaBtn;
 
-    ComboBox empresaCbx;
-    String empresa;
-
     IndexedContainer balanceSaldosContainer;
     Grid balanceSaldosGrid;
     FooterRow footerRow;
@@ -84,7 +81,8 @@ public class LibroBalanceDeSaldosView extends VerticalLayout implements View {
 
     static DecimalFormat numberFormat = new DecimalFormat("###,###,##0.00");
 
-    static final Utileria UTILERIA = new Utileria();
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public LibroBalanceDeSaldosView() {
         this.mainUI = UI.getCurrent();
@@ -93,33 +91,17 @@ public class LibroBalanceDeSaldosView extends VerticalLayout implements View {
         setMargin(true);
         setHeightUndefined();
 
-        Label titleLbl = new Label("BALANCE SALDOS");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " BALANCE SALDOS");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
 //        titleLbl.addStyleName("h2_custom");
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-
-        llenarComboEmpresa();
-
-        empresaCbx.addValueChangeListener(event -> {
-            empresa = String.valueOf(event.getProperty().getValue());
-            llenarGridBalanceSaldos();
-        });
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -127,31 +109,6 @@ public class LibroBalanceDeSaldosView extends VerticalLayout implements View {
         setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
 
         crearGridBalanceSaldos();
-
-        empresa = String.valueOf(empresaCbx.getValue());
-
-    }
-
-    public void llenarComboEmpresa() {
-        String queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords1.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords1.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords1.getString("IdEmpresa"), rsRecords1.getString("Empresa"));
-            }
-            rsRecords1.first();
-
-            empresaCbx.select(rsRecords1.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void crearGridBalanceSaldos() {
@@ -415,9 +372,9 @@ public class LibroBalanceDeSaldosView extends VerticalLayout implements View {
 //                    }
                     LibroBalanceDeSaldosPDF libroBalancePdf
                             = new LibroBalanceDeSaldosPDF(
-                                    empresa,
-                                    empresaCbx.getItemCaption(empresaCbx.getValue()),
-                                    getEmpresaNit(),
+                                    empresaId,
+                                    empresaNombre,
+                                    ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyTaxId(),
                                     balanceSaldosContainer,
                                     String.valueOf(anioCbx.getValue()),
                                     String.valueOf(mesCbx.getValue()),
@@ -444,7 +401,7 @@ public class LibroBalanceDeSaldosView extends VerticalLayout implements View {
                     excelExport.excludeCollapsedColumns();
                     excelExport.setDisplayTotals(false);
                     String fileexport;
-                    fileexport = "BalanceSaldos_" + empresaCbx.getItemCaption(empresaCbx.getValue()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + ".xls";
+                    fileexport = "BalanceSaldos_" + empresaNombre.replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + ".xls";
                     excelExport.setExportFileName(fileexport);
                     excelExport.export();
                 }
@@ -505,30 +462,6 @@ public class LibroBalanceDeSaldosView extends VerticalLayout implements View {
         mesCbx.setItemCaption("11", NOMBREMES.get("11"));
         mesCbx.addItem("12");
         mesCbx.setItemCaption("12", NOMBREMES.get("12"));
-/*
-        String queryString = " SELECT * from contabilidad_empresa_cierre";
-        queryString += " Where Mes Like '" + anioCbx.getValue() + "%'";
-        queryString += " And Estatus = 'CERRADO'";
-        queryString += " Order By Mes";
-
-System.out.println(queryString);
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords = stQuery.executeQuery(queryString);
-
-            if (rsRecords.next()) { //  encontrado
-                do {
-                    mesCbx.addItem(rsRecords.getString("Mes"));
-                    mesCbx.setItemCaption(rsRecords.getString("Mes"), NOMBREMES.get(rsRecords.getString("Mes").substring(4,6)));
-                } while (rsRecords.next());
-            }
-        } catch (Exception ex1) {
-            System.out.println("Error al listar combo de mes : " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-**/
     }
 
     public void llenarGridBalanceSaldos() {
@@ -554,9 +487,9 @@ System.out.println(queryString);
 
         Object itemId;
 
-        String queryString = " SELECT * from contabilidad_nomenclatura";
-        queryString += " where Estatus = 'HABILITADA'";
-        queryString += " Order By Cast(NoCuenta AS UNSIGNED)";
+        String queryString = " SELECT * FROM contabilidad_nomenclatura";
+        queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " ORDER BY Cast(NoCuenta AS UNSIGNED)";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -567,11 +500,11 @@ System.out.println(queryString);
 
                 do {
 
-                    queryString = " Select *";
-                    queryString += " From contabilidad_balance_saldo";
-                    queryString += " Where IdEmpresa = " + empresa;
-                    queryString += " And IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
-                    queryString += " And AnioMesCierre = '" + anioCbx.getValue() + mesCbx.getValue() + "'";
+                    queryString = " SELECT *";
+                    queryString += " FROM contabilidad_balance_saldo";
+                    queryString += " WHERE IdEmpresa = " + empresaId;
+                    queryString += " AND IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
+                    queryString += " AND AnioMesCierre = '" + anioCbx.getValue() + mesCbx.getValue() + "'";
 
 //System.out.println(queryString);
 
@@ -618,28 +551,6 @@ System.out.println(queryString);
             ex1.printStackTrace();
         }
 
-    }
-
-    public String getEmpresaNit() {
-        String strNit = "N/A";
-
-        String queryString = " SELECT Nit from contabilidad_empresa ";
-        queryString += " Where IdEmpresa = " + empresa;
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            if (rsRecords1.next()) {
-                strNit = rsRecords1.getString("Nit");
-            }
-
-        } catch (Exception ex1) {
-            System.out.println("Error al buscar NIT de empresa: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-
-        return strNit;
     }
 
     @Override

@@ -114,8 +114,8 @@ public class ClasificacionCuentasCostoForm extends Window {
     public void llenarClasificacion() {
 
         String queryString = "";
-        queryString = " Select * from clasificacion";
-        queryString += " where IdClasificacion =" + idClasificacion;
+        queryString = " SELECT * FROM clasificacion";
+        queryString += " WHERE IdClasificacion =" + idClasificacion;
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -134,14 +134,14 @@ public class ClasificacionCuentasCostoForm extends Window {
         try {
 
             if (idClasificacion.isEmpty()) {
-                queryString = "Insert Into clasificacion (Descripcion)";
-                queryString += " Values (";
+                queryString = "INSERT INTO clasificacion (Descripcion)";
+                queryString += " VALUES (";
                 queryString += " '" + descripcionTxt.getValue() + "'";
                 queryString += ")";
             } else {
-                queryString = " Update clasificacion Set ";
+                queryString = " UPDATE clasificacion SET ";
                 queryString += " Descripcion = '" + descripcionTxt.getValue()+"'";
-                queryString += " Where IdClasificacion = " + idClasificacion;
+                queryString += " WHERE IdClasificacion = " + idClasificacion;
             }
 
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

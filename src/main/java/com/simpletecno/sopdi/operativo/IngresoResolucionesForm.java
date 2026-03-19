@@ -36,10 +36,6 @@ public class IngresoResolucionesForm extends Window {
     Statement stQuery;
     ResultSet rsRecords;
     String queryString;
-    static PreparedStatement stPreparedQuery;
-
-    static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
-    static DecimalFormat numberFormat2 = new DecimalFormat("#,###,##0");
 
     IndexedContainer resolucionesContainer = new IndexedContainer();
     Grid resolucionesGrid;
@@ -168,9 +164,9 @@ public class IngresoResolucionesForm extends Window {
 
         String queryString;
 
-        queryString = "Select *";
-        queryString += " From visita_inspeccion ";
-        queryString += " Where IdVisitaInspeccion = " + visitaId;
+        queryString = "SELECT *";
+        queryString += " FROM visita_inspeccion ";
+        queryString += " WHERE IdVisitaInspeccion = " + visitaId;
 
 //System.out.println("\n\n"+queryString);
         try {
@@ -208,7 +204,7 @@ public class IngresoResolucionesForm extends Window {
 
     public void validarYGuardar() {
         try {
-            queryString = " Update visita_inspeccion Set";
+            queryString = " UPDATE visita_inspeccion SET";
             queryString += " Resolucion1 = '" + resolucionesContainer.getContainerProperty(1, "Resolución").getValue() + "'";
             queryString += ",Resolucion2 = '" + resolucionesContainer.getContainerProperty(2, "Resolución").getValue() + "'";
             queryString += ",Resolucion3 = '" + resolucionesContainer.getContainerProperty(3, "Resolución").getValue() + "'";
@@ -216,7 +212,7 @@ public class IngresoResolucionesForm extends Window {
             queryString += ",Resolucion5 = '" + resolucionesContainer.getContainerProperty(5, "Resolución").getValue() + "'";
             queryString += ",Resolucion6 = '" + resolucionesContainer.getContainerProperty(6, "Resolución").getValue() + "'";
             queryString += ",Resolucion7 = '" + resolucionesContainer.getContainerProperty(7, "Resolución").getValue() + "'";
-            queryString += " Where IdVisitaInspeccion = " +codigoVisita;
+            queryString += " WHERE IdVisitaInspeccion = " +codigoVisita;
             
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);

@@ -34,7 +34,7 @@ public class NotaCreditoCompra extends Window {
     VerticalLayout mainLayout;
 
     Grid productosGrid;
-    public IndexedContainer documentsContainer = new IndexedContainer();
+
     static final String ID_PROPERTY = "Id";
     static final String ID_PRODUCTO_PROPERTY = "Cod producto.";
     static final String NOMBRE_PROPERTY = "ProductoNota";
@@ -66,6 +66,10 @@ public class NotaCreditoCompra extends Window {
 
     CheckBox rebajarInventarioCheck;
     String ordenCompra = "";
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public NotaCreditoCompra(
             String empresa,
             IndexedContainer container,
@@ -227,12 +231,12 @@ public class NotaCreditoCompra extends Window {
     }
 
     private void encontrarPartidaDocumento() {
-        queryString = " select  *";
-        queryString += " from contabilidad_partida";
-        queryString += " where CodigoPartida = '" + codigoPartida + "'";
-        queryString += " and IdEmpresa = " + empresa;
-        queryString += " and SerieDocumento = '" + serieDocumento + "'";
-        queryString += " and NumeroDocumento = '" + numeroDocumento + "'";
+        queryString = " SELECT  *";
+        queryString += " FROM contabilidad_partida";
+        queryString += " WHERE CodigoPartida = '" + codigoPartida + "'";
+        queryString += " AND IdEmpresa = " + empresa;
+        queryString += " AND SerieDocumento = '" + serieDocumento + "'";
+        queryString += " AND NumeroDocumento = '" + numeroDocumento + "'";
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
 
@@ -300,9 +304,9 @@ public class NotaCreditoCompra extends Window {
 
         String codigoPartidaNC = String.valueOf(empresa) + año + mes + dia + "6";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + codigoPartidaNC + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = " SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida LIKE '" + codigoPartidaNC + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -365,14 +369,14 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "montoDocumento=" + 
 
                 rsRecords.first();
 
-                queryString = " Insert Into contabilidad_partida (IdEmpresa, CodigoPartida, CodigoCC,";
+                queryString = " INSERT INTO contabilidad_partida (IdEmpresa, CodigoPartida, CodigoCC,";
                 queryString += " TipoDocumento, Fecha, IdOrdenCompra, IdProveedor, NITProveedor, NombreProveedor,";
                 queryString += " SerieDocumento, NumeroDocumento, IdNomenclatura, MonedaDocumento, MontoDocumento, ";
                 queryString += " Debe, Haber, DebeQuetzales, HaberQuetzales, TipoCambio, Saldo, Estatus, ";
                 queryString += " IdLiquidacion, IdLiquidador, Descripcion, Referencia,";
                 queryString += " CreadoUsuario, CreadoFechaYHora, Archivo, ArchivoTipo, ArchivoPeso, ArchivoNombre";
                 queryString += ")";
-                queryString += " Values ";
+                queryString += " VALUES ";
 
                 do {
                     queryString += " (";

@@ -18,7 +18,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 /**
- *
+ * PERMISOS PARA TIPOS DE ORDENES DE COMPRA
  * @author joseaguirre
  */
 public class UsuarioPermisosOrdenCompraForm extends Window {
@@ -30,7 +30,6 @@ public class UsuarioPermisosOrdenCompraForm extends Window {
     Button saveBtn;
 
     Statement stQuery = null;
-    static PreparedStatement stPreparedQuery;
     ResultSet rsRecords = null;
 
     IndexedContainer permisosContainer = new IndexedContainer();
@@ -46,7 +45,7 @@ public class UsuarioPermisosOrdenCompraForm extends Window {
         this.mainUI = UI.getCurrent();
 
         setResponsive(true);
-        setCaption("Permisos de Usuario Ordenes de Compra : " + idUsuario + " " + usuarioNombre);
+        setCaption("Permisos Usuario Tipos Ordenes de Compra : " + idUsuario + " " + usuarioNombre);
         setWidth("50%");
         setHeight("75%");
         center();

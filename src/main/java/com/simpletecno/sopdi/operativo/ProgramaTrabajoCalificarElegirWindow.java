@@ -30,12 +30,8 @@ public class ProgramaTrabajoCalificarElegirWindow extends Window {
 
     String tipo;
     String idPlanTrabajoIdex;
-    String idCaracteristicaOEmpleado;
     Object selectedRow;
     IndexedContainer container;
-
-    PreparedStatement stPreparedQuery;
-    ResultSet rsRecords;
 
     UI mainUI;
 

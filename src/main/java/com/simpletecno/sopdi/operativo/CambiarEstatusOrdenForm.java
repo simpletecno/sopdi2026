@@ -147,7 +147,7 @@ public class CambiarEstatusOrdenForm extends Window {
         try {
 
             if (estatusCbx.getValue() == null) {
-                Notification.show("Por favor selecciona una cuenta ", Notification.Type.WARNING_MESSAGE);
+                Notification.show("Por favor selecciona un ESTATUS ", Notification.Type.WARNING_MESSAGE);
                 return;
             }
 
@@ -178,35 +178,4 @@ public class CambiarEstatusOrdenForm extends Window {
             ex.printStackTrace();
         }
     }
-    /*
-    void endTask(Object taskId) {
-        ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de CONCLUIR la tarea?",
-                "SI", "NO", new ConfirmDialog.Listener() {
-
-            public void onClose(ConfirmDialog dialog) {
-                if (dialog.isConfirmed()) {
-                    queryString = "Update visita_inspeccion_tarea Set ";
-                    queryString += " Estatus = 'CONCLUIDA'";
-                    queryString += ", FechaUltimoEstatus = '" + Utileria.getFechaYYYYMMDD_1(new java.util.Date()) + "'";
-                    queryString += " Where IdVisitaInspeccionTarea  = " + String.valueOf(inspectionsTaskTrackGrid.getContainerDataSource().getItem(taskId).getItemProperty(ID_PROPERTY).getValue());
-
-                    try {
-                        stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-                        stQuery.executeUpdate(queryString);
-
-                        container.getContainerProperty(taskId, ESTATUS_PROPERTY).setValue("CONCLUIDA");
-                        container.getContainerProperty(taskId, ULTIMO_ESTATUS_PROPERTY).setValue(Utileria.getFechaDDMMYYYY(new java.util.Date()));
-
-                        Notification.show("OPERACION EXITOSA!", Notification.Type.HUMANIZED_MESSAGE);
-
-                    } catch (Exception ex) {
-                        Notification.show("Error al actualizar tarea : " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
-                        ex.printStackTrace();
-                    }
-                }
-            }
-        });
-    }
-     */
-
 }

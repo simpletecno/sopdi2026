@@ -73,7 +73,7 @@ public class LibroComprasPDF extends Window {
             setHeight("90%");
             center();
 
-            fileName = "LibroCompras_" + empresaNombre.replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "") + "_" + fecha + "_" + new Utileria().getHora() + ".pdf";
+            fileName = "LibroIvaCompras_" + empresaNombre.replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "") + "_" + fecha + "_" + new Utileria().getHora() + ".pdf";
 
             StreamResource pdfResource;
             pdfResource = new StreamResource(new Pdf(fileName), fileName);

@@ -45,21 +45,6 @@ public class MyDatabaseProvider {
                     (String)variablesAmbiente.getDB_URL(),
                     (String)variablesAmbiente.getDB_USERNAME(),
                     (String)variablesAmbiente.getDB_PASSWORD());
-            
-/***            
-            DataSource ds = getDBDataSource();
-
-            if (ds == null) {
-                utileria.escribirLog("N/A", "", "\n\nConnectionBD->getConnection()...error al obtener el datasource.....\n\n");
-                return null;
-            }
-
-            currentConnection = ds.getConnection();
-
-            if (currentConnection == null){
-                utileria.escribirLog("N/A", "", "\n\nConnectionBD->getConnection()...error al obtener el datasource.....\n\n");
-            }
-***/ 
 
         } catch (Exception ex) {
             utileria.escribirLog("N/A", "", "\n\nConnectionBD->getConnection()..Error..: " + ex.getMessage());

@@ -50,6 +50,9 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
     private Grid documentosGrid;
     Grid.FooterRow footerliquidaciones;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public FacturaLiquidacionMobilView() {
 
         setSpacing(false);
@@ -61,19 +64,12 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
         empresaLayout.setSpacing(true);
         empresaLayout.setWidth("100%");
 
-        Label empresaLbl = new Label(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName());
-        empresaLbl.addStyleName(ValoTheme.LABEL_H4);
-        empresaLbl.setWidth("100%");
-        empresaLbl.addStyleName("h1_custom");
-
-        empresaLayout.addComponent(empresaLbl);
-
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(false);
         titleLayout.setWidth("100%");
 
-        Label titleLbl = new Label("FACTURA LIQUIDACION MOBIL");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " FACTURA LIQUIDACION MOBIL");
         titleLbl.addStyleName(ValoTheme.LABEL_H4);
         titleLbl.setWidth("100%");
         titleLbl.addStyleName("h1_custom");
@@ -210,13 +206,14 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
     public void llenarComboProveedor() {
         String queryString = " SELECT prv.IdProveedor, prv.Nombre ";
         queryString += " FROM empleado_liquidador el";
-        queryString += " INNER JOIN proveedor prv ON prv.IdProveedor = el.IdProveedor ";
+        queryString += " INNER JOIN proveedor_empresa prv ON prv.IdProveedor = el.IdProveedor ";
         if(((SopdiUI) UI.getCurrent()).sessionInformation.getStrIdProveedor() == null || ((SopdiUI) UI.getCurrent()).sessionInformation.getStrIdProveedor().isEmpty()) {
             Notification.show("El usuario no tiene un IdLiquidador asignado.", Notification.Type.WARNING_MESSAGE);
             return;
         }
         queryString += " WHERE el.IdEmpleado = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrIdProveedor();
         queryString += " AND   el.IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND   prv.IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
         queryString += " ORDER BY prv.Nombre ";
 
         try {
@@ -280,11 +277,12 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
         cuentaContableCbx.removeAllItems();
 
         String queryString = " SELECT cn.* ";
-        queryString += " FROM  contabilidad_nomenclatura cn";
+        queryString += " FROM  contabilidad_nomenclatura_empresa cn";
         queryString += " INNER JOIN empleado_liquidador el ON el.IdNomenclatura = cn.IdNomenclatura ";
         queryString += " WHERE cn.Estatus = 'HABILITADA'";
         queryString += " AND   el.IdEmpleado = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrIdProveedor();
-        queryString += " AND   el.IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND   el.IdEmpresa = " + empresaId;
+        queryString += " AND   cn.IdEmpresa = " + empresaId;
         queryString += " AND   el.IdNomenclatura = cn.IdNomenclatura";
         queryString += " ORDER BY cn.N5";
 
@@ -356,7 +354,7 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
                                 queryString = "INSERT INTO documento_liq_mobil (IdEmpresa, IdProveedor, IdEmpleado, IdCentroCosto, ";
                                 queryString += " CodigoCentroCosto, IdNomenclatura, Numero, Monto, CreadoUsuario, CreadoFechaYHora) ";
                                 queryString += " VALUES (";
-                                queryString += ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+                                queryString += empresaId;
                                 queryString += ","  + proveedorCbx.getValue();
                                 queryString += ","  + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrIdProveedor();
                                 queryString += ","  + centroCostoCbx.getValue();
@@ -397,7 +395,7 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
         queryString += " WHERE IdProveedor = " + idProveedor;
         queryString += " AND   Numero = '" + numero + "'";
         queryString += " AND   Contabilizada = 'N'";
-        queryString += " AND   IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND   IdEmpresa = " + empresaId;
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();

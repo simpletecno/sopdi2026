@@ -31,8 +31,8 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
     private Button btnEditar;
     private Button btnQuitar;
 
-    Statement stQuery = null, stQuery2 = null, stQuery3 = null;
-    ResultSet rsRecords = null, rsRecords2 = null, rsRecords3 = null;
+    Statement stQuery = null;
+    ResultSet rsRecords = null;
 
     String idEmpresa = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
 

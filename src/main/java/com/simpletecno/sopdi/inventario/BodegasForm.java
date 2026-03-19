@@ -92,7 +92,7 @@ public class BodegasForm extends Window {
         form.addComponent(nombreTxt);
         form.setComponentAlignment(nombreTxt, Alignment.TOP_CENTER);
 
-        ubicacionTxt = new TextField("Ingrese la ubicación.");
+        ubicacionTxt = new TextField("Ingrese la ubicación de la bodega.");
         ubicacionTxt.setWidth("75%");
         form.addComponent(ubicacionTxt);
         form.setComponentAlignment(ubicacionTxt, Alignment.TOP_CENTER);

@@ -25,7 +25,7 @@ import java.util.logging.Logger;
 
 public class EmpresaCuentaEquivalenteView extends VerticalLayout implements View {
 
-    public static final String ARROW_PROPERTY = "";
+    public static final String ARROW_PROPERTY = "X";
     public static final String INHABILITADA_PROPERTY = "inhabilitada";
 
     public enum Col {

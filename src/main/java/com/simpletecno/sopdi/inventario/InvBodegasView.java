@@ -63,7 +63,6 @@ public class InvBodegasView extends VerticalLayout implements View {
 
     Button editBtn;
     Button newBtn;
-    Button deletBtn;
 
     Button editarMovBtn;
     Button nuevoMovBtn;

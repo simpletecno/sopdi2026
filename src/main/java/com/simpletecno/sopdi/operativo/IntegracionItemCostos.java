@@ -468,26 +468,26 @@ public final class IntegracionItemCostos extends Window {
         String queryString;
 
         if(tipo.equals(ACTUAL) || tipo.equals(SALDO)) {
-            queryString = "Select DITEMC.IdEmpresa, DITEMC.Empresa, DITEMC.NoCuenta, DITEMC.Descripcion, ";
+            queryString = "SELECT DITEMC.IdEmpresa, DITEMC.Empresa, DITEMC.NoCuenta, DITEMC.Descripcion, ";
             queryString += " DITEMC.IdCC, Prov.IdProveedor, Prov.Nombre ProveedorNombre, ";
             queryString += " DITEMC.Lote, DITEMC.IdProject, DITEMC.Moneda, DITEMC.Idex, ";
             queryString += " SUM(DITEMC.Total / DITEMC.Cantidad) PrecioTotal, SUM(DITEMC.Cantidad) CantidadTotal, SUM(DITEMC.Total) TotalTotal ";
-            queryString += " From  DetalleItemsCostos DITEMC";
-            queryString += " Left Join proveedor Prov On Prov.IdProveedor = DITEMC.IdProveedor";
+            queryString += " FROM  DetalleItemsCostos DITEMC";
+            queryString += " LEFT JOIN proveedor Prov ON Prov.IdProveedor = DITEMC.IdProveedor";
 //            queryString += " Where DITEMC.IdEmpresa = " + empresa;
-            queryString += " Where DITEMC.IdProject = " + projectNumber;
-            queryString += " And DITEMC.Tipo In ('"  + INICIAL + "','" + CAMBIOS + "')";
-            queryString += " Group By DITEMC.IdEmpresa, DITEMC.Empresa, DITEMC.NoCuenta, DITEMC.IdCC,";
+            queryString += " WHERE DITEMC.IdProject = " + projectNumber;
+            queryString += " AND DITEMC.Tipo In ('"  + INICIAL + "','" + CAMBIOS + "')";
+            queryString += " GROUP BY DITEMC.IdEmpresa, DITEMC.Empresa, DITEMC.NoCuenta, DITEMC.IdCC,";
             queryString += " Prov.IdProveedor, DITEMC.Idex ";
-            queryString += " Order By DITEMC.NoCuenta";
+            queryString += " ORDER BY DITEMC.NoCuenta";
         }
         else {
-            queryString = "Select DITEMC.*, Prov.Nombre ProveedorNombre ";
-            queryString += " From  DetalleItemsCostos DITEMC";
-            queryString += " Left Join proveedor Prov On Prov.IdProveedor = DITEMC.IdProveedor";
-            queryString += " Where DITEMC.IdProject = " + projectNumber;
-            queryString += " And DITEMC.Tipo = '" + tipo + "'";
-            queryString += " Order By DITEMC.NoCuenta";
+            queryString = "SELECT DITEMC.*, Prov.Nombre ProveedorNombre ";
+            queryString += " FROM  DetalleItemsCostos DITEMC";
+            queryString += " LEFT JOIN proveedor Prov ON Prov.IdProveedor = DITEMC.IdProveedor";
+            queryString += " WHERE DITEMC.IdProject = " + projectNumber;
+            queryString += " AND DITEMC.Tipo = '" + tipo + "'";
+            queryString += " ORDER BY DITEMC.NoCuenta";
         }
 
 //System.out.println("\n\n" + queryString);
@@ -562,17 +562,6 @@ public final class IntegracionItemCostos extends Window {
 
                 gridFooter.getCell(TOTAL_PROPERTY).setText(moneyFormat.format(totalCuentaQuetzales));
 
-//                if(tipo.equals(SALDO)) {
-//                    TableHolder tableHolder = new DefaultTableHolder(grid);
-//                    ExcelExport excelExport = new ExcelExport(tableHolder);
-//                    excelExport.excludeCollapsedColumns();
-//                    excelExport.setDisplayTotals(false);
-//                    String fileexport;
-//                    fileexport = "dic_consaldo.xls";
-//                    excelExport.setExportFileName(fileexport);
-//                    excelExport.export();
-//
-//                }
             }
         } catch (Exception ex) {
             Logger.getLogger(IntegracionItemCostos.class.getName()).log(Level.SEVERE, null, ex);
@@ -635,13 +624,13 @@ public final class IntegracionItemCostos extends Window {
     private double getSaldo(String EMPRESA, String IDEX, String CUENTA, String CENTROCOSTO, String PROVEEDOR) {
 
         String
-        queryString =  "Select SUM(Total) TotalTotal ";
-        queryString += " From  DocumentosContablesAplicados ";
-        queryString += " Where  Idex     = '" + IDEX + "'";
-        queryString += " And IdEmpresa   = " + EMPRESA;
-        queryString += " And IdProveedor = " + PROVEEDOR;
-        queryString += " And NoCuenta = '" + CUENTA + "'";
-        queryString += " And IDCC = '" + CENTROCOSTO + "'";
+        queryString =  "SELECT SUM(Total) TotalTotal ";
+        queryString += " FROM  DocumentosContablesAplicados ";
+        queryString += " WHERE  Idex     = '" + IDEX + "'";
+        queryString += " AND IdEmpresa   = " + EMPRESA;
+        queryString += " AND IdProveedor = " + PROVEEDOR;
+        queryString += " AND NoCuenta = '" + CUENTA + "'";
+        queryString += " AND IDCC = '" + CENTROCOSTO + "'";
 
 System.out.println(queryString);
 
@@ -666,28 +655,3 @@ System.out.println(queryString);
     }
 
 }
-
-/****
- *
- *         else if(tipo.equals("SALDO")) {
- *             queryString = "Select DITEMC.IdEmpresa, DITEMC.Empresa, DITEMC.NoCuenta, DITEMC.Descripcion, ";
- *             queryString += " DITEMC.IdCC, Prov.IdProveedor, Prov.Nombre ProveedorNombre, DITEMC.IdVisita, ";
- *             queryString += " DITEMC.Lote, DITEMC.IdProject, DITEMC.Moneda, DITEMC.Idex, DITEMC.IdTarea, ";
- *             queryString += " SUM(DITEMC.Total / DITEMC.Cantidad) PrecioTotal, SUM(DITEMC.Cantidad) CantidadTotal, SUM(DITEMC.Total) TotalTotal, ";
- *             queryString += " SUM(DITEMC.Total - DCA.TOTAL) SALDOTOTAL";
- *             queryString += " From  DetalleItemsCostos DITEMC";
- *             queryString += " Left Join proveedor Prov On Prov.IdProveedor = DITEMC.IdProveedor";
- *             queryString += " Inner Join DocumentosContablesAplicados DCA On DCA.IdProject = DITEMC.IdProject ";
- * //            queryString += " Where DITEMC.IdEmpresa = " + empresa;
- *             queryString += " Where DITEMC.IdProject = " + projectNumber;
- *             queryString += " And DITEMC.Tipo In ('"  + INICIAL + "','" + CAMBIOS + "')";
- *             queryString += " And DCA.IdEmpresa   = DITEMC.IdEmpresa";
- *             queryString += " And DCA.IdProveedor = DITEMC.IdProveedor";
- *             queryString += " And DCA.NoCuenta = DITEMC.NoCuenta";
- *             queryString += " And DCA.IDEX = DITEMC.Idex";
- *             queryString += " Group By DITEMC.IdEmpresa, DITEMC.Empresa, DITEMC.NoCuenta, DITEMC.Descripcion, DITEMC.IdCC,";
- *             queryString += " Prov.IdProveedor, Prov.Nombre, DITEMC.IdVisita, DITEMC.Lote, DITEMC.IdProject, ";
- *             queryString += " DITEMC.Moneda, DITEMC.Idex, DITEMC.IdTarea ";
- *             queryString += " Order By DITEMC.NoCuenta";
- *
- */

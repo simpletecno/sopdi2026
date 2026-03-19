@@ -2308,18 +2308,18 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
                     continue;
                 }
 
-                codigoCC = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + "10000000" + item.getItemProperty(IDEMPLEADO).getValue().toString().substring(2);
+//2026-03-04                codigoCC = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + "10000000" + item.getItemProperty(IDEMPLEADO).getValue().toString().substring(2);
                 //2210000000343
-
+                codigoCC = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + "100000" + item.getItemProperty(IDEMPLEADO).getValue().toString().substring(0);
                 //Si no se paga nada, saltar Empleado
                 if((double)item.getItemProperty(LIQUIDO).getValue() <= 0) continue;
 
-                queryString  = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
+                queryString  = " INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
                 queryString += " TipoDocumento, Fecha, IdProveedor, NITProveedor, NombreProveedor, NombreCheque,";
                 queryString += " MontoDocumento, SerieDocumento, NumeroDocumento, TipoDOCA, NoDOCA, IdNomenclatura, MonedaDocumento, Debe, Haber,";
                 queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, Saldo,";
                 queryString += " Descripcion, CreadoUsuario, CreadoFechaYHora, IdCentroCosto, CodigoCentroCosto, SueldoOrdinario)";
-                queryString += " Values ";
+                queryString += " VALUES ";
 
                 if((double)item.getItemProperty(BONO4).getValue() > 0.00) { //AGUINALDO O BONO 14
 
@@ -2352,9 +2352,9 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
 //                22202311301000
                     System.out.println("FECHA PARTIDA PLANILLA AGUINALDO/BONO14 = " + fechaProvision + " CodigoPartidaProvision = " + codigoPartidaProvision );
 
-                    codigoCC = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + "10000000" + item.getItemProperty(IDEMPLEADO).getValue().toString().substring(2);
+//2026-03-04                    codigoCC = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + "10000000" + item.getItemProperty(IDEMPLEADO).getValue().toString().substring(2);
                     //2210000000343
-
+                    codigoCC = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + "100000" + item.getItemProperty(IDEMPLEADO).getValue().toString().substring(0);
                     queryString += " (";
                     queryString += ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
                     queryString += ",'INGRESADO'";
@@ -2684,21 +2684,21 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
                 System.out.println("FECHA PARTIDA PLANILLA = " + fecha + " CodigoPartida = " + codigoPartida );
 
                 Item item = planillaDetalleContainer.getItem(itemObject);
-                codigoCC = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + "10000000" + item.getItemProperty(IDEMPLEADO).getValue().toString().substring(2);
+//2026-03-04                codigoCC = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + "10000000" + item.getItemProperty(IDEMPLEADO).getValue().toString().substring(2);
                 //2210000000343
-
+                codigoCC = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + "100000" + item.getItemProperty(IDEMPLEADO).getValue().toString().substring(0);
 //************************************************ DEBE *************************************//
 
                 //Si no se paga nada, saltar Empleado
                 if((double)item.getItemProperty(LIQUIDO).getValue() <= 0) continue;
 
                 //ORDINARIO
-                queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
+                queryString = " INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
                 queryString += " TipoDocumento, Fecha, IdProveedor, NITProveedor, NombreProveedor, NombreCheque,";
                 queryString += " MontoDocumento, SerieDocumento, NumeroDocumento, TipoDOCA, NoDOCA, IdNomenclatura, MonedaDocumento, Debe, Haber,";
                 queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, Saldo,";
                 queryString += " Descripcion, CreadoUsuario, CreadoFechaYHora, IdCentroCosto, CodigoCentroCosto, SueldoOrdinario)";
-                queryString += " Values ";
+                queryString += " VALUES ";
                 queryString += " (";
                 queryString += ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
                 queryString += ",'INGRESADO'";
@@ -3402,15 +3402,15 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
                 System.out.println("FECHA PARTIDA PLANILLA = " + fecha + " CodigoPartida = " + codigoPartida );
 
                 Item item = planillaDetalleContainer.getItem(itemObject);
-                codigoCC = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + "10000000" + item.getItemProperty(IDEMPLEADO).getValue().toString().substring(2);
+                //26-03-04 codigoCC = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + "10000000" + item.getItemProperty(IDEMPLEADO).getValue().toString().substring(2);
                 //2210000000343
-
-                queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
+                codigoCC = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + "100000" + item.getItemProperty(IDEMPLEADO).getValue().toString().substring(0);
+                queryString = " INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
                 queryString += " TipoDocumento, Fecha, IdProveedor, NITProveedor, NombreProveedor, NombreCheque,";
                 queryString += " MontoDocumento, SerieDocumento, NumeroDocumento, TipoDOCA, NoDOCA, IdNomenclatura, MonedaDocumento, Debe, Haber,";
                 queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, Saldo,";
                 queryString += " Descripcion, CreadoUsuario, CreadoFechaYHora, IdCentroCosto, CodigoCentroCosto, SueldoOrdinario)";
-                queryString += " Values ";
+                queryString += " VALUES ";
 /************************************************ DEBE *************************************/
                 //AGUINALDO O BONO14
                 if((double)item.getItemProperty(BONO4).getValue() > 0 ) {
@@ -3755,7 +3755,7 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
             queryString = "SELECT *";
-            queryString += " FROM proveedor";
+            queryString += " FROM proveedor_empresa";
             queryString += " WHERE IdProveedor = " + idProveedor;
 
             rsRecords2 = stQuery.executeQuery(queryString);
@@ -3820,7 +3820,7 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
 
             //0 leer datos de planilla
             queryString = "SELECT *";
-            queryString += " FROM proveedor";
+            queryString += " FROM proveedor_empresa";
             queryString += " WHERE IdProveedor = " + idProveedor;
 
             rsRecords2 = stQuery.executeQuery(queryString);

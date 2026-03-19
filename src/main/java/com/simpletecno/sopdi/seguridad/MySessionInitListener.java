@@ -47,7 +47,6 @@ public class MySessionInitListener implements SessionInitListener {
             @Override
             public void modifyBootstrapFragment(
                     final BootstrapFragmentResponse response) {
-                // TODO Auto-generated method stub
             }
         });
     }

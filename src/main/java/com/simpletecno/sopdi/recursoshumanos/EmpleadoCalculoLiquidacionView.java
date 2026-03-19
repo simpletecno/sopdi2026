@@ -87,7 +87,6 @@ public class EmpleadoCalculoLiquidacionView extends VerticalLayout implements Vi
     public IndexedContainer planillaDetalleContainer = new IndexedContainer();
     Grid planillaDetalleGrid;
 
-
     Button nuevaPlanillaBtn = new Button("Nueva");
     Button editarPlanillaBtn = new Button("Editar");
     Button eliminarPlanillaBtn = new Button("Eliminar");
@@ -130,6 +129,9 @@ public class EmpleadoCalculoLiquidacionView extends VerticalLayout implements Vi
     double totalPagado = 0.00;
 
     VerticalLayout mainLayout = new VerticalLayout();
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public EmpleadoCalculoLiquidacionView() {
 
@@ -436,7 +438,6 @@ public class EmpleadoCalculoLiquidacionView extends VerticalLayout implements Vi
         correlativoInicialChequeTxt.setDecimalAllowed(false);
         correlativoInicialChequeTxt.setDecimalPrecision(0);
         correlativoInicialChequeTxt.setDecimalSeparatorAlwaysShown(false);
-//        correlativoInicialChequeTxt.setValue(0);
         correlativoInicialChequeTxt.setGroupingUsed(true);
         correlativoInicialChequeTxt.setGroupingSeparator(',');
         correlativoInicialChequeTxt.setGroupingSize(3);
@@ -739,13 +740,11 @@ public class EmpleadoCalculoLiquidacionView extends VerticalLayout implements Vi
 
         Label informativoaLbl = new Label("*El dia \"DE BAJA\" cuenta como dia laborado");
 
-
         botonesLayout.addComponents(informativoaLbl, exportPlanillaBtn);
         botonesLayout.setComponentAlignment(informativoaLbl, Alignment.TOP_LEFT);
         botonesLayout.setComponentAlignment(exportPlanillaBtn, Alignment.BOTTOM_RIGHT);
         addComponent(detalleLayout);
         setComponentAlignment(detalleLayout, Alignment.MIDDLE_CENTER);
-
     }
 
     private void crearPlanilla() {
@@ -869,7 +868,7 @@ public class EmpleadoCalculoLiquidacionView extends VerticalLayout implements Vi
 
             // 2 : query por cada empleado activo
             queryString = "SELECT *";
-            queryString += " FROM proveedor";
+            queryString += " FROM proveedor_empresa";
             queryString += " WHERE EsPlanilla = 1";
             queryString += " AND IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
             queryString += " AND EstatusTrabajo IN ('DE BAJA')";
@@ -879,7 +878,6 @@ public class EmpleadoCalculoLiquidacionView extends VerticalLayout implements Vi
             queryString += " AND IdPlanillaLiquidacion = 0"; // Que no haya sido Liquidado | Se le asigna IdPlanillaLiquidacion al generar o terminar la planilla
             queryString += " ORDER BY IdProveedor";
 
-//System.out.println("queryString=" + queryString);
             rsRecords = stQuery.executeQuery(queryString);
 
             if(rsRecords.next()) {
@@ -1181,7 +1179,7 @@ System.out.println("Empleado=[" + idProveedor + "] liquidoRecibir=[" + liquidoRe
 
                 // 2 : query por cada empleado activo ya en esta planilla
                 queryString = "SELECT *";
-                queryString += " FROM proveedor";
+                queryString += " FROM proveedor_empresa";
                 queryString += " WHERE IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
                 queryString += " AND IdProveedor = " + idProveedor;
 
@@ -1289,19 +1287,11 @@ System.out.println("Empleado=[" + idProveedor + "] liquidoRecibir=[" + liquidoRe
                         long timeDiff = Math.abs(dateAfterInMs - dateBeforeInMs);
 
                         daysDiff = 1 + TimeUnit.DAYS.convert(timeDiff, TimeUnit.MILLISECONDS);
-//if(rsRecords.getString("IdProveedor").equals("97405"))  {
-//    System.out.println("fechaIngreso= " + Utileria.getFechaYYYYMMDD_1(rsRecords.getDate("FechaIngreso")));
-//    System.out.println("fechaFinPlanilla = " + Utileria.getFechaYYYYMMDD_1(fechaFinPlanilla));
-//    System.out.println("97405 = daysDiff = " + daysDiff);
-//}
-
-//System.out.println("daysDiff = " + daysDiff);
                     } catch (Exception e) {
                         e.printStackTrace();
                         Notification.show("ERROR : al calcular los dias : " + e.getMessage(), Notification.Type.ERROR_MESSAGE);
                         return;
                     }
-
 
                     // Sueldo a pagar y bonos mensuales
                     double[] ingresos = getIngresosFijos();
@@ -1487,7 +1477,7 @@ System.out.println("Empleado=[" + idProveedor + "] liquidoRecibir=[" + liquidoRe
 
             queryString = "SELECT *, prv.Cargo, prv.Nombre";
             queryString += " FROM planilla_detalle";
-            queryString += " INNER JOIN proveedor prv ON prv.IdProveedor = IdEmpleado";
+            queryString += " INNER JOIN proveedor_empresa prv ON prv.IdProveedor = IdEmpleado";
             queryString += " WHERE IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
             queryString += " AND IdPlanilla = " + planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), ID_PLANILLA).getValue();
             queryString += " ORDER BY prv.IdProveedor";
@@ -1545,28 +1535,6 @@ System.out.println("Empleado=[" + idProveedor + "] liquidoRecibir=[" + liquidoRe
     //---------------------------------------------------------------------------------------------------------------------
     private double anticipoPrevio(java.util.Date fechaPlanilla) {
         double montoAnticipo = 0.00;
-/***
-        try {
-            queryString = "SELECT plade.LiquidoRecibir";
-            queryString += " FROM planilla_encabezado pla ";
-            queryString += " INNER JOIN planilla_detalle plade ON plade.IdPlanilla = pla.Id";
-            queryString += " WHERE plade.IdEmpleado = " + rsRecords.getString("IdProveedor");
-            queryString += " AND pla.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
-            queryString += " AND pla.AnioMes = " + String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), MES_PLANILLA).getValue());
-            queryString += " AND pla.Tipo = 'Anticipo'";
-            queryString += " AND pla.Estatus <> 'EN PROCESO'";
-
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            if(rsRecords1.next()) {
-                montoAnticipo = rsRecords1.getDouble("LiquidoRecibir");
-            }
-        } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error al buscar anticipo de planilla de empleado : " + ex);
-            ex.printStackTrace();
-            Notification.show("ERROR DE BASE DE DATOS : " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
-        }
-***/
         try {
 
             queryString = "SELECT pd.Bonificacion3, pd.Descuento4 ";
@@ -1577,9 +1545,7 @@ System.out.println("Empleado=[" + idProveedor + "] liquidoRecibir=[" + liquidoRe
             queryString += "AND Extract(YEAR_MONTH FROM pe.FechaFin) = " + new Utileria().getFechaYYYYMM(fechaPlanilla) + " ";
             queryString += "AND pe.Estatus = 'GENERADA' ";
             queryString += "ORDER BY pe.tipo";
-//if(rsRecords.getString("IdProveedor") == "97405") {
-//    System.out.println("\n\n405 = " + queryString + "\n\n");
-//}
+
             rsRecords1 = stQuery1.executeQuery(queryString);
 
             if(rsRecords1.next()) {
@@ -1733,9 +1699,6 @@ System.out.println("Empleado=[" + idProveedor + "] liquidoRecibir=[" + liquidoRe
                 rsRecords = stQuery.executeQuery(queryString);
 
                 if (rsRecords.next()) { //  encontrado
-//                01234567890123
-//                22202311308000
-//                12345678901234
                     ultimoEncontado = rsRecords.getString("CodigoPartida").substring(12, 15);
 
                     codigoPartida += String.format("%03d", (Integer.valueOf(ultimoEncontado) + 1));
@@ -1743,7 +1706,7 @@ System.out.println("Empleado=[" + idProveedor + "] liquidoRecibir=[" + liquidoRe
                 } else {
                     codigoPartida += "001";
                 }
-//                22202311301000
+
                 System.out.println("FECHA PARTIDA PLANILLA = " + fecha + " CodigoPartida = " + codigoPartida );
 
                 Item item = planillaDetalleContainer.getItem(itemObject);
@@ -2529,7 +2492,7 @@ System.out.println("Empleado=[" + idProveedor + "] liquidoRecibir=[" + liquidoRe
     }
 
     private void updateProveedor(String idProveedor, String idPlanilla) throws Exception {
-        queryString = "UPDATE proveedor";
+        queryString = "UPDATE proveedor_empresa";
         queryString += " SET IdPlanillaLiquidacion = " + idPlanilla;
         queryString += " WHERE IdProveedor = " + idProveedor;
 
@@ -2565,7 +2528,7 @@ System.out.println("Empleado=[" + idProveedor + "] liquidoRecibir=[" + liquidoRe
 
             //0 leer datos de planilla
             queryString = "SELECT *";
-            queryString += " FROM proveedor";
+            queryString += " FROM proveedor_empresa";
             queryString += " WHERE IdProveedor = " + idProveedor;
 
             rsRecords2 = stQuery.executeQuery(queryString);
@@ -2812,7 +2775,7 @@ System.out.println("Empleado=[" + idProveedor + "] liquidoRecibir=[" + liquidoRe
         try {
             queryString = "SELECT es.Valor, IFNULL(cp.Debe, 0) AS Pagado, es.IdNomenclatura  ";
             queryString += "FROM empleado_salario es ";
-            queryString += "INNER JOIN proveedor p ON es.IdEmpleado = p.IDProveedor ";
+            queryString += "INNER JOIN proveedor_empresa p ON es.IdEmpleado = p.IDProveedor ";
             queryString += "LEFT JOIN contabilidad_partida cp ON es.IdEmpleado = cp.IdProveedor ";
             queryString += "AND DATE_FORMAT(cp.Fecha, '%Y-%m') = DATE_FORMAT(p.FechaEgreso, '%Y-%m') ";
             queryString += "AND cp.IdNomenclatura = es.IdNomenclatura ";
@@ -2870,7 +2833,7 @@ System.out.println("Empleado=[" + idProveedor + "] liquidoRecibir=[" + liquidoRe
 
             //0 leer datos de planilla
             queryString = "SELECT *";
-            queryString += " FROM proveedor";
+            queryString += " FROM proveedor_empresa";
             queryString += " WHERE IdProveedor = " + idProveedor;
 
             rsRecords2 = stQuery.executeQuery(queryString);

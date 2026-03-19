@@ -76,8 +76,7 @@ public class IntegracionCambios extends VerticalLayout {
     final UI mainUI = UI.getCurrent();
 
     static DecimalFormat moneyFormat = new DecimalFormat("#,###,##0.00");
-    static DecimalFormat integerFormat2 = new DecimalFormat("##,##0");
-       
+
     public IntegracionCambios() {
         
         setResponsive(true);
@@ -87,7 +86,6 @@ public class IntegracionCambios extends VerticalLayout {
             
         exportExcelBtn    = new Button("Exportar a Excel");
         exportExcelBtn.setIcon(FontAwesome.FILE_EXCEL_O);
-//        exportExcelBtn.setWidth(130,Sizeable.UNITS_PIXELS);
         exportExcelBtn.addStyleName(ValoTheme.BUTTON_LINK);
         exportExcelBtn.addListener ( new Button.ClickListener()
         {
@@ -95,7 +93,6 @@ public class IntegracionCambios extends VerticalLayout {
             public void buttonClick ( Button.ClickEvent event )
             {
                 if(integracionContainer.size() > 0) {
-//                    PronetWebPayMain.getInstance().mainWindow.getWindow().showNotification("EN CONSTRUCCION!");            
                     exportToExcel();
                 }
             }
@@ -119,22 +116,7 @@ public class IntegracionCambios extends VerticalLayout {
         reportLayout.addStyleName("rcorners3");
         reportLayout.setResponsive(true);
         reportLayout.setMargin(true);
-/*        
-    protected static final String CODIGO_PROPERTY    = "Id";
-    protected static final String CUENTA_PROPERTY     = "Cuenta";
-    protected static final String CCOSTO_PROPERTY     = "CCosto";
-    protected static final String DESCRIPCION_PROPERTY  = "Descripción";
-    protected static final String CANTIDAD_PROPERTY    = "Cantidad";
-    protected static final String PRECIO_PROPERTY    = "Precio";
-    protected static final String TOTAL_PROPERTY    = "Total";
-    protected static final String MONEDA_PROPERTY    = "Moneda";
-    protected static final String PROJECT_PROPERTY = "Projec";
-    protected static final String LOTE_PROPERTY = "Lote";
-    protected static final String PROVEEDOR_PROPERTY   = "Proveedor";
-    protected static final String IDVISITA_PROPERTY   = "Visita";
-    protected static final String IDTAREA_PROPERTY   = "Tarea";
-    protected static final String IDEX_PROPERTY   = "Idex";
-*/
+
         integracionContainer.addContainerProperty(CODIGO_PROPERTY,          String.class, null);
         integracionContainer.addContainerProperty(CUENTA_PROPERTY,          String.class, null);
         integracionContainer.addContainerProperty(CCOSTO_PROPERTY,          String.class, null);
@@ -352,12 +334,12 @@ public class IntegracionCambios extends VerticalLayout {
 
         String queryString = "";
         
-        queryString =  "Select DITEMC.*, Prov.Nombre ProveedorNombre ";
-        queryString += " From  DetalleItemsCostos DITEMC";
-        queryString += " Left Join proveedor Prov On Prov.IdProveedor = DITEMC.IdProveedor";
-        queryString += " Where DITEMC.IdEmpresa = " + empresa;
-        queryString += " And DITEMC.Tipo = 'DOCA'";
-        queryString += " Order By DITEMC.NoCuenta";
+        queryString =  "SELECT DITEMC.*, Prov.Nombre ProveedorNombre ";
+        queryString += " FROM  DetalleItemsCostos DITEMC";
+        queryString += " LEFT JOIN proveedor Prov ON Prov.IdProveedor = DITEMC.IdProveedor";
+        queryString += " WHERE DITEMC.IdEmpresa = " + empresa;
+        queryString += " AND DITEMC.Tipo = 'DOCA'";
+        queryString += " ODER BY DITEMC.NoCuenta";
 
 System.out.println("\n\n"+queryString);
 
@@ -456,13 +438,5 @@ System.out.println("\n\n"+queryString);
             // Here we return the pdf contents as a byte-array
             return new ByteArrayInputStream(os.toByteArray());
         }    
-    }    
-
-    void setTableTitle(String tableTitle) {
-        if(integracionGrid != null) {
-            integracionGrid.setCaption(tableTitle);
-            integracionGrid.setDescription(tableTitle);
-        }            
     }
-
 }

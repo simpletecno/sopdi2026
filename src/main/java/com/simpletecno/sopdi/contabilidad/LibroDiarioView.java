@@ -14,6 +14,7 @@ import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Sizeable;
 import com.vaadin.server.StreamResource;
+import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.BrowserFrame;
@@ -75,21 +76,17 @@ public class LibroDiarioView extends VerticalLayout implements View {
     public IndexedContainer libroDiariocontainer = new IndexedContainer();
 
     UI mainUI;
-    Statement stQuery1;
-    ResultSet rsRecords1;
 
     Statement stQuery2;
     ResultSet rsRecords2;
 
     public Button consultarBtn;
     Button exportExcelBtn;
-    ComboBox empresaCbx;
-    public String empresa;
     public DateField inicioDt;
     public DateField finDt;
     public TextField documentoTxt;
 
-    ComboBox tipoTransaccionCbx;
+    ComboBox clienteProveedorCbx;
     EnvironmentVars enviroments;
     CheckBox verDescuadresCbx;
     NumberField folioTxt;
@@ -99,9 +96,10 @@ public class LibroDiarioView extends VerticalLayout implements View {
     double totalDebe = 0.00;
     double totalHaber = 0.00;
 
-    String queryString;
-
     static DecimalFormat numberFormat = new DecimalFormat("##,###,##0.00");
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public LibroDiarioView() {
 
@@ -113,34 +111,19 @@ public class LibroDiarioView extends VerticalLayout implements View {
 
         enviroments = new EnvironmentVars();
 
-        tipoTransaccionCbx = new ComboBox("Tipo transacción");
-        tipoTransaccionCbx.setNewItemsAllowed(true);
-        tipoTransaccionCbx.setWidth("15em");
-        tipoTransaccionCbx.addItem("<<TODAS>>");
-        tipoTransaccionCbx.addItem("FACTURA");
-        tipoTransaccionCbx.addItem("FACTURA VENTA");
-        tipoTransaccionCbx.addItem("RECIBO");
-        tipoTransaccionCbx.addItem("RECIBO CORRIENTE");
-        tipoTransaccionCbx.addItem("RECIBO CONTABLE");
-        tipoTransaccionCbx.addItem("FORMULARIO");
-        tipoTransaccionCbx.addItem("CHEQUE");
-        tipoTransaccionCbx.addItem("TRANSFERENCIA ");
-        tipoTransaccionCbx.addItem("NOTA DE CREDITO FACTURA");
-        tipoTransaccionCbx.addItem("NOTA DE DEBITO FACTURA");
-        tipoTransaccionCbx.addItem("NOTA DE CREDITO");
-        tipoTransaccionCbx.addItem("NOTA DE DEBITO");
-        tipoTransaccionCbx.addItem("PLANILLA");
-        tipoTransaccionCbx.addItem("PRESTAMOS");
-        tipoTransaccionCbx.addItem("ENGANCHES");
-        tipoTransaccionCbx.addItem("DEPOSITO POR COMPRA DE MONEDA");
-        tipoTransaccionCbx.addItem("INTERESES DEVENGADOS");
-        tipoTransaccionCbx.addItem("REEMBOLSO DE ANTICIPOS");
-        tipoTransaccionCbx.addItem("TRANSACCION ESPECIAL");
-        tipoTransaccionCbx.addItem("PAGO DOCUMENTO");
-        tipoTransaccionCbx.select("<<TODAS>>");
-        tipoTransaccionCbx.addValueChangeListener(event -> {
-            llenarGridLibroDiario(empresa);
+        clienteProveedorCbx = new ComboBox("Cliente/Proveedor/Otro");
+        clienteProveedorCbx.setNewItemsAllowed(false);
+        clienteProveedorCbx.setNullSelectionAllowed(false);
+        clienteProveedorCbx.setInvalidAllowed(false);
+        clienteProveedorCbx.setInputPrompt("Cliente Proveedor u Otro");
+        clienteProveedorCbx.setFilteringMode(FilteringMode.CONTAINS);
+        clienteProveedorCbx.setWidth("25em");
+        clienteProveedorCbx.addValueChangeListener(event -> {
+            Notification.show("Cliente Proveedor=" + clienteProveedorCbx.getValue() + " Nombre=" + clienteProveedorCbx.getItemCaption(clienteProveedorCbx.getValue()), Notification.Type.HUMANIZED_MESSAGE);
+            llenarGridLibroDiario(empresaId);
         });
+
+        llenarComboProveedor();
 
         documentoTxt = new TextField("Docto./Liqui./Partida");
         documentoTxt.addStyleName(ValoTheme.TEXTFIELD_INLINE_ICON);
@@ -153,36 +136,21 @@ public class LibroDiarioView extends VerticalLayout implements View {
             public void valueChange(Property.ValueChangeEvent event) {
 
                 if (libroDiarioGrid != null) {
-                    llenarGridLibroDiario(empresa);
+                    llenarGridLibroDiario(empresaId);
                 }
             }
         });
 
-        Label titleLbl = new Label("LIBRO DIARIO");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " LIBRO DIARIO");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-
-        llenarComboEmpresa();
-
-        empresaCbx.addValueChangeListener(event -> {
-            empresa = String.valueOf(event.getProperty().getValue());
-            llenarGridLibroDiario(empresa);
-        });
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -190,8 +158,6 @@ public class LibroDiarioView extends VerticalLayout implements View {
         setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
 
         crearTablaLibroDiario();
-
-        empresa = String.valueOf(empresaCbx.getValue());
 
         //  llenarGridLibroDiario(empresa);
     }
@@ -236,71 +202,6 @@ public class LibroDiarioView extends VerticalLayout implements View {
 
         libroDiarioGrid.getColumn(CODIGO_PARTIDA_PROPERTY).setRenderer(new ButtonRenderer(e
                 -> VisualizarImagen(e), ""));
-/**** falta validar el estatus de la partida, no se permite editar partidas en estatus <> "INGRESADO
-        libroDiarioGrid.getColumn(DIFERENCIA_PROPERTU).setRenderer(new ButtonRenderer(e -> {
-
-            if (String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), TIPODOC_PROPERTY).getValue()).equals("FACTURA VENTA")) {
-                EditarPartidaFacturaVenta editFacturasGasto
-                        = new EditarPartidaFacturaVenta(
-                                String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), CODIGO_PARTIDA_PROPERTY).getValue()),
-                                String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), DESCRIPCION_PROPERTY).getValue()));
-                editFacturasGasto.llenarComboProveedor();
-                editFacturasGasto.cuentaContable1Cbx.focus();
-                editFacturasGasto.llenarCampos();
-                UI.getCurrent().addWindow(editFacturasGasto);
-                editFacturasGasto.center();
-
-            } else if (String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), TIPODOC_PROPERTY).getValue()).equals("NOTA DE CREDITO")) {
-
-                TransaccionesEspecialesISRForm nuevaTransaccion
-                        = new TransaccionesEspecialesISRForm(
-                                empresa,
-                                String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), CODIGO_PARTIDA_PROPERTY).getValue()),
-                                "NOTA DE CREDITO"
-                        );
-
-                UI.getCurrent().addWindow(nuevaTransaccion);
-                nuevaTransaccion.center();
-
-            } else if (Integer.parseInt(String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), LIQUIDACION_PROPERTY).getValue())) > 0) {
-                System.out.println("Entro a modificar la liquidacion");
-                queryString = "UPDATE  contabilidad_partida";
-                queryString += " set Estatus = 'INGRESADO'";
-                queryString += " Where IdEmpresa = " + empresa;
-                queryString += " and CodigoPartida = '" + String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
-                try {
-                    stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-                    stQuery.executeUpdate(queryString);
-                } catch (Exception ex) {
-
-                    System.out.println("Error al intentar modificar estatus a INGRESADO" + ex);
-                    Notification.show("ERROR AL INTENTAR CAMBIAR EL ESTATUS INGRESADO A PARTIDA CONTABLE", Notification.Type.ERROR_MESSAGE);
-                    ex.printStackTrace();
-                }
-                EditarPartidaLiquidacion partidaLiquidacion
-                        = new EditarPartidaLiquidacion(
-                                String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), CODIGO_PARTIDA_PROPERTY).getValue()),
-                                String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), CODIGOCC_PROPERTY).getValue()));///////PENDIENTE DE ASIGNAR EL CODIGO CC
-                UI.getCurrent().addWindow(partidaLiquidacion);
-                partidaLiquidacion.center();
-            } else if (String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), TIPODOC_PROPERTY).getValue()).equals("FACTURA")
-                    || String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), TIPODOC_PROPERTY).getValue()).equals("RECIBO CONTABLE")
-                    || String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), TIPODOC_PROPERTY).getValue()).equals("RECIBO")
-                    || String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), TIPODOC_PROPERTY).getValue()).equals("FORMULARIO")
-                    || String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), TIPODOC_PROPERTY).getValue()).equals("CONSTANCIA ISR")
-                    && String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), LIQUIDACION_PROPERTY).getValue()).equals("0")) {
-                EditarIngresoDocumentos editFacturasGasto
-                        = new EditarIngresoDocumentos(
-                                String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), CODIGO_PARTIDA_PROPERTY).getValue()),
-                                String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), DESCRIPCION_PROPERTY).getValue()));
-                editFacturasGasto.cuentaContable1Cbx.focus();
-                editFacturasGasto.llenarComboOrdenCompra();
-                UI.getCurrent().addWindow(editFacturasGasto);
-                editFacturasGasto.center();
-            }
-
-        }));
-***/
         libroDiarioGrid.setCellStyleGenerator((Grid.CellReference cellReference) -> {
 
             if (DEBE_PROPERTY.equals(cellReference.getPropertyId())) {
@@ -349,7 +250,7 @@ public class LibroDiarioView extends VerticalLayout implements View {
         verDescuadresCbx = new CheckBox("Ver descuadres");
         verDescuadresCbx.setValue(false);
         verDescuadresCbx.addValueChangeListener((event) -> {
-            llenarGridLibroDiario(empresa);
+            llenarGridLibroDiario(empresaId);
         });
 
         consultarBtn = new Button("Consultar");
@@ -358,7 +259,7 @@ public class LibroDiarioView extends VerticalLayout implements View {
         consultarBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                llenarGridLibroDiario(empresa);
+                llenarGridLibroDiario(empresaId);
             }
         });
 
@@ -403,14 +304,14 @@ public class LibroDiarioView extends VerticalLayout implements View {
                     excelExport.excludeCollapsedColumns();
                     excelExport.setDisplayTotals(false);
                     String fileexport;
-                    fileexport = "LibroDiario_" + empresaCbx.getItemCaption(empresaCbx.getValue()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + ".xls";
+                    fileexport = "LibroDiario_" + empresaNombre.replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + ".xls";
                     excelExport.setExportFileName(fileexport);
                     excelExport.export();
                 }
             }
         });
 
-        filtrosLayout.addComponents(inicioDt, finDt, documentoTxt, tipoTransaccionCbx, consultarBtn);
+        filtrosLayout.addComponents(inicioDt, finDt, documentoTxt, clienteProveedorCbx, consultarBtn);
         filtrosLayout.setComponentAlignment(consultarBtn, Alignment.BOTTOM_RIGHT);
 
         layoutButtons.addComponent(verDescuadresCbx);
@@ -430,10 +331,13 @@ public class LibroDiarioView extends VerticalLayout implements View {
 
         addComponent(layoutTablaLibroDiario);
         setComponentAlignment(layoutTablaLibroDiario, Alignment.MIDDLE_CENTER);
-
     }
 
     public void llenarGridLibroDiario(String empresa) {
+
+        if(libroDiarioGrid == null) {
+            return;
+        }
 
         libroDiarioGrid.getColumn(CUENTA_PROPERTY).setHidable(false).setHidden(false);
         libroDiarioGrid.getColumn(DESCRIPCION_PROPERTY).setHidable(false).setHidden(false);
@@ -457,15 +361,15 @@ public class LibroDiarioView extends VerticalLayout implements View {
         try {
 
             String queryString;
-            queryString = " select contabilidad_partida.IdPartida, contabilidad_partida.CodigoPartida,  ";
-            queryString += " contabilidad_nomenclatura.NoCuenta, Sum(contabilidad_partida.DebeQuetzales) AS TotalDebe, ";
-            queryString += " Sum(contabilidad_partida.HaberQuetzales) AS TotalHaber, contabilidad_nomenclatura.N5,";
+            queryString = " SELECT contabilidad_partida.IdPartida, contabilidad_partida.CodigoPartida,  ";
+            queryString += " contabilidad_nomenclatura_empresa.NoCuenta, Sum(contabilidad_partida.DebeQuetzales) AS TotalDebe, ";
+            queryString += " Sum(contabilidad_partida.HaberQuetzales) AS TotalHaber, contabilidad_nomenclatura_empresa.N5,";
             queryString += " contabilidad_partida.Fecha, contabilidad_partida.Descripcion,";
             queryString += " contabilidad_partida.ArchivoNombre, contabilidad_partida.ArchivoTipo, contabilidad_partida.CodigoCC,";
             queryString += " contabilidad_partida.SerieDocumento, contabilidad_partida.NumeroDocumento, contabilidad_partida.TipoDocumento";
-            queryString += " from contabilidad_partida,contabilidad_nomenclatura";
-            queryString += " where contabilidad_partida.IdEmpresa  = " + empresa;
-            queryString += " and contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+            queryString += " FROM contabilidad_partida,contabilidad_nomenclatura_empresa";
+            queryString += " WHERE contabilidad_partida.IdEmpresa  = " + empresa;
+            queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
             queryString += " AND contabilidad_partida.Fecha BETWEEN ";
             queryString += "     '" + Utileria.getFechaYYYYMMDD_1(inicioDt.getValue()) + "'";
             queryString += " AND '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "'";
@@ -473,22 +377,23 @@ public class LibroDiarioView extends VerticalLayout implements View {
                 String documentoSerie[] = documentoTxt.getValue().split(" ");
 
                 if (documentoSerie.length > 1) {
-                    queryString += " and contabilidad_partida.SerieDocumento = '" + documentoSerie[0] + "'";
-                    queryString += " and contabilidad_partida.NumeroDocumento = '" + documentoSerie[1] + "'";
+                    queryString += " AND contabilidad_partida.SerieDocumento = '" + documentoSerie[0] + "'";
+                    queryString += " AND contabilidad_partida.NumeroDocumento = '" + documentoSerie[1] + "'";
                     queryString += " OR contabilidad_partida.CodigoPartida LIKE '" + documentoTxt.getValue().trim() + "%'";
                 } else {
                     queryString += " AND (contabilidad_partida.NumeroDocumento = '" + documentoSerie[0] + "' Or contabilidad_partida.IdLiquidacion = " + documentoSerie[0];
                     queryString += "  OR contabilidad_partida.CodigoPartida LIKE '" + documentoTxt.getValue().trim() + "%')";
                 }
             }
-            if (!String.valueOf(tipoTransaccionCbx.getValue()).equals("<<TODAS>>")) {
-                queryString += " And contabilidad_partida.TipoDocumento LIKE '" + String.valueOf(tipoTransaccionCbx.getValue()) + "%'";
+            if (!String.valueOf(clienteProveedorCbx.getValue()).equals("<<TODOS>>")) {
+                queryString += " AND contabilidad_partida.IdProveedor = " + clienteProveedorCbx.getValue();
             }
-            queryString += " And UPPER(contabilidad_partida.Estatus) NOT IN('ANULADO', 'ANULADA')";
-            queryString += " group  by contabilidad_partida.CodigoPartida, contabilidad_partida.IdNomenclatura";
-            queryString += " Order By contabilidad_partida.CodigoPartida, contabilidad_partida.Debe Desc";
+            queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresa;
+            queryString += " AND UPPER(contabilidad_partida.Estatus) NOT IN('ANULADO', 'ANULADA')";
+            queryString += " GROUP BY contabilidad_partida.CodigoPartida, contabilidad_partida.IdNomenclatura";
+            queryString += " ORDER BY contabilidad_partida.CodigoPartida, contabilidad_partida.Debe Desc";
 
-//            System.out.println("QUERY LIBRO DIARIO = " + queryString);
+            System.out.println("QUERY LIBRO DIARIO = " + queryString);
 
             stQuery2 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             rsRecords2 = stQuery2.executeQuery(queryString);
@@ -732,28 +637,6 @@ public class LibroDiarioView extends VerticalLayout implements View {
         }
     }
 
-    public void llenarComboEmpresa() {
-        String queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords1.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords1.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords1.getString("IdEmpresa"), rsRecords1.getString("Empresa"));
-            }
-            rsRecords1.first();
-
-            empresaCbx.select(rsRecords1.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     public void VisualizarImagen(ClickableRenderer.RendererClickEvent e) {
 
         String codigoPartida = String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), CODIGO_PARTIDA_PROPERTY).getValue());
@@ -761,7 +644,6 @@ public class LibroDiarioView extends VerticalLayout implements View {
         String archivoTipo = String.valueOf(libroDiariocontainer.getContainerProperty(e.getItemId(), ARCHIVO_TIPO_PROPERTY).getValue());
 
         libroDiarioGrid.select(e.getItemId());
-        String queryString;
 
         try {
 
@@ -845,34 +727,42 @@ public class LibroDiarioView extends VerticalLayout implements View {
         }
     }
 
-    public String getEmpresaNit() {
-        String strNit = "N/A";
+    private void llenarComboProveedor() {
+        String queryString = " SELECT IdProveedor, Nombre, ";
+        queryString += " DiasCredito, Regimen ";
+        queryString += " FROM proveedor_empresa";
+        queryString += " WHERE (EsProveedor = 1 OR EsCliente = 1) ";
+        queryString += " AND Inhabilitado = 0";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY Nombre";
 
-        String queryString = " SELECT Nit from contabilidad_empresa ";
-        queryString += " Where IdEmpresa = " + empresa;
+        clienteProveedorCbx.addItem("<<TODOS>>");
 
         try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords1 = stQuery1.executeQuery(queryString);
+            stQuery2 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
+            rsRecords2 = stQuery2.executeQuery(queryString);
 
-            if (rsRecords1.next()) {
-                strNit = rsRecords1.getString("Nit");
+            if (rsRecords2.next()) { //  encontrado
+                do {
+                    clienteProveedorCbx.addItem(rsRecords2.getString("IdProveedor"));
+                    clienteProveedorCbx.setItemCaption(rsRecords2.getString("IdProveedor"), rsRecords2.getString("Nombre"));
+                } while (rsRecords2.next());
             }
 
         } catch (Exception ex1) {
-            System.out.println("Error al buscar NIT de empresa: " + ex1.getMessage());
+            System.out.println("Error al listar proveedores: " + ex1.getMessage());
             ex1.printStackTrace();
         }
 
-        return strNit;
+        clienteProveedorCbx.select("<<TODOS>>");
     }
 
     public void printPdf() {
         LibroDiarioPDF libroDiarioPdf
                 = new LibroDiarioPDF(
-                        empresa,
-                        empresaCbx.getItemCaption(empresaCbx.getValue()),
-                        getEmpresaNit(),
+                        empresaId,
+                        empresaNombre,
+                        ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyTaxId(),
                         libroDiariocontainer,
                         Utileria.getFechaDDMMYYYY(inicioDt.getValue()),
                         Utileria.getFechaDDMMYYYY(finDt.getValue()),

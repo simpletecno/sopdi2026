@@ -56,6 +56,8 @@ public class PlanillaIGSSGenerator extends Window {
     Date fechaIncio;
     Date fechaFin;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public PlanillaIGSSGenerator(String idPlanilla){
         encabezado = "";
@@ -79,7 +81,7 @@ public class PlanillaIGSSGenerator extends Window {
         botonesLayout = new HorizontalLayout();
         botonesLayout.setWidth("90%");
 
-        iggsVersiocbx = new ComboBox("Version IGSS Planilla");
+        iggsVersiocbx = new ComboBox("Versión IGSS Planilla");
         iggsVersiocbx.setWidth("55%");
         iggsVersiocbx.setFilteringMode(FilteringMode.CONTAINS);
         iggsVersiocbx.addContainerProperty(JURAMENTO, String.class, "JURAMENTO");
@@ -90,7 +92,7 @@ public class PlanillaIGSSGenerator extends Window {
         queryString = "SELECT FechaInicio, FechaFin ";
         queryString += "FROM planilla_encabezado ";
         queryString += "WHERE id = " + idPlanilla;
-        queryString += " AND IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND IdEmpresa = " + empresaId;
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -169,7 +171,7 @@ public class PlanillaIGSSGenerator extends Window {
 
     private void generarHeader(){
 
-        queryString = "SELECT * FROM contabilidad_empresa WHERE IdEmpresa =" + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+        queryString = "SELECT * FROM contabilidad_empresa WHERE IdEmpresa = " + empresaId;
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
@@ -208,14 +210,15 @@ public class PlanillaIGSSGenerator extends Window {
         queryString +=       "(IF(p.FechaIngreso BETWEEN pe_fechas.FechaInicio AND pe_fechas.FechaFin, p.FechaIngreso, NULL)) as IngresoFecha, ";
         queryString +=       "(IF(p.FechaEgreso BETWEEN pe_fechas.FechaInicio AND pe_fechas.FechaFin, p.FechaEgreso, NULL)) as EgresoFecha ";
         queryString += "FROM planilla_detalle pd ";
-        queryString += "INNER JOIN proveedor p ON pd.IdEmpleado = p.IDProveedor ";
+        queryString += "INNER JOIN proveedor_empresa p ON pd.IdEmpleado = p.IDProveedor ";
         queryString += "INNER JOIN planilla_encabezado pe ON pd.IdPlanilla = pe.Id ";
         queryString += "INNER JOIN ( SELECT FechaInicio, FechaFin ";
         queryString +=              "FROM planilla_encabezado ";
         queryString +=              "WHERE id = " + idPlanilla;
         queryString +=            ") pe_fechas ON pe.FechaInicio BETWEEN pe_fechas.FechaInicio AND pe_fechas.FechaFin ";
         queryString += "WHERE pe.Tipo IN ('Salario', 'Liquidacion') ";
-        queryString += "AND pe.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + " ";
+        queryString += "AND pe.IdEmpresa = " + empresaId;
+        queryString += "AND p.IdEmpresa = " + empresaId;
         queryString += "AND pe.Estatus = 'GENERADA' ";
         queryString += "AND pd.idplanilla = " + idPlanilla + " ";
         queryString += "GROUP BY p.IDProveedor";
@@ -253,8 +256,9 @@ public class PlanillaIGSSGenerator extends Window {
         // Prepared Statment
         queryString =  "SELECT ea.Fecha, ea.Estatus, ea.Razon, p.* ";
         queryString += "FROM empleado_asistencia ea ";
-        queryString += "INNER JOIN proveedor p ON p.IDProveedor = ea.IdEmpleado ";
+        queryString += "INNER JOIN proveedor_empresa p ON p.IDProveedor = ea.IdEmpleado ";
         queryString += "WHERE IdEmpleado = ? "; // <-- se le asigna en el setString()
+        queryString += "AND p.IdEmpresa = " + empresaId + " ";
         queryString += "AND Fecha BETWEEN '" + Utileria.getFechaYYYYMMDD_1(fechaIncio) + "' AND '" + Utileria.getFechaYYYYMMDD_1(fechaFin) + "' ";
         queryString += "ORDER BY ea.Fecha ";
 

@@ -52,13 +52,10 @@ public class ImportarPartidaInicial extends Window {
 
     Statement stQuery = null;
     Statement stQuery1 = null;
-    PreparedStatement stPreparedQuery = null;
-    ResultSet rsRecords = null;
     ResultSet rsRecords1 = null;
 
     MarginInfo marginInfo;
 
-    String empresa;
     Button nextBtn;
     Button prevBtn;
     List<String> empresaLst;
@@ -88,6 +85,9 @@ public class ImportarPartidaInicial extends Window {
 
     UI mainUI;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public ImportarPartidaInicial() {
         this.mainUI = UI.getCurrent();
 
@@ -103,7 +103,7 @@ public class ImportarPartidaInicial extends Window {
 
 //        setCaption(((SopdiUI) mainUI).sessionInformation.getStrCompanyName() + " - Importar archivo EXCEL de planilla de la empresa : " + String.valueOf(selectEmpresa.getValue()));
 
-        Label titleLbl = new Label("IMPORTAR PARTIDA INICIAL");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " IMPORTAR PARTIDA INICIAL");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -235,7 +235,7 @@ public class ImportarPartidaInicial extends Window {
                     prevBtn.setEnabled(true);
                     nextBtn.setEnabled(true);
                     empresaLbl.setValue(listIterator.previous());
-                    empresa = empresaLbl.getValue().substring(1, 3);
+                    //empresa = empresaLbl.getValue().substring(1, 3);
 
                     if (partidaTable.size() > 0) {
                         partidaTable.removeAllItems();
@@ -260,7 +260,7 @@ public class ImportarPartidaInicial extends Window {
                     nextBtn.setEnabled(true);
 
                     empresaLbl.setValue(listIterator.next());
-                    empresa = empresaLbl.getValue().substring(1, 3);
+                    //empresa = empresaLbl.getValue().substring(1, 3);
 
                     if (partidaTable.size() > 0) {
                         partidaTable.removeAllItems();
@@ -337,10 +337,10 @@ public class ImportarPartidaInicial extends Window {
 
         empresaLbl.setValue(empresaString);
 
-        empresa = empresaString.substring(1, 3);
+        //empresa = empresaString.substring(1, 3);
 
         if (partidaTable != null) {
-            empresa = empresaString.substring(1, 3);
+          //  empresa = empresaString.substring(1, 3);
         }
         
         setContent(contenidoLayout);
@@ -395,7 +395,7 @@ System.out.println("...INICIO...");
                 if (sheet.getRow(linea).getCell(0).getRawValue() == null) {
                     continue;
                 }
-                if (!sheet.getRow(linea).getCell(0).getRawValue().equals(empresa)) {
+                if (!sheet.getRow(linea).getCell(0).getRawValue().equals(empresaId)) {
                     Notification.show("No es posible cargar el documento. Por favor revisar que la empresa del"
                             + " programa coincida con la del documento", Notification.Type.ERROR_MESSAGE);
                     cargarBtn.setEnabled(false);
@@ -463,7 +463,7 @@ System.out.println("...FIN...");
 
                         //dd-mm-yyyy
 
-                        String codigoPartida = empresa + Utileria.getFechaYYYYMMDD_1(new java.util.Date()).substring(0,4) + "01010001";
+                        String codigoPartida = empresaId + Utileria.getFechaYYYYMMDD_1(new java.util.Date()).substring(0,4) + "01010001";
 
                         String idNomenclatura;
 
@@ -506,7 +506,7 @@ System.out.println("...FIN...");
                             queryString += " Descripcion, CreadoUsuario, CreadoFechaYHora)";
                             queryString += " Values ";
                             queryString += " (";
-                            queryString += empresa;
+                            queryString += empresaId;
                             queryString += ",'INGRESADO'";
                             queryString += ",'" + codigoPartida + "'";
                             queryString += ",'" + codigoPartida + "'"; //codigocc

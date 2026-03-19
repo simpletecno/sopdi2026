@@ -71,7 +71,6 @@ public class PlanRHShow extends Window {
         rhGrid.setWidth("100%");
         rhGrid.setImmediate(true);
         rhGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
-//        rhGrid.setDescription("Seleccione un registro.");
         rhGrid.setHeightMode(HeightMode.ROW);
         rhGrid.setHeightByRows(15);
         rhGrid.setResponsive(true);

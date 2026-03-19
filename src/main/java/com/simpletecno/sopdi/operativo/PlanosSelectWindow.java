@@ -204,7 +204,7 @@ System.out.println(queryString);
         } catch (Exception ex) {
             System.out.println("Error al listar tabla de planos para asignar a idex :" + ex);
             ex.printStackTrace();
-            Notification.show("Error al istar tabla de planos para asignar a idex. ", Notification.Type.ERROR_MESSAGE);
+            Notification.show("Error al listar tabla de planos para asignar a idex. ", Notification.Type.ERROR_MESSAGE);
         }
     }
 }

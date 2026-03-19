@@ -46,16 +46,12 @@ import java.util.logging.Logger;
  */
 public class ProjectInfoView extends VerticalLayout implements View { 
     
-    TabSheet tabSheet;
-    MarginInfo  marginInfo;
-    
+
     public  int idProyecto = 0;
     
     FormLayout proyectoForm;
-    FormLayout proyectoForm1;
-        
+
     Statement stQuery = null;
-    static PreparedStatement stPreparedQuery;
     ResultSet rsRecords = null;
         
     TextField idProyectoTxt;
@@ -69,10 +65,8 @@ public class ProjectInfoView extends VerticalLayout implements View {
     PopupDateField fechaInicioDt;
     PopupDateField fechaFinDt;
     ComboBox unidadMedidaCbx;
-    NumberField precioUnidadMedidaTxt;
     NumberField montoReservaTxt;
     NumberField porcentajeEngancheTxt;
-    NumberField costoTramiteTxt;
     NumberField cuotaMantenimientoTxt;
     NumberField cantidadUnidadesCotizacionTxt;
 
@@ -319,9 +313,9 @@ public class ProjectInfoView extends VerticalLayout implements View {
     public void fillData() {
         String queryString = "";
         
-        queryString =  "Select * ";
-        queryString += " From  proyecto ";
-        queryString += " Where IdProyecto = " + idProyectoTxt.getValue();
+        queryString =  "SELECT * ";
+        queryString += " FROM  proyecto ";
+        queryString += " WHERE IdProyecto = " + idProyectoTxt.getValue();
 
 //System.out.println("\n\n"+queryString);
 
@@ -378,9 +372,9 @@ public class ProjectInfoView extends VerticalLayout implements View {
     }
 
     void fillAmenidadesTable() {
-        String queryString = "Select * ";
-        queryString += " From proyecto_amenidad ";
-        queryString += " Where IdProyecto = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectId();
+        String queryString = "SELECT * ";
+        queryString += " FROM proyecto_amenidad ";
+        queryString += " WHERE IdProyecto = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectId();
  
         amenidadesTable.removeAllItems();
 

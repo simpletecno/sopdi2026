@@ -56,7 +56,6 @@ public class UsersView extends VerticalLayout implements View {
     protected static final String DIVISION_PROPERTY   = "División o Depto.";
     protected static final String USUARIO_PROPERTY   = "Usuario";
     protected static final String NOMBRE_PROPERTY    = "Nombre";
-    protected static final String EMAIL_PROPERTY     = "eMail";
     protected static final String PERFIL_PROPERTY    = "Perfil";
     protected static final String ESTATUS_PROPERTY   = "Estatus";
     protected static final String OPTIONS_PROPERTY = "-";

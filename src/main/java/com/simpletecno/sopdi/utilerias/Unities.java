@@ -44,9 +44,6 @@ public class Unities extends VerticalLayout {
     protected static final String UNIDADES_NOUTILIZADAS_PROPERTY = "Unidades no utilizables";
     protected static final String OPTIONS_PROPERTY = "-";
 
-    private static NumberFormat numberFormat = new DecimalFormat("##,###,###.00");
-
-    Utileria utileria = new Utileria();
     MarginInfo  marginInfo;
 
     private Table unitiesTable;

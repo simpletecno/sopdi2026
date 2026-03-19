@@ -50,6 +50,9 @@ public class EmpleadoLiquidadorForm extends Window {
     String idEmpleado;
     String idRegistro;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public EmpleadoLiquidadorForm(String idRegistro) {
         this.idEmpleado = idEmpleado;
         this.idRegistro = idRegistro;
@@ -60,7 +63,7 @@ public class EmpleadoLiquidadorForm extends Window {
 
         center();
 
-        setCaption("CUENTAS CONTABLES AUTORIZADAS PARA EMPLEADO LIQUIDADOR");
+        setCaption(empresaId + " " + empresaNombre + " CUENTAS CONTABLES AUTORIZADAS PARA EMPLEADO LIQUIDADOR");
 
         marginInfo = new MarginInfo(true, true, true, true);
 
@@ -196,9 +199,10 @@ public class EmpleadoLiquidadorForm extends Window {
     }
 
     public void llenarComboLiquidador() {
-        String queryString = " SELECT * FROM proveedor ";
+        String queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0 ";
         queryString += " AND EsLiquidador= 1";
+        queryString += " AND IdEmpresa = " + empresaId;
         queryString += " ORDER BY Nombre ";
 
         try {
@@ -217,9 +221,10 @@ public class EmpleadoLiquidadorForm extends Window {
     }
 
     public void llenarComboProveedor() {
-        String queryString = " SELECT * FROM proveedor ";
+        String queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0 ";
         queryString += " AND EsProveedor = 1";
+        queryString += " AND IdEmpresa = " + empresaId;
         queryString += " ORDER BY Nombre ";
 
         try {
@@ -239,8 +244,9 @@ public class EmpleadoLiquidadorForm extends Window {
 
     private void fillComboCuentaContable() {
 
-        String queryString = " SELECT * FROM contabilidad_nomenclatura";
+        String queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
         queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " AND IdEmpresa = " + empresaId;
 //        queryString += " AND NoCuenta IN ('61101003', '61101004', '61101001'");
 //        queryString += " AND UPPER(N4) ='PERSONAL' AND FiltrarIngresoDocumentos = 'B'";
         queryString += " ORDER BY N5";
@@ -272,10 +278,10 @@ public class EmpleadoLiquidadorForm extends Window {
 
         String queryString = "";
 
-        queryString = "Select * ";
-        queryString += " From empleado_liquidador ";
-        queryString += " Where Id = " + id;
-System.out.println("queryEmpleado=" + queryString);
+        queryString = "SELECT * ";
+        queryString += " FROM empleado_liquidador ";
+        queryString += " WHERE Id = " + id;
+
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
@@ -340,10 +346,10 @@ System.out.println("queryEmpleado=" + queryString);
                     Notification.show("NUEVO :  YA EXISTE UN REGISTRO CON ESTE PROVEEDOR Y ESTA NOMENCLATURA CONTABLE.", Notification.Type.ERROR_MESSAGE);
                     return;
                 }
-                queryString = "Insert into empleado_liquidador ";
+                queryString = "INSERT INTO empleado_liquidador ";
 //                queryString += "(IdEmpleado, IdNomenclatura, Fecha, Valor, EsOrdinario)";
                 queryString += "(IdEmpleado, IdEmpresa, IdProveedor, IdNomenclatura)";
-                queryString += " Values ";
+                queryString += " VALUES ";
                 queryString += "(";
                 queryString += liquidadorCbx.getValue();
                 queryString += ", " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
@@ -392,9 +398,9 @@ System.out.println("saveData="+queryString);
 
         String queryString = "";
 
-        queryString = "Delete ";
-        queryString += " From empleado_liquidador ";
-        queryString += " Where Id = " + id;
+        queryString = "DELETE ";
+        queryString += " FROM empleado_liquidador ";
+        queryString += " WHERE Id = " + id;
 //System.out.println("queryEmpleado=" + queryString);
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

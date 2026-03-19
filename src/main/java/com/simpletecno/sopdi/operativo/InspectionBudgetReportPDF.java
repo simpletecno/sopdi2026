@@ -86,7 +86,6 @@ public class InspectionBudgetReportPDF extends Window {
                 
             e.setSource(pdfResource); 
             setContent(e);
-                // despues de llamar Pdf()  fileName y tiene la ruta completa del archivo
             File file = new File(fileName);
             file.delete();
                 
@@ -99,10 +98,10 @@ public class InspectionBudgetReportPDF extends Window {
     }
     
     private void setVisitaInformation(String idVisitaInspeccion) {
-        queryString = "Select Vis.*, Cli.*  ";
-        queryString += " From visita_inspeccion Vis";
-        queryString += " Inner Join proveedor Cli On Cli.IdProveedor = Vis.IdCliente";
-        queryString += " Where Vis.IdVisitaInspeccion = " + idVisitaInspeccion;
+        queryString = "SELECT Vis.*, Cli.*  ";
+        queryString += " FROM visita_inspeccion Vis";
+        queryString += " INNER JOIN proveedor Cli ON Cli.IdProveedor = Vis.IdCliente";
+        queryString += " WHERE Vis.IdVisitaInspeccion = " + idVisitaInspeccion;
 
 //System.out.println("QUERY TAREAS POR INSPECCION: " +  queryString);        
 

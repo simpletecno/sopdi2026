@@ -72,7 +72,7 @@ public class UsuarioCorreoForm extends Window {
         usuarioGrid = new Grid("Listado de Usuarios Disponibles. ", usuarioContainer);
         usuarioGrid.setImmediate(true);
         usuarioGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
-        usuarioGrid.setDescription("Seleccione un registro.");
+        usuarioGrid.setDescription("Seleccione un usuario.");
         usuarioGrid.setHeightMode(HeightMode.ROW);
         usuarioGrid.setHeightByRows(7);
         usuarioGrid.setWidth("80%");

@@ -60,11 +60,9 @@ public class ProjectForm extends Window {
     TabSheet tabSheet;
     MarginInfo  marginInfo;
     
-    public  int idProyecto = 0;
-    
+
     FormLayout proyectoForm;
-    FormLayout proyectoForm1;
-    
+
     Button saveBtn;
     
     Statement stQuery = null;
@@ -390,9 +388,9 @@ System.out.println("\ntargetFile = " + fileName);
     public void fillData() {
         String queryString = "";
         
-        queryString =  "Select * ";
-        queryString += " From  proyecto ";
-        queryString += " Where IdProyecto = " + idProyectoTxt.getValue();
+        queryString =  "SELECT * ";
+        queryString += " FROM  proyecto ";
+        queryString += " WHERE IdProyecto = " + idProyectoTxt.getValue();
 
 //System.out.println("\n\n"+queryString);
 
@@ -473,11 +471,11 @@ System.out.println("\ntargetFile = " + fileName);
         String queryString;
         
         if(idProyectoTxt.getValue().compareTo("0") == 0) {
-            queryString =  "Insert Into proyecto (Nombre, Ubicacion, IdEmpresa, IdPais,";
+            queryString =  "INSERT INTO proyecto (Nombre, Ubicacion, IdEmpresa, IdPais,";
             queryString += " Responsable, TelefonoResponsable, SitioWeb, UnidadMedida, PrecioUnidadMedida, MontoReserva, PorcentajeEnganche, ";
             queryString += " FechaInicio, FechaFin, DiasAntesHoyFechaTareaProgramada, DiasDespuesHoyFechaTareaProgramada,";
             queryString += " ClaveParaAutorizar, FactorPresupuestoCliente, Logo)";
-            queryString += " Values (";
+            queryString += " VALUES (";
             queryString += "'"  + nombreTxt.getValue()      + "'";
             queryString += ",'" + ubicacionTxt.getValue()   + "'";
             queryString += ", " + ((SopdiUI) mainUI).sessionInformation.getStrCompanyId();
@@ -500,7 +498,7 @@ System.out.println("\ntargetFile = " + fileName);
             queryString += ")";
         }
         else {
-            queryString =  "Update proyecto Set ";
+            queryString =  "UPDATE proyecto SET ";
             queryString += " Nombre       = '" + nombreTxt.getValue()         + "'";
             queryString += ",Ubicacion    = '" + ubicacionTxt.getValue()      + "'";
             queryString += ",IdPais       = '" + String.valueOf(paisCbx.getValue()) + "'";
@@ -519,7 +517,7 @@ System.out.println("\ntargetFile = " + fileName);
             queryString += ",FactorPresupuestoCliente = " + factorPresupuestoClienteTxt.getDoubleValueDoNotThrow();
             queryString += ",Logo = ?";
             
-            queryString += " Where IdProyecto = " + idProyectoTxt.getValue();
+            queryString += " WHERE IdProyecto = " + idProyectoTxt.getValue();
         }
 //System.out.println("queryString="+queryString);
         try {

@@ -113,15 +113,15 @@ public class CambiarEstatusVisitaTareas extends Window {
     public void modificarEstatus() {
         try {
 
-            queryString = " Update visita_inspeccion_tarea Set ";
+            queryString = " Update visita_inspeccion_tarea SET ";
             queryString += " Estatus = '" + estatusCbx.getValue() + "'";            
             queryString += " FechaUltimoEstatus = '" + Utileria.getFechaYYYYMMDD_1(new java.util.Date()) + "'";
-            queryString += " Where IdVisitaInspeccionTarea = " + idTarea;
+            queryString += " WHERE IdVisitaInspeccionTarea = " + idTarea;
 
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);
             
-            Notification.show("Estatus modificado con exito!", Notification.Type.HUMANIZED_MESSAGE);
+            Notification.show("Estatus de tarea modificado con exito!", Notification.Type.HUMANIZED_MESSAGE);
             ((InspectionsTaskTrackView) (mainUI.getNavigator().getCurrentView())).fillInspectionsTaskGrid();
 
             close();

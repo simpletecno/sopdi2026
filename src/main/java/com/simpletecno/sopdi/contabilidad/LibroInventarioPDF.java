@@ -54,7 +54,7 @@ public class LibroInventarioPDF extends Window {
     String idEmpresa;
     String empresaNombre;
     String empresaNit;
-    String tipoReporte;
+
     IndexedContainer libroInventarioContainer;
     String desde;
     String hasta;    

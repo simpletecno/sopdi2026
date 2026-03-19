@@ -42,13 +42,9 @@ import java.util.Date;
  */
 public class IngresoBancosView extends VerticalLayout implements View {
 
-    ComboBox empresaCbx;
-    String empresa;
     UI mainUI;
     Statement stQuery;
     ResultSet rsRecords;
-    Statement stQuery1;
-    ResultSet rsRecords2;
     String queryString;
     Double totalHaber;
     Double totalDebe;
@@ -89,7 +85,9 @@ public class IngresoBancosView extends VerticalLayout implements View {
 
     VerticalLayout reportLayoutPartida = new VerticalLayout();
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
-    static DecimalFormat numberFormat2 = new DecimalFormat("#,###,##0");
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public IngresoBancosView() {
         this.mainUI = UI.getCurrent();
@@ -98,19 +96,16 @@ public class IngresoBancosView extends VerticalLayout implements View {
         //setMargin(true);
         reportLayoutPartida.setEnabled(false);
 
-        Label titleLbl = new Label("MOVIMIENTOS DE BANCOS");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " MOVIMIENTOS DE BANCOS");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
-
-        crearButtonEmpresa();
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -120,10 +115,7 @@ public class IngresoBancosView extends VerticalLayout implements View {
         createTablaTransacciones();
         createTablaPartida();
 
-        empresa = String.valueOf(empresaCbx.getValue());
-
-
-        llenarTablaFactura(empresa);
+        llenarTablaFactura(empresaId);
     }
 
     public void createTablaTransacciones() {
@@ -155,7 +147,7 @@ public class IngresoBancosView extends VerticalLayout implements View {
         consultarBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                llenarTablaFactura(empresa);
+                llenarTablaFactura(empresaId);
             }
         });
 
@@ -165,8 +157,8 @@ public class IngresoBancosView extends VerticalLayout implements View {
         nuevoBtn.addListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                IngresosVariadosForm nuevosIngresos = new IngresosVariadosForm(empresa);
-                nuevosIngresos.empresaCbx.select(empresa);
+                IngresosVariadosForm nuevosIngresos = new IngresosVariadosForm(empresaId);
+                nuevosIngresos.empresaCbx.select(empresaId);
                 nuevosIngresos.empresaCbx.setReadOnly(true);
                 UI.getCurrent().addWindow(nuevosIngresos);
                 nuevosIngresos.center();
@@ -425,62 +417,22 @@ public class IngresoBancosView extends VerticalLayout implements View {
         setComponentAlignment(reportLayout, Alignment.MIDDLE_CENTER);
     }
 
-    public void llenarComboEmpresa() {
-        String queryString = "SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
-    public void crearButtonEmpresa() {
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-
-        llenarComboEmpresa();
-
-        empresaCbx.addValueChangeListener(event -> {
-            empresa = String.valueOf(event.getProperty().getValue());
-            llenarTablaFactura(empresa);
-        });
-
-    }
-
     public void llenarTablaFactura(String empresa) {
         container.removeAllItems();
         containerPartida.removeAllItems();
 
         setTotal();
 
-        queryString = " select * from contabilidad_partida";
-        queryString += " where contabilidad_partida.TipoDocumento In ('PRESTAMOS', ";
+        queryString = " SELECT * FROM contabilidad_partida";
+        queryString += " WHERE contabilidad_partida.TipoDocumento In ('PRESTAMOS', ";
         queryString += " 'ENGANCHES', 'DEPOSITO POR COMPRA DE MONEDA','DEPOSITO','TRANSFERENCIA', 'NOTA DE CREDITO',";
         queryString += " 'NOTA DE DEBITO', 'INTERESES DEVENGADOS', 'REEMBOLSO DE ANTICIPOS', 'PAGOS DE FACTURA VENTA')";
-        queryString += " and IdEmpresa = " + empresa;
+        queryString += " AND IdEmpresa = " + empresa;
         queryString += " AND contabilidad_partida.Fecha BETWEEN ";
         queryString += " '" + Utileria.getFechaYYYYMMDD_1(inicioDt.getValue()) + "'";
         queryString += " AND '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "'";
-        queryString += " Group by CodigoPartida, Fecha";
-        queryString += " Order by Fecha ASC";
+        queryString += " GROUP BY CodigoPartida, Fecha";
+        queryString += " GROUP BY Fecha ASC";
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -589,20 +541,6 @@ public class IngresoBancosView extends VerticalLayout implements View {
             } else {
                 Notification.show("Opción temporalmente deshabilitada.", Notification.Type.HUMANIZED_MESSAGE);
             }
-            /*  temporalmente comentado editar
-            if (ingresoBancosGrid.getSelectedRow() == null) {
-                Notification.show("Por favor, seleccione el registro correspondiente.", Notification.Type.WARNING_MESSAGE);
-            } else {
-                if (String.valueOf(container.getContainerProperty(ingresoBancosGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue()).equals("REVISADO")) {
-                    Notification.show("No se puede editar una partida ya REVISADA .", Notification.Type.WARNING_MESSAGE);
-
-                } else {
-                    IngresoBancosForm ingresoBancosForm = new IngresoBancosForm(empresa, String.valueOf(container.getContainerProperty(ingresoBancosGrid.getSelectedRow(), ID_PROPERTY).getValue()));
-                    UI.getCurrent().addWindow(ingresoBancosForm);
-                    ingresoBancosForm.center();
-                }
-            }
-             */
         });
 
         Button printBtn = new Button("Imprimir partida");
@@ -616,7 +554,7 @@ public class IngresoBancosView extends VerticalLayout implements View {
             } else {
                 com.simpletecno.sopdi.contabilidad.LibroDiarioView libroDiario = new com.simpletecno.sopdi.contabilidad.LibroDiarioView();
                 libroDiario.documentoTxt.setValue(String.valueOf(container.getContainerProperty(ingresoBancosGrid.getSelectedRow(), ID_PROPERTY).getValue()));
-                libroDiario.empresa = empresa;
+
                 try {
                     libroDiario.inicioDt.setValue(
                             new SimpleDateFormat("dd/MM/yyyy")
@@ -649,8 +587,8 @@ public class IngresoBancosView extends VerticalLayout implements View {
                     try {
 
                         queryString = "UPDATE  contabilidad_partida";
-                        queryString += " set Estatus = 'REVISADO'";
-                        queryString += " where CodigoPartida = '" + String.valueOf(container.getContainerProperty(ingresoBancosGrid.getSelectedRow(), ID_PROPERTY).getValue()) + "'";
+                        queryString += " SET Estatus = 'REVISADO'";
+                        queryString += " WHERE CodigoPartida = '" + String.valueOf(container.getContainerProperty(ingresoBancosGrid.getSelectedRow(), ID_PROPERTY).getValue()) + "'";
 
                         stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                         stQuery.executeUpdate(queryString);
@@ -692,12 +630,13 @@ public class IngresoBancosView extends VerticalLayout implements View {
         totalHaberQ = 0.00;
 
         String queryString;
-        queryString = " select contabilidad_partida.*,contabilidad_nomenclatura.N5, contabilidad_nomenclatura.NoCuenta";
-        queryString += " from contabilidad_partida,contabilidad_nomenclatura";
-        queryString += " where contabilidad_partida.CodigoPartida = '" + codigoPartida + "'";
-        queryString += " and contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+        queryString = " SELECT contabilidad_partida.*,contabilidad_nomenclatura_empresa.N5, contabilidad_nomenclatura_empresa.NoCuenta";
+        queryString += " FROM contabilidad_partida, contabilidad_nomenclatura_empresa";
+        queryString += " WHERE contabilidad_partida.CodigoPartida = '" + codigoPartida + "'";
+        queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+        queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
 
-        System.out.println("Query partida ingreso=" + queryString);
+       // System.out.println("Query partida ingreso=" + queryString);
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

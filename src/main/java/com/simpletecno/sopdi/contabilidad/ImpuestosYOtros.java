@@ -12,15 +12,12 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Panel;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -40,19 +37,16 @@ public class ImpuestosYOtros extends VerticalLayout implements View {
     public static String cuentaCuotaPatronalIgss = "21103005";
     public static String cuentaCuotaLaboralIgss = "21103006";
 
-    ComboBox empresaCbx;    
-    String empresa;
     Statement stQuery;
     ResultSet rsRecords;
-    Statement stQuery2;
-    ResultSet rsRecords2;
-    String queryString;        
+    String queryString;
     
     VerticalLayout mainLayout = new VerticalLayout();
-    Panel panel = new Panel();
     Table unitTable = new Table();
-    Button prevBtn, nextBtn;
-    
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public ImpuestosYOtros() {
         setWidth("70%");
         setHeight("95%");
@@ -63,22 +57,8 @@ public class ImpuestosYOtros extends VerticalLayout implements View {
         mainLayout.setMargin(true);
         
         addComponent(mainLayout);
-        
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);                
-        empresaCbx.addValueChangeListener(event -> {
-            empresa = String.valueOf(event.getProperty().getValue());            
-            fillData();
-        });
 
-        llenarComboEmpresa();
-
-        Label titleLbl = new Label("IMPUESTOS/IGSS");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " IMPUESTOS/IGSS");
         //   titleLbl.setWidth("10%");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
@@ -89,15 +69,12 @@ public class ImpuestosYOtros extends VerticalLayout implements View {
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
         mainLayout.addComponent(titleLayout);
         mainLayout.setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-        
-        empresa = String.valueOf(empresaCbx.getValue());
 
         createTable();
         fillData();
@@ -136,12 +113,13 @@ public class ImpuestosYOtros extends VerticalLayout implements View {
         
         unitTable.removeAllItems();
         
-        queryString = " Select IfNull(contabilidad_nomenclatura.N5, 'IVA POR PAGAR') As NombreCuenta, ";
+        queryString = " SELECT IfNull(contabilidad_nomenclatura_empresa.N5, 'IVA POR PAGAR') AS NombreCuenta, ";
         queryString += " IfNull(Sum(contabilidad_partida.DebeQuetzales), 0) TotalDebe, IfNull(Sum(contabilidad_partida.HaberQuetzales),0) TotalHaber ";
-        queryString += " From contabilidad_partida, contabilidad_nomenclatura ";
-        queryString += " Where contabilidad_partida.IdNomenclatura = contabilidad_nomenclatura.IdNomenclatura ";
-        queryString += " And contabilidad_nomenclatura.NoCuenta = '" + cuentaIvaPorPagar + "'";
-        queryString += " And contabilidad_partida.IdEmpresa = " + empresa;
+        queryString += " FROM contabilidad_partida, contabilidad_nomenclatura_empreesa ";
+        queryString += " WHERE contabilidad_partida.IdNomenclatura = contabilidad_nomenclatura_empresa.IdNomenclatura ";
+        queryString += " AND contabilidad_nomenclatura_empresa.NoCuenta = '" + cuentaIvaPorPagar + "'";
+        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
+        queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
         
 //System.out.println("queryString=" + queryString);
 
@@ -165,12 +143,13 @@ public class ImpuestosYOtros extends VerticalLayout implements View {
             unitTable.addItem(new Object[]{ivaPorPagarSaldoLbl, "", PagarView.numberFormat.format((rsRecords.getDouble("TotalHaber") - rsRecords.getDouble("TotalDebe")))}, 2);
             unitTable.addItem(new Object[]{new Label(), "", ""}, 3);
 
-            queryString = " Select IfNull(contabilidad_nomenclatura.N5, 'Iva Por Cobrar') As NombreCuenta, ";
+            queryString = " SELECT IfNull(contabilidad_nomenclatura.N5, 'Iva Por Cobrar') As NombreCuenta, ";
             queryString += " IfNull(Sum(contabilidad_partida.DebeQuetzales), 0) TotalDebe, IfNull(Sum(contabilidad_partida.HaberQuetzales),0) TotalHaber ";
-            queryString += " From contabilidad_partida, contabilidad_nomenclatura ";
-            queryString += " Where contabilidad_partida.IdNomenclatura = contabilidad_nomenclatura.IdNomenclatura ";
-            queryString += " And contabilidad_nomenclatura.NoCuenta = '" + cuentaIvaPorCobrar + "'";
-            queryString += " And contabilidad_partida.IdEmpresa = " + empresa;
+            queryString += " FROM contabilidad_partida, contabilidad_nomenclatura_empresa ";
+            queryString += " WHERE contabilidad_partida.IdNomenclatura = contabilidad_nomenclatura_empresa.IdNomenclatura ";
+            queryString += " AND contabilidad_nomenclatura_empresa.NoCuenta = '" + cuentaIvaPorCobrar + "'";
+            queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
+            queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
             
 //System.out.println("queryString=" + queryString);
 
@@ -192,12 +171,13 @@ public class ImpuestosYOtros extends VerticalLayout implements View {
             unitTable.addItem(new Object[]{ivaPorCobrarSaldoLbl, PagarView.numberFormat.format((rsRecords.getDouble("TotalDebe") - rsRecords.getDouble("TotalHaber"))),""}, 5);
             unitTable.addItem(new Object[]{new Label(), "", ""}, 6);
 
-            queryString = " Select IfNull(contabilidad_nomenclatura.N5, 'ISR Por Pagar') As NombreCuenta, ";
+            queryString = " SELECT IfNull(contabilidad_nomenclatura_empresa.N5, 'ISR Por Pagar') As NombreCuenta, ";
             queryString += " IfNull(Sum(contabilidad_partida.DebeQuetzales), 0) TotalDebe, IfNull(Sum(contabilidad_partida.HaberQuetzales),0) TotalHaber ";
-            queryString += " From contabilidad_partida, contabilidad_nomenclatura ";
-            queryString += " Where contabilidad_partida.IdNomenclatura = contabilidad_nomenclatura.IdNomenclatura ";
-            queryString += " And contabilidad_nomenclatura.NoCuenta = '" + cuentaIsrPorPagar + "'";
-            queryString += " And contabilidad_partida.IdEmpresa = " + empresa;
+            queryString += " FROM contabilidad_partida, contabilidad_nomenclatura_empresa ";
+            queryString += " WHERE contabilidad_partida.IdNomenclatura = contabilidad_nomenclatura_empresa.IdNomenclatura ";
+            queryString += " AND contabilidad_nomenclatura_empresa.NoCuenta = '" + cuentaIsrPorPagar + "'";
+            queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
+            queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
             
 //System.out.println("queryString=" + queryString);
 
@@ -219,12 +199,13 @@ public class ImpuestosYOtros extends VerticalLayout implements View {
             unitTable.addItem(new Object[]{isrPorPagarSaldoLbl, "", PagarView.numberFormat.format((rsRecords.getDouble("TotalDebe") - rsRecords.getDouble("TotalHaber")))}, 8);
             unitTable.addItem(new Object[]{new Label(), "", ""}, 9);
 
-            queryString = " Select IfNull(contabilidad_nomenclatura.N5, 'Retenciones ISR por Pagar') As NombreCuenta, ";
+            queryString = " Select IfNull(contabilidad_nomenclatura_empresa.N5, 'Retenciones ISR por Pagar') As NombreCuenta, ";
             queryString += " IfNull(Sum(contabilidad_partida.DebeQuetzales), 0) TotalDebe, IfNull(Sum(contabilidad_partida.HaberQuetzales),0) TotalHaber ";
-            queryString += " From contabilidad_partida, contabilidad_nomenclatura ";
-            queryString += " Where contabilidad_partida.IdNomenclatura = contabilidad_nomenclatura.IdNomenclatura ";
-            queryString += " And contabilidad_nomenclatura.NoCuenta = '" + cuentaRetencionesIsrPorPagar + "'";
-            queryString += " And contabilidad_partida.IdEmpresa = " + empresa;
+            queryString += " From contabilidad_partida, contabilidad_nomenclatura_empresa ";
+            queryString += " Where contabilidad_partida.IdNomenclatura = contabilidad_nomenclatura_empresa.IdNomenclatura ";
+            queryString += " And contabilidad_nomenclatura_empresa.NoCuenta = '" + cuentaRetencionesIsrPorPagar + "'";
+            queryString += " And contabilidad_partida.IdEmpresa = " + empresaId;
+            queryString += " And contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
             
 //System.out.println("queryString=" + queryString);
 
@@ -246,12 +227,13 @@ public class ImpuestosYOtros extends VerticalLayout implements View {
             unitTable.addItem(new Object[]{retencionesIsrPorPagarSaldoLbl, "", PagarView.numberFormat.format((rsRecords.getDouble("TotalDebe") - rsRecords.getDouble("TotalHaber")))}, 11);
             unitTable.addItem(new Object[]{new Label(), "", ""}, 12);
 
-            queryString = " Select IfNull(contabilidad_nomenclatura.N5, 'Iso Por Pagar') As NombreCuenta, ";
+            queryString = " SELECT IfNull(contabilidad_nomenclatura_empresa.N5, 'Iso Por Pagar') As NombreCuenta, ";
             queryString += " IfNull(Sum(contabilidad_partida.DebeQuetzales), 0) TotalDebe, IfNull(Sum(contabilidad_partida.HaberQuetzales),0) TotalHaber ";
-            queryString += " From contabilidad_partida, contabilidad_nomenclatura ";
-            queryString += " Where contabilidad_partida.IdNomenclatura = contabilidad_nomenclatura.IdNomenclatura ";
-            queryString += " And contabilidad_nomenclatura.NoCuenta = '" + cuentaIsoPorPagar + "'";
-            queryString += " And contabilidad_partida.IdEmpresa = " + empresa;
+            queryString += " FROM contabilidad_partida, contabilidad_nomenclatura_empresa ";
+            queryString += " WHERE contabilidad_partida.IdNomenclatura = contabilidad_nomenclatura_empresa.IdNomenclatura ";
+            queryString += " AND contabilidad_nomenclatura_empresa.NoCuenta = '" + cuentaIsoPorPagar + "'";
+            queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
+            queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
             
 //System.out.println("queryString=" + queryString);
 
@@ -273,12 +255,13 @@ public class ImpuestosYOtros extends VerticalLayout implements View {
             unitTable.addItem(new Object[]{isoPorPagarSaldoLbl, "", PagarView.numberFormat.format((rsRecords.getDouble("TotalDebe") - rsRecords.getDouble("TotalHaber")))}, 14);
             unitTable.addItem(new Object[]{new Label(), "", ""}, 15);
 
-            queryString = " Select IfNull(contabilidad_nomenclatura.N5, 'Iusi Por Pagar') As NombreCuenta, ";
+            queryString = " SELECT IfNull(contabilidad_nomenclatura_empresa.N5, 'Iusi Por Pagar') As NombreCuenta, ";
             queryString += " IfNull(Sum(contabilidad_partida.DebeQuetzales), 0) TotalDebe, IfNull(Sum(contabilidad_partida.HaberQuetzales),0) TotalHaber ";
-            queryString += " From contabilidad_partida, contabilidad_nomenclatura ";
-            queryString += " Where contabilidad_partida.IdNomenclatura = contabilidad_nomenclatura.IdNomenclatura ";
-            queryString += " And contabilidad_nomenclatura.NoCuenta = '" + cuentaIusiPorPagar + "'";
-            queryString += " And contabilidad_partida.IdEmpresa = " + empresa;
+            queryString += " FROM contabilidad_partida, contabilidad_nomenclatura_empresa ";
+            queryString += " WHERE contabilidad_partida.IdNomenclatura = contabilidad_nomenclatura_empresa.IdNomenclatura ";
+            queryString += " AND contabilidad_nomenclatura_empresa.NoCuenta = '" + cuentaIusiPorPagar + "'";
+            queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
+            queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
             
 //System.out.println("queryString=" + queryString);
 
@@ -300,12 +283,13 @@ public class ImpuestosYOtros extends VerticalLayout implements View {
             unitTable.addItem(new Object[]{iusiPorPagarSaldoLbl, "", PagarView.numberFormat.format((rsRecords.getDouble("TotalDebe") - rsRecords.getDouble("TotalHaber")))}, 17);
             unitTable.addItem(new Object[]{new Label(), "", ""}, 18);
 
-            queryString = " Select IfNull(contabilidad_nomenclatura.N5, 'Cuota Patronal Igss') As NombreCuenta, ";
+            queryString = " SELECT IfNull(contabilidad_nomenclatura_empresa.N5, 'Cuota Patronal Igss') As NombreCuenta, ";
             queryString += " IfNull(Sum(contabilidad_partida.DebeQuetzales), 0) TotalDebe, IfNull(Sum(contabilidad_partida.HaberQuetzales),0) TotalHaber ";
-            queryString += " From contabilidad_partida, contabilidad_nomenclatura ";
-            queryString += " Where contabilidad_partida.IdNomenclatura = contabilidad_nomenclatura.IdNomenclatura ";
-            queryString += " And contabilidad_nomenclatura.NoCuenta = '" + cuentaCuotaPatronalIgss + "'";
-            queryString += " And contabilidad_partida.IdEmpresa = " + empresa;
+            queryString += " FROM contabilidad_partida, contabilidad_nomenclatura_empresa ";
+            queryString += " WHERE contabilidad_partida.IdNomenclatura = contabilidad_nomenclatura_empresa.IdNomenclatura ";
+            queryString += " AND contabilidad_nomenclatura_empresa.NoCuenta = '" + cuentaCuotaPatronalIgss + "'";
+            queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
+            queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
             
 //System.out.println("queryString=" + queryString);
 
@@ -327,12 +311,13 @@ public class ImpuestosYOtros extends VerticalLayout implements View {
             unitTable.addItem(new Object[]{cuotaPatronalIgssPorPagarSaldoLbl, "", PagarView.numberFormat.format((rsRecords.getDouble("TotalHaber") - rsRecords.getDouble("TotalDebe")))}, 20);
             unitTable.addItem(new Object[]{new Label(), "", ""}, 21);
 
-            queryString = " Select IfNull(contabilidad_nomenclatura.N5, 'Cuota Laboral Igss') As NombreCuenta, ";
+            queryString = " Select IfNull(contabilidad_nomenclatura_empresa.N5, 'Cuota Laboral Igss') As NombreCuenta, ";
             queryString += " IfNull(Sum(contabilidad_partida.DebeQuetzales), 0) TotalDebe, IfNull(Sum(contabilidad_partida.HaberQuetzales),0) TotalHaber ";
-            queryString += " From contabilidad_partida, contabilidad_nomenclatura ";
-            queryString += " Where contabilidad_partida.IdNomenclatura = contabilidad_nomenclatura.IdNomenclatura ";
-            queryString += " And contabilidad_nomenclatura.NoCuenta = '" + cuentaCuotaLaboralIgss + "'";
-            queryString += " And contabilidad_partida.IdEmpresa = " + empresa;
+            queryString += " From contabilidad_partida, contabilidad_nomenclatura_empresa ";
+            queryString += " Where contabilidad_partida.IdNomenclatura = contabilidad_nomenclatura_empresa.IdNomenclatura ";
+            queryString += " And contabilidad_nomenclatura_empresa.NoCuenta = '" + cuentaCuotaLaboralIgss + "'";
+            queryString += " And contabilidad_partida.IdEmpresa = " + empresaId;
+            queryString += " And contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
             
 //System.out.println("queryString=" + queryString);
 
@@ -359,28 +344,6 @@ public class ImpuestosYOtros extends VerticalLayout implements View {
             ex1.printStackTrace();
         }     
         
-    }
- 
-    public void llenarComboEmpresa() {
-        String queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-            
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     @Override

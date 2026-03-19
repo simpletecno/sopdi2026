@@ -56,6 +56,9 @@ public class EmpleadoSalarioForm extends Window {
     UI mainUI;
     String idEmpleado;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public EmpleadoSalarioForm(String idEmpleado) {
         this.idEmpleado = idEmpleado;
         this.mainUI = UI.getCurrent();
@@ -63,7 +66,7 @@ public class EmpleadoSalarioForm extends Window {
         setWidth("50%");
         setHeight("80%");
 
-        setCaption("SALARIO DE EMPLEADO");
+        setCaption(empresaId + " " + empresaNombre + " SALARIO DE EMPLEADO");
 
         marginInfo = new MarginInfo(true, true, true, true);
 
@@ -149,7 +152,6 @@ public class EmpleadoSalarioForm extends Window {
         montoTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
         montoTxt.setWidth("100%");
 
-//        mainFormLayout.addComponents(cuentaContableCbx, desdeDt, montoTxt);
         mainFormLayout.addComponents(cuentaContableCbx, montoTxt, esOrdinarioChb);
 
         mainLayout.addComponent(mainFormLayout);
@@ -162,10 +164,6 @@ public class EmpleadoSalarioForm extends Window {
         nuevoBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-//                if (!((SopdiUI) mainUI).sessionInformation.getStrUserProfile().equals("ADMINISTRADOR")) {
-//                    Notification.show("Usuario no tiene permiso para esta operación.", Notification.Type.WARNING_MESSAGE);
-//                    return;
-//                }
                 desdeDt.setValue(new java.util.Date());
                 montoTxt.setValue(0.00);
                 cuentaContableCbx.select(null);
@@ -205,10 +203,6 @@ public class EmpleadoSalarioForm extends Window {
         deleteBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-//                if (!((SopdiUI) mainUI).sessionInformation.getStrUserProfile().equals("ADMINISTRADOR")) {
-//                    Notification.show("Usuario no tiene permiso para esta operación.", Notification.Type.WARNING_MESSAGE);
-//                    return;
-//                }
                 if (salarioContaier.size() > 0) {
                     if (salarioGrid.getSelectedRow() != null) {
 
@@ -257,11 +251,12 @@ public class EmpleadoSalarioForm extends Window {
 
         String queryString = "";
 
-        queryString = "Select * ";
-        queryString += " From empleado_salario ";
-        queryString += " Inner Join contabilidad_nomenclatura on contabilidad_nomenclatura.IdNomenclatura = empleado_salario.IdNomenclatura";
-        queryString += " Where IdEmpleado = " + idEmpleado;
-//System.out.println("queryEmpleado=" + queryString);
+        queryString = "SELECT * ";
+        queryString += " FROM empleado_salario ";
+        queryString += " INNER JOIN contabilidad_nomenclatura_empresa ON contabilidad_nomenclatura_empresa.IdNomenclatura = empleado_salario.IdNomenclatura";
+        queryString += " WHERE IdEmpleado = " + idEmpleado;
+        queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
+
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
@@ -270,7 +265,6 @@ public class EmpleadoSalarioForm extends Window {
             while (rsRecords.next()) {
 
                 itemId = salarioContaier.addItem();
-//System.out.println("CuentaContalbe=" + rsRecords.getString("NoCuenta") + " " + rsRecords.getString("N5"));
                 salarioContaier.getContainerProperty(itemId, "id").setValue(rsRecords.getString("Id"));
                 salarioContaier.getContainerProperty(itemId, "cuentaContable").setValue(rsRecords.getString("NoCuenta") + " " + rsRecords.getString("N5"));
                 salarioContaier.getContainerProperty(itemId, "fechaDesde").setValue(rsRecords.getString("Fecha"));
@@ -288,9 +282,9 @@ public class EmpleadoSalarioForm extends Window {
 
     private void fillComboCuentaContable() {
 
-        String queryString = "SELECT * FROM contabilidad_nomenclatura ";
+        String queryString = "SELECT * FROM contabilidad_nomenclatura_empresa ";
         queryString += "WHERE Estatus = 'HABILITADA' ";
-//        queryString += " AND NoCuenta IN ('61101003', '61101004', '61101001'");
+        queryString += "AND IdEmpresa = " + empresaId;
         queryString += "AND idNomenclatura in (" + ((SopdiUI)mainUI).cuentasContablesDefault.getSueldoOrdinario() + ", ";
         queryString +=                             ((SopdiUI)mainUI).cuentasContablesDefault.getBonificacionDCTO07_2001() + ", ";
         queryString +=                             ((SopdiUI)mainUI).cuentasContablesDefault.getBonificacionDCTO78_89() + ") ";
@@ -322,11 +316,12 @@ public class EmpleadoSalarioForm extends Window {
 
         String queryString = "";
 
-        queryString = "Select * ";
-        queryString += " From empleado_salario ";
-        queryString += " Inner Join contabilidad_nomenclatura on contabilidad_nomenclatura.IdNomenclatura = empleado_salario.IdNomenclatura";
-        queryString += " Where Id = " + id;
-System.out.println("queryEmpleado=" + queryString);
+        queryString = "SELECT * ";
+        queryString += " FROM empleado_salario ";
+        queryString += " INNER JOIN contabilidad_nomenclatura_empresa ON contabilidad_nomenclatura_empresa.IdNomenclatura = empleado_salario.IdNomenclatura";
+        queryString += " WHERE Id = " + id;
+        queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
+
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
@@ -335,7 +330,6 @@ System.out.println("queryEmpleado=" + queryString);
 
                 cuentaContableCbx.select(rsRecords.getString("IdNomenclatura"));
                 montoTxt.setValue(rsRecords.getDouble("Valor"));
-//                desdeDt.setValue(rsRecords.getDate("Fecha"));
                 esOrdinarioChb.setValue(rsRecords.getString("EsOrdinario").equals("1"));
             }
 
@@ -383,7 +377,7 @@ System.out.println("queryEmpleado=" + queryString);
                 queryString += " FROM empleado_salario ";
                 queryString += " WHERE IdEmpleado = " + idEmpleado;
                 queryString += " AND   IdNomenclatura = " + cuentaContableCbx.getValue();
-    //System.out.println("queryEmpleadoSALARIO=" + queryString);
+
                 stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                 rsRecords = stQuery.executeQuery(queryString);
 
@@ -391,9 +385,9 @@ System.out.println("queryEmpleado=" + queryString);
                     Notification.show("NUEVO :  YA EXISTE UN REGISTRO CON ESATA NOMENCLATURA CONTABLE.", Notification.Type.ERROR_MESSAGE);
                     return;
                 }
-                queryString = "Insert into empleado_salario ";
+                queryString = "INSERT INTO empleado_salario ";
                 queryString += "(IdEmpleado, IdNomenclatura, Fecha, Valor, EsOrdinario)";
-                queryString += " Values ";
+                queryString += " VALUES ";
                 queryString += "(";
                 queryString += idEmpleado;
                 queryString += "," + cuentaContableCbx.getValue();
@@ -410,11 +404,9 @@ System.out.println("queryEmpleado=" + queryString);
 //                queryString += ",Fecha = '" + Utileria.getFechaYYYYMMDD_1(desdeDt.getValue() )+ "'";
                 queryString += ",Valor = " + montoTxt.getDoubleValueDoNotThrow();
                 queryString += ",EsOrdinario = " + (esOrdinarioChb.getValue() ? 1 : 0);
-                queryString += " Where Id = " + id;
+                queryString += " WHERE Id = " + id;
 
             }
-
-System.out.println("saveData="+queryString);
 
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);
@@ -446,10 +438,10 @@ System.out.println("saveData="+queryString);
 
         String queryString = "";
 
-        queryString = "Delete ";
-        queryString += " From empleado_salario ";
-        queryString += " Where Id = " + id;
-//System.out.println("queryEmpleado=" + queryString);
+        queryString = "DELETE ";
+        queryString += " FROM empleado_salario ";
+        queryString += " WHERE Id = " + id;
+
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);

@@ -1,7 +1,7 @@
-package com.simpletecno.sopdi.compras;
+package com.simpletecno.sopdi.configuracion;
 
 public class ProveedoresInstitucionales {
-    private String sat;
+    private String sat = "";
     private String igss;
 
     public void setSat(String sat) {

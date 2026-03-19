@@ -32,7 +32,6 @@ import java.util.logging.Logger;
 public class IngresoPrestamosTercerosForm extends Window {
 
     static final String NIT_PROPERTY = "NIT";
-    static final String NOMBRESINCODIGO_PROPERTY = "NSC";
 
     UI mainUI;
     Statement stQuery;
@@ -41,7 +40,6 @@ public class IngresoPrestamosTercerosForm extends Window {
     VerticalLayout mainLayout;
     HorizontalLayout layoutTitle;
     Label titleLbl;
-    ComboBox empresaCbx;
 
     ComboBox tipoIngresoCbx;
     ComboBox proveedorCbx;
@@ -78,6 +76,9 @@ public class IngresoPrestamosTercerosForm extends Window {
     Button guardarBtn;
     Button salirBtn;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public IngresoPrestamosTercerosForm(String codigoPartida) {
         this.codigoPartida = codigoPartida;
 
@@ -96,22 +97,10 @@ public class IngresoPrestamosTercerosForm extends Window {
         layoutTitle.setMargin(true);
         layoutTitle.setWidth("100%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-
-        titleLbl = new Label("INGRESO PRESTAMOS TERCEROS");
+        titleLbl = new Label(empresaId + " " + empresaNombre + " INGRESO PRESTAMOS TERCEROS");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -546,36 +535,13 @@ public class IngresoPrestamosTercerosForm extends Window {
         horizontalLayout.addComponents(leftVerticalLayout, rightVerticalLayout);
 
         return horizontalLayout;
-
-    }
-
-    public void llenarComboEmpresa() {
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void llenarComboProveedor() {
-        queryString = " SELECT * from proveedor ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0 ";
-        queryString += " Order By Nombre";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY Nombre";
 
         proveedorCbx.removeAllItems();
 
@@ -599,10 +565,11 @@ public class IngresoPrestamosTercerosForm extends Window {
 
     public void llenarComboCuentaContable() {
 
-        queryString = " SELECT * from contabilidad_nomenclatura";
-        queryString += " where Estatus = 'HABILITADA'";
-        queryString += " And IdNomenclatura in (" + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal() + ", " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaExtranjera() + ", " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAcreedoresCortoPlazo() + ")";
-        queryString += " Order By N5";
+        queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
+        queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " AND IdNomenclatura in (" + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal() + ", " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaExtranjera() + ", " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAcreedoresCortoPlazo() + ")";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY N5";
 
 
         try {
@@ -636,14 +603,14 @@ public class IngresoPrestamosTercerosForm extends Window {
 
     public void generarPartidaPrestamos() {
 
-            monedaCbx.select("QUETZALES");
-            cuentaContable1Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal());
-            haber1Txt.setReadOnly(true);
-            cuentaContable2Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAcreedoresCortoPlazo());
-            debe2Txt.setReadOnly(true);
+        monedaCbx.select("QUETZALES");
+        cuentaContable1Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal());
+        haber1Txt.setReadOnly(true);
+        cuentaContable2Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAcreedoresCortoPlazo());
+        debe2Txt.setReadOnly(true);
 
-            this.proveedorCbx.setCaption("Proveedor");
-            llenarComboProveedor();
+        this.proveedorCbx.setCaption("Proveedor");
+        llenarComboProveedor();
     }
 
     public void ingresarPrestamos() {
@@ -676,7 +643,7 @@ public class IngresoPrestamosTercerosForm extends Window {
             e.printStackTrace();            
         }
         
-        if (((SopdiUI) UI.getCurrent()).esMesCerrado(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+        if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
             Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return;
@@ -750,11 +717,11 @@ public class IngresoPrestamosTercerosForm extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "5";
+        codigoPartida = empresaId + año + mes + dia + "5";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + codigoPartida + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = "SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida LIKE '" + codigoPartida + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -777,14 +744,14 @@ public class IngresoPrestamosTercerosForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC, ";
+        queryString = "INERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC, ";
         queryString += " TipoDocumento, Fecha, IdProveedor, NombreProveedor, SerieDocumento,";
         queryString += " NumeroDocumento, IdNomenclatura, MonedaDocumento, MontoDocumento, Debe, Haber,";
         queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, Saldo, Descripcion,";
         queryString += " CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values ";
+        queryString += " VALUES ";
         queryString += "(";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'";
@@ -810,7 +777,7 @@ public class IngresoPrestamosTercerosForm extends Window {
 
         //segundo  ingreso
         queryString += ",(";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'";
@@ -837,7 +804,7 @@ public class IngresoPrestamosTercerosForm extends Window {
         if (cuentaContable3Cbx.getValue() != null) {
             //tercer  ingreso
             queryString += ",(";
-            queryString += String.valueOf(empresaCbx.getValue());
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoPartida + "'";
@@ -875,7 +842,7 @@ public class IngresoPrestamosTercerosForm extends Window {
 
             Notification.show("Ingreso realizado con exito!", Notification.Type.HUMANIZED_MESSAGE);
 
-            ((IngresoBancosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(String.valueOf(empresaCbx.getValue()));
+            ((IngresoBancosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(empresaId);
 
             close();
         } catch (Exception ex1) {
@@ -948,7 +915,7 @@ public class IngresoPrestamosTercerosForm extends Window {
             queryString += ", FechaUsado = current_timestamp";
             queryString += ", CodigoPartida = '" + codigoPartida +"'";
             queryString += ", Estatus = 'UTILIZADO'";
-            queryString += " Where Codigo = '" + variableTemp +"'";
+            queryString += " WHERE Codigo = '" + variableTemp +"'";
             
             variableTemp = "";
 

@@ -53,9 +53,6 @@ public class MyEmailMessanger {
         //Set the host smtp address
         props = new Properties();
 
-//        Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
-//        java.security.Security.addProvider(Security.getProvider("SunJSSE"));
-        
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", smtpAuthReq);
         props.put("mail.smtp.user", smtpAuthUser);

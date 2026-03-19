@@ -261,7 +261,7 @@ public class CuentasContablesForm extends Window {
                 queryString += ",FiltrarFormularioLiquidacion ='" + (filtrarFormularioLiquidacionChk.getValue() ? "S" : "N") + "'";
                 queryString += ",Tipo ='" + tipoCbx.getValue() + "'";
                 queryString += ",CodigoCC ='" + codigoCCTxt.getValue() + "'";
-                queryString += " Where IdNomenclatura = " + idNomenclaturaEdit;
+                queryString += " WHERE IdNomenclatura = " + idNomenclaturaEdit;
             }
 
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

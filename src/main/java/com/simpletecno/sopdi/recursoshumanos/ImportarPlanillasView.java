@@ -59,12 +59,6 @@ public class ImportarPlanillasView extends VerticalLayout implements View {
 
     MarginInfo marginInfo;
 
-    Button nextBtn;
-    Button prevBtn;
-    ComboBox empresaCbx;
-    String empresa;
-    Label empresaLbl;
-
     MultiFileUpload singleUpload;
 
     Button limpiarBtn;
@@ -72,14 +66,13 @@ public class ImportarPlanillasView extends VerticalLayout implements View {
 
     public File planillaFile;
     public XSSFWorkbook workbook;
-    public XSSFSheet sheet, sheet2;
+    public XSSFSheet sheet;
     private FileInputStream fileInputStream;
 
     Table planillasTable;
 
     public static Locale locale = new Locale("ES", "GT");
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
-    static DecimalFormat numberFormat2 = new DecimalFormat("##,###");
 
     BigDecimal totalDebe = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
     BigDecimal totalHaber = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
@@ -87,15 +80,17 @@ public class ImportarPlanillasView extends VerticalLayout implements View {
     String codigoCC;
     UI mainUI;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public ImportarPlanillasView() {
         this.mainUI = UI.getCurrent();
 
         marginInfo = new MarginInfo(true, true, true, true);
 
-//        setCaption(((SopdiUI) mainUI).sessionInformation.getStrCompanyName() + " - Importar archivo EXCEL de planilla de la empresa : " + String.valueOf(selectEmpresa.getValue()));
         setSpacing(true);
 
-        Label titleLbl = new Label("IMPORTAR PLANILLAS");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " IMPORTAR PLANILLAS");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -141,9 +136,6 @@ public class ImportarPlanillasView extends VerticalLayout implements View {
         UploadStateWindow window = new UploadStateWindow();
 
         singleUpload = new MultiFileUpload(handler, window, false);
-//        singleUpload.setCaption("Cargar archivo");
-//        singleUpload2.setRootDirectory(newDoc.getAbsolutePath());
-//        singleUpload.setPanelCaption("Buscar");
         singleUpload.setIcon(FontAwesome.UPLOAD);
         singleUpload.setImmediate(true);
         singleUpload.getSmartUpload().setUploadButtonCaptions("Abrir archivo", "");
@@ -219,27 +211,12 @@ public class ImportarPlanillasView extends VerticalLayout implements View {
         buttonsLayout.setSpacing(true);
         buttonsLayout.setMargin(false);
 
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-
-        llenarComboEmpresa();
-
-        empresaCbx.addValueChangeListener(event -> {
-            empresa = String.valueOf(event.getProperty().getValue());
-            if (planillasTable.size() > 0) {
-                planillasTable.removeAllItems();
-                cargarBtn.setEnabled(false);
-            }
-        });
-
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -285,31 +262,8 @@ public class ImportarPlanillasView extends VerticalLayout implements View {
         contenidoLayout.addComponent(buttonsLayout);
         contenidoLayout.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
 
-        empresa = String.valueOf(empresaCbx.getValue());
-
         addComponent(contenidoLayout);
         setComponentAlignment(contenidoLayout, Alignment.MIDDLE_CENTER);
-    }
-
-    public void llenarComboEmpresa() {
-        String queryString = " SELECT * from contabilidad_empresa";
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords1.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords1.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords1.getString("IdEmpresa"), rsRecords1.getString("Empresa"));
-            }
-            rsRecords1.first();
-
-            empresaCbx.select(rsRecords1.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     private void cargarPlanilla(File planillaFile) {
@@ -519,14 +473,12 @@ public class ImportarPlanillasView extends VerticalLayout implements View {
                                             mes = fecha.substring(5, 7);
                                             dia = fecha.substring(8, 10);
 
-                                            empresa = String.valueOf(sheet.getRow(linea).getCell(10).getNumericCellValue()).split("\\.")[0];
-
-                                            codigoPartida = empresa + año + mes + dia + "4";
+                                            codigoPartida = empresaId + año + mes + dia + "4";
 
                                             //System.out.println("pre-codigo partia  = " + codigoPartida);
-                                            queryString  = " select codigoPartida from contabilidad_partida ";
-                                            queryString += " where codigoPartida like '" + codigoPartida + "%'";
-                                            queryString += " order by codigoPartida desc ";
+                                            queryString  = " SELECT codigoPartida FROM contabilidad_partida ";
+                                            queryString += " WHERE codigoPartida LIKE '" + codigoPartida + "%'";
+                                            queryString += " ORDER BY codigoPartida DESC ";
 
                                             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                                             rsRecords = stQuery.executeQuery(queryString);
@@ -566,8 +518,8 @@ public class ImportarPlanillasView extends VerticalLayout implements View {
 
                                     codigoCC = codigoPartida;
 
-                                    queryString = " Select IdNomenclatura From contabilidad_nomenclatura ";
-                                    queryString += " Where NoCuenta = '" + sheet.getRow(linea).getCell(4).getStringCellValue() + "'";
+                                    queryString = " SELECT IdNomenclatura FROM contabilidad_nomenclatura ";
+                                    queryString += " WHERE NoCuenta = '" + sheet.getRow(linea).getCell(4).getStringCellValue() + "'";
 
                                     System.out.println(queryString);
 
@@ -582,16 +534,14 @@ public class ImportarPlanillasView extends VerticalLayout implements View {
 
                                     idNomenclatura = rsRecords1.getString("IdNomenclatura");
 
-                                    queryString = " Select IdPartida From contabilidad_partida ";
-                                    queryString += " Where  IdEmpresa = " + empresa;
-                                    queryString += " And  SerieDocumento = '" + String.valueOf(sheet.getRow(linea).getCell(2).getStringCellValue()).split("\\.")[0] + "'";
-                                    queryString += " And  NumeroDocumento = '" + String.valueOf(sheet.getRow(linea).getCell(1).getNumericCellValue()).split("\\.")[0] + "'";
-                                    queryString += " And  IdProveedor     =  " + String.valueOf(sheet.getRow(linea).getCell(9).getNumericCellValue()).split("\\.")[0];
-                                    queryString += " And  Fecha = '" + Utileria.getFechaYYYYMMDD_1(sheet.getRow(linea).getCell(0).getDateCellValue()) + "'";
-                                    queryString += " And  TipoDocumento = 'PLANILLA'";
-                                    queryString += " And  IdNomenclatura = " + idNomenclatura;
-
-                                    System.out.println(queryString);
+                                    queryString = " SELECT IdPartida FROM contabilidad_partida ";
+                                    queryString += " WHERE  IdEmpresa = " + empresaId;
+                                    queryString += " AND  SerieDocumento = '" + String.valueOf(sheet.getRow(linea).getCell(2).getStringCellValue()).split("\\.")[0] + "'";
+                                    queryString += " AND  NumeroDocumento = '" + String.valueOf(sheet.getRow(linea).getCell(1).getNumericCellValue()).split("\\.")[0] + "'";
+                                    queryString += " AND  IdProveedor     =  " + String.valueOf(sheet.getRow(linea).getCell(9).getNumericCellValue()).split("\\.")[0];
+                                    queryString += " AND  Fecha = '" + Utileria.getFechaYYYYMMDD_1(sheet.getRow(linea).getCell(0).getDateCellValue()) + "'";
+                                    queryString += " AND  TipoDocumento = 'PLANILLA'";
+                                    queryString += " AND  IdNomenclatura = " + idNomenclatura;
 
                                     rsRecords1 = stQuery1.executeQuery(queryString);
 
@@ -602,14 +552,14 @@ public class ImportarPlanillasView extends VerticalLayout implements View {
                                         return;
                                     }
 
-                                    queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
+                                    queryString = " INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
                                     queryString += " TipoDocumento, Fecha, IdProveedor, NITProveedor, NombreProveedor,";
                                     queryString += " SerieDocumento, NumeroDocumento, IdNomenclatura, MonedaDocumento, Debe, Haber,";
                                     queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, Descripcion, ";
                                     queryString += " CreadoUsuario, CreadoFechaYHora, Saldo, MontoAutorizadoPagar)";
-                                    queryString += " Values ";
+                                    queryString += " VALUES ";
                                     queryString += " (";
-                                    queryString += empresa;
+                                    queryString += empresaId;
                                     queryString += ",'REVISADO'";
                                     queryString += ",'" + codigoPartida + "'";
 

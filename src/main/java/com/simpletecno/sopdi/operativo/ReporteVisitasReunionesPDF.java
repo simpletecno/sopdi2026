@@ -122,8 +122,6 @@ public class ReporteVisitasReunionesPDF extends Window {
 
             VerticalLayout buttonLayout = new VerticalLayout();
             buttonLayout.addStyleName("rcorners3");
-//            buttonLayout.setHeight("10%");
-//            buttonLayout.setWidth("100%");
             buttonLayout.setSizeUndefined();
 
             fileName = "ReporteVisitaReunion_" + String.valueOf(codigoVisitaInspeccion) + "_" + new Utileria().getFechaHoraSinFormato() + ".pdf";
@@ -137,8 +135,6 @@ public class ReporteVisitasReunionesPDF extends Window {
             fileName = VaadinService.getCurrent()
                     .getBaseDirectory().getAbsolutePath() + "/pdfreceipts/" + fileName;
 
-            //File file = new File(fileName);
-            // file.delete();
             FileUtils.writeByteArrayToFile(new File(fileName), pdf.os.toByteArray());
 
             enviarReporteBtn = new Button("Enviar reporte");
@@ -515,9 +511,9 @@ public class ReporteVisitasReunionesPDF extends Window {
             
         private void addAgendaTable(Document document) {
 
-            queryString = "Select *";
-            queryString += " From visita_inspeccion_agenda";
-            queryString += " Where IdVisitaInspeccion = " + idvisitaInspeccion;
+            queryString = "SELECT *";
+            queryString += " FROM visita_inspeccion_agenda";
+            queryString += " WHERE IdVisitaInspeccion = " + idvisitaInspeccion;
             
             try {
 
@@ -675,9 +671,9 @@ public class ReporteVisitasReunionesPDF extends Window {
                 cell.setBorderWidth(2);
                 tareaTable.addCell(cell);
 
-                queryString = "Select *";
-                queryString += " From visita_inspeccion_tarea";
-                queryString += " Where IdVisitaInspeccion = " + idvisitaInspeccion;
+                queryString = "SELECT *";
+                queryString += " FROM visita_inspeccion_tarea";
+                queryString += " WHERE IdVisitaInspeccion = " + idvisitaInspeccion;
                 queryString += " ORDER BY Rubro";
 
                 stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -820,19 +816,6 @@ public class ReporteVisitasReunionesPDF extends Window {
                 cell.setVerticalAlignment(Element.ALIGN_LEFT);
                 cell.setBorderWidth(0);
                 firmaTable.addCell(cell);
-
-
-
-//                addEmptyLine(preface, 1);
-//
-//                Paragraph firmas2 = new Paragraph("f ____________________                           "
-//                        + "                    f_____________________                           "
-//                        + "          f ____________________                           ", smallBold10);
-//                firmas.setAlignment(Element.ALIGN_LEFT);
-//                preface.add(firmas2);
-//
-//                addEmptyLine(preface, 1);
-
                 document.add(firmaTable);
 
             } catch (Exception ex) {

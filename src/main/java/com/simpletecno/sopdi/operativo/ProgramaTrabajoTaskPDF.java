@@ -35,10 +35,7 @@ public class ProgramaTrabajoTaskPDF extends Window {
     public static PreparedStatement stPreparedQuery;
     public static ResultSet rsRecords;
 
-    static final DecimalFormat df1 = new DecimalFormat("###,##0.00");
-
     String fileName;
-    Object selectedIdex;
     public IndexedContainer idexContainer;
 
     public ProgramaTrabajoTaskPDF(

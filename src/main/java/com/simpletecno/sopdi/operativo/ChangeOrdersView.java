@@ -83,7 +83,10 @@ public class ChangeOrdersView extends VerticalLayout implements View {
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
                 
     UI mainUI;
-       
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public ChangeOrdersView() {
         this.mainUI = UI.getCurrent();    
         
@@ -93,7 +96,7 @@ public class ChangeOrdersView extends VerticalLayout implements View {
         
         marginInfo = new MarginInfo(true,true,false,true); 
 
-        Label titleLbl = new Label("Ordenes de cambio");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Ordenes de cambio");
         titleLbl.addStyleName(ValoTheme.LABEL_H1);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -351,10 +354,10 @@ public class ChangeOrdersView extends VerticalLayout implements View {
                 
         String queryString = "";
         
-        queryString =  "Select OrdC.*, Usr.Nombre UsuarioNombre";
-        queryString += " From       orden_cambio OrdC";
-        queryString += " Inner Join usuario  Usr On Usr.IdUsuario = OrdC.CreadoUsuario";
-        queryString += " Where OrdC.IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
+        queryString =  "SELECT OrdC.*, Usr.Nombre UsuarioNombre";
+        queryString += " FROM       orden_cambio OrdC";
+        queryString += " INNER JOIN usuario  Usr ON Usr.IdUsuario = OrdC.CreadoUsuario";
+        queryString += " WHERE OrdC.IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
 
 System.out.println("\n\n"+queryString);
 
@@ -430,17 +433,17 @@ System.out.println("\n\n"+queryString);
         
         String queryString = "";
 
-        queryString =  "Delete ";
-        queryString += " From  orden_cambio_seguimiento ";
-        queryString += " Where IdOrdenCambio = " + String.valueOf(changeOrdersGrid.getContainerDataSource().getItem(changeOrdersGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue());
+        queryString =  "DELETE ";
+        queryString += " FROM  orden_cambio_seguimiento ";
+        queryString += " WHERE IdOrdenCambio = " + String.valueOf(changeOrdersGrid.getContainerDataSource().getItem(changeOrdersGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue());
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();            
             stQuery.executeUpdate(queryString);
 
-            queryString =  "Delete ";
-            queryString += " From  orden_cambio ";
-            queryString += " Where IdOrdenCambio = " + String.valueOf(changeOrdersGrid.getContainerDataSource().getItem(changeOrdersGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue());
+            queryString =  "DELETE ";
+            queryString += " FROM  orden_cambio ";
+            queryString += " WHERE IdOrdenCambio = " + String.valueOf(changeOrdersGrid.getContainerDataSource().getItem(changeOrdersGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue());
 
             stQuery.executeUpdate(queryString);
 

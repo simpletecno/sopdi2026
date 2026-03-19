@@ -46,8 +46,6 @@ public class ProgramaTrabajoCheckForm extends Window {
     TextField fechaInicioRealTxt;
     TextField fechaFinRealTxt;
 
-    StreamResource pdfStreamResource = null;
-
     Button inicioBtn;
     Button finBtn;
 
@@ -120,7 +118,6 @@ public class ProgramaTrabajoCheckForm extends Window {
 
         Label titleLbl = new Label("DETALLE DE TAREA");
             titleLbl.setSizeUndefined();
-//            titleLbl.addStyleName(Runo.);
 
         titleLayout.addComponent(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.BOTTOM_CENTER);
@@ -491,9 +488,9 @@ public class ProgramaTrabajoCheckForm extends Window {
     private boolean verificacionBloqueada() {
         boolean bloqueada = false;
 
-        queryString = "Select VerificacionBloqueada ";
-        queryString += " From proyecto ";
-        queryString += " Where IdProyecto = " + ((SopdiUI)UI.getCurrent()).sessionInformation.getStrProjectId();
+        queryString = "SELECT VerificacionBloqueada ";
+        queryString += " FROM proyecto ";
+        queryString += " WHERE IdProyecto = " + ((SopdiUI)UI.getCurrent()).sessionInformation.getStrProjectId();
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -524,9 +521,9 @@ public class ProgramaTrabajoCheckForm extends Window {
         fechaFinRealTxt.setReadOnly(true);
 
 
-        queryString = "Select * ";
-        queryString += " From plan_trabajo_idex ";
-        queryString += " Where Id = " + idPlanTrabajoIdex;
+        queryString = "SELECT * ";
+        queryString += " FROM plan_trabajo_idex ";
+        queryString += " WHERE Id = " + idPlanTrabajoIdex;
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -596,10 +593,10 @@ public class ProgramaTrabajoCheckForm extends Window {
     private void activarBotonCalificarCalidadYRH() {
         calificarBtn.setVisible(false);
 
-        queryString = "Select * ";
-        queryString += " From plan_trabajo_idex_ca ";
-        queryString += " Where IdPlanTrabajoIdex = " + idPlanTrabajoIdex;
-        queryString += " And IdUsuario = " + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+        queryString = "SELECT * ";
+        queryString += " FROM plan_trabajo_idex_ca ";
+        queryString += " WHERE IdPlanTrabajoIdex = " + idPlanTrabajoIdex;
+        queryString += " AND IdUsuario = " + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
 //System.out.println("\nquery encontrar calificar calidad = " + queryString);
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

@@ -54,7 +54,6 @@ public class FacturaVentaView extends VerticalLayout implements View {
 
     StreamResource logoStreamResource = null;
     MultiFileUpload singleUpload;
-    Image logoImage;
     String parametro1, parametro2;
     Long parametro3;
     long fileSize;
@@ -110,9 +109,6 @@ public class FacturaVentaView extends VerticalLayout implements View {
     ResultSet rsRecords, rsRecords1, rsRecords2;
     String queryString;
 
-    ComboBox empresaCbx;
-    String empresa;
-
     Button nuevaFacturaBtn, pendienteIsrBtn, consultarBtn;
     int vanderaIsr = 0;
 
@@ -123,41 +119,29 @@ public class FacturaVentaView extends VerticalLayout implements View {
 
     EnvironmentVars enviromentsVars;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public FacturaVentaView() {
         this.mainUI = UI.getCurrent();
         setWidth("100%");
+        setHeightUndefined();
         setMargin(false);
         setSpacing(true);
 
         enviromentsVars = new EnvironmentVars();
 
-        Label titleLbl = new Label("Facturas Venta");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Facturas Venta");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("95%");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-
-        llenarComboEmpresa();
-
-        empresaCbx.addValueChangeListener(event -> {
-            empresa = String.valueOf(event.getProperty().getValue());
-            llenarTablaFacturaVenta(empresa);
-        });
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -167,35 +151,8 @@ public class FacturaVentaView extends VerticalLayout implements View {
         crearTablaFacturasVenta();
         createTablaPartidaYCuentaCorriente();
 
-        empresa = String.valueOf(empresaCbx.getValue());
+        llenarTablaFacturaVenta();
 
-        if (partidaDocumentosGrid != null) {
-            llenarTablaFacturaVenta(empresa);
-        }
-        llenarTablaFacturaVenta(empresa);
-
-    }
-
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords2 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords2.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords2.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords2.getString("IdEmpresa"), rsRecords2.getString("Empresa") + " REGIMEN : " + rsRecords2.getString("Regimen"));
-            }
-            rsRecords2.first();
-
-            empresaCbx.select(rsRecords2.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar Combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void crearTablaFacturasVenta() {
@@ -233,7 +190,7 @@ public class FacturaVentaView extends VerticalLayout implements View {
         consultarBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                llenarTablaFacturaVenta(empresa);
+                llenarTablaFacturaVenta();
             }
         });
 
@@ -244,7 +201,7 @@ public class FacturaVentaView extends VerticalLayout implements View {
             @Override
             public void buttonClick(Button.ClickEvent event) {
                 vanderaIsr = 1; /// Si es igual a 1 busca las facturas PENDIENTES de isr
-                llenarTablaFacturaVenta(String.valueOf(empresaCbx.getValue()));
+                llenarTablaFacturaVenta();
             }
         });
 
@@ -416,9 +373,7 @@ public class FacturaVentaView extends VerticalLayout implements View {
             @Override
             public void buttonClick(Button.ClickEvent event) {
                 FacturaVentaInfileForm newDocument = new FacturaVentaInfileForm();
-                newDocument.empresaCbx.select(empresa);
                 newDocument.llenarComboCliente();
-                newDocument.empresaCbx.setReadOnly(true);
                 UI.getCurrent().addWindow(newDocument);
                 newDocument.center();
             }
@@ -431,12 +386,12 @@ public class FacturaVentaView extends VerticalLayout implements View {
         generarPDFHoy.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                llenarTablaFacturaVenta(empresa);
+                llenarTablaFacturaVenta();
                 if (container.size() > 0) {
                     FacturasVentaPDF facturasVentaPDF = new FacturasVentaPDF(
-                            empresa,
-                            empresaCbx.getItemCaption(empresaCbx.getValue()),
-                            getEmpresaNit(),
+                            empresaId,
+                            empresaNombre,
+                            ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyTaxId(),
                             container,
                             null,
                             null
@@ -464,9 +419,9 @@ public class FacturaVentaView extends VerticalLayout implements View {
                 if (container.size() > 0) {
                     FacturasVentaPDF facturasVentaPDF
                             = new FacturasVentaPDF(
-                            empresa,
-                            empresaCbx.getItemCaption(empresaCbx.getValue()),
-                            getEmpresaNit(),
+                            empresaId,
+                            empresaNombre,
+                            ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyTaxId(),
                             container,
                             Utileria.getFechaDDMMYYYY(inicioDt.getValue()),
                             Utileria.getFechaDDMMYYYY(finDt.getValue())
@@ -533,7 +488,7 @@ public class FacturaVentaView extends VerticalLayout implements View {
         setComponentAlignment(reportLayout, Alignment.MIDDLE_CENTER);
     }
 
-    public void llenarTablaFacturaVenta(String empresa) {
+    public void llenarTablaFacturaVenta() {
 
         footer.getCell(DEBE_PROPERTY).setText("0.00");
         footer.getCell(HABER_PROPERTY).setText("0.00");
@@ -560,7 +515,7 @@ public class FacturaVentaView extends VerticalLayout implements View {
             queryString += "     '" + Utileria.getFechaYYYYMMDD_1(inicioDt.getValue()) + "'";
             queryString += " AND '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "'";
             queryString += " And cp.TipoDocumento IN ('FACTURA VENTA', 'RECIBO CONTABLE', 'RECIBO CONTABLE VENTA', 'NOTA DE CREDITO VENTA', 'NOTA DE DEBITO VENTA', 'EXENCIÓN IVA') ";
-            queryString += " And cp.IdEmpresa = " + empresaCbx.getValue();
+            queryString += " And cp.IdEmpresa = " + empresaId;
             queryString += " And cp.IdNomenclatura IN (" + ((SopdiUI) mainUI).cuentasContablesDefault.getClientes() + ", " +
                                                                              ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposClientes() + ", " +
                                                                              ((SopdiUI) mainUI).cuentasContablesDefault.getProveedores() + ", " +
@@ -686,6 +641,8 @@ public class FacturaVentaView extends VerticalLayout implements View {
 
         reportLayoutPartida.setWidth("75%");
         reportLayoutPartida.addStyleName("rcorners3");
+        reportLayoutPartida.setSpacing(false);
+        reportLayoutPartida.setMargin(false);
 
         VerticalLayout detalleLayout = new VerticalLayout();
         detalleLayout.setWidth("100%");
@@ -849,45 +806,6 @@ public class FacturaVentaView extends VerticalLayout implements View {
             }
         });
 
-        Button editBtn = new Button("EDITAR");
-        editBtn.setIcon(FontAwesome.EDIT);
-        editBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
-        editBtn.setDescription("Actualizar datos");
-        editBtn.addListener((Button.ClickListener) (Button.ClickEvent event) -> {
-
-            if (facturasVentaGrid.getSelectedRow() == null) {
-                Notification notif = new Notification("Por favor, seleccione el registro correspondiente que desea modificar.",
-                        Notification.Type.WARNING_MESSAGE);
-                notif.setDelayMsec(1500);
-                notif.setPosition(Position.MIDDLE_CENTER);
-                notif.setIcon(FontAwesome.WARNING);
-                notif.show(Page.getCurrent());
-
-            } else {
-
-                if (String.valueOf(container.getContainerProperty(facturasVentaGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue()).equals("REVISADO")) {
-                    Notification notif = new Notification("No se puede editar una factura ya REVISADA. Por favor Seleccione una INGRESADA.",
-                            Notification.Type.WARNING_MESSAGE);
-                    notif.setDelayMsec(1500);
-                    notif.setPosition(Position.MIDDLE_CENTER);
-                    notif.setIcon(FontAwesome.WARNING);
-                    notif.show(Page.getCurrent());
-                } else {
-                    EditarPartidaFacturaVenta editFacturasGasto
-                            = new EditarPartidaFacturaVenta(
-                            String.valueOf(container.getContainerProperty(facturasVentaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()),
-                            String.valueOf(container.getContainerProperty(facturasVentaGrid.getSelectedRow(), DESCRIPCION_PROPERTY).getValue()),
-                            "FACTURA VENTA"
-                    );
-                    editFacturasGasto.llenarComboProveedor();
-                    editFacturasGasto.cuentaContable1Cbx.focus();
-                    editFacturasGasto.llenarCampos();
-                    UI.getCurrent().addWindow(editFacturasGasto);
-                    editFacturasGasto.center();
-                }
-            }
-        });
-
         Button isrBtn = new Button("RETENCION ISR");
         isrBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
         isrBtn.setDescription("RETENCION DE ISR A UNA FACTURA");
@@ -906,7 +824,7 @@ public class FacturaVentaView extends VerticalLayout implements View {
                 queryString += "WHERE CodigoCC = '" + String.valueOf(container.getContainerProperty(facturasVentaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()) + "' ";
                 queryString += "AND CodigoPatida != '" + String.valueOf(container.getContainerProperty(facturasVentaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()) + "' ";
                 queryString += "AND IdNomenclatura In (" + ((SopdiUI) mainUI).cuentasContablesDefault.getIsrGasto() + "," + ((SopdiUI) mainUI).cuentasContablesDefault.getIsrOpcionalMensualPorPagar() + ") ";
-                queryString += "AND IdEmpresa =" + empresaCbx.getValue();
+                queryString += "AND IdEmpresa =" + empresaId;
 //                queryString += " AND TipoDocumento = 'CONSTANCIA ISR VENTA'";
 
                 try {
@@ -926,7 +844,7 @@ public class FacturaVentaView extends VerticalLayout implements View {
                     } else {
                         TransaccionesEspecialesISRForm nuevaTransaccionIsr
                                 = new TransaccionesEspecialesISRForm(
-                                empresa,
+                                empresaId,
                                 String.valueOf(container.getContainerProperty(facturasVentaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()),
                                 "CONSTANCIA ISR VENTA",
                                 1
@@ -967,7 +885,7 @@ public class FacturaVentaView extends VerticalLayout implements View {
                 queryString += " WHERE CodigoCC = '" + String.valueOf(container.getContainerProperty(facturasVentaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()) + "'";
                 queryString += " AND IdNomenclatura In (" + ((SopdiUI) mainUI).cuentasContablesDefault.getIvaPorPagar() + ")";
                 queryString += " AND DEBE <> 0 ";
-                queryString += " AND IdEmpresa =" + empresaCbx.getValue();
+                queryString += " AND IdEmpresa =" + empresaId;
                 queryString += " AND TipoDocumento = 'CONSTANCIA RETENCION IVA'";
 
                 try {
@@ -987,7 +905,7 @@ public class FacturaVentaView extends VerticalLayout implements View {
                     } else {
                         TransaccionesEspecialesIVAForm nuevaTransaccionIva
                                 = new TransaccionesEspecialesIVAForm(
-                                empresa,
+                                empresaId,
                                 String.valueOf(container.getContainerProperty(facturasVentaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()),
                                 "CONSTANCIA RETENCION IVA",
                                 1
@@ -1035,14 +953,14 @@ public class FacturaVentaView extends VerticalLayout implements View {
                         queryString += " set Estatus = 'REVISADO'";
                         queryString += " where NombreProveedor = '" + String.valueOf(container.getContainerProperty(facturasVentaGrid.getSelectedRow(), PROVEEDOR_PROPERTY).getValue()) + "'";
                         queryString += " and NITProveedor = '" + String.valueOf(container.getContainerProperty(facturasVentaGrid.getSelectedRow(), NIT_PROVEEDOR_PROPERTY).getValue()) + "'";
-                        queryString += " and IdEmpresa = " + empresa;
+                        queryString += " and IdEmpresa = " + empresaId;
                         queryString += " and SerieDocumento  = '" + (String.valueOf(container.getContainerProperty(facturasVentaGrid.getSelectedRow(), FACTURA_PROPERTY).getValue()).split(" ")[0]) + "'";
                         queryString += " and NumeroDocumento = '" + (String.valueOf(container.getContainerProperty(facturasVentaGrid.getSelectedRow(), FACTURA_PROPERTY).getValue()).split(" ")[1]) + "'";
 
                         stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                         stQuery.executeUpdate(queryString);
 
-                        llenarTablaFacturaVenta(empresa);
+                        llenarTablaFacturaVenta();
 
                     } catch (SQLException ex) {
                         System.out.println("Error al intentar modificar estatus a revisado" + ex);
@@ -1098,12 +1016,10 @@ public class FacturaVentaView extends VerticalLayout implements View {
                 UI.getCurrent().addWindow(anularWindow);
                 anularWindow.center();
 
-                llenarTablaFacturaVenta(empresa);
+                llenarTablaFacturaVenta();
             }
         });
 
-//        botonesLayout.addComponent(editBtn);
-//        botonesLayout.setComponentAlignment(editBtn, Alignment.BOTTOM_LEFT);
         botonesLayout.addComponent(notaCreditoBtn);
         botonesLayout.setComponentAlignment(notaCreditoBtn, Alignment.BOTTOM_LEFT);
         botonesLayout.addComponent(isrBtn);
@@ -1135,7 +1051,7 @@ public class FacturaVentaView extends VerticalLayout implements View {
         queryString += " from contabilidad_partida,contabilidad_nomenclatura";
         queryString += " where TipoDocumento IN ('FACTURA VENTA', 'RECIBO CONTABLE', 'RECIBO CONTABLE VENTA')";
         queryString += " and contabilidad_partida.CodigoPartida = '" + codigoPartida + "'";
-        queryString += " and contabilidad_partida.IdEmpresa = " + empresa;
+        queryString += " and contabilidad_partida.IdEmpresa = " + empresaId;
         queryString += " and contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
 
         try {
@@ -1205,7 +1121,7 @@ public class FacturaVentaView extends VerticalLayout implements View {
         queryString += "WHERE CodigoCC = '" + codigoCC + "' ";
         queryString += "AND IdNomenclatura = " +  ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getClientes() + " ";
         queryString += "AND TipoDocumento IN ('CHEQUE', 'NOTA DE DEBITO VENTA', 'NOTA DE CREDITO VENTA', 'TRANSFERENCIA', 'PAGO DOCUMENTO') ";
-        queryString += "AND IdEmpresa = " + empresa;
+        queryString += "AND IdEmpresa = " + empresaId;
 //        queryString += " and DATE_FORMAT(contabilidad_partida.Fecha,\"%d-%m-%Y\") >= '" + fecha + "'";
         queryString += " Order By Fecha, Haber Desc";
 
@@ -1595,7 +1511,7 @@ System.out.println("QUERY llenarTablaCC Ingreso Documentos: " + queryString);
         } else {
 
             IngresoSaldoFacturaVenta montoPagar = new IngresoSaldoFacturaVenta(
-                    empresa,
+                    empresaId,
                     String.valueOf(container.getContainerProperty(e.getItemId(), CODIGO_PROPERTY).getValue()),
                     String.valueOf(container.getContainerProperty(e.getItemId(), SALDO_PROPERTY).getValue()),
                     String.valueOf(container.getContainerProperty(e.getItemId(), PROVEEDOR_PROPERTY).getValue()),
@@ -1628,28 +1544,6 @@ System.out.println("QUERY llenarTablaCC Ingreso Documentos: " + queryString);
         }
     }
 
-    public String getEmpresaNit() {
-        String strNit = "N/A";
-
-        String queryString = " SELECT Nit from contabilidad_empresa ";
-        queryString += " Where IdEmpresa = " + empresa;
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords2 = stQuery1.executeQuery(queryString);
-
-            if (rsRecords2.next()) {
-                strNit = rsRecords2.getString("Nit");
-            }
-
-        } catch (Exception ex1) {
-            System.out.println("Error al buscar NIT de empresa: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-
-        return strNit;
-    }
-
     public boolean exportToExcel() {
         if (this.facturasVentaGrid.getHeightByRows() > 0) {
             TableHolder tableHolder = new DefaultTableHolder(facturasVentaGrid);
@@ -1657,7 +1551,7 @@ System.out.println("QUERY llenarTablaCC Ingreso Documentos: " + queryString);
             excelExport.excludeCollapsedColumns();
             excelExport.setDisplayTotals(false);
             String fileexport;
-            fileexport = (empresa + "_" + empresaCbx.getItemCaption(empresaCbx.getValue()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + "_DOCUMENTOS.xls").replaceAll(" ", "").replaceAll(",", "");
+            fileexport = (empresaId + "_" + empresaNombre.replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + "_DOCUMENTOS.xls").replaceAll(" ", "").replaceAll(",", "");
             excelExport.setExportFileName(fileexport);
             excelExport.export();
         }

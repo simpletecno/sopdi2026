@@ -22,7 +22,7 @@ import java.sql.Statement;
 
 /**
  *
- * @author JAguirre
+ * @author JAguirre para Nisa
  */
 public class DocumentWindow  {
 
@@ -77,12 +77,6 @@ public class DocumentWindow  {
                 browserFrame.setSizeFull();
 
                 browserFrame.setSource(documentStreamResource); 
-/*
-                if(rsRecords.getString("Tipo").contains("image")) {
-                    browserFrame.setHeight("600px");
-                    browserFrame.setWidth("600px");
-                }
-*/
                 window.setContent(browserFrame);
             }
             else {
@@ -94,8 +88,6 @@ public class DocumentWindow  {
                 Image imageViewComponent = new Image(null, documentStreamResource);
                 imageViewComponent.setImmediate(true);
                 imageViewComponent.setSizeFull();
-//                imageViewComponent.setWidth("600px");
-//                imageViewComponent.setHeight("600px");
                 imageViewComponent.addStyleName("my-img-button");
                 imageViewComponent.setData(rsRecords.getString("IdVisitaInspeccionTareaImagen"));
                 

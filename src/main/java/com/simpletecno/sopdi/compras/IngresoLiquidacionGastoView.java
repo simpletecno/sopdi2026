@@ -82,7 +82,6 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
 
     Button notaCreditoBtn;
 
-    UI mainUI;
     Statement stQuery;
     ResultSet rsRecords;
     Statement stQuery1, stQuery2;
@@ -96,35 +95,31 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
     Button consultarBtn;
 
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
-    static DecimalFormat numberFormat2 = new DecimalFormat("#,###,##0");
 
     Button continuarBtn;
     Button cerrarBtn;
     Button revisadoBtn;
     Button editBtn;
 
-    ComboBox empresaCbx;
-    String empresa;
+    UI mainUI = UI.getCurrent();
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public IngresoLiquidacionGastoView() {
-        this.mainUI = UI.getCurrent();
         setWidth("100%");
         setSpacing(true);
 
-        Label titleLbl = new Label("LIQUIDACIONES DE GASTOS");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " LIQUIDACIONES CAJA CHICA");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        crearButtonEmpresa();
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -134,10 +129,8 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         crearTablaLiquidaciones();
         createTablaFacturasYPartidas();
 
-        empresa = String.valueOf(empresaCbx.getValue());
-
         if (partidasGrid != null) {
-            llenarTablaLiquidacion(empresa);
+            llenarTablaLiquidacion(empresaId);
         }
     }
 
@@ -170,7 +163,7 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         consultarBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                llenarTablaLiquidacion(empresa);
+                llenarTablaLiquidacion(empresaId);
             }
         });
 
@@ -186,8 +179,6 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                     containerFactura.removeAllItems();
                     IngresoLiquidacionGastoForm newIngreso =
                             new IngresoLiquidacionGastoForm("", "", "", "", "");
-                    newIngreso.empresaCbx.select(empresa);
-                    //newIngreso.empresaCbx.setReadOnly(true);
                     UI.getCurrent().addWindow(newIngreso);
                     newIngreso.center();
 
@@ -221,8 +212,8 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                 -> {
             ReporteLiquidacionPDF reporteLiquidacionPDF
                     = new ReporteLiquidacionPDF(
-                    empresa,
-                    empresaCbx.getItemCaption(empresaCbx.getValue()),
+                    empresaId,
+                    empresaNombre,
                     getEmpresaNit(),
                     String.valueOf(containerLiquidacion.getContainerProperty(e.getItemId(), ID_LIQUIDACION_PROPERTY).getValue()),
                     String.valueOf(containerLiquidacion.getContainerProperty(e.getItemId(), LIQUIDADOR_PROPERTY).getValue())
@@ -446,7 +437,7 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                             String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_PROPERTY).getValue()),
                             String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue()),
                             String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue()),
-                            empresa,
+                            empresaId,
                             String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), CODIGOCC_PROPERTY).getValue()));
                     UI.getCurrent().addWindow(newFacturasGasto);
                     newFacturasGasto.center();
@@ -473,7 +464,7 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                 if (String.valueOf(containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), TIPODOCUMENTO_PROPERTY).getValue()).equals("FACTURA")) {
                     NotaCreditoCompra nuevaNotaCredito
                             = new NotaCreditoCompra(
-                            empresa,
+                            empresaId,
                             containerFactura,
                             facturasGrid.getSelectedRow(),
                             String.valueOf(containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue()),
@@ -536,7 +527,7 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                     queryString += " SET Estatus = 'INGRESADO'";
                     queryString += " WHERE IdLiquidador = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue());
                     queryString += " AND IdLiquidacion = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
-                    queryString += " AND IdEmpresa = " + empresa;
+                    queryString += " AND IdEmpresa = " + empresaId;
                     queryString += " AND CodigoPartida = '" + String.valueOf(containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
 
                     try {
@@ -579,14 +570,14 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                                 queryString += " SET Estatus = 'REVISADO'";
                                 queryString += " WHERE IdLiquidador = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue());
                                 queryString += " AND IdLiquidacion = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
-                                queryString += " AND IdEmpresa = " + empresa;
+                                queryString += " AND IdEmpresa = " + empresaId;
                                 queryString += " AND CodigoPartida = '" + String.valueOf(containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
 
                                 try {
                                     stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                                     stQuery.executeUpdate(queryString);
 
-                                    llenarTablaLiquidacion(empresa);
+                                    llenarTablaLiquidacion(empresaId);
 
                                 } catch (SQLException ex) {
                                     System.out.println("Error al intentar modificar estatus a REVISADO" + ex);
@@ -628,7 +619,7 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         queryString += " NumeroDocumento,SerieDocumento,NombreProveedor,NITProveedor, Fecha, Estatus, Haber,";
         queryString += " MonedaDocumento, DebeQuetzales, HaberQuetzales,  TipoCambio";
         queryString += " FROM contabilidad_partida";
-        queryString += " WHERE IdEmpresa = " + empresa;
+        queryString += " WHERE IdEmpresa = " + empresaId;
         queryString += " AND IdLiquidacion = " + idLiquidacion;
         queryString += " AND IdNomenclatura = " +  ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getLiquidacionesCajaChicha();
         queryString += " GROUP BY NumeroDocumento,SerieDocumento,NombreProveedor,NITProveedor";
@@ -716,9 +707,8 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                         queryString += " WHERE Fecha BETWEEN '" + Utileria.getFechaYYYYMMDD_1(inicioDt.getValue()) + "'";
                         queryString += " AND '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "'";
                         queryString += " AND IdLiquidacion = " + rsRecords.getString("IdLiquidacion");
-                        queryString += " AND IdEmpresa = " + empresaCbx.getValue();
-                        queryString += " ORDER BY contabilidad_partida.IdLiquidacion, ";
-                        queryString += " contabilidad_partida.Estatus desc";
+                        queryString += " AND IdEmpresa = " + empresaId;
+                        queryString += " ORDER BY contabilidad_partida.IdLiquidacion, contabilidad_partida.Estatus desc";
 
                         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY PARTIDAS LIQUIDACION : " + queryString);
                         rsRecords2 = stQuery2.executeQuery(queryString);
@@ -772,6 +762,7 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
             }
         } catch (Exception ex) {
             System.out.println("Error al listar tabla Facturas INGRESO LIQUIDACIONESGASTOVIEW" + ex);
+            Notification.show(ex.getMessage(), Notification.Type.ERROR_MESSAGE);
             ex.printStackTrace();
         }
     }
@@ -792,12 +783,13 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
 
         queryString = " SELECT contabilidad_partida.IdPartida, contabilidad_partida.IdNomenclatura, ";
         queryString += " contabilidad_partida.Debe, contabilidad_partida.Haber, contabilidad_partida.MonedaDocumento, ";
-        queryString += " contabilidad_nomenclatura.N5, contabilidad_nomenclatura.NoCuenta";
-        queryString += " FROM contabilidad_partida,contabilidad_nomenclatura";
+        queryString += " contabilidad_nomenclatura_empresa.N5, contabilidad_nomenclatura_empresa.NoCuenta";
+        queryString += " FROM contabilidad_partida, contabilidad_nomenclatura_empresa";
         queryString += " WHERE contabilidad_partida.CodigoPartida = '" + codigoPartida + "'";
         queryString += " AND contabilidad_partida.IdLiquidacion  = " + idLiquidacion;
-        queryString += " AND contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
-        queryString += " AND contabilidad_partida.IdEmpresa = " + empresa;
+        queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
+        queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
 
 //System.out.println("queryString Liqudacion partida = " + queryString);
 
@@ -843,53 +835,12 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         }
     }
 
-    public void crearButtonEmpresa() {
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-
-        llenarComboEmpresa();
-
-        empresaCbx.addValueChangeListener(event -> {
-            empresa = String.valueOf(event.getProperty().getValue());
-            llenarTablaLiquidacion(empresa);
-        });
-
-    }
-
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery1.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     public void cerrarLiquidacion() {
         queryString = " UPDATE contabilidad_partida";
         queryString += " SET Estatus = 'CERRADO'";
-        queryString += " where IdLiquidador = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue());
-        queryString += " and  IdLiquidacion = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
-        queryString += " and  IdEmpresa = " + empresa;
+        queryString += " WHERE IdLiquidador = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue());
+        queryString += " AND  IdLiquidacion = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
+        queryString += " AND  IdEmpresa = " + empresaId;
 
 //System.out.println("Query cerrrar liquidacion=" + queryString);
 
@@ -910,9 +861,9 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
     public void abrirLiquidacion() {
         queryString = " UPDATE contabilidad_partida";
         queryString += " SET Estatus = 'INGRESADO'";
-        queryString += " where IdLiquidador = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue());
-        queryString += " and  IdLiquidacion = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
-        queryString += " and  IdEmpresa = " + empresa;
+        queryString += " WHERE IdLiquidador = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue());
+        queryString += " AND  IdLiquidacion = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
+        queryString += " AND  IdEmpresa = " + empresaId;
 
 //System.out.println("Query cerrrar liquidacion=" + queryString);
 
@@ -933,8 +884,8 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
     public String getEmpresaNit() {
         String strNit = "N/A";
 
-        queryString = " SELECT Nit from contabilidad_empresa ";
-        queryString += " Where IdEmpresa = " + empresa;
+        queryString = " SELECT Nit FROM contabilidad_empresa ";
+        queryString += " WHERE IdEmpresa = " + empresaId;
 
         try {
             stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -954,6 +905,6 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
-        Page.getCurrent().setTitle("Sopdi - Liquidaciones gasto");
+        Page.getCurrent().setTitle("Sopdi - Liquidaciones caja chica");
     }
 }

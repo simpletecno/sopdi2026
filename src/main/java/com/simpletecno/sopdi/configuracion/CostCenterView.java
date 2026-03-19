@@ -65,7 +65,10 @@ public class CostCenterView extends VerticalLayout implements View {
     Grid costCenterEncargadosGrid;
                                         
     UI mainUI;
-    
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public CostCenterView() {
         this.mainUI = UI.getCurrent();
 
@@ -75,7 +78,7 @@ public class CostCenterView extends VerticalLayout implements View {
         
         marginInfo = new MarginInfo(true,true,false,true); 
 
-        Label titleLbl = new Label("Centros de costo");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Centros de costo");
         titleLbl.addStyleName(ValoTheme.LABEL_H1);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");

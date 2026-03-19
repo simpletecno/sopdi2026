@@ -43,13 +43,14 @@ public class TopProveedoresView extends VerticalLayout implements View {
     OptionGroup sumarPorOG;
     Button consultarBtn;
     Button exportExcelBtn;
-    ComboBox empresaCbx;
-    public String empresa;
     DateField inicioDt;
     DateField finDt;
 
     static DecimalFormat numberFormat = new DecimalFormat("###,###,##0.00");
     static DecimalFormat quantityFormat = new DecimalFormat("###,###");
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public TopProveedoresView() {
 
@@ -59,30 +60,16 @@ public class TopProveedoresView extends VerticalLayout implements View {
         setMargin(false);
         setHeightUndefined();
 
-        Label titleLbl = new Label("TOP 10 PROVEEDORES");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " TOP 10 PROVEEDORES");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-
-        llenarComboEmpresa();
-
-        empresaCbx.addValueChangeListener(event -> {
-            empresa = String.valueOf(event.getProperty().getValue());
-        });
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -90,9 +77,6 @@ public class TopProveedoresView extends VerticalLayout implements View {
         setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
 
         crearTablaTop10();
-
-        empresa = String.valueOf(empresaCbx.getValue());
-
     }
 
     public void crearTablaTop10() {
@@ -177,7 +161,7 @@ public class TopProveedoresView extends VerticalLayout implements View {
                     excelExport.excludeCollapsedColumns();
                     excelExport.setDisplayTotals(false);
                     String fileexport;
-                    fileexport = "topProveedores_" + empresaCbx.getItemCaption(empresaCbx.getValue()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + ".xls";
+                    fileexport = "topProveedores_" + empresaNombre.replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + ".xls";
                     excelExport.setExportFileName(fileexport);
                     excelExport.export();
                 }
@@ -216,8 +200,8 @@ public class TopProveedoresView extends VerticalLayout implements View {
             String queryString;
             queryString = " SELECT IdProveedor, NitProveedor, NombreProveedor, ";
             queryString += " COUNT(*) AS CantidadFacturas, SUM(HaberQuetzales / 1.12) AS Total ";
-            queryString += " From contabilidad_partida";
-            queryString += " WHERE IdEmpresa = " + empresaCbx.getValue();
+            queryString += " FROM contabilidad_partida";
+            queryString += " WHERE IdEmpresa = " + empresaId;
             queryString += " AND TipoDocumento = 'FACTURA'";
             queryString += " AND IdProveedor > 0";
             queryString += " AND contabilidad_partida.Fecha BETWEEN ";
@@ -257,29 +241,6 @@ System.out.println("QUERY TOP PROVEEDORES = " + queryString);
             ex.printStackTrace();
         }
     }
-
-    public void llenarComboEmpresa() {
-        String queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords1.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords1.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords1.getString("IdEmpresa"), rsRecords1.getString("Empresa"));
-            }
-            rsRecords1.first();
-
-            empresaCbx.select(rsRecords1.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
         Page.getCurrent().setTitle("Sopdi - Top 10 PROVEEDORES");

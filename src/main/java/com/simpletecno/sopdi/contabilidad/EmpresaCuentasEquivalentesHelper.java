@@ -198,7 +198,7 @@ public class EmpresaCuentasEquivalentesHelper {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("EmpresaCuentasEquivalentesHelper:");
-        sb.append("\nNomenclatura -> Empresas:");
+        sb.append("\nNomenclatura -> Empresas :");
         nomenEmpreMap.forEach((k, v) -> sb.append("\n ").append(k).append(" -> ").append(v));
 
         sb.append("\n\nEmpresa -> Nomenclaturas_1:");

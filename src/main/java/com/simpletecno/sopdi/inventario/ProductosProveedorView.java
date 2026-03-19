@@ -298,6 +298,6 @@ AsignarProveedorProductoForm asignacionProductos
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
-        Page.getCurrent().setTitle("Sopdi - PRODUCTOS Y SUS PROVEEDORES");
+        Page.getCurrent().setTitle("Sopdi - PRODUCTOS INVENTARIO Y SUS PROVEEDORES");
     }
 }

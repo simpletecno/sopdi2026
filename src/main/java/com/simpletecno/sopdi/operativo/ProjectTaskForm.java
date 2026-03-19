@@ -233,10 +233,10 @@ public class ProjectTaskForm extends Window {
     }    
 
     void llenarComboProveedor() {
-        String queryString = "Select * ";
-        queryString += " From proveedor ";
-        queryString += " Where N0 <> 1";
-        queryString += " Order By Nombre";
+        String queryString = "SELECT * ";
+        queryString += " FROM proveedor ";
+        queryString += " WHERE N0 <> 1";
+        queryString += " ORDER BY Nombre";
  
         proveedorCbx.removeAllItems();
 
@@ -267,9 +267,9 @@ public class ProjectTaskForm extends Window {
         
         String queryString = "";
         
-        queryString =  "Select * ";
-        queryString += " From  tarea ";
-        queryString += " Where IdTarea = " + idTareaTxt.getValue();
+        queryString =  "SELECT * ";
+        queryString += " FROM  tarea ";
+        queryString += " WHERE IdTarea = " + idTareaTxt.getValue();
 
 //System.out.println("\n\n"+queryString);
 
@@ -340,9 +340,9 @@ public class ProjectTaskForm extends Window {
         String queryString;
         
         if(idTareaTxt.getValue().compareTo("0") == 0) {
-            queryString =  "Insert Into tarea (IdProyecto, Descripcion, FechaInicio, FechaFin, DiasDuracion, ";
+            queryString =  "INSERT INTO tarea (IdProyecto, Descripcion, FechaInicio, FechaFin, DiasDuracion, ";
             queryString += " IdProveedor, IdEmpresa, IdPredecesores, IdSucesores, Nivel, NivelCodigo)";
-            queryString += " Values (";
+            queryString += " VALUES (";
             queryString += "  " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
             queryString += ",'"  + descripcionTxt.getValue()      + "'";
             queryString += ",'" + new Utileria().getFechaYYYYMMDD_1(startDt.getValue()) + "'";
@@ -357,7 +357,7 @@ public class ProjectTaskForm extends Window {
             queryString += ")";
         }
         else {
-            queryString =  "Update tarea Set ";
+            queryString =  "UPDATE tarea SET ";
             queryString += " Descripcion = '" + descripcionTxt.getValue()         + "'";
             queryString += ",FechaInicio = '" + new Utileria().getFechaYYYYMMDD_1(startDt.getValue()) + "'";
             queryString += ",FechaFin    = '" + new Utileria().getFechaYYYYMMDD_1(endDt.getValue()) + "'";
@@ -367,15 +367,14 @@ public class ProjectTaskForm extends Window {
             queryString += ",IdSucesores    = '" + sucesoresTxt.getValue() + "'";
             queryString += ",Nivel = "  + String.valueOf(nivelCbx.getValue());
             queryString += ",NivelCodigo = '" + nivelCodigoTxt.getValue() + "'";
-            queryString += " Where IdTarea  = " + idTareaTxt.getValue();
+            queryString += " WHERE IdTarea  = " + idTareaTxt.getValue();
         }
-//System.out.println("queryString="+queryString);
+
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();            
             stQuery.executeUpdate(queryString);
                
             Notification.show("OPERACION EXITOSA!", Notification.Type.HUMANIZED_MESSAGE);
-//            ((ProjectTaskView)(mainUI.getNavigator().getCurrentView())).fillTareasTable();
         }
         catch(Exception ex)
         {

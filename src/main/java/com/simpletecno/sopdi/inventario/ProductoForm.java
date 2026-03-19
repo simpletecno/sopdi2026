@@ -63,7 +63,7 @@ public class ProductoForm extends Window {
         Label titleLbl;
 
         if (this.idProducto.trim().isEmpty()) {
-            titleLbl = new Label("NUEVO PRODUCTO");
+            titleLbl = new Label("NUEVO PRODUCTO DE INVENTARIO");
             titleLbl.setSizeUndefined();
             titleLbl.addStyleName(Runo.LABEL_H2);
         } else {

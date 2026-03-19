@@ -51,7 +51,6 @@ public class LibroBalanceDeSaldosPDF extends Window {
 
     String fileName;
 
-    UI mainUI;
     String idEmpresa;
     String empresaNombre;
     String empresaNit;

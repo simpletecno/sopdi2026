@@ -42,7 +42,6 @@ public class InspectionTextWindow extends Window {
     Integer id;
 
     Statement stQuery;
-    ResultSet rsRecords;
 
     UI mainUI;
 

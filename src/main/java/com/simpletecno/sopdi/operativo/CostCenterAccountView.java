@@ -61,6 +61,9 @@ public class CostCenterAccountView extends VerticalLayout implements View {
 
     String queryString = "";
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public CostCenterAccountView() {
         this.mainUI = UI.getCurrent();
 
@@ -70,7 +73,7 @@ public class CostCenterAccountView extends VerticalLayout implements View {
 
         marginInfo = new MarginInfo(true, true, false, true);
 
-        Label titleLbl = new Label("Cuentas de centros de costo");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Cuentas de centros de costo");
         titleLbl.addStyleName(ValoTheme.LABEL_H1);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -228,6 +231,7 @@ public class CostCenterAccountView extends VerticalLayout implements View {
 
                         queryString = "SELECT * FROM contabilidad_partida";
                         queryString += " WHERE IdCentroCosto = " + String.valueOf(container.getContainerProperty(costCenterAccountTrackGrid.getSelectedRow(), ID_PROPERTY).getValue());
+                        queryString += " AND IdEmpresa = " + empresaId;
 
                         stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
                         rsRecords = stQuery.executeQuery(queryString);
@@ -284,6 +288,7 @@ public class CostCenterAccountView extends VerticalLayout implements View {
                     try {
                         queryString = "SELECT * FROM contabilidad_partida";
                         queryString += " WHERE IdCentroCosto = " + String.valueOf(container.getContainerProperty(costCenterAccountTrackGrid.getSelectedRow(), ID_PROPERTY).getValue());
+                        queryString += " AND IdEmpresa = " + empresaId;
 
                         stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
                         rsRecords = stQuery.executeQuery(queryString);
@@ -329,9 +334,9 @@ public class CostCenterAccountView extends VerticalLayout implements View {
 
         container.removeAllItems();
 
-        queryString = "Select *  ";
-        queryString += " From centro_costo_cuenta ";
-        queryString += " Where IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
+        queryString = "SELECT *  ";
+        queryString += " FROM centro_costo_cuenta ";
+        queryString += " WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
 
         try {
 

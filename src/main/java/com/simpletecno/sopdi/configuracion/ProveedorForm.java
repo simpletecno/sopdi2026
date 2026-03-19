@@ -82,7 +82,7 @@ public class ProveedorForm extends Window {
 
         setContent(mainLayout);
 
-        setCaption("MAESTRO DE PROVEEDORES");
+        setCaption("!!MAESTRO DE PROVEEDORES!!");
 
         marginInfo = new MarginInfo(true, true, true, true);
 

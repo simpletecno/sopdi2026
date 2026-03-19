@@ -53,7 +53,7 @@ public class ReporteLiquidacionPDF extends Window {
     String queryString;
 
     UI mainUI;
-    String idEmpresa;
+    String idEmpresa = "";
     String empresaNombre;
     String empresaNit;
     String idLiquidacion;

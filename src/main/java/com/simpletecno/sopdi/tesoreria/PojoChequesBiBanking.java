@@ -4,7 +4,7 @@ package com.simpletecno.sopdi.tesoreria;
 
 public class PojoChequesBiBanking {
 
-     private String numeroDocumento;    
+    private String numeroDocumento;
     private String fecha;
     private String haber;    
     private String noCuenta;

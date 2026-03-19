@@ -47,8 +47,6 @@ public class ConciliacionBancariaView extends VerticalLayout implements View {
     static final String CREADO_FECHA_PROPERTY = "Creado";
     static final String ESTATUS_PROPERTY = "Estatus";
 
-    ComboBox empresaCbx;
-
     UI mainUI;
     Statement stQuery, stQuery2;
     ResultSet rsRecords;
@@ -59,34 +57,26 @@ public class ConciliacionBancariaView extends VerticalLayout implements View {
 
     static DecimalFormat numberFormat = new DecimalFormat("##,###,##0.00");
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public ConciliacionBancariaView() {
         this.mainUI = UI.getCurrent();
         setWidth("100%");
         setSpacing(true);
         setMargin(false);
 
-        Label titleLbl = new Label("LIBRO CONCILIACIONES BANCARIAS");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " LIBRO CONCILIACIONES BANCARIAS");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-
-        llenarComboEmpresa();
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.BOTTOM_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.BOTTOM_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -94,28 +84,6 @@ public class ConciliacionBancariaView extends VerticalLayout implements View {
         setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
 
         crearFormularioConciliacion();
-    }
-
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar Combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void crearFormularioConciliacion() {
@@ -324,8 +292,8 @@ public class ConciliacionBancariaView extends VerticalLayout implements View {
     public String getEmpresaNit() {
         String strNit = "N/A";
 
-        queryString = " SELECT Nit from contabilidad_empresa ";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString = " SELECT Nit FROM contabilidad_empresa ";
+        queryString += " WHERE IdEmpresa = " + empresaId;
 
         try {
             stQuery2 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -347,11 +315,12 @@ public class ConciliacionBancariaView extends VerticalLayout implements View {
 
         container.removeAllItems();
 
-        queryString = " SELECT *, CCB.IdProveedor,CCB.NoCuenta, proveedor.Nombre";
+        queryString = " SELECT *, CCB.IdProveedor,CCB.NoCuenta, proveedor_empresa.Nombre";
         queryString += " FROM contabilidad_conciliacion_bancaria AS CB";
         queryString += " INNER JOIN contabilidad_cuentas_bancos AS CCB on CB.IdCuentaBanco = CCB.IdCuentaBanco";
-        queryString += " INNER JOIN proveedor on CCB.IdProveedor = proveedor.IDProveedor";
-        queryString += " WHERE CB.IdEmpresa = " + empresaCbx.getValue();
+        queryString += " INNER JOIN proveedor_empresa on CCB.IdProveedor = proveedor_empresa.IDProveedor";
+        queryString += " WHERE CB.IdEmpresa = " + empresaId;
+        queryString += " AND proveedor_empresa.IdEmpresa = " + empresaId;
         queryString += " AND CB.AnioMes = '" + Utileria.getFechaYYYYMM(mesDt.getValue()).replaceAll("/", "") + "'";
 
         try {
@@ -395,11 +364,12 @@ public class ConciliacionBancariaView extends VerticalLayout implements View {
     public String getNombreBanco() {
         String nombreBanco = "";
 
-        queryString = " SELECT *, CCB.IdProveedor,CCB.NoCuenta, proveedor.Nombre";
+        queryString = " SELECT *, CCB.IdProveedor,CCB.NoCuenta, proveedor_empresa.Nombre";
         queryString += " FROM contabilidad_conciliacion_bancaria AS CB";
         queryString += " INNER JOIN contabilidad_cuentas_bancos AS CCB on CB.IdCuentaBanco = CCB.IdCuentaBanco";
-        queryString += " INNER JOIN proveedor on CCB.IdProveedor = proveedor.IDProveedor";
-        queryString += " WHERE CB.IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString += " INNER JOIN proveedor_empresa on CCB.IdProveedor = proveedor_empresa.IDProveedor";
+        queryString += " WHERE CB.IdEmpresa = " + empresaId;
+        queryString += " AND proveedor_empresa.IdEmpresa = " + empresaId;
         queryString += " AND CB.AnioMes = '" + Utileria.getFechaYYYYMM(mesDt.getValue()).replaceAll("/", "") + "'";
         queryString += " AND CB.IdConciliacionBancaria = " + String.valueOf(container.getContainerProperty(conciliacionGrid.getSelectedRow(), ID_CONCILIACION_PROPERTY).getValue());
 

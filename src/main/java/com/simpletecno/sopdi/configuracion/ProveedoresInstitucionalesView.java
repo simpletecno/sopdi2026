@@ -1,4 +1,4 @@
-package com.simpletecno.sopdi.compras;
+package com.simpletecno.sopdi.configuracion;
 
 import com.simpletecno.sopdi.SopdiUI;
 import com.vaadin.navigator.View;
@@ -144,7 +144,7 @@ public class ProveedoresInstitucionalesView extends VerticalLayout implements Vi
                     stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
                     //DELETE
-                    String queryString =  "DELETE FROM proveedor_institucionales ";
+                    String queryString =  " DELETE FROM proveedor_institucionales ";
                     queryString += " WHERE IdEmpresa = " +  ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
 
                     stQuery.executeUpdate(queryString);

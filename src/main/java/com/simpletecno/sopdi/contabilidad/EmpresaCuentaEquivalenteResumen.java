@@ -21,7 +21,6 @@ public class EmpresaCuentaEquivalenteResumen extends Window {
     private static final String PROPERTY_HABER_QUETZALES = "haberQuetzales";
 
     Statement stQuery;
-    ResultSet rsRecords;
     String queryString;
 
     UI mainUI;

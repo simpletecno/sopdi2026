@@ -34,7 +34,6 @@ import org.vaadin.dialogs.ConfirmDialog;
  *
  * @author JAguirre
  */
-@SuppressWarnings("serial")
 public class EmpleadoLiquidadorView extends VerticalLayout implements View {
 
     public Statement stQuery = null;
@@ -48,13 +47,12 @@ public class EmpleadoLiquidadorView extends VerticalLayout implements View {
     protected static final String NOMENCLATURA_PROPERTY = "Cuenta Contable";
     protected static final String OPTIONS_PROPERTY      = "-";
 
-    private ComboBox empresaCbx;
     public Table empleadoLiquidadorTable;
 
-    String empresa;
     String queryString;
 
-    final UI mainUI = UI.getCurrent();
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public EmpleadoLiquidadorView() {
 
@@ -62,28 +60,17 @@ public class EmpleadoLiquidadorView extends VerticalLayout implements View {
         setMargin(false);
         setSpacing(true);
 
-        Label titleLbl = new Label("RELACION LIQUIDADORES Y CONTABILIDAD");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " RELACION LIQUIDADORES Y CONTABILIDAD");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-
-        llenarComboEmpresa();
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -92,32 +79,8 @@ public class EmpleadoLiquidadorView extends VerticalLayout implements View {
 
         createTable();
 
-        empresa = String.valueOf(empresaCbx.getValue());
-
         fillTable();
 
-    }
-
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * FROM contabilidad_empresa";
-        queryString += " WHERE IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar Combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void createTable() {
@@ -146,10 +109,8 @@ public class EmpleadoLiquidadorView extends VerticalLayout implements View {
         empleadoLiquidadorTable.addContainerProperty(NOMENCLATURA_PROPERTY,   String.class, null);
         empleadoLiquidadorTable.addContainerProperty(OPTIONS_PROPERTY,   MenuBar.class, null);
 
-        empleadoLiquidadorTable.setColumnAlignments(new Table.Align[] {
-                Table.Align.CENTER, Table.Align.LEFT,  Table.Align.LEFT,
-                Table.Align.LEFT,   Table.Align.LEFT,  Table.Align.CENTER
-        });
+        empleadoLiquidadorTable.setColumnAlignments(Table.Align.CENTER, Table.Align.LEFT, Table.Align.LEFT,
+                Table.Align.LEFT, Table.Align.LEFT, Table.Align.CENTER);
 
         addComponent(reportLayout);
         setComponentAlignment(reportLayout, Alignment.MIDDLE_CENTER);
@@ -160,14 +121,9 @@ public class EmpleadoLiquidadorView extends VerticalLayout implements View {
         newBtn.setWidth(130,Sizeable.UNITS_PIXELS);
 //        newBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
         newBtn.setDescription("Registrar nueva relación");
-        newBtn.addListener ( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick ( Button.ClickEvent event )
-            {
-                EmpleadoLiquidadorForm  empleadoLiquidadorForm = new EmpleadoLiquidadorForm("");
-                UI.getCurrent().addWindow(empleadoLiquidadorForm);
-            }
+        newBtn.addListener ((Button.ClickListener) event -> {
+            EmpleadoLiquidadorForm  empleadoLiquidadorForm = new EmpleadoLiquidadorForm("");
+            UI.getCurrent().addWindow(empleadoLiquidadorForm);
         });
 
         HorizontalLayout buttonsLayout = new HorizontalLayout();
@@ -194,7 +150,7 @@ public class EmpleadoLiquidadorView extends VerticalLayout implements View {
         queryString += " INNER JOIN contabilidad_nomenclatura NOM On NOM.IdNomenclatura = EL.IdNomenclatura";
         queryString += " INNER JOIN proveedor LIQ ON LIQ.IDProveedor = EL.IdEmpleado";
         queryString += " INNER JOIN proveedor PRV ON PRV.IDProveedor = EL.IdProveedor";
-        queryString += " AND   EL.IdEmpresa = " + ((SopdiUI)mainUI).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND   EL.IdEmpresa = " + empresaId;
 
 System.out.println("\n\n"+queryString);
 

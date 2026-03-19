@@ -49,7 +49,6 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
 
     VerticalLayout mainLayout;
     HorizontalLayout layoutTitle;
-    ComboBox empresaCbx;
     Label titleLbl;
 
     ComboBox anticiposCbx;
@@ -95,6 +94,9 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
     String cuentaAcreedoresProveedorSeleccionado;
     String cuentaAnticipoXLiquidarProveedorSeleccionado;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public IngresoAnticipoEmpresaRelacionadaForm() {
         this.codigoPartida = codigoPartida;
 
@@ -113,22 +115,10 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
         layoutTitle.setMargin(true);
         layoutTitle.setWidth("100%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-
-        titleLbl = new Label("INGRESO BANCOS POR ANTICIPO EMPRESA REL.");
+        titleLbl = new Label(empresaId + " " + empresaNombre + " INGRESO BANCOS POR ANTICIPO EMPRESA REL.");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -570,51 +560,6 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
 
     }
 
-    public void llenarComboEmpresa() {
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-//        System.out.println("Query empresas " + queryString);
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-            /*
-
-            queryString = " select CN.IdNomenclatura ";
-            queryString += " from contabilidad_nomenclatura CN";
-            queryString += " Inner Join proveedor PRV On (PRV.CuentaAnticiposLiquidar = CN.NoCuenta OR PRV.CuentaAcreedores = CN.NoCuenta)";
-            queryString += " Where PRV.IdEmpresa = " + rsRecords.getString("IdEmpresa");
-
-            rsRecords = stQuery.executeQuery(queryString);
-
-            if (rsRecords.next()) {
-                cuentaAnticiposPorLiquidar = rsRecords.getString("IdNomenclatura");
-                if (rsRecords.next()) {
-                    cuentaAcreedores = rsRecords.getString("IdNomenclatura");
-                    System.out.println("Cuenta Acreedora :" + rsRecords.getString("IdNomenclatura"));
-                }
-            } else {
-                Notification.show("Esta empresa, no tiene registro en proveedores, o no tiene una cuenta de anticipos por liquidar y/p cuenta acreedores..., por favor revise la tabla proveedors.", Notification.Type.ERROR_MESSAGE);
-            }
-             */
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-
-    }
-
     public void llenarCuentaAcreedoresYLiquidar() {
 
         try {
@@ -626,19 +571,21 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
             noCuentaAcreedoresProveedorSeleccionado = "";
             noCuentaAnticiposXLiquidarProveedorSeleccionado = "";
 
-            queryString = " Select * from proveedor where IdProveedor = " + proveedorCbx.getValue(); // nos traemos la empresa
+            queryString = "SELECT * ";
+            queryString += " FROM proveedor_empresa ";
+            queryString += " WHERE IdProveedor = " + proveedorCbx.getValue(); // nos traemos la empresa
+            queryString += " AND Inhabilitado = 0 ";
+            queryString += " AND IdEmpresa = " + empresaId;
 
-  //          System.out.println("Mostar primera busqueda");
             rsRecords = stQuery.executeQuery(queryString);
 
             if (rsRecords.next()) {
 
                 idEmpresaProveedorSeleccionado = rsRecords.getString("IdEmpresa");
 
-                queryString = " select *";
-                queryString += " from proveedor where IdEmpresa = " + idEmpresaProveedorSeleccionado;   //buscamos la cuenta de acreedor
+                queryString = "SELECT *";
+                queryString += " FROM proveedor_empresa WHERE IdEmpresa = " + idEmpresaProveedorSeleccionado;   //buscamos la cuenta de acreedor
 
-                System.out.println("Mostar segunda Busqueda " + queryString);
                 rsRecords2 = stQuery2.executeQuery(queryString);
 
                 if (rsRecords2.next()) {
@@ -646,10 +593,10 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
                     noCuentaAcreedoresProveedorSeleccionado = rsRecords2.getString("CuentaAcreedores");
                     noCuentaAnticiposXLiquidarProveedorSeleccionado = rsRecords2.getString("CuentaAnticiposLiquidar");
 
-                    queryString = " select *";
-                    queryString += " from contabilidad_nomenclatura";   // Buscamos la id nomenclatura para obtener la cuenta ancipos por liquidar y la de acreedores
+                    queryString = "SELECT *";
+                    queryString += " FROM contabilidad_nomenclatura_empresa";   // Buscamos la id nomenclatura para obtener la cuenta ancipos por liquidar y la de acreedores
+                    queryString += " WHERE IdEmpresa = " + idEmpresaProveedorSeleccionado;
 
-                    System.out.println("Mostar tercera Busqueda " + queryString);
                     rsRecords3 = stQuery3.executeQuery(queryString);
 
                     if (rsRecords3.next()) {
@@ -677,12 +624,11 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
     }
 
     public void llenarComboProveedor() {
-        queryString = " SELECT * from proveedor ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0 ";
-        queryString += " And EsRelacionada = 1 ";
-        queryString += " Order By Nombre";
-
-//        System.out.println("query de proveedores");
+        queryString += " AND EsRelacionada = 1 ";
+        queryString += " AND IdEmpresa = '" + empresaId + "'";
+        queryString += " ORDER BY Nombre";
 
         proveedorCbx.removeAllItems();
 
@@ -716,12 +662,12 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
 
         anticiposCbx.removeAllItems();
 
-        queryString = " select IdNomenclatura, CodigoCC, MonedaDocumento, Fecha, sum(Haber - Debe) SaldoAnticipo ";
-        queryString += " from contabilidad_partida ";
-        queryString += " where IdNomenclatura  In (" + cuentaAnticipoXLiquidarProveedorSeleccionado + "," + cuentaAcreedoresProveedorSeleccionado + ")";
-        queryString += " and Extract(year from fecha) >= 2021 ";
-        queryString += " and TipoDocumento <> 'PARTIDA INICIAL' ";
-        queryString += " and IdEmpresa = '" + String.valueOf(proveedorCbx.getContainerProperty(proveedorCbx.getValue(), "IDEMPRESA").getValue()) + "'";
+        queryString = "SELECT IdNomenclatura, CodigoCC, MonedaDocumento, Fecha, SUM(Haber - Debe) SaldoAnticipo ";
+        queryString += " FROM contabilidad_partida ";
+        queryString += " WHERE IdNomenclatura IN (" + cuentaAnticipoXLiquidarProveedorSeleccionado + "," + cuentaAcreedoresProveedorSeleccionado + ")";
+        queryString += " AND Extract(YEAR FROM fecha) >= 2021 ";
+        queryString += " AND TipoDocumento <> 'PARTIDA INICIAL' ";
+        queryString += " AND IdEmpresa = '" + String.valueOf(proveedorCbx.getContainerProperty(proveedorCbx.getValue(), "IDEMPRESA").getValue()) + "'";
         queryString += " GROUP by CodigoCC, MonedaDocumento, Fecha ";
         queryString += " HAVING SaldoAnticipo > 0";
 //        System.out.println("Mostar anticipo " + queryString);
@@ -751,9 +697,10 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
 
     public void llenarComboCuentaContable() {
 
-        queryString = " SELECT * from contabilidad_nomenclatura";
-        queryString += " where Estatus = 'HABILITADA'";
-        queryString += " Order By N5";
+        queryString = " SELECT * FROM contabilidad_nomenclatura_empresa ";
+        queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " AND IdEmpresa = '" + empresaId + "'";
+        queryString += " ORDER BY N5";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -845,29 +792,6 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
             return;
         }
 
-        //       if (anticiposCbx.getValue() == null) {
-        //           Notification.show("Por favor, Seleccione un anticipo...", Notification.Type.ERROR_MESSAGE);
-        //           anticiposCbx.focus();
-        //           return;
-        //       }
-        //       if (anticiposCbx.getValue() == "0") {
-        //           Notification.show("Por favor, Seleccione un anticipo...", Notification.Type.ERROR_MESSAGE);
-        //           anticiposCbx.focus();
-        //           return;
-        //       }
-        /*
-        if (referenciaTxt.getValue().isEmpty()) {
-            Notification.show("Por favor, Ingrese una referencia..", Notification.Type.ERROR_MESSAGE);
-            referenciaTxt.focus();
-            return;
-        }
-
-        if (descripcionTxt.getValue().isEmpty()) {
-            Notification.show("Por favor, Ingrese una descripción..", Notification.Type.ERROR_MESSAGE);
-            descripcionTxt.focus();
-            return;
-        }
-         */
         if (debe1Txt.getDoubleValueDoNotThrow() != montoTxt.getDoubleValueDoNotThrow()) {
             Notification.show("La partida esta descuadrada por favor revisarla", Notification.Type.ERROR_MESSAGE);
             debe1Txt.focus();
@@ -900,11 +824,11 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "5";
+        codigoPartida = empresaId + año + mes + dia + "5";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + codigoPartida + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = "SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida LIKE '" + codigoPartida + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -927,14 +851,14 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC, ";
+        queryString = "INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC, ";
         queryString += " TipoDocumento, Referencia, Fecha, IdProveedor,  NombreProveedor,";
         queryString += " SerieDocumento, NumeroDocumento, IdNomenclatura, MonedaDocumento, MontoDocumento, Debe, Haber,";
         queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, Saldo, Descripcion,";
         queryString += " CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values ";
+        queryString += " VALUES ";
         queryString += "(";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'";
@@ -961,7 +885,7 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
 
 // segundo  ingreso
         queryString += ",(";
-        queryString += String.valueOf(empresaCbx.getValue());
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         //queryString += ",'" + String.valueOf(anticiposCbx.getValue()) + "'"; /// POR EL MOMENTO QUEDARA PENDIENTE EL CODIGO CC DEL ANTICIPO
@@ -1001,7 +925,7 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
 
             Notification.show("Ingreso realizado con exito!", Notification.Type.TRAY_NOTIFICATION);
 
-            ((IngresoBancosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(String.valueOf(empresaCbx.getValue()));
+            ((IngresoBancosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(empresaId);
 
             close();
 
@@ -1092,7 +1016,7 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
             queryString += ", FechaUsado = current_timestamp";
             queryString += ", CodigoPartida = '" + codigoPartida + "'";
             queryString += ", Estatus = 'UTILIZADO'";
-            queryString += " Where Codigo = '" + variableTemp + "'";
+            queryString += " WHERE Codigo = '" + variableTemp + "'";
 
             variableTemp = "";
 

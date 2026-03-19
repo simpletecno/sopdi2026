@@ -22,7 +22,6 @@ public class AutorizarPagoEmpresaRelacionadaForm extends Window {
 
     NumberField montoAutorizarTxt;
 
-    ComboBox empresaCbx;
     ComboBox empresaRelacionadaCbx;
     ComboBox monedaCbx;
 
@@ -50,6 +49,9 @@ public class AutorizarPagoEmpresaRelacionadaForm extends Window {
 
     OptionGroup tipodeAnticipoOg;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public AutorizarPagoEmpresaRelacionadaForm() {
 
         mainLayout = new VerticalLayout();
@@ -73,23 +75,11 @@ public class AutorizarPagoEmpresaRelacionadaForm extends Window {
         setWidth("90%");
         setHeight("60%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-
         Label titleLbl = new Label("");
-        titleLbl.setValue(AutorizacionesPagoView.TRASLADO_EMP_REL);
+        titleLbl.setValue(empresaId + " " + empresaNombre + " " + AutorizacionesPagoView.TRASLADO_EMP_REL);
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -186,34 +176,12 @@ public class AutorizarPagoEmpresaRelacionadaForm extends Window {
         mainLayout.setComponentAlignment(saldosLayout, Alignment.MIDDLE_CENTER);
     }
 
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     public void llenarComboEmpresaRelacionda() {
 
         queryString = " SELECT IdProveedor, Nombre, CuentaAnticiposLiquidar, CuentaAcreedores";
-        queryString += " FROM proveedor ";
+        queryString += " FROM proveedor_empresa ";
         queryString += " WHERE EsRelacionada = 1";
-        queryString += " AND IdEmpresa <> " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND IdEmpresa <> " + empresaId;
         queryString += " ORDER BY Nombre";
 //        queryString += " INNER JOIN contabilidad_empresa ON contabilidad_empresa.IdEmpresa = proveedor.IdEmpresa";
 
@@ -251,7 +219,7 @@ System.out.println("query AutorizarEmpresa Realacionada " + queryString);
         queryString += " WHERE trim(contabilidad_partida.CodigoCC) <> ''";
         queryString += " AND contabilidad_partida.CodigoCC <> '0'";
         queryString += " AND contabilidad_partida.IdProveedor = " + String.valueOf(selectedItem);
-        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
+        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
         queryString += " AND contabilidad_nomenclatura.NoCuenta In ('" + String.valueOf(empresaRelacionadaCbx.getContainerProperty(selectedItem, "cuentaAnticiposLiquidar").getValue()) + "','" + String.valueOf(empresaRelacionadaCbx.getContainerProperty(selectedItem, "cuentaAcreedores").getValue()) + "')";
         queryString += " HAVING TOTALSALDO > 0";
 
@@ -383,13 +351,13 @@ System.out.println("query AutorizarEmpresa Realacionada " + queryString);
 
         Object selectedItem = empresaRelacionadaCbx.getValue();
 
-        queryString = "  Insert Into autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
+        queryString = "  INSERT INTO autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
         queryString += " Fecha, Moneda, Monto, CodigoCC, CuentaContableLiquidar, ";
         queryString += " Objetivo, CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values ";
+        queryString += " VALUES ";
         queryString += "(";
         queryString += "'" + AutorizacionesPagoView.TRASLADO_EMP_REL + "'";
-        queryString += "," + String.valueOf(empresaCbx.getValue());
+        queryString += "," + empresaId;
         queryString += "," + empresaRelacionadaCbx.getValue();
         queryString += ",current_date";
         queryString += ",'" + monedaCbx.getValue() + "'";

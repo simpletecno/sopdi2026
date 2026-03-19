@@ -47,17 +47,10 @@ import org.vaadin.dialogs.ConfirmDialog;
 @SuppressWarnings("serial")
 public class InspectionForm extends Window {
 
-
-    // Tabla Participantes
     static final String NOMBRE_PROPERTY = "Nombre";
     static final String DPI_PROPERTY = "DPI";
     static final String EMAIL_PROPERTY = "Email";
-
-    // Tabla Agenda
-    static final String ID_AGENDA_PROPERTY = "Id";
     static final String PUNTO_AGENDA_PROPERTY = "Punto de Agenda";
-    static final String RESOLUCION_PROPERTY = "Resolucion";
-
 
     static final String CORRELATIVO_PROPERTY = "#"; // <-- Compartida Participantes Y Agenda
 
@@ -97,12 +90,13 @@ public class InspectionForm extends Window {
     String idVisitaInspeccion = "";
     String codigoVisitaInspeccion = "";
 
-    Image logoImage;
     public File file;
     StreamResource logoStreamResource = null;
     String parametro1, parametro2;
     Long parametro3;
-    long fileSize;
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public InspectionForm(
             String idVisitaInspeccion, 
@@ -502,12 +496,12 @@ System.out.println("centro costo=" + centroCostoCbx.getItem(_item));
     public void guardarArchivo() {
         try {
 
-            queryString = " Update visita_inspeccion set  ";
+            queryString = " UPDATE visita_inspeccion SET  ";
             queryString += " Archivo = ?";
             queryString += " ,ArchivoNombre ='" + parametro1 + "'";
             queryString += " ,ArchivoTipo = '" + parametro2 + "'";
             queryString += " ,ArchivoPeso = " + parametro3;
-            queryString += " where IdVisitaInspeccion = " + idVisitaInspeccion;
+            queryString += " WHERE IdVisitaInspeccion = " + idVisitaInspeccion;
 
             stPreparedQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(queryString);
             stPreparedQuery.setBinaryStream(1, logoStreamResource.getStream().getStream(), logoStreamResource.getStream().getStream().available());
@@ -526,10 +520,11 @@ System.out.println("centro costo=" + centroCostoCbx.getItem(_item));
             return;
         }
 
-        queryString = "Select * ";
-        queryString += " From proveedor ";
-        queryString += " Where (N0 = 1 or N0=7) ";
-        queryString += " Order By Nombre";
+        queryString = "SELECT * ";
+        queryString += " FROM proveedor_empresa ";
+        queryString += " WHERE (N0 = 1 OR N0=7) ";
+        queryString += " AND (IdEmpresa = " + empresaId;
+        queryString += " ORDER BY Nombre";
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -560,14 +555,13 @@ System.out.println("centro costo=" + centroCostoCbx.getItem(_item));
             return;
         }
 
-        queryString = "Select * ";
-        queryString += " From centro_costo ";
-        queryString += " Where IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
+        queryString = "SELECT * ";
+        queryString += " FROM centro_costo ";
+        queryString += " WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
         queryString += " AND IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
-        queryString += " And Inhabilitado = 0";
-        queryString += " And Grupo = 'CASAS'";
+        queryString += " AND Inhabilitado = 0";
+        queryString += " AND Grupo = 'CASAS'";
 
-// System.out.println("queryComboCC=" + queryString);
         try {
             stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords1 = stQuery1.executeQuery(queryString);
@@ -576,7 +570,6 @@ System.out.println("centro costo=" + centroCostoCbx.getItem(_item));
             centroCostoCbx.clear();
             centroCostoCbx.addItem(0);
             centroCostoCbx.setItemCaption(0, "<<ELIJA>>");
-           // centroCostoCbx.select(0);
 
             while (rsRecords1.next()) { //  encontrado                
                 centroCostoCbx.addItem(rsRecords1.getString("IdCentroCosto")).getItemProperty("CodigoCentroCosto").setValue(rsRecords1.getString("CodigoCentroCosto"));
@@ -601,20 +594,21 @@ System.out.println("centro costo=" + centroCostoCbx.getItem(_item));
 
         comboBox.addItem("");
 
-        queryString = "Select * ";
-        queryString += " From proveedor ";
-        queryString += " Where Grupo0 = 'Reuniones' ";
+        queryString = "SELECT * ";
+        queryString += " FROM proveedor_empresa ";
+        queryString += " WHERE IdEmpresa = " + empresaId;
+        queryString += " AND EsComite = 1 ";
 
-        if (String.valueOf(motivoCbx.getValue()).equals("Comité técnico")) {
-            queryString += " And Grupo = 'Comité Tecnico' ";
-        } else if (String.valueOf(motivoCbx.getValue()).equals("Reunión de obra")) {
-            queryString += " And Grupo = 'Reunion Obra' ";
-        } else if (String.valueOf(motivoCbx.getValue()).equals("Reunión de consejo")) {
-            queryString += " And Grupo = 'Consejo Administracion' ";
-        } else {
-            queryString += " And Grupo <> 'Consejo Administracion' ";
-        }
-        queryString += " Order By Nombre";
+//        if (String.valueOf(motivoCbx.getValue()).equals("Comité técnico")) {
+//            queryString += " AND Grupo = 'Comité Tecnico' ";
+//        } else if (String.valueOf(motivoCbx.getValue()).equals("Reunión de obra")) {
+//            queryString += " AND Grupo = 'Reunion Obra' ";
+//        } else if (String.valueOf(motivoCbx.getValue()).equals("Reunión de consejo")) {
+//            queryString += " AND Grupo = 'Consejo Administracion' ";
+//        } else {
+//            queryString += " AND Grupo <> 'Consejo Administracion' ";
+//        }
+        queryString += " ORDER BY Nombre";
 
         try {
             stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -660,9 +654,9 @@ System.out.println("centro costo=" + centroCostoCbx.getItem(_item));
             return;
         }
 
-        queryString = "Select * ";
-        queryString += " From  visita_inspeccion ";
-        queryString += " Where IdVisitaInspeccion = " + idVisitaInspeccionTxt.getValue();
+        queryString = "SELECT * ";
+        queryString += " FROM  visita_inspeccion ";
+        queryString += " WHERE IdVisitaInspeccion = " + idVisitaInspeccionTxt.getValue();
 
 //System.out.println("\n\n"+queryString);
         try {
@@ -685,9 +679,9 @@ System.out.println("centro costo=" + centroCostoCbx.getItem(_item));
                 observacionesTxt.setValue(rsRecords.getString("Observaciones"));
 
 
-                queryString = "Select * ";
-                queryString += " From  visita_inspeccion_participante ";
-                queryString += " Where IdVisitaInspeccion = " + idVisitaInspeccionTxt.getValue();
+                queryString = "SELECT * ";
+                queryString += " FROM  visita_inspeccion_participante ";
+                queryString += " WHERE IdVisitaInspeccion = " + idVisitaInspeccionTxt.getValue();
 
 
                 stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -702,9 +696,9 @@ System.out.println("centro costo=" + centroCostoCbx.getItem(_item));
                     }while ((rsRecords.next()));
                 }
 
-                queryString = "Select * ";
-                queryString += " From  visita_inspeccion_agenda ";
-                queryString += " Where IdVisitaInspeccion = " + idVisitaInspeccionTxt.getValue();
+                queryString = "SELECT * ";
+                queryString += " FROM  visita_inspeccion_agenda ";
+                queryString += " WHERE IdVisitaInspeccion = " + idVisitaInspeccionTxt.getValue();
 
 
                 stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -752,12 +746,12 @@ System.out.println("centro costo=" + centroCostoCbx.getItem(_item));
                         + String.format("%02d",Integer.valueOf(codigo))
                         + df.format(fechaYHoraInicioDt.getValue());
 
-                queryString = "Select CodigoVisita";
-                queryString += " From  visita_inspeccion ";
-                queryString += " Where IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
-                queryString += " And   CodigoVisita Like '" + codigoVisita + "%'";
-                queryString += " Order By CodigoVisita Desc";
-                queryString += " Limit 1";
+                queryString = "SELECT CodigoVisita";
+                queryString += " FROM  visita_inspeccion ";
+                queryString += " WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
+                queryString += " AND   CodigoVisita Like '" + codigoVisita + "%'";
+                queryString += " ORDER BY CodigoVisita DESC";
+                queryString += " LIMIT 1";
 
                 //System.out.println("\n\n"+queryString);
                 stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -773,7 +767,7 @@ System.out.println("centro costo=" + centroCostoCbx.getItem(_item));
 
                 System.out.println("codigo visita" + codigoVisita);
 
-                queryString = "Insert Into visita_inspeccion ";
+                queryString = "INSERT INTO visita_inspeccion ";
                 queryString += "(IdProyecto, CodigoVisita, FechaYHoraInicio, FechaYHoraFin, ";
                 queryString += " Motivo, IdCliente, IdCentroCosto, Referencia, ";
                 queryString += " Participante1,Participante1Empresa,Participante1Email,";
@@ -786,7 +780,7 @@ System.out.println("centro costo=" + centroCostoCbx.getItem(_item));
                 queryString += " PuntoAgenda1,PuntoAgenda2,PuntoAgenda3,PuntoAgenda4,";
                 queryString += " PuntoAgenda5,PuntoAgenda6,PuntoAgenda7,";
                 queryString += " CreadoUsuario, CreadoFechaYHora,Lugar,Observaciones) ";
-                queryString += " Values (";
+                queryString += " VALUES (";
                 queryString += "  " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectId();
                 queryString += ",'" + codigoVisita + "'";
                 queryString += ",'" + Utileria.getFechaYYYYMMDDHHMMSS(fechaYHoraInicioDt.getValue()) + "'";
@@ -829,7 +823,7 @@ System.out.println("centro costo=" + centroCostoCbx.getItem(_item));
                 queryString += ",'" + observacionesTxt.getValue() + "'";
                 queryString += ")";
             } else {
-                queryString = "Update visita_inspeccion Set";
+                queryString = "UPDATE visita_inspeccion SET";
                 queryString += " IdCliente = " + String.valueOf(clienteCbx.getValue());
                 queryString += ",FechaYHoraInicio = '" + Utileria.getFechaYYYYMMDDHHMMSS(fechaYHoraInicioDt.getValue()) + "'";
                 queryString += ",FechaYHoraFin = '" + Utileria.getFechaYYYYMMDDHHMMSS(fechaYHoraFinDt.getValue()) + "'";
@@ -867,7 +861,7 @@ System.out.println("centro costo=" + centroCostoCbx.getItem(_item));
                 queryString += ",PuntoAgenda7 = '" + agendaContainer.getContainerProperty(7, "Punto de agenda").getValue() + "'";
                 queryString += ",Lugar = '" + lugarTxt.getValue() + "'";
                 queryString += ",Observaciones = '" + observacionesTxt.getValue() + "'";
-                queryString += " Where IdVisitaInspeccion = " + idVisitaInspeccionTxt.getValue();
+                queryString += " WHERE IdVisitaInspeccion = " + idVisitaInspeccionTxt.getValue();
             }
 
  //           System.out.println("\nQUERY=" + queryString + "\n");

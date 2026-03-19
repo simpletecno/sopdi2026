@@ -50,7 +50,10 @@ public class   CargarArchivoIngresoDocumentos extends Window {
     
     Object selectedObjectUpdate;
     String codigoPartidaUpdate;
-    
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public CargarArchivoIngresoDocumentos(Object selectedObject, String codigoPartida) {
         this.mainUI = UI.getCurrent();
         this.selectedObjectUpdate = selectedObject;
@@ -60,8 +63,10 @@ public class   CargarArchivoIngresoDocumentos extends Window {
         setHeight("30%");
 
         EnvironmentVars enviromentsVars = new EnvironmentVars();
-        
-        Label titleLbl = new Label("CARGAR DOCUMENTO");
+
+        String titulo = empresaId + " " + empresaNombre + " CARGAR DOCUMENTO";
+
+        Label titleLbl = new Label( titulo);
         titleLbl.addStyleName(ValoTheme.LABEL_H1);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");

@@ -72,7 +72,6 @@ public class EmpleadoPlanillaExtraForm extends Window {
         titleLayout.setMargin(new MarginInfo(true, false, false, false));
         titleLayout.setWidth("100%");
 
-
         Double bono_78_89 = 0d;
         Double bono_aguinaldo = 0d;
         Double decuento = 0d;
@@ -178,8 +177,6 @@ public class EmpleadoPlanillaExtraForm extends Window {
         buttonsLayout.addComponents(salirBtn, guardarBtn);
         buttonsLayout.setComponentAlignment(salirBtn, Alignment.BOTTOM_LEFT);
         buttonsLayout.setComponentAlignment(guardarBtn, Alignment.BOTTOM_CENTER);
-
-
 
         mainForm.addComponent(form);
         mainForm.setComponentAlignment(form, Alignment.MIDDLE_RIGHT);
@@ -314,35 +311,4 @@ public class EmpleadoPlanillaExtraForm extends Window {
             ex.printStackTrace();
         }
     }
-    /*
-    void endTask(Object taskId) {
-        ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de CONCLUIR la tarea?",
-                "SI", "NO", new ConfirmDialog.Listener() {
-
-            public void onClose(ConfirmDialog dialog) {
-                if (dialog.isConfirmed()) {
-                    queryString = "Update visita_inspeccion_tarea Set ";
-                    queryString += " Estatus = 'CONCLUIDA'";
-                    queryString += ", FechaUltimoEstatus = '" + Utileria.getFechaYYYYMMDD_1(new java.util.Date()) + "'";
-                    queryString += " Where IdVisitaInspeccionTarea  = " + String.valueOf(inspectionsTaskTrackGrid.getContainerDataSource().getItem(taskId).getItemProperty(ID_PROPERTY).getValue());
-
-                    try {
-                        stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-                        stQuery.executeUpdate(queryString);
-
-                        container.getContainerProperty(taskId, ESTATUS_PROPERTY).setValue("CONCLUIDA");
-                        container.getContainerProperty(taskId, ULTIMO_ESTATUS_PROPERTY).setValue(Utileria.getFechaDDMMYYYY(new java.util.Date()));
-
-                        Notification.show("OPERACION EXITOSA!", Notification.Type.HUMANIZED_MESSAGE);
-
-                    } catch (Exception ex) {
-                        Notification.show("Error al actualizar tarea : " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
-                        ex.printStackTrace();
-                    }
-                }
-            }
-        });
-    }
-     */
-
 }

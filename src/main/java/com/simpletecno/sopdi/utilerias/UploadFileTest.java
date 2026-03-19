@@ -41,10 +41,6 @@ public class UploadFileTest extends Window {
         class ImageUploader implements Receiver, SucceededListener {
             public File file;
 
-            private int counter;
-            private int total;
-            private boolean sleep;
-            
             @Override
             public OutputStream receiveUpload(String fileName,
                                               String mimeType) {

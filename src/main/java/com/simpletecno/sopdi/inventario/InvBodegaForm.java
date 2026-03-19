@@ -33,7 +33,6 @@ public class InvBodegaForm extends Window {
     Button saveBtn;
     
     Statement stQuery = null;
-    static PreparedStatement stPreparedQuery;
     ResultSet rsRecords = null;
         
     TextField idInvBodegaTxt;

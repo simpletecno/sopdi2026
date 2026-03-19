@@ -65,7 +65,7 @@ public class PresupuestoForm extends Window {
         this.mainUI = UI.getCurrent();
         
         setResponsive(true);
-        setCaption("Ficha de rubro de presupuesto");
+        setCaption("Ficha de rubro de presupuesto.");
         setModal(true);
                
         marginInfo = new MarginInfo(true,true,false,true);
@@ -213,9 +213,9 @@ public class PresupuestoForm extends Window {
     public void fillData() {
         String queryString = "";
         
-        queryString =  "Select * ";
-        queryString += " From  presupuesto ";
-        queryString += " Where IdPresupuesto = " + String.valueOf(presupuestoId);
+        queryString =  "SELECT * ";
+        queryString += " FROM  presupuesto ";
+        queryString += " WHERE IdPresupuesto = " + String.valueOf(presupuestoId);
 
 //System.out.println("\n\n"+queryString);
 
@@ -269,9 +269,9 @@ public class PresupuestoForm extends Window {
         
         try {
             if(presupuestoId == 0) {
-                queryString = "Insert Into presupuesto (Fecha, Cuenta, Descripcion, MontoQuetzales, MontoDolares, ";
+                queryString = "INSERT INTO presupuesto (Fecha, Cuenta, Descripcion, MontoQuetzales, MontoDolares, ";
                 queryString += " TipoCambio, Mes, IdEmpresa, Empresa, Tipo, FechaAutorizado) ";
-                queryString += " Values (";
+                queryString += " VALUES (";
                 queryString += " '" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
                 queryString += ",'" + cuentaTxt.getValue() + "'";
                 queryString += ",'" + descripcionTxt.getValue() + "'";
@@ -286,7 +286,7 @@ public class PresupuestoForm extends Window {
                 queryString += ")";
             }
             else {
-                queryString =  "Update presupuesto Set ";
+                queryString =  "UPDATE presupuesto SET ";
                 queryString += " Cuenta = '" + cuentaTxt.getValue()  + "'";
                 queryString += ",Descripcion = '" + descripcionTxt.getValue()  + "'";
                 queryString += ",MontoQuetzales = " + String.valueOf(quetzalesTxt.getDoubleValueDoNotThrow());

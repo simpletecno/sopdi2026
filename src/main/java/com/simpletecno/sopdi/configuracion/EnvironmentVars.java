@@ -48,7 +48,7 @@ public class EnvironmentVars {
             
         }
         catch(NamingException nE) {
-            System.out.println("VariablesAmbiente()...Error al obtener variables del contexto...: " + nE.getMessage());
+            System.out.println("VariablesAmbiente()... Error al obtener variables del contexto...: " + nE.getMessage());
         }
     }
 

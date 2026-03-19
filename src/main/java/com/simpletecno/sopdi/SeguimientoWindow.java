@@ -48,7 +48,6 @@ public class SeguimientoWindow extends Window {
     private VerticalLayout mainLayout = new VerticalLayout();
 
     Statement stQuery = null;
-    ResultSet rsRecords = null;
     SeguimientoHandler seguimientoHandler;
 
     public SeguimientoWindow(

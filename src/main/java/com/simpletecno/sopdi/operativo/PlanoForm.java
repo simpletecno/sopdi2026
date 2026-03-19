@@ -404,10 +404,10 @@ public class PlanoForm extends Window {
     private void llenarComboProject() {
         String queryString = "";
 
-        queryString = "Select *";
-        queryString += " From  project";
+        queryString = "SELECT *";
+        queryString += " FROM  project";
         queryString += " WHERE Estatus = 'ACTIVO'";
-        queryString += " Order By Numero";
+        queryString += " ORDER BY Numero";
 
         try {
 
@@ -438,12 +438,12 @@ public class PlanoForm extends Window {
 
     private void llenarComboCentroCosto() {
 
-        queryString = "Select * ";
-        queryString += " From centro_costo ";
-        queryString += " Where IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
+        queryString = "SELECT * ";
+        queryString += " FROM centro_costo ";
+        queryString += " WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
         queryString += " AND IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-        queryString += " And Inhabilitado = 0";
-        queryString += " Group by IdCentroCosto";
+        queryString += " AND Inhabilitado = 0";
+        queryString += " GROUP BY IdCentroCosto";
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -468,10 +468,10 @@ public class PlanoForm extends Window {
             return;
         }
 
-        queryString = "Select * ";
-        queryString += " From planos_estilo ";
-        queryString += " Where Codigo = " + centroCostoCbx.getContainerProperty(centroCostoCbx.getValue(), "CodigoEstilo").getValue();
-        queryString += " Order by Codigo";
+        queryString = "SELECT * ";
+        queryString += " FROM planos_estilo ";
+        queryString += " WHERE Codigo = " + centroCostoCbx.getContainerProperty(centroCostoCbx.getValue(), "CodigoEstilo").getValue();
+        queryString += " ORDER BY Codigo";
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -497,9 +497,9 @@ public class PlanoForm extends Window {
 
     private void llenarComboCategoria() {
 
-        queryString = "Select * ";
-        queryString += " From planos_categoria ";
-        queryString += " Order by Codigo";
+        queryString = "SELECT * ";
+        queryString += " FROM planos_categoria ";
+        queryString += " ORDER BY Codigo";
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -525,10 +525,10 @@ public class PlanoForm extends Window {
             return;
         }
 
-        queryString = "Select * ";
-        queryString += " From planos_nombre ";
-        queryString += " Where IdCategoria = " + categoriaCbx.getContainerProperty(categoriaCbx.getValue(), "id").getValue();
-        queryString += " Order by Codigo";
+        queryString = "SELECT * ";
+        queryString += " FROM planos_nombre ";
+        queryString += " WHERE IdCategoria = " + categoriaCbx.getContainerProperty(categoriaCbx.getValue(), "id").getValue();
+        queryString += " ORDER BY Codigo";
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -550,9 +550,9 @@ public class PlanoForm extends Window {
 
     private void llenarComboTipo() {
 
-        queryString = "Select * ";
-        queryString += " From planos_tipo ";
-        queryString += " Order by Codigo";
+        queryString = "SELECT * ";
+        queryString += " FROM planos_tipo ";
+        queryString += " ORDER BY Codigo";
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -619,9 +619,9 @@ public class PlanoForm extends Window {
 
             if (idPlano.trim().isEmpty()) { /// NUEVO REGISTRO
 
-                queryString = "Insert into planos ";
+                queryString = "INSERT INTO planos ";
                 queryString += "(IdProyecto, IdCentroCosto, CodigoEstilo, IdCategoria, IdNombre, IdTipo, Nivel, Version, Descripcion, CodigoPlano, CreadoFechaYHora, CreadoUsuario)";
-                queryString += " Values ";
+                queryString += " VALUES ";
                 queryString += "(" + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
                 queryString += ",'" + centroCostoCbx.getValue() + "'";
                 queryString += "," + estiloCbx.getContainerProperty(estiloCbx.getValue(), "id").getValue();
@@ -642,22 +642,6 @@ public class PlanoForm extends Window {
                 rsRecords.next();
 
                 idPlano = rsRecords.getString(1);
-
-//                queryString = "UPDATE planos SET ";
-//                queryString += "IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
-//                queryString += ",IdCentroCosto = '" + centroCostoCbx.getValue() + "'";
-//                queryString += ",CodigoEstilo = " + estiloCbx.getContainerProperty(estiloCbx.getValue(), "id").getValue();
-//                queryString += ",IdCategoria = " + categoriaCbx.getContainerProperty(categoriaCbx.getValue(), "id").getValue();
-//                queryString += ",IdNombre = " + nombreCbx.getContainerProperty(nombreCbx.getValue(), "id").getValue();
-//                queryString += ",IdTipo = " + tipoCbx.getContainerProperty(tipoCbx.getValue(), "id").getValue();
-//                queryString += ",Nivel = " + nivelCbx.getValue();
-//                queryString += ",Version = " + version;
-//                queryString += ",Descripcion = '" + descripcionTxt.getValue() + "'";
-//                queryString += ",CodigoPlano = '" + codigo + "'";
-//                queryString += " Where Id = " + idPlano;
-//
-//                stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-//                stQuery.executeUpdate(queryString);
 
                 queryString = "UPDATE planos SET ";
                 queryString += " EsUltimaVersion = 'NO'";

@@ -30,11 +30,7 @@ public class CuentaCorrienteDocumentoForm extends Window {
     IndexedContainer ccContainer = new IndexedContainer();
     Grid ccGrid;
 
-    Button salirBtn;
-
     Label saldoFacturaLbl = new Label("Saldo de la factura seleccionada : ");
-
-    double saldoTotalLiquidar = 0.00;
 
     UI mainUI;
     Statement stQuery;

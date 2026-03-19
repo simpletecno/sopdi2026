@@ -37,7 +37,7 @@ import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
+/**  PARECE QUE NO SE UTILIZA
  *
  * @author JAguirre
  */
@@ -50,7 +50,6 @@ public class ReporteDocumentosPDF extends Window {
     static final DecimalFormat df1 = new DecimalFormat("###,##0.00");
 
     String fileName;
-    String queryString;
 
     UI mainUI;
     String idEmpresa;
@@ -283,7 +282,7 @@ public class ReporteDocumentosPDF extends Window {
             reportTable.addCell(c1);
 
             String queryString;
-            queryString = " Select DATEDIFF(CURDATE(),contabilidad_partida.Fecha) as DiasHoy, contabilidad_partida.IdPartida, contabilidad_partida.Fecha,";
+            queryString = " SELECT DATEDIFF(CURDATE(),contabilidad_partida.Fecha) as DiasHoy, contabilidad_partida.IdPartida, contabilidad_partida.Fecha,";
             queryString += " contabilidad_partida.TipoDocumento, contabilidad_partida.CodigoPartida,";
             queryString += " contabilidad_partida.IdProveedor, contabilidad_partida.NombreProveedor ,";
             queryString += " contabilidad_partida.SerieDocumento, contabilidad_partida.NumeroDocumento, ";
@@ -291,10 +290,10 @@ public class ReporteDocumentosPDF extends Window {
             queryString += " contabilidad_partida.MontoAutorizadoPagar, usuario.Nombre as uNombre,";
             queryString += " contabilidad_partida.Archivo, contabilidad_partida.Haber, contabilidad_partida.HaberQuetzales,";
             queryString += " contabilidad_partida.Saldo,   contabilidad_partida.MontoAutorizadoPagar ";
-            queryString += " From contabilidad_partida, usuario ";
-            queryString += " Where contabilidad_partida.IdEmpresa =" + idEmpresa;
-            queryString += " And UPPER(contabilidad_partida.TipoDocumento) IN ('FACTURA', 'RECIBO', 'RECIBO CONTABLE', FORMULARIO','NOTA DE CREDITO')";
-            queryString += " And contabilidad_partida.IdLiquidacion = 0 "; // SOLO FACTURAS PROVEEDORES COMPRA
+            queryString += " FROM contabilidad_partida, usuario ";
+            queryString += " WHERE contabilidad_partida.IdEmpresa =" + idEmpresa;
+            queryString += " AND UPPER(contabilidad_partida.TipoDocumento) IN ('FACTURA', 'RECIBO', 'RECIBO CONTABLE', FORMULARIO','NOTA DE CREDITO')";
+            queryString += " AND contabilidad_partida.IdLiquidacion = 0 "; // SOLO FACTURAS PROVEEDORES COMPRA
             if (tipoReporte.equals("PENDIENTES_POR_PAGAR")) {
                 queryString += " And contabilidad_partida.SALDO > 0 ";
             } else {
@@ -392,24 +391,24 @@ public class ReporteDocumentosPDF extends Window {
                 }
 
 
-                queryString = " Select contabilidad_partida.Fecha, DATEDIFF(CURDATE(),contabilidad_partida.Fecha) as DiasHoy, contabilidad_partida.IdLiquidacion, contabilidad_partida.IdLiquidador,";
+                queryString = " SELECT contabilidad_partida.Fecha, DATEDIFF(CURDATE(),contabilidad_partida.Fecha) as DiasHoy, contabilidad_partida.IdLiquidacion, contabilidad_partida.IdLiquidador,";
                 queryString += " contabilidad_partida.MonedaDocumento, contabilidad_partida.TipoCambio, ";
                 queryString += " contabilidad_partida.MontoAutorizadoPagar, usuario.Nombre as uNombre, ";
                 queryString += " SUM(contabilidad_partida.Haber) as Total, sum(contabilidad_partida.HaberQuetzales) TotalQuetzales,";
                 queryString += " liquidador_autorizado.Nombre as NombreLiquidador, contabilidad_partida.Archivo, ";
                 queryString += " contabilidad_partida.TipoDocumento, contabilidad_partida.Saldo";
-                queryString += " From contabilidad_partida, usuario, liquidador_autorizado ";
-                queryString += " Where contabilidad_partida.IdEmpresa = " + idEmpresa;
-                queryString += " And UPPER(contabilidad_partida.TipoDocumento) IN ('FACTURA', 'RECIBO', 'FORMULARIO','NOTA DE CREDITO')";
-                queryString += " And contabilidad_partida.IdLiquidacion > 0 "; // PARA QUE MUESTRE SOLAMENTE LAS LIQUIDACIONES
+                queryString += " FROM contabilidad_partida, usuario, liquidador_autorizado ";
+                queryString += " WHERE contabilidad_partida.IdEmpresa = " + idEmpresa;
+                queryString += " AND UPPER(contabilidad_partida.TipoDocumento) IN ('FACTURA', 'RECIBO', 'FORMULARIO','NOTA DE CREDITO')";
+                queryString += " AND contabilidad_partida.IdLiquidacion > 0 "; // PARA QUE MUESTRE SOLAMENTE LAS LIQUIDACIONES
                 if (tipoReporte.equals("PENDIENTES_POR_PAGAR")) {
-                    queryString += " And contabilidad_partida.SALDO > 0 ";
+                    queryString += " AND contabilidad_partida.SALDO > 0 ";
                 } else {
-                    queryString += " And contabilidad_partida.MontoAutorizadoPagar > 0 ";
+                    queryString += " AND contabilidad_partida.MontoAutorizadoPagar > 0 ";
                 }
-                queryString += " And usuario.IdUsuario = contabilidad_partida.CreadoUsuario ";
-                queryString += " And liquidador_autorizado.IdLiquidador = contabilidad_partida.IdLiquidador";
-                queryString += " Group by contabilidad_partida.IdLiquidacion, contabilidad_partida.IdLiquidador";
+                queryString += " AND usuario.IdUsuario = contabilidad_partida.CreadoUsuario ";
+                queryString += " AND liquidador_autorizado.IdLiquidador = contabilidad_partida.IdLiquidador";
+                queryString += " GROUP BY contabilidad_partida.IdLiquidacion, contabilidad_partida.IdLiquidador";
 
                 System.out.println("query liquidaciones" + queryString);
 
@@ -561,15 +560,15 @@ public class ReporteDocumentosPDF extends Window {
             String anticipos = "0.00";
 
             String queryString;
-            queryString = "Select ";
+            queryString = "SELECT ";
             queryString += " Sum(contabilidad_partida.Debe) TotalDebe, Sum(contabilidad_partida.Haber) TotalHaber,  ";
             queryString += " Sum(contabilidad_partida.Debe - contabilidad_partida.Haber) Balance, ";
             queryString += " contabilidad_partida.MonedaDocumento ";
-            queryString += " From contabilidad_nomenclatura, contabilidad_partida ";
-            queryString += " Where contabilidad_nomenclatura.Reporte = 'Balance General' ";
-            queryString += " And contabilidad_nomenclatura.N5 = 'ANTICIPO A PROVEEDORES LOCALES'";
-            queryString += " And contabilidad_partida.IdProveedor = " + idProveedor;
-            queryString += " And contabilidad_partida.IdNomenclatura = contabilidad_nomenclatura.IdNomenclatura";
+            queryString += " FROM contabilidad_nomenclatura, contabilidad_partida ";
+            queryString += " WHERE contabilidad_nomenclatura.Reporte = 'Balance General' ";
+            queryString += " AND contabilidad_nomenclatura.N5 = 'ANTICIPO A PROVEEDORES LOCALES'";
+            queryString += " AND contabilidad_partida.IdProveedor = " + idProveedor;
+            queryString += " AND contabilidad_partida.IdNomenclatura = contabilidad_nomenclatura.IdNomenclatura";
 
             try {
 

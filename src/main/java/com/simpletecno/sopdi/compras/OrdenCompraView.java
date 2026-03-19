@@ -65,10 +65,12 @@ public class OrdenCompraView extends VerticalLayout implements View {
     Button printBtn;
     Button partidaContableBtn;
 
-    ComboBox empresaCbx;
     OptionGroup ordenCompraOg = new OptionGroup();
 //    CheckBox abiertasChbx = new CheckBox("Abiertas");
     CheckBox cerradasChbx = new CheckBox("Cerradas");
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public OrdenCompraView() {
         this.mainUI = UI.getCurrent();
@@ -76,12 +78,10 @@ public class OrdenCompraView extends VerticalLayout implements View {
         setHeightUndefined();
         setSpacing(true);
 
-        Label titleLbl = new Label("ORDENES DE COMPRA");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " ORDENES DE COMPRA");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        crearButtonEmpresa();
 
         ordenCompraOg.setStyleName("horizontal");
         if(((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId().equals("10") || ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId().equals("11")) {
@@ -122,8 +122,7 @@ public class OrdenCompraView extends VerticalLayout implements View {
         titleLayout.setMargin(new MarginInfo(false, true, false, false));
         titleLayout.setWidth("100%");
 
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -359,8 +358,9 @@ public class OrdenCompraView extends VerticalLayout implements View {
                 queryString = " SELECT * ";
                 queryString += " FROM orden_compra";
                 queryString += " INNER JOIN tipo_orden_compra ON orden_compra.IdTipoOrdenCompra = tipo_orden_compra.Id";
-                queryString += " INNER JOIN proveedor ON orden_compra.IdProveedor = proveedor.IdProveedor";
+                queryString += " INNER JOIN proveedor_empresa ON orden_compra.IdProveedor = proveedor_empresa.IdProveedor";
                 queryString += " WHERE orden_compra.Id = " + String.valueOf(ordenCompraContainer.getContainerProperty(ordenCompraGrid.getSelectedRow(), ID_PROPERTY).getValue());
+                queryString += " AND proveedor_empresa.IdEmpresa = " + empresaId;
 
                 try {
                     stQuery2 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -492,7 +492,7 @@ public class OrdenCompraView extends VerticalLayout implements View {
                 else {
                     queryString += " And orden_compra.Estado = 'ABIERTA'";
                 }
-                queryString += " AND proveedor_empresa.IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+                queryString += " AND proveedor_empresa.IdEmpresa = " + empresaId;
 
 Logger.getLogger(this.getClass().getName()).info(queryString);
 
@@ -538,38 +538,6 @@ Logger.getLogger(this.getClass().getName()).info(queryString);
             System.out.println("Error al listar tabla oden de compra " + ex);
             ex.printStackTrace();
         }
-    }
-
-    public void crearButtonEmpresa() {
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-
     }
 
     @Override

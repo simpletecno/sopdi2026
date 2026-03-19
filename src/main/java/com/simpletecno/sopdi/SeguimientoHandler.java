@@ -38,7 +38,6 @@ public class SeguimientoHandler extends Window implements Button.ClickListener {
     
     Statement stQuery = null;
     ResultSet rsRecords = null;
-    PreparedStatement stPreparedQuery = null;
 
     private Table trackTable;   
     private Button newTrackBtn;

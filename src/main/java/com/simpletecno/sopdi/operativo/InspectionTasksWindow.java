@@ -80,7 +80,6 @@ public class InspectionTasksWindow extends Window {
         }
         this.cliente = cliente;
 
-//System.out.println("\n\nidCentroCostoDefault="+idCentroCostoDefault + "\n");
         this.mainUI = UI.getCurrent();
 
         mainLayout.setSpacing(false);
@@ -538,10 +537,8 @@ public class InspectionTasksWindow extends Window {
                         queryString += ",EsTarea = '" + tareasContainer.getContainerProperty(itemObject, "Es Tarea").getValue() + "'";
                         queryString += ",Presupuesto = '" + tareasContainer.getContainerProperty(itemObject, "Presupuesto").getValue() + "'";
                         queryString += ",AutorizadoTipo = '" + tareasContainer.getContainerProperty(itemObject, "Autorizar").getValue() + "'";
-                        queryString += " Where IdVisitaInspeccionTarea  = " + tareasContainer.getContainerProperty(itemObject, "CTarea").getValue();
+                        queryString += " WHERE IdVisitaInspeccionTarea  = " + tareasContainer.getContainerProperty(itemObject, "CTarea").getValue();
                     }
-                    
-System.out.println("#=" +  itemObject + " query Task : " + queryString);
 
                     if (nuevo) {
                         stPreparedQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(queryString, Statement.RETURN_GENERATED_KEYS);

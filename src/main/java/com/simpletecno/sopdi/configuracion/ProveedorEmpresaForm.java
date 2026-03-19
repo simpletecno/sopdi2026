@@ -93,7 +93,7 @@ public class ProveedorEmpresaForm extends Window {
 
         setContent(mainLayout);
 
-        setCaption("<H2>MIS PROVEEDORES!!</H2>");
+        setCaption("<H2>!!MIS PROVEEDORES!!</H2>");
         setCaptionAsHtml(true);
 
         marginInfo = new MarginInfo(true, true, true, true);

@@ -4,6 +4,7 @@ import com.vaadin.annotations.JavaScript;
 import com.vaadin.ui.AbstractJavaScriptComponent;
 import com.vaadin.shared.ui.JavaScriptComponentState;
 
+// para graficas.
 @JavaScript({
         "vaadin://echarts/echarts.min.js",
         "vaadin://echarts/echarts-connector.js"

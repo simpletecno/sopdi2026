@@ -346,7 +346,7 @@ public class InvProductoView extends VerticalLayout implements View {
                 } while (rsRecords.next());
             }
         } catch (Exception ex) {
-            System.out.println("Error al listar tabla invproductos :" + ex);
+            System.out.println("Error al listar tabla inventario productos :" + ex);
             ex.printStackTrace();
         }
     }

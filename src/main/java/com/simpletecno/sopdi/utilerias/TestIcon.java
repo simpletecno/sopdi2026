@@ -27,6 +27,7 @@ import com.vaadin.server.ThemeResource;
  *
  * @since
  * @author Vaadin Ltd
+ * SE UTILIZABA EN EL MENU
  */
 public class TestIcon {
 

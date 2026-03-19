@@ -57,7 +57,7 @@ public class CostCenterForm extends Window {
         
         setWidth("60%");
        
-        setCaption(((SopdiUI) mainUI).sessionInformation.getStrCompanyName() + " - Ficha de centro de costo");
+        setCaption(((SopdiUI) mainUI).sessionInformation.getStrCompanyName() + " - Ficha de centro de costo.");
         Page.getCurrent().setTitle(((SopdiUI) mainUI).sessionInformation.getStrCompanyName() + " - Ficha de centro de costo");
         
         marginInfo = new MarginInfo(true,true,true,true);

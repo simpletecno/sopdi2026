@@ -47,7 +47,6 @@ public class UnitieForm extends Window {
     Button exitBtn;
     
     Statement stQuery = null;
-    static PreparedStatement stPreparedQuery;
     ResultSet rsRecords = null;
         
     TextField idUnitieTxt;

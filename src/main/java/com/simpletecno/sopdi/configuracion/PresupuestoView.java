@@ -81,7 +81,7 @@ public class PresupuestoView extends VerticalLayout implements View {
     Button prevBtn;
     List<String> empresaLst;
     ListIterator<String> listIterator;
-    String empresa;
+    String empresa = "";
     Label empresaLbl;
 
     CheckBox agruparCuentaChb;
@@ -462,20 +462,20 @@ public class PresupuestoView extends VerticalLayout implements View {
                 
         String queryString = "";
         
-        queryString =  "Select * ";
-        queryString += " From  presupuesto";
-        queryString += " Where IdEmpresa = " + empresa;
+        queryString =  "SELECT * ";
+        queryString += " FROM  presupuesto";
+        queryString += " WHERE IdEmpresa = " + empresa;
         if(agruparCuentaChb.getValue()) {
             if(agruparMesChb.getValue()) {
-                queryString += " Order By Cuenta, Mes";
+                queryString += " ORDER BY Cuenta, Mes";
             }
             else {
-                queryString += " Order By Cuenta";
+                queryString += " ORDER BY Cuenta";
             }
         }
         else {
             if(agruparMesChb.getValue()) {
-                queryString += " Order By Mes";
+                queryString += " ORDER BY Mes";
             }
         }
 

@@ -36,8 +36,6 @@ public class SelectEmpresaContable extends Window {
     static final String REGIMEN_PROPERTY = "REGIMEN";
     static final String ULTIMA_LIQUI_PROPERTY = "Ultima Liq.";
 
-    MarginInfo marginInfo;
-
     Table empresasTable = new Table("Empresas");
     Table proyectosTable = new Table("Proyectos");
 
@@ -53,7 +51,7 @@ public class SelectEmpresaContable extends Window {
 
         setResponsive(true);
         setWidth("50%");
-        setHeight("70%");
+        setHeight("60%");
 
         Label titleLbl = new Label("Empresas contables");
         titleLbl.addStyleName(ValoTheme.LABEL_H1);
@@ -201,7 +199,7 @@ public class SelectEmpresaContable extends Window {
         reportLayout.setComponentAlignment(proyectosTable, Alignment.MIDDLE_CENTER);
 
         proyectosTable.setWidth("100%");
-        proyectosTable.setPageLength(5);
+        proyectosTable.setPageLength(3);
 
 //        proyectosTable.addContainerProperty(CODIGO_PROPERTY,    String.class, null);
         proyectosTable.addContainerProperty(LOGO_PROPERTY,      Image.class, null);
@@ -434,7 +432,7 @@ public class SelectEmpresaContable extends Window {
             ((SopdiUI) mainUI).buildMainView();
         }
         else {
-            mainUI.setContent(((SopdiUI) mainUI).getRoot());
+            mainUI.setContent(((SopdiUI) mainUI).getAppLayout());
             ((SopdiUI) mainUI).getUserSettingsItem().setIcon(((SopdiUI) UI.getCurrent()).sessionInformation.getPhotoStreamResource());
         }
 

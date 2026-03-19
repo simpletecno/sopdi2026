@@ -36,7 +36,6 @@ public class ChangeOrderForm extends Window {
         
     FormLayout formLayout = new FormLayout();
     
-    Label idLbl;
     TextField idChangeOrderTxt;
     PopupDateField fechaDt;
     TextField solicitadoPorTxt;
@@ -170,9 +169,9 @@ public class ChangeOrderForm extends Window {
         
         String queryString = "";
         
-        queryString =  "Select * ";
-        queryString += " From  orden_cambio ";
-        queryString += " Where IdOrdenCambio = " + idChangeOrderTxt.getValue();
+        queryString =  "SELECT * ";
+        queryString += " FROM  orden_cambio ";
+        queryString += " WHERE IdOrdenCambio = " + idChangeOrderTxt.getValue();
 
 //System.out.println("\n\n"+queryString);
 
@@ -216,10 +215,10 @@ public class ChangeOrderForm extends Window {
         String queryString = "";
         
         if(idChangeOrderTxt.getValue().equals("0")) {
-            queryString = "Insert Into orden_cambio ";
+            queryString = "INSERT INTO orden_cambio ";
             queryString += "(IdProyecto, Fecha, SolicitadoPor, SolicitadoRol, ";
             queryString += " Instruccion, CreadoUsuario, CreadoFechaYHora) ";
-            queryString += " Values (";
+            queryString += " VALUES (";
             queryString += "  " + ((SopdiUI)UI.getCurrent()).sessionInformation.getStrProjectId();
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += ",'" + solicitadoPorTxt.getValue()   + "'";
@@ -230,15 +229,12 @@ public class ChangeOrderForm extends Window {
             queryString += ")";
         }
         else {
-            queryString = "Update orden_cambio ";
-            queryString += " Fecha, SolicitadoPor, SolicitadoRol, ";
-            queryString += " Instruccion, CreadoUsuario, CreadoFechaYHora) ";
-            queryString += " Values (";
+            queryString = "UPDATE orden_cambio SET";
             queryString += " Fecha = '" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += ",SolicitadoPor = '" + solicitadoPorTxt.getValue()   + "'";
             queryString += ",SolicitadoRol = '" + String.valueOf(solicitadoRolCbx.getValue()) + "'";
             queryString += ",Instruccion = '" + instruccionTxt.getValue()   + "'";
-            queryString += " Where IdOrdenCambio = " + idChangeOrderTxt.getValue(); 
+            queryString += " WHERE IdOrdenCambio = " + idChangeOrderTxt.getValue();
         }
 
 System.out.println("\nQUERY="+queryString + "\n");
@@ -289,9 +285,9 @@ System.out.println("\nQUERY="+queryString + "\n");
 
         String queryString;
         
-        queryString = "Insert Into orden_cambio_seguimiento (FechaYHora, IdOrdenCambio, ";
+        queryString = "INSERT INTO orden_cambio_seguimiento (FechaYHora, IdOrdenCambio, ";
         queryString += " Observacion, IdUsuario) ";
-        queryString += " Values (";
+        queryString += " VALUES (";
         queryString += "  current_timestamp";
         queryString += ", " + inspeccionId;
         queryString += ",'" + texto + "'";

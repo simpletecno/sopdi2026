@@ -138,7 +138,7 @@ public class ValidarTokenForm extends Window {
                         queryString += ", FechaUsado = current_timestamp";
                         queryString += ", CodigoPartida = '" + getOrigen() + "'";
                         queryString += ", Estatus = 'UTILIZADO'";
-                        queryString += " Where Codigo = '" + codigo + "'";
+                        queryString += " WHERE Codigo = '" + codigo + "'";
 
                         stQuery.executeUpdate(queryString);
                     }

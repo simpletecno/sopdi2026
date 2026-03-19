@@ -31,7 +31,6 @@ import java.util.logging.Logger;
 
 public class FacturasPendientesPagosView extends VerticalLayout implements View {
 
-    ComboBox empresaCbx;
     IndexedContainer container = new IndexedContainer();
     Grid facturasGrid;
     IndexedContainer anticiposPagoContainer = new IndexedContainer();
@@ -46,11 +45,6 @@ public class FacturasPendientesPagosView extends VerticalLayout implements View 
     double totalSaldoQueztales = 0.00;
     double totalMontoDolares = 0.00;
     double totalSaldoDolares = 0.00;
-
-    double saldoTotalLiquidar = 0.00;
-    double saldoFacturaSeleccionada = 0.00;
-
-    List<String[]> dataLines;
 
     static final String CODIGO_PARTIDA_PROPERTY = "Codigo partida o CC";
     static final String TIPO_DOCUMENTO_PROPERTY = "Tipo Documento";
@@ -75,6 +69,9 @@ public class FacturasPendientesPagosView extends VerticalLayout implements View 
     static final String UTILIZAR_PROPERTY = "Utilizar";
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public FacturasPendientesPagosView() {
         this.mainUI = UI.getCurrent();
         setWidth("100%");
@@ -86,24 +83,10 @@ public class FacturasPendientesPagosView extends VerticalLayout implements View 
         layoutTitle.setMargin(new MarginInfo(false, true, false, true));
         layoutTitle.setWidth("100%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        empresaCbx.addItem(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId());
-        empresaCbx.setItemCaption(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId(), ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName() + " : " +  ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyRegimen());
-        empresaCbx.select(empresaCbx.getItemIds().iterator().next());
-
-        Label titleLbl = new Label("FACTURAS Y LIQUIDACIONES PENDIENTES DE PAGO");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " FACTURAS Y LIQUIDACIONES PENDIENTES DE PAGO");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
@@ -349,10 +332,10 @@ public class FacturasPendientesPagosView extends VerticalLayout implements View 
             anticiposPagoContainer.removeAllItems();
 
             queryString = " SELECT contabilidad_partida.IdEmpresa,contabilidad_partida.IdLiquidacion, contabilidad_partida.CodigoCC, contabilidad_partida.IdNomenclatura, ";
-            queryString += " contabilidad_partida.IdLiquidador, proveedor.Nombre as NLiquidador, contabilidad_partida.MonedaDocumento, contabilidad_partida.Fecha";
+            queryString += " contabilidad_partida.IdLiquidador, proveedor_empresa.Nombre as NLiquidador, contabilidad_partida.MonedaDocumento, contabilidad_partida.Fecha";
             queryString += " FROM contabilidad_partida";
-            queryString += " INNER JOIN proveedor ON proveedor.IDProveedor = contabilidad_partida.IdLiquidador";
-            queryString += " And contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
+            queryString += " INNER JOIN proveedor_empresa ON proveedor_empresa.IDProveedor = contabilidad_partida.IdLiquidador";
+            queryString += " And contabilidad_partida.IdEmpresa = " + empresaId;
             queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getLiquidacionesCajaChicha();
             queryString += " AND contabilidad_partida.TipoDocumento In ('FACTURA','RECIBO','RECIBO CONTABLE', ";
             queryString += " 'FORMULARIO ISR', 'FORMULARIO ISR RETENIDO', 'FORMULARIO ISO', 'FORMULARIO IVA','FORMULARIO IGSS',";
@@ -360,7 +343,8 @@ public class FacturasPendientesPagosView extends VerticalLayout implements View 
             queryString += " 'NOTA DE CREDITO COMPRA', 'CONSTANCIA ISR COMPRA')";
             queryString += " AND contabilidad_partida.IdLiquidacion > 0 ";
             queryString += " AND contabilidad_partida.MontoAutorizadoPagar = 0";
-            queryString += " And proveedor.IdProveedor = contabilidad_partida.IdLiquidador";
+            queryString += " And proveedor_empresa.IdProveedor = contabilidad_partida.IdLiquidador";
+            queryString += " AND proveedor_empresa.IdEmpresa = " + empresaId;
             queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
             queryString += " GROUP BY contabilidad_partida.IdLiquidacion";
             queryString += " ORDER BY contabilidad_partida.IdLiquidacion";
@@ -377,7 +361,7 @@ public class FacturasPendientesPagosView extends VerticalLayout implements View 
                     queryString = " SELECT SUM(HABER - DEBE) TOTALSALDO, ";
                     queryString += " SUM(HaberQuetzales - DebeQuetzales) TOTALSALDOQ ";
                     queryString += " FROM contabilidad_partida";
-                    queryString += " WHERE IdEmpresa = " + rsRecords.getString("IdEmpresa");
+                    queryString += " WHERE IdEmpresa = " + empresaId;
                     queryString += " AND CodigoCC = '" + rsRecords.getString("CodigoCC") + "'";
                     queryString += " AND contabilidad_partida.IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
                     queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
@@ -443,6 +427,7 @@ container.addContainerProperty(DESCRIPCION_PROPERTY, String.class, null);
 
     public void buscarFacturasCompra() {
 
+        HorizontalLayout layoutTitle = new HorizontalLayout();
         String monedaSimbolo = "";
 //        container.removeAllItems();
 //        container.removeAllContainerFilters();
@@ -456,7 +441,7 @@ container.addContainerProperty(DESCRIPCION_PROPERTY, String.class, null);
         queryString += " FROM contabilidad_partida";
         queryString += " WHERE  Upper(TipoDocumento) IN ('FACTURA','RECIBO','RECIBO CONTABLE','RECIBO CORRIENTE','FORMULARIO IVA',";
         queryString += " 'FORMULARIO ISR', 'FORMULARIO ISR RETENIDO', 'FORMULARIO ISO', 'FORMULARIO RECTIFICACION')";
-        queryString += " And   IdEmpresa = " + empresaCbx.getValue();
+        queryString += " And   IdEmpresa = " + empresaId;
         queryString += " AND   IdNomenclatura IN (" + ((SopdiUI) mainUI).cuentasContablesDefault.getProveedores() + "," + ((SopdiUI) mainUI).cuentasContablesDefault.getInstituciones() + ")";
         queryString += " AND   MontoAutorizadoPagar = 0 ";
         queryString += " AND   MontoAplicarAnticipo = 0 ";
@@ -476,7 +461,7 @@ container.addContainerProperty(DESCRIPCION_PROPERTY, String.class, null);
                     queryString = " SELECT ";
                     queryString += " SUM(HABER - DEBE) TOTALSALDO, SUM(HaberQuetzales - DebeQuetzales) TOTALSALDOQ ";
                     queryString += " FROM contabilidad_partida";
-                    queryString += " WHERE IdEmpresa = " + rsRecords.getString("IdEmpresa");
+                    queryString += " WHERE IdEmpresa = " + empresaId;
                     queryString += " AND CodigoCC = '" + rsRecords.getString("CodigoCC") + "'";
                     queryString += " AND contabilidad_partida.IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
                     queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
@@ -534,15 +519,16 @@ container.addContainerProperty(DESCRIPCION_PROPERTY, String.class, null);
         queryString = " SELECT contabilidad_partida.CodigoPartida, contabilidad_partida.CodigoCC, SUM(DEBE) MontoAnticipo, ";
         queryString += " SUM(DEBE - HABER) TOTALSALDO, SUM(DebeQuetzales - HaberQuetzales) TOTALSALDOQ, contabilidad_partida.Fecha";
         queryString += " FROM contabilidad_partida";
-        queryString += " INNER JOIN contabilidad_nomenclatura ON contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+        queryString += " INNER JOIN contabilidad_nomenclatura_empresa ON contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
         queryString += " WHERE contabilidad_partida.IdProveedor = " + proveedorSeleccionado;
-        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
+        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
         queryString += " AND contabilidad_partida.MonedaDocumento = '" + tipoMonedaSeleccionado + "'";
         queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposProveedor();
 //        queryString += " AND contabilidad_partida.TipoDocumento In ('CHEQUE', 'TRANSFERENCIA', 'NOTA DE CREDITO', 'DEPOSITO', 'PAGO DOCUMENTO','FORMULARIO ISR OPCIONAL MENSUAL' )";
 //        queryString += " AND EXTRACT(YEAR FROM Fecha) >= '2020' ";
         queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
 //        queryString += " AND contabilidad_partida.CodigoCC Not In (Select CodigoCCRelacionado from autorizacion_pago ) ";
+        queryString += " AND contabilidad_nomenclatura_empresa = " + empresaId;
         queryString += " GROUP BY contabilidad_partida.CodigoCC";
         queryString += " HAVING TOTALSALDO > 0";
 
@@ -560,7 +546,7 @@ container.addContainerProperty(DESCRIPCION_PROPERTY, String.class, null);
                     queryString = " SELECT IFNULL(SUM(Monto),0) TOTALOCUPADO";
                     queryString += " FROM autorizacion_pago";
                     queryString += " WHERE IdProveedor = " + proveedorSeleccionado;
-                    queryString += " AND IdEmpresa = " + empresaCbx.getValue();
+                    queryString += " AND IdEmpresa = " + empresaId;
                     queryString += " AND CodigoCCRelacionado = '" + rsRecords.getString("CodigoCC") + "'";
 
                     Logger.getLogger(this.getClass().getName()).log(Level.INFO, "-->query obtener saldo real anticipo : " + queryString);

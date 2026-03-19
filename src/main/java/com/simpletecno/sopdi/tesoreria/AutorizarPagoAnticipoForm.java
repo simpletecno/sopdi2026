@@ -37,7 +37,6 @@ public class AutorizarPagoAnticipoForm extends Window {
 
     NumberField montoAutorizarTxt;
 
-    ComboBox empresaCbx;
     ComboBox proveedorCbx;
     ComboBox monedaCbx;
 
@@ -73,6 +72,9 @@ public class AutorizarPagoAnticipoForm extends Window {
     String tipo;
     String queryString;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public AutorizarPagoAnticipoForm(String tipo) {
         this.tipo = tipo;
 
@@ -99,16 +101,7 @@ public class AutorizarPagoAnticipoForm extends Window {
         layoutTitle.setSizeUndefined();
         layoutTitle.addStyleName(ValoTheme.LAYOUT_HORIZONTAL_WRAPPING);
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-
-        Label titleLbl = new Label(tipo);
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " " + tipo);
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
@@ -186,9 +179,6 @@ public class AutorizarPagoAnticipoForm extends Window {
             }
         });
 
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
-
         layoutTitle.addComponent(titleLbl);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
 
@@ -215,30 +205,8 @@ public class AutorizarPagoAnticipoForm extends Window {
 
     }
 
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     public void llenarComboProveedor() {
-        queryString = " SELECT * FROM proveedor ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0";
         if (tipo.equals(AutorizacionesPagoView.ANTICIPO_PROVEEDOR)) {
             queryString += " And EsProveedor = 1";
@@ -247,7 +215,8 @@ public class AutorizarPagoAnticipoForm extends Window {
         //} else if (tipo.equals(AutorizacionesPagoView.ANTICIPO_SUELDOS)) {
           //  queryString += " And EsPlanilla = 1";
         }
-        queryString += " Order By Nombre ";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY Nombre ";
 
         proveedorCbx.removeAllItems();
 
@@ -382,16 +351,16 @@ public class AutorizarPagoAnticipoForm extends Window {
         queryString = " SELECT CodigoPartida, CodigoCC, Fecha, MonedaDocumento, Debe, Haber,  ";
         queryString += " TipoCambio, DebeQuetzales, HaberQuetzales, IdNomenclatura ";
         queryString += " FROM contabilidad_partida";
-        queryString += " WHERE IdEmpresa = " + empresaCbx.getValue();
+        queryString += " WHERE IdEmpresa = " + empresaId;
         queryString += " AND   Fecha >= '2020-01-01'";
         queryString += " AND   Upper(TipoDocumento) IN ('CHEQUE','TRANSFERENCIA', 'NOTA DE DEBITO')";
         queryString += " AND   IdProveedor = " + proveedorCbx.getValue();
         if (tipo.equals(AutorizacionesPagoView.ANTICIPO_PROVEEDOR)) {
-            queryString += " and IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposProveedor();
+            queryString += " AND IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposProveedor();
 //        } else if (tipo.equals(AutorizacionesPagoView.ANTICIPO_HONORARIOS)) {
 //            queryString += " and IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposHonorarios();
         } else {
-            queryString += " and IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposSueldos();
+            queryString += " AND IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposSueldos();
         }
         queryString += " GROUP by contabilidad_partida.CodigoPartida ";
         queryString += " ORDER by contabilidad_partida.CodigoPartida";
@@ -409,9 +378,9 @@ public class AutorizarPagoAnticipoForm extends Window {
                     queryString = " SELECT ";
                     queryString += " SUM(HABER - DEBE) TOTALSALDO, SUM(HaberQuetzales - DebeQuetzales) TOTALSALDOQ ";
                     queryString += " FROM contabilidad_partida";
-                    queryString += " WHERE IdEmpresa = " + empresaCbx.getValue();
+                    queryString += " WHERE IdEmpresa = " + empresaId;
                     queryString += " AND CodigoCC = '" + rsRecords.getString("CodigoCC") + "'";
-                    queryString += " and IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
+                    queryString += " AND IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
 
                     rsRecords1 = stQuery1.executeQuery(queryString);
 
@@ -497,13 +466,13 @@ public class AutorizarPagoAnticipoForm extends Window {
             return;
         }
 
-        queryString = "  Insert Into autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
+        queryString = "  INSERT INTO autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
         queryString += " Fecha, Moneda, Monto, CodigoCC, CuentaContableLiquidar, ";
         queryString += " Objetivo, CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values ";
+        queryString += " VALUES ";
         queryString += "(";
         queryString += "'" + tipo + "'";
-        queryString += "," + String.valueOf(empresaCbx.getValue());
+        queryString += "," + empresaId;
         queryString += "," + proveedorCbx.getValue();
         queryString += ",current_date";
         queryString += ",'" + monedaCbx.getValue() + "'";

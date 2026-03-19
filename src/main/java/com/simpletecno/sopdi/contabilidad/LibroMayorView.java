@@ -54,10 +54,7 @@ public class LibroMayorView extends VerticalLayout implements View {
     static final String HABER_PROPERTY = "Haber";
     static final String SALDO_PROPERTY = "Saldo";
 
-    Utileria utileria = new Utileria();
-
     Grid libroMayorGrid;
-    Grid.FooterRow footerlibroMayor;
 
     public IndexedContainer libroMayorcontainer = new IndexedContainer();
 
@@ -72,8 +69,6 @@ public class LibroMayorView extends VerticalLayout implements View {
 
     Button consultarBtn;
     Button exportExcelBtn;
-    ComboBox empresaCbx;
-    String empresa;
     ComboBox anioCbx;
     ListSelect mesCbx;
     ComboBox cuentaContableCbx;
@@ -81,6 +76,9 @@ public class LibroMayorView extends VerticalLayout implements View {
     NumberField folioTxt;
 
     static DecimalFormat numberFormat = new DecimalFormat("##,###,##0.00");
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public LibroMayorView() {
 
@@ -90,33 +88,16 @@ public class LibroMayorView extends VerticalLayout implements View {
         setMargin(false);
         setHeightUndefined();
 
-        Label titleLbl = new Label("LIBRO MAYOR");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " LIBRO MAYOR");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
-//        titleLbl.addStyleName("h2_custom");
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);        
-
-        llenarComboEmpresa();
-        
-        empresaCbx.addValueChangeListener(event -> {
-            empresa = String.valueOf(event.getProperty().getValue());            
-            llenarGridLibroMayor(empresa);
-        });
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(titleLbl);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
@@ -124,18 +105,12 @@ public class LibroMayorView extends VerticalLayout implements View {
         setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
 
         crearTablaLibroMayor();
-
-        empresa = String.valueOf(empresaCbx.getValue());
-
-//        llenarGridLibroMayor(empresa);
-
     }
 
     public void crearTablaLibroMayor() {
         VerticalLayout layoutTablaLibroMayor = new VerticalLayout();
         layoutTablaLibroMayor.setWidth("100%");
         layoutTablaLibroMayor.setSpacing(true);
-//        layoutTablaLibroMayor.setHeightUndefined();
         layoutTablaLibroMayor.addStyleName("rcorners3");
 
         HorizontalLayout filterLayout = new HorizontalLayout();
@@ -199,7 +174,7 @@ public class LibroMayorView extends VerticalLayout implements View {
         consultarBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                llenarGridLibroMayor(empresa);
+                llenarGridLibroMayor();
             }
         });
 
@@ -301,9 +276,9 @@ public class LibroMayorView extends VerticalLayout implements View {
                     
                     LibroMayorPDF libroMayorPdf
                             = new LibroMayorPDF(
-                                    empresa,
-                                    empresaCbx.getItemCaption(empresaCbx.getValue()),
-                                    getEmpresaNit(),
+                                    empresaId,
+                                    empresaNombre,
+                                    ((SopdiUI)UI.getCurrent()).sessionInformation.getStrAccountingCompanyTaxId(),
                                     libroMayorcontainer,
                                     String.valueOf(anioCbx.getValue()),
                                     meses,
@@ -329,7 +304,7 @@ public class LibroMayorView extends VerticalLayout implements View {
                     ExcelExport excelExport = new ExcelExport (tableHolder);
                     excelExport.excludeCollapsedColumns();
                     excelExport.setDisplayTotals(false);               
-                    fileexport = "LibroMayor_" + empresaCbx.getItemCaption(empresaCbx.getValue()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é","") + ".xls";
+                    fileexport = "LibroMayor_" + empresaNombre.replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é","") + ".xls";
                     excelExport.setExportFileName(fileexport);
                     excelExport.export();                    
                 }
@@ -362,7 +337,7 @@ public class LibroMayorView extends VerticalLayout implements View {
         
     }
 
-    public void llenarGridLibroMayor(String empresa) {
+    public void llenarGridLibroMayor() {
 
         if (libroMayorcontainer == null) {
             return;
@@ -372,16 +347,13 @@ public class LibroMayorView extends VerticalLayout implements View {
 
         Object itemId;
 
-        String queryString = " SELECT * from contabilidad_nomenclatura";
-        queryString += " where Estatus = 'HABILITADA'";
+        String queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
+        queryString += " WHERE Estatus = 'HABILITADA'";
         if (cuentaContableCbx.getValue() != null) {
-            queryString += " And IdNomenclatura = " + String.valueOf(cuentaContableCbx.getValue());
+            queryString += " AND IdNomenclatura = " + String.valueOf(cuentaContableCbx.getValue());
         }
-//        if (cuentaContableCbx.getValue() != null) {
-//            queryString += " And N5 = '" + cuentaContableCbx.getItemCaption(cuentaContableCbx.getValue())
-//                    .substring(9, cuentaContableCbx.getItemCaption(cuentaContableCbx.getValue()).length()) + "'";
-//        }
-        queryString += " Order By ID1";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY ID1";
 
 System.out.println("query con substring " + queryString);
 
@@ -457,19 +429,19 @@ System.out.println("query con substring " + queryString);
                         }
 
                         queryString = " SELECT contabilidad_partida.IdPartida, contabilidad_partida.Descripcion, ";
-                        queryString += " contabilidad_partida.CodigoPartida,  contabilidad_nomenclatura.NoCuenta,";
+                        queryString += " contabilidad_partida.CodigoPartida,  contabilidad_nomenclatura_empresa.NoCuenta,";
                         queryString += " contabilidad_partida.DebeQuetzales, contabilidad_partida.HaberQuetzales,";
-                        queryString += " contabilidad_nomenclatura.N5, contabilidad_partida.Fecha, ";
+                        queryString += " contabilidad_nomenclatura_empresa.N5, contabilidad_partida.Fecha, ";
                         queryString += " contabilidad_partida.IdProveedor, contabilidad_partida.NombreProveedor,";
                         queryString += " contabilidad_partida.SerieDocumento, contabilidad_partida.NumeroDocumento, ";
                         queryString += " contabilidad_partida.TipoDocumento ";
-                        queryString += " FROM contabilidad_partida, contabilidad_nomenclatura";
-                        queryString += " WHERE contabilidad_partida.IdEmpresa  = " + empresa;
+                        queryString += " FROM contabilidad_partida, contabilidad_nomenclatura_empresa";
+                        queryString += " WHERE contabilidad_partida.IdEmpresa  = " + empresaId;
                         queryString += " AND contabilidad_partida.IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
-                        queryString += " AND contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+                        queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
                         queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
                         queryString += " AND Extract(YEAR_MONTH From contabilidad_partida.Fecha) = " + anioMesCierre;
-//                        queryString += " Order By contabilidad_partida.CodigoPartida, contabilidad_partida.Debe Desc";
+                        queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
                         queryString += " ORDER BY contabilidad_partida.Fecha";
 
 //System.out.println("QUERY LIBRO MAYOR = " + queryString);
@@ -511,13 +483,9 @@ System.out.println("query con substring " + queryString);
                                    || rsRecords.getString("NoCuenta").startsWith("5")
                                    || rsRecords.getString("NoCuenta").startsWith("6")) { //activo, egreso, costo
                                     saldoAnterior = saldoAnterior.add(new BigDecimal(rsRecords1.getDouble("DebeQuetzales") - rsRecords1.getDouble("HaberQuetzales")).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
-    //                                totalSaldoFinal = totalSaldoFinal.add(saldoAnterior).setScale(2, BigDecimal.ROUND_HALF_UP);
-    //                                totalSaldoFinal = totalSaldoFinal.add(new BigDecimal(rsRecords1.getDouble("DebeQuetzales") - rsRecords1.getDouble("HaberQuetzales")).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);;
                                 }
                                 else { //resto
                                     saldoAnterior = saldoAnterior.subtract(new BigDecimal(rsRecords1.getDouble("HaberQuetzales") - rsRecords1.getDouble("DebeQuetzales")).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
-    //                                totalSaldoFinal = totalSaldoFinal.add(saldoAnterior).setScale(2, BigDecimal.ROUND_HALF_UP);
-    //                                totalSaldoFinal = totalSaldoFinal.subtract(new BigDecimal(rsRecords1.getDouble("DebeQuetzales") - rsRecords1.getDouble("HaberQuetzales")).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);;
                                 }
                                 libroMayorcontainer.getContainerProperty(itemId, SALDO_PROPERTY).setValue(numberFormat.format(saldoAnterior));
 
@@ -566,9 +534,10 @@ System.out.println("query con substring " + queryString);
     public void llenarComboCuentaContable() {
 
         String queryString = "";
-        queryString += " SELECT * from contabilidad_nomenclatura";
-        queryString += " where Estatus = 'HABILITADA'";
-        queryString += " Order By N5";
+        queryString += " SELECT * FROM contabilidad_nomenclatura_empresa";
+        queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY N5";
 
         try {
             stQuery2 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -585,60 +554,16 @@ System.out.println("query con substring " + queryString);
         }
     }
 
-    public void llenarComboEmpresa() {
-        String queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords1.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords1.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords1.getString("IdEmpresa"), rsRecords1.getString("Empresa"));
-            }
-            rsRecords1.first();
-            
-            empresaCbx.select(rsRecords1.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
-    public String getEmpresaNit() {
-        String strNit = "N/A";
-
-        String queryString = " SELECT Nit from contabilidad_empresa ";
-        queryString += " Where IdEmpresa = " + empresa;
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            if (rsRecords1.next()) {
-                strNit = rsRecords1.getString("Nit");
-            }
-
-        } catch (Exception ex1) {
-            System.out.println("Error al buscar NIT de empresa: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-
-        return strNit;
-    }
-
     public BigDecimal getSaldoCuentaMesAnterior(Calendar c, String idNomenclatura) throws SQLException {
         BigDecimal saldo = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
                        
-        String queryString  = " Select IfNull(SaldoFinal, 0) SaldoMesAnterior ";
-        queryString += " From contabilidad_balance_saldo";
-        queryString += " Where IdNomenclatura = " + idNomenclatura;
-        queryString += " And  IdEmpresa = " + empresa;
-        queryString += " And  AnioMesCierre = " + String.valueOf(c.get(Calendar.YEAR)) + String.format("%02d", c.get(Calendar.MONTH)+1) ;
+        String queryString  = " SELECT IfNull(SaldoFinal, 0) SaldoMesAnterior ";
+        queryString += " FROM contabilidad_balance_saldo";
+        queryString += " WHERE IdNomenclatura = " + idNomenclatura;
+        queryString += " AND  IdEmpresa = " + empresaId;
+        queryString += " AND  AnioMesCierre = " + String.valueOf(c.get(Calendar.YEAR)) + String.format("%02d", c.get(Calendar.MONTH)+1) ;
         
-System.out.println("queryMesAnterior = " + queryString);
+//System.out.println("queryMesAnterior = " + queryString);
 
         rsRecords2 = stQuery2.executeQuery(queryString);
 
@@ -655,7 +580,7 @@ System.out.println("queryMesAnterior = " + queryString);
         String queryString  = "SELECT DebeQuetzales, HaberQuetzales ";
         queryString += " FROM contabilidad_partida";
         queryString += " WHERE IdNomenclatura = " + idNomenclatura;
-        queryString += " AND  IdEmpresa = " + empresa;
+        queryString += " AND  IdEmpresa = " + empresaId;
         queryString += " AND  TipoDocumento = 'PARTIDA APERTURA'";
         queryString += " AND  Fecha = '" + anio + "-01-01'";
 

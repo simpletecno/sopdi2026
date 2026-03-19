@@ -1217,7 +1217,7 @@ public class PagoFacturaVentaForm extends Window {
             ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().commit();
             ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().setAutoCommit(true);
 
-            ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta(String.valueOf(empresaCbx.getValue()));
+            ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).llenarTablaFacturaVenta();
 
             Notification notif = new Notification("PAGAO REALIZADO EXITOSAMENTE.",
                     Notification.Type.HUMANIZED_MESSAGE);

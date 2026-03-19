@@ -35,7 +35,6 @@ public class AutorizarVentaMonedaForm extends Window {
 
     NumberField montoAutorizarTxt;
 
-    ComboBox empresaCbx;
     ComboBox monedaCbx;
     ComboBox proveedorCbx;
 
@@ -46,6 +45,9 @@ public class AutorizarVentaMonedaForm extends Window {
     Statement stQuery;
     ResultSet rsRecords;
     String queryString;
+
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public AutorizarVentaMonedaForm() {
         this.mainUI = UI.getCurrent();
@@ -72,16 +74,7 @@ public class AutorizarVentaMonedaForm extends Window {
         layoutTitle.setSizeUndefined();
         layoutTitle.addStyleName(ValoTheme.LAYOUT_HORIZONTAL_WRAPPING);
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("100%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-
-        Label titleLbl = new Label("AUTORIZAR VENTA DE MONEDA");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " AUTORIZAR VENTA DE MONEDA");
         if (mainUI.getPage().getBrowserWindowWidth() >= 736) {
             titleLbl.addStyleName(ValoTheme.LABEL_H2);
         }
@@ -166,8 +159,6 @@ public class AutorizarVentaMonedaForm extends Window {
             }
         });
 
-        layoutTitle.addComponents(empresaCbx, titleLbl);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
         layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
 
 //        filtrosLayout.addComponents(monedaCbx, montoAutorizarTxt, proveedorCbx, autorizarBtn,salirBtn);
@@ -188,32 +179,11 @@ public class AutorizarVentaMonedaForm extends Window {
 
     }
 
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado                
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     public void llenarComboProveedor() {
-        queryString = " SELECT * from proveedor ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0 ";
         queryString += " AND EsPlanilla = 0";
+        queryString += " AND IdEmpresa = " + empresaId;
         queryString += " Order By Nombre ";
 
         try {
@@ -255,13 +225,13 @@ public class AutorizarVentaMonedaForm extends Window {
             return;
         }
 
-        queryString = "  Insert Into autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
+        queryString = "INSERT INTO autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
         queryString += " Fecha, Moneda, Monto, CodigoCC, CuentaContableLiquidar, ";
         queryString += " Objetivo, CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values ";
+        queryString += " VALUES ";
         queryString += "(";
         queryString += "'" + AutorizacionesPagoView.VENTA_MONEDA + "'";
-        queryString += "," + String.valueOf(empresaCbx.getValue());
+        queryString += "," + empresaId;
         queryString += "," + proveedorCbx.getValue();
         queryString += ",current_date";
         queryString += ",'" + monedaCbx.getValue() + "'";

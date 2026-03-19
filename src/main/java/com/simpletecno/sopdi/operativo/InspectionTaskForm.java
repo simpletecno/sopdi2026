@@ -45,8 +45,6 @@ public class InspectionTaskForm extends Window {
     Button saveBtn;
     Button salirBtn;
     Button eliminarBtn;
-    Button presupuestoBtn;
-    Button fotografiasBtn;
 
     Statement stQuery = null;
     ResultSet rsRecords = null;
@@ -162,12 +160,11 @@ public class InspectionTaskForm extends Window {
         autorizadorTipoCbx.select("CLIENTE");
         autorizadorTipoCbx.setWidth("20em");
 
-        diasHabilesN = new NumberField("Dias Habiles que tomara : ");
+        diasHabilesN = new NumberField("Días Hábiles que tomará : ");
         diasHabilesN.setRequired(true);
         diasHabilesN.setImmediate(true);
         diasHabilesN.setValue(0d);
         diasHabilesN.setRequiredError("POR FAVOR INGRESE El TIEMPO ESTIMADO");
-
 
         equipoDibujoCbx = new ComboBox("Equipo Dibujo : ");
         equipoDibujoCbx.addItem("SI");
@@ -195,13 +192,8 @@ public class InspectionTaskForm extends Window {
         estatusCbx.setInvalidAllowed(false);
         estatusCbx.setNewItemsAllowed(false);
         estatusCbx.setNullSelectionAllowed(false);
-//        estatusCbx.addItem("CREADA");
-//        estatusCbx.addItem("INICIADA");
         estatusCbx.addItem("AUTORIZADA");
-//        estatusCbx.addItem("TERMINADA");
         estatusCbx.addItem("RECHAZADA");
-//        estatusCbx.addItem("SUSPENDIDA");
-//        System.out.println("este es el select e " + estatus);
         estatusCbx.setEnabled(false);
 
         instruccionTxt = new TextArea("Instrucción:");
@@ -278,11 +270,11 @@ public class InspectionTaskForm extends Window {
             return;
         }
 
-        String queryString = "Select * ";
-        queryString += " From centro_costo ";
-        queryString += " Where IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
+        String queryString = "SELECT * ";
+        queryString += " FROM centro_costo ";
+        queryString += " WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
         queryString += " AND IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-        queryString += " And Inhabilitado = 0";
+        queryString += " AND Inhabilitado = 0";
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -314,9 +306,9 @@ public class InspectionTaskForm extends Window {
         comboBox.setNewItemsAllowed(false);
         comboBox.setWidth("20em");
 
-        String queryString = "Select * ";
-        queryString += " From visita_inspeccion_agenda ";
-        queryString += " Where IdVisitaInspeccion = " + idVisita;
+        String queryString = "SELECT * ";
+        queryString += " FROM visita_inspeccion_agenda ";
+        queryString += " WHERE IdVisitaInspeccion = " + idVisita;
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -349,7 +341,7 @@ public class InspectionTaskForm extends Window {
 
         comboBox.addItem("");
 
-        String queryString = "Select * from proveedor ";
+        String queryString = "SELECT * FROM proveedor ";
         queryString += " WHERE EsVisitaResponsable = 1";
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -378,9 +370,9 @@ public class InspectionTaskForm extends Window {
 
         String queryString = "";
 
-        queryString = "Select * ";
-        queryString += " From  visita_inspeccion_tarea ";
-        queryString += " Where IdVisitaInspeccionTarea = " + idTarea;
+        queryString = "SELECT * ";
+        queryString += " FROM  visita_inspeccion_tarea ";
+        queryString += " WHERE IdVisitaInspeccionTarea = " + idTarea;
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -403,9 +395,9 @@ public class InspectionTaskForm extends Window {
                 visibleParaClienteCbx.select(rsRecords.getString("VisibleParaCliente"));
                 estatusCbx.select(rsRecords.getString("Estatus"));
 
-                queryString = "Select ArchivoNombre ";
-                queryString += " From visita_inspeccion";
-                queryString += " Where IdVisitaInspeccion = " + idVisita;
+                queryString = "SELECT ArchivoNombre ";
+                queryString += " FROM visita_inspeccion";
+                queryString += " WHERE IdVisitaInspeccion = " + idVisita;
 
                 rsRecords = stQuery.executeQuery (queryString);
 
@@ -431,8 +423,8 @@ public class InspectionTaskForm extends Window {
         String queryString;
 
         try {
-            queryString = "Delete From visita_inspeccion_tarea ";
-            queryString += " Where IdVisitaInspeccionTarea  = " + idTarea;
+            queryString = "DELETE FROM visita_inspeccion_tarea ";
+            queryString += " WHERE IdVisitaInspeccionTarea  = " + idTarea;
 
             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "queryString ELIMINAR TAREA = " + queryString);
 
@@ -487,11 +479,11 @@ public class InspectionTaskForm extends Window {
         try {
             if (idTarea.trim().isEmpty()) {
 
-                queryString = "Select CodigoTarea";
-                queryString += " From  visita_inspeccion_tarea ";
-                queryString += " Where IdVisitaInspeccion = " + idVisita;
-                queryString += " Order By CodigoTarea Desc";
-                queryString += " Limit 1";
+                queryString = "SELECT CodigoTarea";
+                queryString += " FROM  visita_inspeccion_tarea ";
+                queryString += " WHERE IdVisitaInspeccion = " + idVisita;
+                queryString += " ORDER BY CodigoTarea DESC";
+                queryString += " LIMIT 1";
 
                 stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                 rsRecords = stQuery.executeQuery(queryString);
@@ -506,11 +498,11 @@ public class InspectionTaskForm extends Window {
 
 //                System.out.println("codigoTarea = " + codigoTarea);
 
-                queryString = "Insert Into visita_inspeccion_tarea (IdVisitaInspeccion, CodigoTarea, Rubro, ";
+                queryString = "INSERT INTO visita_inspeccion_tarea (IdVisitaInspeccion, CodigoTarea, Rubro, ";
                 queryString += " Descripcion, Instruccion, Responsable, Ejecutor, ";
                 queryString += " EsTarea, Garantia, Presupuesto, AutorizadoTipo, IdCentroCosto, EquipoDibujo, ";
                 queryString += " VisibleParaCliente, Estatus, FechaUltimoEstatus, DiasHabiles) ";
-                queryString += " Values (";
+                queryString += " VALUES (";
                 queryString += "  " + idVisita;
                 queryString += ",'" + codigoTarea + "'";
                 queryString += ",'" + rubroCbx.getValue() + "'";
@@ -530,7 +522,7 @@ public class InspectionTaskForm extends Window {
                 queryString += "," + ((int) diasHabilesN.getDoubleValueDoNotThrow());
                 queryString += ")";
             } else {
-                queryString = "Update visita_inspeccion_tarea Set ";
+                queryString = "UPDATE visita_inspeccion_tarea SET ";
                 queryString += " Rubro = '" + rubroCbx.getValue() + "'";
                 queryString += ",Descripcion = '" + descripcionTxt.getValue().replaceAll("'", "''") + "'";
                 queryString += ",Instruccion = '" + instruccionTxt.getValue().replaceAll("'", "''") + "'";
@@ -546,7 +538,7 @@ public class InspectionTaskForm extends Window {
                 queryString += ",Estatus = '" + String.valueOf(estatusCbx.getValue()) + "'";
                 queryString += ",FechaUltimoEstatus = '" + Utileria.getFechaYYYYMMDD_1(new java.util.Date()) + "'";
                 queryString += ",DiasHabiles = " + (int)diasHabilesN.getDoubleValueDoNotThrow();
-                queryString += " Where IdVisitaInspeccionTarea  = " + idTarea;
+                queryString += " WHERE IdVisitaInspeccionTarea  = " + idTarea;
             }
 
             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "queryString TAREA = " + queryString);

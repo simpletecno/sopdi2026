@@ -70,9 +70,7 @@ public class CargarIntegracion extends VerticalLayout implements View {
     Table integracionTable;
 
     public static Locale locale = new Locale("ES","GT"); 
-    static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
-    static DecimalFormat numberFormat2 = new DecimalFormat("##,###");
-            
+
     int linea = 0;
     
     UI mainUI;
@@ -85,9 +83,6 @@ public class CargarIntegracion extends VerticalLayout implements View {
         setSpacing(true);
         
         marginInfo = new MarginInfo(true,true,true,true);
-
-//        Label h1 = new Label("Carga de archivo MS Project de tareas");
-//        h1.addStyleName("h2");
 
         HorizontalLayout encabezadoLayout;
         encabezadoLayout = new HorizontalLayout();        
@@ -321,15 +316,15 @@ JavaScript.getCurrent().execute("document.getElementsByClassName('gwt-FileUpload
 
                         stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();            
 
-                        queryString = "Delete From tarea_integracion Where (Select IdTarea From tarea Where IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectName() + " And Fase  = '" + String.valueOf(projectCbx.getValue()) + "')";
+                        queryString = "DELETE FROM tarea_integracion WHERE (SELECT IdTarea FROM tarea WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectName() + " AND Fase  = '" + String.valueOf(projectCbx.getValue()) + "')";
                         stQuery.executeUpdate(queryString);
                                                 
                         for(int linea = 0; linea < 10; linea++ ) {
-                            queryString =  "Insert Into tarea_integracion (IdEmpresa, IdProyecto, Fase, IdTareaProject,";
+                            queryString =  "INSERT INTO tarea_integracion (IdEmpresa, IdProyecto, Fase, IdTareaProject,";
                             queryString += " Descripcion, IdTareaPadre, Predecesores, Sucesores,";
                             queryString += " FechaInicio, FechaFin, DiasDuracion, Nivel, NivelCodigo, ";
                             queryString += " CreadoUsuario, CreadoFecha) ";
-                            queryString += " Values ( ";
+                            queryString += " VALUES ( ";
                             queryString += " "  + ((SopdiUI) mainUI).sessionInformation.getStrCompanyId();                            
                             queryString += ","  + ((SopdiUI) mainUI).sessionInformation.getStrProjectName();                            
                             queryString += ",'" + String.valueOf(projectCbx.getValue()) + "'";                            

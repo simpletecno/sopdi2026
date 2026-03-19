@@ -44,10 +44,13 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
     String idEmpresa;
     String idCuentaBanco;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public CuentasContablesBancosView() {
         this.mainUI = UI.getCurrent();
 
-        Label titleLbl = new Label("Cuentas contables de Bancos");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Cuentas contables de Bancos");
         titleLbl.addStyleName(ValoTheme.LABEL_H1);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -189,8 +192,8 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
 
                     try {
 
-                        queryString = " delete from contabilidad_cuentas_bancos";
-                        queryString += " where IdCuentaBanco = " + idCuentaBanco;
+                        queryString = "DELETE FROM contabilidad_cuentas_bancos";
+                        queryString += " WHERE IdCuentaBanco = " + idCuentaBanco;
 
                         stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                         stQuery.executeUpdate(queryString);
@@ -224,11 +227,12 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
 
         queryString = "  SELECT *, cuen.N5, emp.Empresa, prov.Nombre ";
         queryString += " FROM contabilidad_cuentas_bancos AS ban";
-        queryString += " INNER JOIN contabilidad_nomenclatura AS cuen";
+        queryString += " INNER JOIN contabilidad_nomenclatura_empresa AS cuen";
         queryString += " ON ban.IdNomenclatura = cuen.IdNomenclatura";
         queryString += " INNER JOIN contabilidad_empresa AS emp ON ban.IdEmpresa = emp.IdEmpresa";
         queryString += " INNER JOIN proveedor AS prov ON ban.IdProveedor = prov.IdProveedor";
-        queryString += " WHERE ban.IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString += " WHERE ban.IdEmpresa = " + empresaId;
+        queryString += " AND cuen.IdEmpresa = " + empresaId;
         queryString += " ORDER BY ban.IdEmpresa, ban.IdNomenclatura";
 
         try {

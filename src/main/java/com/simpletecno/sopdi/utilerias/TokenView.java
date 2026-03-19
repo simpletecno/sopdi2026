@@ -36,7 +36,6 @@ public class TokenView extends VerticalLayout implements View {
 
     public IndexedContainer tokenContainer = new IndexedContainer();
     Grid tokenGrid;
-    Button refreshBtn;
 
     static final String ID_PROPERTY = "ID.";
     static final String CODIGO_PROPERTY = "Código";

@@ -110,13 +110,6 @@ public class PagoChequesPDF extends Window {
             System.out.println("file name "  + fileName);
             file.delete();
 
-//            System.out.println("cuenta1" + cuenta1);
-//            System.out.println("cuenta1" + cuenta2);
-//            System.out.println("cuenta1" + debe1);
-//            System.out.println("cuenta1" + haber1);
-//            System.out.println("cuenta1" + debe2);
-//            System.out.println("cuenta1" + haber2);
-
         } catch (Exception allEx) {
             Notification.show("Error al generar el balance de saldos.", Type.ERROR_MESSAGE);
             allEx.printStackTrace();
@@ -268,15 +261,16 @@ public class PagoChequesPDF extends Window {
 
             queryString = " SELECT contabilidad_partida.NombreProveedor,contabilidad_partida.NombreProveedor, ";
             queryString += " contabilidad_partida.DebeQuetzales,contabilidad_partida.HaberQuetzales,contabilidad_partida.Fecha, ";
-            queryString += " contabilidad_nomenclatura.NoCuenta,contabilidad_nomenclatura.N5,contabilidad_partida.NumeroDocumento,";
-            queryString += " contabilidad_nomenclatura.IdNomenclatura,contabilidad_partida.IdNomenclatura,contabilidad_partida.MonedaDocumento, ";
+            queryString += " contabilidad_nomenclatura_empresa.NoCuenta,contabilidad_nomenclatura_empresa.N5,contabilidad_partida.NumeroDocumento,";
+            queryString += " contabilidad_nomenclatura_empresa.IdNomenclatura,contabilidad_partida.IdNomenclatura,contabilidad_partida.MonedaDocumento, ";
             queryString += " contabilidad_partida.TipoDocumento, contabilidad_partida.Debe, contabilidad_partida.Haber";
             queryString += " FROM contabilidad_partida";
-            queryString += " INNER JOIN contabilidad_nomenclatura on contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+            queryString += " INNER JOIN contabilidad_nomenclatura_empresa ON contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
             queryString += " WHERE contabilidad_partida.CodigoPartida = '" + codigoPartida + "'";
             queryString += " AND contabilidad_partida.TipoDocumento In ('CHEQUE', 'TRANSFERENCIA', 'NOTA DE DEBITO')";
 //            queryString += " And (contabilidad_partida.Debe > 0 OR contabilidad_partida.Haber > 0)";
             queryString += " AND contabilidad_partida.NumeroDocumento = '" + cheque + "'";
+            queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + idEmpresa;
 
             System.out.println("query busqueda pdf" + queryString);
 
@@ -948,17 +942,17 @@ public class PagoChequesPDF extends Window {
 
                     docaTable.setWidths(docaCW);
 
-                    queryString = " Select contabilidad_partida.CodigoPartida, contabilidad_partida.Fecha, ";
+                    queryString = "SELECT contabilidad_partida.CodigoPartida, contabilidad_partida.Fecha, ";
                     queryString += " contabilidad_partida.IdProveedor, contabilidad_partida.NombreProveedor ,";
                     queryString += " contabilidad_partida.SerieDocumento, contabilidad_partida.NumeroDocumento, ";
                     queryString += " contabilidad_partida.MonedaDocumento, contabilidad_partida.TipoCambio,";
                     queryString += " contabilidad_partida.Haber, contabilidad_partida.HaberQuetzales,";
                     queryString += " contabilidad_partida.TipoDocumento ";
-                    queryString += " From contabilidad_partida ";
-                    queryString += " Where contabilidad_partida.IdEmpresa =" + idEmpresa;
-                    queryString += " And UPPER(contabilidad_partida.TipoDocumento) IN ('FACTURA', 'RECIBO', 'RECIBO CORRIENTE', 'RECIBO CONTABLE', 'FORMULARIO')";
-                    queryString += " And contabilidad_partida.CodigoPartida = '" + codigoPartida + "'";
-                    queryString += " Group by CodigoPartida";
+                    queryString += " FROM contabilidad_partida ";
+                    queryString += " WHERE contabilidad_partida.IdEmpresa =" + idEmpresa;
+                    queryString += " AND UPPER(contabilidad_partida.TipoDocumento) IN ('FACTURA', 'RECIBO', 'RECIBO CORRIENTE', 'RECIBO CONTABLE', 'FORMULARIO')";
+                    queryString += " AND contabilidad_partida.CodigoPartida = '" + codigoPartida + "'";
+                    queryString += " GROUP BY CodigoPartida";
 
 System.out.println("query busqueda documentos afectados : " + queryString);
 

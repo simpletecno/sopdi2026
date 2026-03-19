@@ -28,8 +28,6 @@ public class IsrOpcionalMensualForm extends Window {
 
     UI mainUI;
 
-    ComboBox empresaCbx;
-
     DateField finDt;
 
     Statement stQuery, stQuery1;
@@ -67,6 +65,9 @@ public class IsrOpcionalMensualForm extends Window {
 
     double totalISRPorPagar = 0.00;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public IsrOpcionalMensualForm() {
         this.mainUI = UI.getCurrent();
         setResponsive(true);
@@ -82,15 +83,6 @@ public class IsrOpcionalMensualForm extends Window {
         layoutTitle.setMargin(true);
         layoutTitle.setWidth("100%");
 
-        empresaCbx = new ComboBox("EMPRESA :");
-        empresaCbx.setStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setWidth("90%");
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        llenarComboEmpresa();
-
         finDt = new DateField("FECHAS DE FACTURAS AL : ");
         finDt.setDateFormat("dd/MM/yyyy");
         Date ultimoDia = Utileria.getUltimoDiaDelMes();
@@ -101,13 +93,10 @@ public class IsrOpcionalMensualForm extends Window {
                 }
         );
 
-        Label titleLbl = new Label("ISR OPCIONAL MENSAUL");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " ISR OPCIONAL MENSAUL");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(empresaCbx);
-        layoutTitle.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
 
         layoutTitle.addComponent(finDt);
         layoutTitle.setComponentAlignment(finDt, Alignment.MIDDLE_CENTER);
@@ -124,30 +113,6 @@ public class IsrOpcionalMensualForm extends Window {
 
         fillGrids();
 
-    }
-
-    public void llenarComboEmpresa() {
-
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords1.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords1.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords1.getString("IdEmpresa"), rsRecords1.getString("Empresa"));
-            }
-
-            rsRecords1.first();
-
-            empresaCbx.select(rsRecords1.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void createGridDetails() {
@@ -356,7 +321,7 @@ public class IsrOpcionalMensualForm extends Window {
 
             queryString = "SELECT CodigoCC, IdNomenclatura, Fecha, SerieDocumento, NumeroDocumento, NombreProveedor, TipoDocumento ";
             queryString += " FROM contabilidad_partida";
-            queryString += " WHERE  IdEmpresa = " + empresaCbx.getValue();
+            queryString += " WHERE  IdEmpresa = " + empresaId;
             queryString += " AND Extract(YEAR_MONTH FROM Fecha) >= 202001";
             queryString += " AND Fecha <= '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue())  + "'";
             queryString += " AND IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getIsrOpcionalMensualPorPagar();
@@ -377,7 +342,7 @@ public class IsrOpcionalMensualForm extends Window {
                     queryString = " SELECT ";
                     queryString += " SUM(DEBE) TOTALDEBE, SUM(DEBEQuetzales) TOTALDEBEQ, SUM(HABER) TOTALHABER, SUM(HABERQuetzales) TOTALHABERQ ";
                     queryString += " FROM contabilidad_partida";
-                    queryString += " WHERE IdEmpresa = " + empresaCbx.getValue();
+                    queryString += " WHERE IdEmpresa = " + empresaId;
                     queryString += " AND CodigoCC = '" + rsRecords.getString("CodigoCC") + "'";
                     queryString += " AND contabilidad_partida.IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
                     queryString += " AND Estatus <> 'ANULADO'";
@@ -450,12 +415,12 @@ public class IsrOpcionalMensualForm extends Window {
 
     public void insertPartidas() {
 
-        if (((SopdiUI) UI.getCurrent()).esMesCerrado(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(new Date()))) {
+        if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresaId, Utileria.getFechaYYYYMMDD_1(new Date()))) {
             Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
             return;
         }
-        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(new Date()))) {
-            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(String.valueOf(empresaCbx.getValue())), Notification.Type.WARNING_MESSAGE);
+        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(empresaId, Utileria.getFechaYYYYMMDD_1(new Date()))) {
+            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(empresaId), Notification.Type.WARNING_MESSAGE);
             return;
         }
         if (this.serieTxt.getValue().trim().isEmpty()) {
@@ -480,11 +445,11 @@ public class IsrOpcionalMensualForm extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        String codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "1";
+        String codigoPartida = empresaId + año + mes + dia + "1";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + codigoPartida + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = " SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida LIKE '" + codigoPartida + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -505,12 +470,12 @@ public class IsrOpcionalMensualForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Select * from contabilidad_partida";
-        queryString += " Where SerieDocumento  = '" + serieTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " And NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " And IdEmpresa = " + String.valueOf(empresaCbx.getValue());
-        queryString += " And TipoDocumento = 'FORMULARIO ISR OPCIONAL MENSUAL'";
-        queryString += " And MonedaDocumento = 'QUETZALES'";
+        queryString = " SELECT * FROM contabilidad_partida";
+        queryString += " WHERE SerieDocumento  = '" + serieTxt.getValue().toUpperCase().trim() + "'";
+        queryString += " AND NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND TipoDocumento = 'FORMULARIO ISR OPCIONAL MENSUAL'";
+        queryString += " AND MonedaDocumento = 'QUETZALES'";
 
         try {
             rsRecords = stQuery.executeQuery(queryString);
@@ -525,12 +490,12 @@ public class IsrOpcionalMensualForm extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into proveedor_cuentacorriente (IdEmpresa,IdProveedor, Fecha, ";
+        queryString = " INSERT INTO proveedor_cuentacorriente (IdEmpresa,IdProveedor, Fecha, ";
         queryString += " TipoDocumento, SerieDocumento, NumeroDocumento, MonedaDocumento, ";
         queryString += " Monto, MontoQuetzales, TipoCambio, ";
         queryString += " IdUsuarioAutorizoPago,CreadoFechayHora,CreadoUsuario)";
-        queryString += " Values(";
-        queryString += empresaCbx.getValue();
+        queryString += " VALUES(";
+        queryString += empresaId;
         queryString += "," + ((SopdiUI)mainUI).proveedoresInstitucionales.getSat(); //SAT
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaFormularioDt.getValue()) + "'";
         queryString += ",'FORMULARIO ISR OPCIONAL MENSUAL'";
@@ -554,14 +519,14 @@ public class IsrOpcionalMensualForm extends Window {
         }
 
         /// Ingreso del haber o el debe
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
+        queryString = " INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
         queryString += " TipoDocumento, Fecha, IdOrdenCompra, IdProveedor, NITProveedor, NombreProveedor,";
         queryString += " SerieDocumento, NumeroDocumento, IdNomenclatura, MonedaDocumento, MontoDocumento, Debe, Haber,";
         queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, Saldo, IdLiquidador, Descripcion, Referencia,";
         queryString += " CreadoUsuario, CreadoFechaYHora, Archivo, ArchivoTipo, ArchivoPeso, ArchivoNombre)";
         queryString += " Values ";
         queryString += " (";
-        queryString += empresaCbx.getValue();
+        queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'"; //codigoCC
@@ -598,7 +563,7 @@ public class IsrOpcionalMensualForm extends Window {
         for (Object itemId : isrRetenidoContainer.getItemIds()) {
             if(isrRetenidoDetailGrid.isSelected(itemId)) {
                 queryString += ",(";
-                queryString += empresaCbx.getValue();
+                queryString += empresaId;
                 queryString += ",'INGRESADO'";
                 queryString += ",'" + codigoPartida + "'";
                 queryString += ",'" + isrRetenidoContainer.getContainerProperty(itemId, CODIGO_PROPERTY).getValue().toString() + "'"; //codigoCC
@@ -635,7 +600,7 @@ public class IsrOpcionalMensualForm extends Window {
         // multa
         if(multaTxt.getDoubleValueDoNotThrow() > 0) {
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoPartida + "'"; //codigoCC
@@ -671,7 +636,7 @@ public class IsrOpcionalMensualForm extends Window {
         //SI HAY DIFERENCIA POR MONTO SEGUN LA SAT
         if(montoTxt.getDoubleValueDoNotThrow() != totalISRPorPagar) {
             queryString += ",(";
-            queryString += empresaCbx.getValue();
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoPartida + "'"; //codigoCC
@@ -729,12 +694,12 @@ public class IsrOpcionalMensualForm extends Window {
             if (multaTxt.getDoubleValueDoNotThrow() > 0 && multaTxt.getValue() != null) {
 
                 queryString = " UPDATE contabilidad_partida ";
-                queryString += " Set MontoDocumento = " + (montoTxt.getDoubleValueDoNotThrow() + multaTxt.getDoubleValueDoNotThrow());
+                queryString += " SET MontoDocumento = " + (montoTxt.getDoubleValueDoNotThrow() + multaTxt.getDoubleValueDoNotThrow());
                 queryString += " , Haber = " + (montoTxt.getDoubleValueDoNotThrow() + multaTxt.getDoubleValueDoNotThrow());
                 queryString += " , HaberQuetzales = " + (montoTxt.getDoubleValueDoNotThrow() + multaTxt.getDoubleValueDoNotThrow());
                 queryString += " WHERE codigoPartida = '" + codigoPartida + "'";
                 queryString += " AND IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getInstituciones();
-                queryString += " AND IdEmpresa = " + empresaCbx.getValue();
+                queryString += " AND IdEmpresa = " + empresaId;
 
                 stQuery.executeUpdate(queryString);
             }
@@ -767,7 +732,7 @@ public class IsrOpcionalMensualForm extends Window {
 //                stQuery.executeUpdate(queryString);
 //            }
 
-            ((IngresoDocumentosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(String.valueOf(empresaCbx.getValue()), 0);
+            ((IngresoDocumentosView) (mainUI.getNavigator().getCurrentView())).llenarTablaFactura(empresaId, 0);
 
             close();
 

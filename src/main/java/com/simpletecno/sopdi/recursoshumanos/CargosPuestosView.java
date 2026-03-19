@@ -42,6 +42,9 @@ public class CargosPuestosView  extends VerticalLayout implements View {
     Button guardarBtn;
     Button eliminarBtn;
 
+    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public CargosPuestosView(){
         this.mainUI = UI.getCurrent();
 
@@ -135,7 +138,7 @@ public class CargosPuestosView  extends VerticalLayout implements View {
     }
 
     private void crearHeader(){
-        Label titleLbl = new Label("CARGOS Y PUESTOS");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " CARGOS Y PUESTOS");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
@@ -183,7 +186,7 @@ public class CargosPuestosView  extends VerticalLayout implements View {
     private void llenarCargoGrid(){
         queryString = "SELECT ec.*, COUNT(p.IDProveedor) Cuenta ";
         queryString += "FROM empleado_cargo ec ";
-        queryString += "LEFT JOIN proveedor p On ec.Cargo = p.Cargo ";
+        queryString += "LEFT JOIN proveedor_empresa p On ec.Cargo = p.Cargo ";
         queryString += "AND ec.IdEmpresa = p.IdEmpresa ";
         queryString += "WHERE ec.IdEmpresa = " + ((SopdiUI)mainUI).sessionInformation.getStrAccountingCompanyId() + " ";
         queryString += "GROUP BY ec.Cargo";

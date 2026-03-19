@@ -40,7 +40,6 @@ public class EmpleadoAsistenciaPDF extends Window {
     static final DecimalFormat df1 = new DecimalFormat("###,##0.00");
 
     String fileName;
-    String queryString;
     String grupoId;
     String grupoNombre;
     String grupoJefe;
@@ -105,66 +104,6 @@ public class EmpleadoAsistenciaPDF extends Window {
             enviarReporteBtn.addClickListener((event) -> {
                 Notification.show("NO DISPONIBLE EN ESTA VERSION", Notification.Type.WARNING_MESSAGE);
 
-//                try {
-
-//                    Thread.sleep(5000);
-//                    int contador = 0;
-//                    if (!participantesContainer.getItem(1).getItemProperty("Email").getValue().equals("")) {
-//                        contador += 1;
-//                    }
-//                    if (!participantesContainer.getItem(2).getItemProperty("Email").getValue().equals("")) {
-//                        contador += 1;
-//                    }
-//                    if (!participantesContainer.getItem(3).getItemProperty("Email").getValue().equals("")) {
-//                        contador += 1;
-//                    }
-//                    if (!participantesContainer.getItem(4).getItemProperty("Email").getValue().equals("")) {
-//                        contador += 1;
-//                    }
-//                    if (!participantesContainer.getItem(5).getItemProperty("Email").getValue().equals("")) {
-//                        contador += 1;
-//                    }
-//                    if (!participantesContainer.getItem(6).getItemProperty("Email").getValue().equals("")) {
-//                        contador += 1;
-//                    }
-//                    if (!participantesContainer.getItem(7).getItemProperty("Email").getValue().equals("")) {
-//                        contador += 1;
-//                    }
-//
-//                    String emailsTo[] = new String[contador];
-//
-//                    emailsTo[0] = String.valueOf(participantesContainer.getItem(1).getItemProperty("Email").getValue());
-//
-//                    if (!participantesContainer.getItem(2).getItemProperty("Email").getValue().equals("")) {
-//                        emailsTo[1] = String.valueOf(participantesContainer.getItem(2).getItemProperty("Email").getValue());
-//                    }
-//                    if (!participantesContainer.getItem(3).getItemProperty("Email").getValue().equals("")) {
-//                        emailsTo[2] = String.valueOf(participantesContainer.getItem(3).getItemProperty("Email").getValue());
-//                    }
-//                    if (!participantesContainer.getItem(4).getItemProperty("Email").getValue().equals("")) {
-//                        emailsTo[3] = String.valueOf(participantesContainer.getItem(4).getItemProperty("Email").getValue());
-//                    }
-//                    if (!participantesContainer.getItem(5).getItemProperty("Email").getValue().equals("")) {
-//                        emailsTo[4] = String.valueOf(participantesContainer.getItem(5).getItemProperty("Email").getValue());
-//                    }
-//                    if (!participantesContainer.getItem(6).getItemProperty("Email").getValue().equals("")) {
-//                        emailsTo[5] = String.valueOf(participantesContainer.getItem(6).getItemProperty("Email").getValue());
-//                    }
-//                    if (!participantesContainer.getItem(7).getItemProperty("Email").getValue().equals("")) {
-//                        emailsTo[6] = String.valueOf(participantesContainer.getItem(7).getItemProperty("Email").getValue());
-//                    }
-//
-//                    MyEmailMessanger eMail = new MyEmailMessanger();
-//
-//                    eMail.postMail(emailsTo, "Sistema SOPDI-NISA", "\nEstimados, adjunto el reporte de visita/reunión.\n\nGenerado automáticamente por Sistema SOPDI-NISA\n", fileName);
-//
-//                } catch (InterruptedException ex) {
-//                    ex.printStackTrace();
-//                    Logger.getLogger(ProgramaTrabajoIdexPDF.class.getName()).log(Level.SEVERE, null, ex);
-//                } catch (MessagingException ex) {
-//                    ex.printStackTrace();
-//                    Logger.getLogger(ProgramaTrabajoIdexPDF.class.getName()).log(Level.SEVERE, null, ex);
-//                }
             });
             //file.delete();
 
