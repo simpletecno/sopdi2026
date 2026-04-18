@@ -1,0 +1,161 @@
+// =============================================================================
+// AutorizarPagosCorrientesView – Dark / Light theme toggle
+// =============================================================================
+// El modo oscuro se activa añadiendo el style name "apc-dark" al VerticalLayout
+// raíz de AutorizarPagosCorrientesView. Vaadin lo convierte en la clase CSS:
+//   .v-verticallayout-apc-dark
+//
+// Los estilos de modo claro son los del tema general; este archivo sólo
+// define las sobreescrituras para modo oscuro y los estilos del botón toggle.
+// =============================================================================
+
+// ── Botón toggle (visible en ambos modos) ────────────────────────────────────
+.v-button-apc-theme-toggle {
+    border-radius: 20px !important;
+    padding: 0 14px !important;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+    background: #f0f6ff !important;
+    color: #1f3a5f !important;
+    border-color: #1f6feb !important;
+
+    .v-icon {
+        color: #f6a800 !important;
+    }
+
+    &:hover {
+        background: #1f6feb !important;
+        color: #ffffff !important;
+        border-color: #1f6feb !important;
+
+        .v-icon {
+            color: #ffffff !important;
+        }
+    }
+}
+
+// ── Transición suave en el contenedor raíz ───────────────────────────────────
+.v-verticallayout-apc-view {
+    transition: background-color 0.3s ease;
+}
+
+// ── MODO OSCURO ──────────────────────────────────────────────────────────────
+.v-verticallayout-apc-dark {
+    background-color: #0d1117 !important;
+
+    // ── Labels ──────────────────────────────────────────────────────────────
+    .v-label {
+        color: #c9d1d9 !important;
+    }
+
+    // ── Grids ───────────────────────────────────────────────────────────────
+    .v-grid {
+        background: #161b22 !important;
+        border-color: #30363d !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.50) !important;
+        border-radius: 14px !important;
+    }
+
+    .v-grid-header .v-grid-cell,
+    .v-grid-footer .v-grid-cell {
+        background: #21262d !important;
+        color: #79c0ff !important;
+        border-color: #30363d !important;
+        font-weight: 700;
+        line-height: 40px;
+    }
+
+    .v-grid-body .v-grid-cell {
+        background: #161b22 !important;
+        color: #c9d1d9 !important;
+        border-color: #21262d !important;
+    }
+
+    .v-grid-row:nth-child(even) .v-grid-cell {
+        background: #1c2128 !important;
+    }
+
+    .v-grid-row:hover .v-grid-cell,
+    .v-grid-row-focused .v-grid-cell {
+        background: #1f2d3d !important;
+    }
+
+    .v-grid-row-selected .v-grid-cell {
+        background: #1f6feb !important;
+        color: #ffffff !important;
+        font-weight: 600;
+    }
+
+    // ── Botones nativos dentro del grid (ButtonRenderer) ────────────────────
+    .v-grid .v-nativebutton {
+        color: #58a6ff !important;
+        background: transparent !important;
+    }
+
+    .v-grid .v-nativebutton:hover {
+        background: rgba(88, 166, 255, 0.15) !important;
+        box-shadow: 0 4px 12px rgba(88, 166, 255, 0.20) !important;
+        color: #79c0ff !important;
+    }
+
+    // ── Botones Vaadin ───────────────────────────────────────────────────────
+    .v-button {
+        background: #21262d !important;
+        color: #c9d1d9 !important;
+        border-color: #30363d !important;
+    }
+
+    .v-button:hover {
+        background: #30363d !important;
+        color: #ffffff !important;
+    }
+
+    .v-button-primary {
+        background: #1f6feb !important;
+        color: #ffffff !important;
+        border-color: #1f6feb !important;
+    }
+
+    .v-button-primary:hover {
+        background: #388bfd !important;
+        border-color: #388bfd !important;
+    }
+
+    // ── Campos de texto / filtros ────────────────────────────────────────────
+    .v-textfield,
+    .v-filterselect,
+    .v-datefield-textfield,
+    .v-textarea {
+        background: #21262d !important;
+        color: #c9d1d9 !important;
+        border-color: #30363d !important;
+    }
+
+    .v-textfield:focus,
+    .v-filterselect:focus {
+        border-color: #58a6ff !important;
+        box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.30) !important;
+    }
+
+    // ── Botón toggle en modo oscuro ──────────────────────────────────────────
+    .v-button-apc-theme-toggle {
+        background: #21262d !important;
+        color: #f0c27f !important;
+        border-color: #f0c27f !important;
+
+        .v-icon {
+            color: #f0c27f !important;
+        }
+
+        &:hover {
+            background: #f0c27f !important;
+            color: #0d1117 !important;
+            border-color: #f0c27f !important;
+
+            .v-icon {
+                color: #0d1117 !important;
+            }
+        }
+    }
+}
