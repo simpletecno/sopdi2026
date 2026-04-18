@@ -155,26 +155,28 @@ public class OrdenCompraForm extends Window {
         titleLayout.setWidth("100%");
 
         if(idOrdenCompra.trim().isEmpty()) {
-            titleLbl = new Label(empresaId  + " " + empresaNombre + " NUEVA ORDEN DE COMPRA");
+//            titleLbl = new Label(empresaId  + " " + empresaNombre + " NUEVA ORDEN DE COMPRA");
+            setCaption(empresaId  + " " + empresaNombre + " NUEVA ORDEN DE COMPRA");
         }
         else {
-            titleLbl = new Label(empresaId  + " " + empresaNombre + " EDITAR ORDEN DE COMPRA : " + idOrdenCompra);
+//            titleLbl = new Label(empresaId  + " " + empresaNombre + " EDITAR ORDEN DE COMPRA : " + idOrdenCompra);
+            setCaption(empresaId  + " " + empresaNombre + " EDITAR ORDEN DE COMPRA : " + idOrdenCompra);
         }
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName(Runo.LABEL_H2);
-        titleLbl.setContentMode(ContentMode.HTML);
-        titleLbl.setImmediate(true);
+//        titleLbl.setSizeUndefined();
+//        titleLbl.addStyleName(ValoTheme.LABEL_H3);
+//        titleLbl.setContentMode(ContentMode.HTML);
+//        titleLbl.setImmediate(true);
 
-        titleLayout.addComponent(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.BOTTOM_CENTER);
+//        titleLayout.addComponent(titleLbl);
+//        titleLayout.setComponentAlignment(titleLbl, Alignment.BOTTOM_CENTER);
 
-        contentLayout.addComponent(titleLayout);
-        contentLayout.setComponentAlignment(titleLayout, Alignment.BOTTOM_CENTER);
+//        contentLayout.addComponent(titleLayout);
+//        contentLayout.setComponentAlignment(titleLayout, Alignment.BOTTOM_CENTER);
 
         mainForm = new HorizontalLayout();
         mainForm.setWidth("100%");
-        mainForm.setMargin(true);
-        mainForm.setSpacing(false);
+        mainForm.setMargin(false);
+        mainForm.setSpacing(true);
 
         contentLayout.addComponent(mainForm);
 
@@ -344,7 +346,7 @@ public class OrdenCompraForm extends Window {
         direccionTxt.setDescription("Dirección de entrega");
         direccionTxt.setWidth("100%");
         direccionTxt.setValue("");
- //       direccionTxt.setValue("Blv. Acatán 30-98 zona 16, Residencial Siena San Isidro"); //((SopdiUI)UI.getCurrent()).sessionInformation.getStrAccountingCompanyDirection();
+        //       direccionTxt.setValue("Blv. Acatán 30-98 zona 16, Residencial Siena San Isidro"); //((SopdiUI)UI.getCurrent()).sessionInformation.getStrAccountingCompanyDirection();
 
         referenciaEtregaTxt = new TextField();
         referenciaEtregaTxt.setInputPrompt("Referencia de entrega");
@@ -469,9 +471,9 @@ public class OrdenCompraForm extends Window {
         anticipoTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
 
         Label porcentajeToleranciaLbl = new Label("% Tolerancia");
-            porcentajeToleranciaLbl.setWidth("100%");
-            porcentajeToleranciaLbl.setImmediate(true);
-            porcentajeToleranciaLbl.setDescription("Porcentaje tolerancia desviación");
+        porcentajeToleranciaLbl.setWidth("100%");
+        porcentajeToleranciaLbl.setImmediate(true);
+        porcentajeToleranciaLbl.setDescription("Porcentaje tolerancia desviación");
         porcentajeToleranciaTxt = new NumberField();
         porcentajeToleranciaTxt.setInputPrompt("Porcentaje tolerancia desviación");
         porcentajeToleranciaTxt.setDescription("Porcentaje tolerancia desviación");
@@ -505,7 +507,7 @@ public class OrdenCompraForm extends Window {
         razonTxt.setWidth("100%");
         razonTxt.setValue("");
 
-        gridLayout. addComponent(tipoOrdenCompraCbx);
+        gridLayout.addComponent(tipoOrdenCompraCbx);
         gridLayout.addComponent(proveedorCbx);
         gridLayout.addComponents(anticipoProveedorLayout);
         gridLayout.addComponent(responsableTxt);
@@ -540,7 +542,7 @@ public class OrdenCompraForm extends Window {
         idccGrid.setWidth("100%");
         idccGrid.setDescription("Seleccione uno o varios registros.");
         idccGrid.setHeightMode(HeightMode.ROW);
-        idccGrid.setHeightByRows(12);
+        idccGrid.setHeightByRows(10);
         idccGrid.setImmediate(true);
         idccGrid.setSelectionMode(Grid.SelectionMode.MULTI);
         idccGrid.getColumn(ID_PROPERTY).setHidden(true).setHidable(true);
@@ -558,7 +560,7 @@ public class OrdenCompraForm extends Window {
 
         idccGrid.setCellStyleGenerator((Grid.CellReference cellReference) -> {
             if (TOTAL_PROPERTY.equals(cellReference.getPropertyId())) {
-                    return "rightalign";
+                return "rightalign";
             } else {
                 return null;
             }
@@ -660,7 +662,8 @@ public class OrdenCompraForm extends Window {
 
         salirBtn = new Button("Salir");
         salirBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-        salirBtn.setIcon(FontAwesome.ARROW_RIGHT);
+        salirBtn.addStyleName("{font:color=red}");
+        salirBtn.setIcon(FontAwesome.ARROW_LEFT);
         salirBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -868,8 +871,8 @@ public class OrdenCompraForm extends Window {
                 } while (rsRecords.next());
             }
             else {
-               Notification.show("No tiene permisos para editar este tipo de ordenes de compra. Por favor revise los permisos de usaurio y tipos de ordendes de compra.", Notification.Type.WARNING_MESSAGE);
-               close();
+                Notification.show("No tiene permisos para editar este tipo de ordenes de compra. Por favor revise los permisos de usaurio y tipos de ordendes de compra.", Notification.Type.WARNING_MESSAGE);
+                close();
             }
 
         } catch (Exception ex1) {
@@ -978,7 +981,7 @@ public class OrdenCompraForm extends Window {
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "tipoOrdenCompraCbx.getValue()=" + tipoOrdenCompraCbx.getValue());
 
         if((tipoOrdenCompraCbx.getValue().equals("1")) || (tipoOrdenCompraCbx.getValue().equals("2"))) {// ESTIMACION O COMPRA PARCIAL
-                buscarDIC();
+            buscarDIC();
         } else buscarCC();
 
     }
@@ -1055,9 +1058,9 @@ public class OrdenCompraForm extends Window {
 
                 do {
                     if(   (rsRecords.getDouble("TotalTotal") > 0)
-                       && (rsRecords.getDouble("TotalTotal") - getSaldo(
-                                rsRecords.getString("Idex"),
-                                rsRecords.getString("IdCC")) > 0)
+                            && (rsRecords.getDouble("TotalTotal") - getSaldo(
+                            rsRecords.getString("Idex"),
+                            rsRecords.getString("IdCC")) > 0)
                     ) {
 
                         Object itemId = idccContainer.addItem();
@@ -1067,12 +1070,12 @@ public class OrdenCompraForm extends Window {
                         idccContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).setValue(rsRecords.getString("IdexDescripcion"));
 
 //comentado el 18/11/2025 JA  if( tipoOrdenCompraCbx.getValue().equals("2") ) { // compra parcial
-                            idccContainer.getContainerProperty(itemId, CUENTA_PROPERTY).setValue(rsRecords.getString("NoCuenta"));
-                            idccContainer.getContainerProperty(itemId, DESCRIPCION_CUENTA_PROPERTY).setValue(rsRecords.getString("DescripcionCuenta"));
-                            idccContainer.getContainerProperty(itemId, PROJECT_PROPERTY).setValue(rsRecords.getString("Numero"));
-                            idccContainer.getContainerProperty(itemId, AREA_PROPERTY).setValue(rsRecords.getString("IdArea"));
-                            idccContainer.getContainerProperty(itemId, CANTIDAD_PROPERTY).setValue(rsRecords.getString("Cantidad"));
-                            idccContainer.getContainerProperty(itemId, PRECIO_PROPERTY).setValue(numberFormat.format(rsRecords.getDouble("Precio")));
+                        idccContainer.getContainerProperty(itemId, CUENTA_PROPERTY).setValue(rsRecords.getString("NoCuenta"));
+                        idccContainer.getContainerProperty(itemId, DESCRIPCION_CUENTA_PROPERTY).setValue(rsRecords.getString("DescripcionCuenta"));
+                        idccContainer.getContainerProperty(itemId, PROJECT_PROPERTY).setValue(rsRecords.getString("Numero"));
+                        idccContainer.getContainerProperty(itemId, AREA_PROPERTY).setValue(rsRecords.getString("IdArea"));
+                        idccContainer.getContainerProperty(itemId, CANTIDAD_PROPERTY).setValue(rsRecords.getString("Cantidad"));
+                        idccContainer.getContainerProperty(itemId, PRECIO_PROPERTY).setValue(numberFormat.format(rsRecords.getDouble("Precio")));
 //comentado el 18/11/2025 JA                        }
                         idccContainer.getContainerProperty(itemId, TOTAL_PROPERTY).setValue(numberFormat.format(rsRecords.getDouble("TotalTotal")));
                         idccContainer.getContainerProperty(itemId, TOTALSF_PROPERTY).setValue(rsRecords.getString("TotalTotal"));
@@ -1090,13 +1093,13 @@ public class OrdenCompraForm extends Window {
 
     private void selectGrid() {
         /**
-        queryString = " SELECT ODD.Idcc, ODD.Idex, ODD.NoCuenta, PIDX.Descripcion";
-        queryString += " FROM orden_compra_detalle ODD";
-        queryString += " INNER JOIN project_tarea PIDX ON PIDX.IDEX = ODD.IDEX";
-        queryString += " INNER JOIN project On project.Numero = PIDX.IdProject And project.Estatus = 'ACTIVO'";
-        queryString += " WHERE ODD.IdOrdenCompra = " + idOrdenCompra;
-        queryString += " GROUP BY ODD.Idcc, ODD.Idex, ODD.NoCuenta, PIDX.Descripcion";
-        **/
+         queryString = " SELECT ODD.Idcc, ODD.Idex, ODD.NoCuenta, PIDX.Descripcion";
+         queryString += " FROM orden_compra_detalle ODD";
+         queryString += " INNER JOIN project_tarea PIDX ON PIDX.IDEX = ODD.IDEX";
+         queryString += " INNER JOIN project On project.Numero = PIDX.IdProject And project.Estatus = 'ACTIVO'";
+         queryString += " WHERE ODD.IdOrdenCompra = " + idOrdenCompra;
+         queryString += " GROUP BY ODD.Idcc, ODD.Idex, ODD.NoCuenta, PIDX.Descripcion";
+         **/
 
         queryString = " SELECT * ";
         queryString += " FROM orden_compra_detalle";
@@ -1123,12 +1126,12 @@ public class OrdenCompraForm extends Window {
                     for (Object itemId : idccContainer.getItemIds()) {
                         Item item = idccContainer.getItem(itemId);
 
-                            if (item.getItemProperty(IDCC_PROPERTY).getValue().equals(rsRecords.getString("Idcc"))
-                                    && item.getItemProperty(IDEX_PROPERTY).getValue().equals(rsRecords.getString("Idex"))
-                                    && item.getItemProperty(CUENTA_PROPERTY).getValue().equals(rsRecords.getString("NoCuenta"))
-                            ) {
-                                idccGrid.select(itemId);
-                            }
+                        if (item.getItemProperty(IDCC_PROPERTY).getValue().equals(rsRecords.getString("Idcc"))
+                                && item.getItemProperty(IDEX_PROPERTY).getValue().equals(rsRecords.getString("Idex"))
+                                && item.getItemProperty(CUENTA_PROPERTY).getValue().equals(rsRecords.getString("NoCuenta"))
+                        ) {
+                            idccGrid.select(itemId);
+                        }
                     } // endfor
 
                 } while (rsRecords.next());
@@ -1262,7 +1265,7 @@ public class OrdenCompraForm extends Window {
             String CENTROCOSTO) {
 
         String
-        queryString =  "SELECT SUM(DOCA.Total) TotalTotal ";
+                queryString =  "SELECT SUM(DOCA.Total) TotalTotal ";
         queryString += " FROM  DocumentosContablesAplicados DOCA";
         queryString += " INNER JOIN project ON project.Numero = DOCA.IdProject AND project.Estatus = 'ACTIVO'";
         queryString += " WHERE  DOCA.Idex     = '" + IDEX + "'";
@@ -1673,7 +1676,7 @@ public class OrdenCompraForm extends Window {
                                 tipoOrdenCompraCbx.getItemCaption(tipoOrdenCompraCbx.getValue()),
                                 (proveedorCbx.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue())),
                                 anticipoTxt.getDoubleValueDoNotThrow()
-                                );
+                        );
                 UI.getCurrent().addWindow(pdfOrdenCompra);
                 pdfOrdenCompra.center();
             } else { //eventual, recurrente

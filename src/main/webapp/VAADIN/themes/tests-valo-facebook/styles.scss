@@ -177,9 +177,15 @@
     .rcorners3 {
         border-radius: 10px;
         border: 1px solid #3943AC;
-        padding: 5px; 
+        padding: 5px;
         //    width: 200px;
-        //    height: 150px; 
+        //    height: 150px;
+    }
+
+    // Clase exclusiva para las tarjetas KPI del Dashboard.
+    .kpi-card {
+        padding: 8px 12px !important;   // padding compacto en lugar del margen interno de Vaadin
+        margin: 8px 12px 8px 0;         // separación entre tarjetas
     }
 
     .rcorners4 {
@@ -720,5 +726,8 @@
         border-radius: 10px;
         letter-spacing: .2px;
     }
+
+    // ── AutorizarPagosCorrientesView: Dark / Light toggle ──────────────────
+    @import "autorizar-pagos-dark-light";
 
 }

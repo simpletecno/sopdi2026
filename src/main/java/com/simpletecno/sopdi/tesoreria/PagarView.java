@@ -570,7 +570,7 @@ public class PagarView extends VerticalLayout implements View {
 
         documentosContainer.removeAllItems();
 
-        queryString = " SELECT autorizacion_pago.*, proveedor.Nombre";
+        queryString = " SELECT autorizacion_pago.*, proveedor_empresa.Nombre";
         queryString += " FROM autorizacion_pago ";
         queryString += " INNER JOIN  proveedor_empresa ON autorizacion_pago.idProveedor = proveedor_empresa.idProveedor";
         queryString += " AND autorizacion_pago.IdEmpresa = " + empresaId;

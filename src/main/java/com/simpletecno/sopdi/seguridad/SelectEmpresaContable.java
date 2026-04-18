@@ -21,138 +21,311 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * Ventana de selección de Empresa Contable y Proyecto.
+ * UI modernizada: layout centrado, estilos CSS personalizados.
  *
  * @author user
  */
 public class SelectEmpresaContable extends Window {
 
-    VerticalLayout mainLayout = new VerticalLayout();
-
-    static final String LOGO_PROPERTY = "Logo";
-    static final String ID_PROPERTY = "Id";
-    static final String NOMBRE_PROPERTY = "Nombre";
+    // ── Constantes de columnas ───────────────────────────────────────────────
+    static final String LOGO_PROPERTY         = "Logo";
+    static final String ID_PROPERTY           = "Id";
+    static final String NOMBRE_PROPERTY       = "Nombre";
     static final String NOMBRE_CORTO_PROPERTY = "Nombre corto";
-    static final String NIT_PROPERTY = "NIT";
-    static final String REGIMEN_PROPERTY = "REGIMEN";
+    static final String NIT_PROPERTY          = "NIT";
+    static final String REGIMEN_PROPERTY      = "REGIMEN";
     static final String ULTIMA_LIQUI_PROPERTY = "Ultima Liq.";
 
-    Table empresasTable = new Table("Empresas");
-    Table proyectosTable = new Table("Proyectos");
+    // ── Componentes principales ──────────────────────────────────────────────
+    /** Layout raíz: ocupa todo el Window y centra el panel interior. */
+    VerticalLayout rootLayout  = new VerticalLayout();
 
-    UI mainUI;
+    /** Panel interior con ancho fijo (70 %) que contiene todo el contenido. */
+    VerticalLayout mainLayout  = new VerticalLayout();
+
+    Table empresasTable  = new Table("");
+    Table proyectosTable = new Table("");
+
+    UI     mainUI;
     Statement stQuery;
     ResultSet rsRecords;
-    String queryString;
-    Button selectBtn;
-    Button exitBtn;
+    String    queryString;
+    Button    selectBtn;
+    Button    exitBtn;
 
+    // ────────────────────────────────────────────────────────────────────────
     public SelectEmpresaContable() {
         this.mainUI = UI.getCurrent();
 
-        setResponsive(true);
-        setWidth("50%");
-        setHeight("60%");
+        setSizeFull();
+        setModal(true);
+        setResizable(false);
+        setDraggable(false);
+        // Eliminar la barra de título del Window para una apariencia más limpia
+        setCaption(null);
 
-        Label titleLbl = new Label("Empresas contables");
-        titleLbl.addStyleName(ValoTheme.LABEL_H1);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
+        // ── CSS inyectado una sola vez por sesión ────────────────────────────
+        injectStyles();
 
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setMargin(false);
-        titleLayout.setSpacing(true);
+        // ── rootLayout: wrapper que centra mainLayout ────────────────────────
+        rootLayout.setSizeFull();
+        rootLayout.setMargin(false);
+        rootLayout.setSpacing(false);
+        rootLayout.addStyleName("sec-root");
 
-        titleLayout.setWidth("100%");
-
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_LEFT);
-
-        mainLayout.setMargin(true);
+        // ── mainLayout: el "card" central ────────────────────────────────────
+        mainLayout.setWidth("680px");        // ancho fijo, se ve bien en cualquier resolución
+        mainLayout.setHeightUndefined();     // altura se adapta al contenido
+        mainLayout.setMargin(new MarginInfo(true, true, true, true));
         mainLayout.setSpacing(true);
+        mainLayout.addStyleName("sec-card");
 
-        mainLayout.addComponent(titleLayout);
-        mainLayout.setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
+        // ── Título / encabezado ──────────────────────────────────────────────
+        buildHeader();
 
-        Responsive.makeResponsive(this);
-
+        // ── Tablas ──────────────────────────────────────────────────────────
         createTablaEmpresas();
         llenarTablaEmpresas();
 
         crearTableProyectos();
         llenarTablaProyectos();
 
+        // ── Botones ──────────────────────────────────────────────────────────
         crearBotones();
 
-        setContent(mainLayout);
+        // ── Ensamblar: centrar mainLayout dentro de rootLayout ───────────────
+        rootLayout.addComponent(mainLayout);
+        rootLayout.setComponentAlignment(mainLayout, Alignment.MIDDLE_CENTER);
 
-        setSizeUndefined();
+        setContent(rootLayout);
     }
 
+    // ── Estilos CSS ──────────────────────────────────────────────────────────
+    private void injectStyles() {
+        // Vaadin 7: se usa Page.getCurrent().getStyles() para inyectar CSS global.
+        Page.getCurrent().getStyles().add(
+                /* Fondo semitransparente sobre el overlay del modal */
+                ".sec-root {" +
+                        "  background: transparent;" +
+                        "}" +
+
+                        /* Card central con sombra y bordes redondeados */
+                        ".sec-card {" +
+                        "  background: #ffffff;" +
+                        "  border-radius: 12px;" +
+                        "  box-shadow: 0 8px 40px rgba(0,0,0,0.18);" +
+                        "  padding: 32px !important;" +
+                        "}" +
+
+                        /* Encabezado */
+                        ".sec-header {" +
+                        "  border-bottom: 2px solid #1976D2;" +
+                        "  padding-bottom: 12px;" +
+                        "  margin-bottom: 8px;" +
+                        "  width: 100%;" +
+                        "}" +
+
+                        /* Ícono decorativo del encabezado */
+                        ".sec-icon {" +
+                        "  font-size: 32px;" +
+                        "  color: #1976D2;" +
+                        "  line-height: 1;" +
+                        "}" +
+
+                        /* Título principal */
+                        ".sec-title {" +
+                        "  color: #1565C0;" +
+                        "  font-size: 20px !important;" +
+                        "  font-weight: 700 !important;" +
+                        "  margin: 0 !important;" +
+                        "  line-height: 1.2 !important;" +
+                        "}" +
+
+                        /* Sub-texto bajo el título */
+                        ".sec-subtitle {" +
+                        "  color: #607D8B;" +
+                        "  font-size: 13px !important;" +
+                        "  margin: 2px 0 0 0 !important;" +
+                        "}" +
+
+                        /* Etiqueta de sección (encima de cada tabla) */
+                        ".sec-section-label {" +
+                        "  color: #1976D2;" +
+                        "  font-size: 12px !important;" +
+                        "  font-weight: 600 !important;" +
+                        "  letter-spacing: 0.08em;" +
+                        "  text-transform: uppercase;" +
+                        "  margin-bottom: 2px !important;" +
+                        "}" +
+
+                        /* Tablas: quitar bordes extra de Valo y aplicar estilo propio */
+                        ".sec-card .v-table-body {" +
+                        "  border: 1px solid #E3E8EF !important;" +
+                        "  border-radius: 8px;" +
+                        "  overflow: hidden;" +
+                        "}" +
+                        ".sec-card .v-table-header-wrap {" +
+                        "  background: #F0F4F8 !important;" +
+                        "  border-bottom: 2px solid #BBDEFB !important;" +
+                        "}" +
+                        ".sec-card .v-table-row:hover td {" +
+                        "  background: #E3F2FD !important;" +
+                        "  cursor: pointer;" +
+                        "}" +
+                        ".sec-card .v-table-row-selected td {" +
+                        "  background: #BBDEFB !important;" +
+                        "  color: #0D47A1 !important;" +
+                        "  font-weight: 600;" +
+                        "}" +
+
+                        /* Área de botones */
+                        ".sec-btn-area {" +
+                        "  border-top: 1px solid #E3E8EF;" +
+                        "  padding-top: 16px;" +
+                        "  margin-top: 4px;" +
+                        "}" +
+
+                        /* Botón Aceptar */
+                        ".sec-btn-accept.v-button {" +
+                        "  background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%) !important;" +
+                        "  color: #ffffff !important;" +
+                        "  border: none !important;" +
+                        "  border-radius: 6px !important;" +
+                        "  font-weight: 600 !important;" +
+                        "  padding: 0 28px !important;" +
+                        "  height: 38px !important;" +
+                        "  box-shadow: 0 2px 8px rgba(25,118,210,0.35) !important;" +
+                        "  transition: box-shadow 0.2s;" +
+                        "}" +
+                        ".sec-btn-accept.v-button:hover {" +
+                        "  box-shadow: 0 4px 16px rgba(25,118,210,0.5) !important;" +
+                        "}" +
+
+                        /* Botón Salir */
+                        ".sec-btn-exit.v-button {" +
+                        "  color: #607D8B !important;" +
+                        "  border: 1px solid #CFD8DC !important;" +
+                        "  border-radius: 6px !important;" +
+                        "  background: transparent !important;" +
+                        "  height: 38px !important;" +
+                        "  padding: 0 20px !important;" +
+                        "}" +
+                        ".sec-btn-exit.v-button:hover {" +
+                        "  background: #F5F5F5 !important;" +
+                        "}"
+        );
+    }
+
+    // ── Encabezado ───────────────────────────────────────────────────────────
+    private void buildHeader() {
+        String userName = ((SopdiUI) mainUI).sessionInformation.getStrUserFullName();
+
+        // Ícono decorativo (usando un carácter Unicode — no requiere FontAwesome en el label)
+        Label iconLbl = new Label("🏢");
+        iconLbl.addStyleName("sec-icon");
+        iconLbl.setSizeUndefined();
+
+        // Nombre del usuario en el título
+        Label titleLbl = new Label("Bienvenido, " + userName);
+        titleLbl.addStyleName("sec-title");
+        titleLbl.setSizeUndefined();
+
+        Label subtitleLbl = new Label("Selecciona la empresa contable y el proyecto para continuar");
+        subtitleLbl.addStyleName("sec-subtitle");
+        subtitleLbl.setSizeUndefined();
+
+        // Columna izquierda: ícono
+        VerticalLayout iconCol = new VerticalLayout();
+        iconCol.setMargin(false);
+        iconCol.setSpacing(false);
+        iconCol.setWidthUndefined();
+        iconCol.addComponent(iconLbl);
+        iconCol.setComponentAlignment(iconLbl, Alignment.MIDDLE_CENTER);
+
+        // Columna derecha: título + subtítulo
+        VerticalLayout textCol = new VerticalLayout();
+        textCol.setMargin(false);
+        textCol.setSpacing(false);
+        textCol.addComponents(titleLbl, subtitleLbl);
+
+        HorizontalLayout headerHL = new HorizontalLayout();
+        headerHL.setSpacing(true);
+        headerHL.setMargin(false);
+        headerHL.setWidth("100%");
+        headerHL.addStyleName("sec-header");
+        headerHL.addComponents(iconCol, textCol);
+        headerHL.setComponentAlignment(iconCol, Alignment.MIDDLE_LEFT);
+        headerHL.setComponentAlignment(textCol, Alignment.MIDDLE_LEFT);
+        headerHL.setExpandRatio(textCol, 1f);
+
+        mainLayout.addComponent(headerHL);
+        mainLayout.setComponentAlignment(headerHL, Alignment.TOP_CENTER);
+    }
+
+    // ── Tabla de Empresas ────────────────────────────────────────────────────
     public void createTablaEmpresas() {
-        HorizontalLayout empresasLayout = new HorizontalLayout();
-        empresasLayout.setWidth("100%");
-        empresasLayout.addStyleName("rcorners2");
-        empresasLayout.setResponsive(true);
-        empresasLayout.setMargin(true);
+        // Etiqueta de sección
+        Label sectionLbl = new Label("Empresa contable");
+        sectionLbl.addStyleName("sec-section-label");
+        mainLayout.addComponent(sectionLbl);
 
-        empresasTable.setImmediate(true);
         empresasTable.setSelectable(true);
-
-        empresasLayout.addComponent(empresasTable);
-        empresasLayout.setComponentAlignment(empresasTable, Alignment.MIDDLE_CENTER);
-
         empresasTable.setWidth("100%");
+        empresasTable.setHeight("200px");
         empresasTable.setPageLength(5);
+        empresasTable.setImmediate(true);
 
-        empresasTable.addContainerProperty(LOGO_PROPERTY,  Image.class, null);
-        empresasTable.addContainerProperty(ID_PROPERTY,    String.class, null);
-        empresasTable.addContainerProperty(NOMBRE_PROPERTY,    String.class, null);
-        empresasTable.addContainerProperty(NOMBRE_CORTO_PROPERTY,    String.class, null);
-        empresasTable.addContainerProperty(NIT_PROPERTY, String.class, "");
-        empresasTable.addContainerProperty(REGIMEN_PROPERTY, String.class, "");
-        empresasTable.addContainerProperty(ULTIMA_LIQUI_PROPERTY, String.class, "");
+        empresasTable.addContainerProperty(LOGO_PROPERTY,         Image.class,  null);
+        empresasTable.addContainerProperty(ID_PROPERTY,           String.class, null);
+        empresasTable.addContainerProperty(NOMBRE_PROPERTY,       String.class, null);
+        empresasTable.addContainerProperty(NOMBRE_CORTO_PROPERTY, String.class, null);
+        empresasTable.addContainerProperty(NIT_PROPERTY,          String.class, "");
 
-        empresasTable.setColumnAlignments(new Table.Align[] {
-                Table.Align.CENTER, Table.Align.CENTER,Table.Align.LEFT, Table.Align.LEFT,
-                Table.Align.LEFT,   Table.Align.LEFT,  Table.Align.CENTER
-        });
+        empresasTable.setColumnAlignments(
+                Table.Align.CENTER,
+                Table.Align.CENTER,
+                Table.Align.LEFT,
+                Table.Align.LEFT,
+                Table.Align.LEFT
+        );
 
-        mainLayout.addComponent(empresasLayout);
-        mainLayout.setComponentAlignment(empresasLayout, Alignment.TOP_CENTER);
+        // Anchos de columna sugeridos
+        empresasTable.setColumnWidth(LOGO_PROPERTY, 50);
+        empresasTable.setColumnWidth(ID_PROPERTY,   50);
 
+        mainLayout.addComponent(empresasTable);
+        mainLayout.setComponentAlignment(empresasTable, Alignment.TOP_CENTER);
     }
 
     public void llenarTablaEmpresas() {
-
         Image empresaLogo;
 
         String queryString = "SELECT * ";
         queryString += "FROM contabilidad_empresa CE ";
-        queryString += "INNER JOIN usuario_permisos_empresa UPE ON UPE.IdEmpresa = CE.IdEmpresa AND UPE.IdUsuario = " + ((SopdiUI) mainUI).sessionInformation.getStrUserId() + " ";
+        queryString += "INNER JOIN usuario_permisos_empresa UPE ON UPE.IdEmpresa = CE.IdEmpresa AND UPE.IdUsuario = "
+                + ((SopdiUI) mainUI).sessionInformation.getStrUserId() + " ";
         queryString += "WHERE CE.IdEmpresa > 0 ";
 
         try {
-            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+            stQuery   = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
-            if (rsRecords.next()) { //  encontrado     
 
+            if (rsRecords.next()) {
                 int primeraEmpresa = rsRecords.getInt("IdEmpresa");
 
                 do {
-                    final byte docBytes[] = rsRecords.getBytes("Logo");
+                    final byte[] docBytes        = rsRecords.getBytes("Logo");
                     StreamResource logoStreamResource = null;
 
-                    if(docBytes != null ) {
+                    if (docBytes != null) {
                         logoStreamResource = new StreamResource(
-                                new StreamResource.StreamSource() {
-                                    public InputStream getStream() {
-                                        return new ByteArrayInputStream(docBytes);
-                                    }
-                                },rsRecords.getString("IdEmpresa")
+                                () -> new ByteArrayInputStream(docBytes),
+                                rsRecords.getString("IdEmpresa")
                         );
                     }
 
-                    empresaLogo = new Image(null,logoStreamResource);
+                    empresaLogo = new Image(null, logoStreamResource);
                     empresaLogo.setImmediate(true);
                     empresaLogo.setWidth("35px");
                     empresaLogo.setHeight("35px");
@@ -162,92 +335,79 @@ public class SelectEmpresaContable extends Window {
                             rsRecords.getString("IdEmpresa"),
                             rsRecords.getString("Empresa"),
                             rsRecords.getString("NombreCorto"),
-                            rsRecords.getString("Nit"),
-                            rsRecords.getString("Regimen"),
-                            rsRecords.getString("IdUltimaLiquidacion")
+                            rsRecords.getString("Nit")
                     }, rsRecords.getInt("IdEmpresa"));
-                    
+
                 } while (rsRecords.next());
 
-                if(empresasTable.size() == 1) { // una unica empresa se selecciona por default
+                if (empresasTable.size() == 1) {
                     empresasTable.select(primeraEmpresa);
                 }
-            }
-            else {
+            } else {
                 selectBtn.setEnabled(false);
             }
         } catch (Exception ex) {
-            System.out.println("Error al buscar tabla empresas contables :" + ex);
+            System.out.println("Error al buscar tabla empresas contables: " + ex);
             ex.printStackTrace();
             Notification.show("ERROR AL BUSCAR EMPRESAS CONTABLES.", Notification.Type.ERROR_MESSAGE);
         }
     }
 
+    // ── Tabla de Proyectos ───────────────────────────────────────────────────
     private void crearTableProyectos() {
+        // Separador visual
+        Label sep = new Label(" ");
+        sep.setHeight("4px");
+        mainLayout.addComponent(sep);
 
-        HorizontalLayout reportLayout = new HorizontalLayout();
-        reportLayout.setWidth("100%");
-        reportLayout.addStyleName("rcorners4");
+        // Etiqueta de sección
+        Label sectionLbl = new Label("Proyecto");
+        sectionLbl.addStyleName("sec-section-label");
+        mainLayout.addComponent(sectionLbl);
 
-//        proyectosTable.addStyleName(ValoTheme.TABLE_SMALL);
-//        proyectosTable.addStyleName(ValoTheme.TABLE_COMPACT);
-//        proyectosTable.addStyleName(ValoTheme.TABLE_NO_HORIZONTAL_LINES);
-        proyectosTable.setImmediate(true);
         proyectosTable.setSelectable(true);
-
-        reportLayout.addComponent(proyectosTable);
-        reportLayout.setComponentAlignment(proyectosTable, Alignment.MIDDLE_CENTER);
-
         proyectosTable.setWidth("100%");
-        proyectosTable.setPageLength(3);
+        proyectosTable.setHeight("160px");
+        proyectosTable.setPageLength(4);
+        proyectosTable.setImmediate(true);
 
-//        proyectosTable.addContainerProperty(CODIGO_PROPERTY,    String.class, null);
-        proyectosTable.addContainerProperty(LOGO_PROPERTY,      Image.class, null);
-        proyectosTable.addContainerProperty(NOMBRE_PROPERTY,    String.class, null);
+        proyectosTable.addContainerProperty(LOGO_PROPERTY,   Image.class,  null);
+        proyectosTable.addContainerProperty(NOMBRE_PROPERTY, String.class, null);
 
-        proyectosTable.setColumnAlignments(new Table.Align[] {
-                Table.Align.CENTER, Table.Align.LEFT
+        proyectosTable.setColumnAlignments(new Table.Align[]{
+                Table.Align.CENTER,
+                Table.Align.LEFT
         });
 
-        mainLayout.addComponent(reportLayout);
-        mainLayout.setComponentAlignment(reportLayout, Alignment.BOTTOM_CENTER);
+        proyectosTable.setColumnWidth(LOGO_PROPERTY, 50);
 
+        mainLayout.addComponent(proyectosTable);
+        mainLayout.setComponentAlignment(proyectosTable, Alignment.TOP_CENTER);
     }
 
     public void llenarTablaProyectos() {
-
-        String queryString = "Select Pro.*";
-        queryString += " From  proyecto_usuario ProUsr";
-        queryString += " Inner Join proyecto Pro On Pro.IdProyecto = ProUsr.IdProyecto";
-        queryString += " Where ProUsr.IdUsuario = " + ((SopdiUI)mainUI).sessionInformation.getStrUserId();
-//        queryString += " And Pro.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrCompanyId();
-//        queryString += " Order By Pro.Nombre";
-
-//System.out.println("\n\nQuery="+queryString);
+        String queryString = "SELECT Pro.*";
+        queryString += " FROM  proyecto_usuario ProUsr";
+        queryString += " INNER JOIN proyecto Pro ON Pro.IdProyecto = ProUsr.IdProyecto";
+        queryString += " WHERE ProUsr.IdUsuario = " + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
 
         try {
+            stQuery   = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection()
+                    .createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            rsRecords = stQuery.executeQuery(queryString);
 
-            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery (queryString);
-
-            if(rsRecords.next()) { //  encontrado
-
+            if (rsRecords.next()) {
                 int primerRegistro = rsRecords.getInt("IdProyecto");
-
                 Image proyectoLogo;
 
                 do {
-                    final byte docBytes[] = rsRecords.getBytes("Logo");
+                    final byte[] docBytes        = rsRecords.getBytes("Logo");
                     StreamResource logoStreamResource = null;
 
-                    if(docBytes != null ) {
+                    if (docBytes != null) {
                         logoStreamResource = new StreamResource(
-                                new StreamResource.StreamSource() {
-                                    @Override
-                                    public InputStream getStream() {
-                                        return new ByteArrayInputStream(docBytes);
-                                    }
-                                },rsRecords.getString("IdProyecto")
+                                () -> new ByteArrayInputStream(docBytes),
+                                rsRecords.getString("IdProyecto")
                         );
                     }
 
@@ -256,72 +416,69 @@ public class SelectEmpresaContable extends Window {
                     proyectoLogo.setWidth("40px");
                     proyectoLogo.setHeight("40px");
 
-                    proyectosTable.addItem(new Object[] {
-                            //                      rsRecords.getString("IdProyecto"),
+                    proyectosTable.addItem(new Object[]{
                             proyectoLogo,
                             rsRecords.getString("Nombre")
                     }, rsRecords.getInt("IdProyecto"));
 
-                }while(rsRecords.next());
+                } while (rsRecords.next());
 
-                if(proyectosTable.size() == 1) { // un unico proyecto se selecciona por default
+                if (proyectosTable.size() == 1) {
                     proyectosTable.select(primerRegistro);
                 }
-            }
-            else {
+            } else {
                 selectBtn.setEnabled(false);
             }
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             Logger.getLogger(ProjectSelectionForm.class.getName()).log(Level.SEVERE, null, ex);
-            System.out.println("Error al intentar leer registros de proyectos : " + ex.getMessage());
+            System.out.println("Error al intentar leer registros de proyectos: " + ex.getMessage());
             Notification.show("Error al intentar leer registros de proyectos..!", Notification.Type.ERROR_MESSAGE);
         }
     }
 
+    // ── Botones ──────────────────────────────────────────────────────────────
     private void crearBotones() {
+        // ── Botón Aceptar ────────────────────────────────────────────────────
         selectBtn = new Button("Aceptar");
-        selectBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
         selectBtn.setIcon(FontAwesome.CHECK);
-        selectBtn.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                if(empresasTable.getValue() != null && proyectosTable.getValue() != null) {
-                        setEmpresaYProyecto();
-                }
-                else {
-                    Notification.show("Por favor seleccione una empresa y un proyecto.", Notification.Type.WARNING_MESSAGE);
-                }
+        selectBtn.addStyleName("sec-btn-accept");
+        selectBtn.addClickListener(event -> {
+            if (empresasTable.getValue() != null && proyectosTable.getValue() != null) {
+                setEmpresaYProyecto();
+            } else {
+                Notification.show(
+                        "Por favor seleccione una empresa y un proyecto.",
+                        Notification.Type.WARNING_MESSAGE
+                );
             }
-
         });
 
-        exitBtn    = new Button("Salir");
+        // ── Botón Salir ──────────────────────────────────────────────────────
+        exitBtn = new Button("Salir");
         exitBtn.setIcon(FontAwesome.SIGN_OUT);
         exitBtn.setClickShortcut(ShortcutAction.KeyCode.ESCAPE);
-        exitBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-        exitBtn.addStyleName(ValoTheme.BUTTON_SMALL);
-        exitBtn.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick ( Button.ClickEvent event )
-            {
-                ((SopdiUI) mainUI).logOff();
-            }
-        });
+        exitBtn.addStyleName("sec-btn-exit");
+        exitBtn.addClickListener(event -> ((SopdiUI) mainUI).logOff());
 
+        // ── Layout de botones: Salir a la izquierda, Aceptar a la derecha ───
         HorizontalLayout buttonsLayout = new HorizontalLayout();
+        buttonsLayout.setWidth("100%");
         buttonsLayout.setSpacing(true);
-        buttonsLayout.addComponent(exitBtn);
-        buttonsLayout.setComponentAlignment(exitBtn, Alignment.BOTTOM_LEFT);
-        buttonsLayout.addComponent(selectBtn);
-        buttonsLayout.setComponentAlignment(selectBtn, Alignment.BOTTOM_CENTER);
+        buttonsLayout.setMargin(new MarginInfo(true, false, false, false));
+        buttonsLayout.addStyleName("sec-btn-area");
+
+        // Spacer para empujar los botones
+        Label spacer = new Label();
+        buttonsLayout.addComponents(exitBtn, spacer, selectBtn);
+        buttonsLayout.setExpandRatio(spacer, 1f);               // ← centra/empuja
+        buttonsLayout.setComponentAlignment(exitBtn,    Alignment.MIDDLE_LEFT);
+        buttonsLayout.setComponentAlignment(selectBtn,  Alignment.MIDDLE_RIGHT);
 
         mainLayout.addComponent(buttonsLayout);
         mainLayout.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
-
     }
 
+    // ── Lógica de negocio (sin cambios) ─────────────────────────────────────
     private void setEmpresaYProyecto() {
 
         queryString = "SELECT * FROM proyecto WHERE IdProyecto = " + proyectosTable.getValue();
@@ -330,30 +487,27 @@ public class SelectEmpresaContable extends Window {
             rsRecords = stQuery.executeQuery(queryString);
             rsRecords.next();
 
-            ((SopdiUI)mainUI).sessionInformation.setStrProjectId(String.valueOf(proyectosTable.getValue()));
-            ((SopdiUI)mainUI).sessionInformation.setStrProjectName(String.valueOf(proyectosTable.getContainerProperty(proyectosTable.getValue(), NOMBRE_PROPERTY).getValue()));
+            ((SopdiUI) mainUI).sessionInformation.setStrProjectId(
+                    String.valueOf(proyectosTable.getValue()));
+            ((SopdiUI) mainUI).sessionInformation.setStrProjectName(
+                    String.valueOf(proyectosTable.getContainerProperty(
+                            proyectosTable.getValue(), NOMBRE_PROPERTY).getValue()));
 
             byte[] imageBytes = rsRecords.getBytes("Logo");
-
             if (imageBytes != null) {
-                ((SopdiUI) mainUI).sessionInformation.setProjectStreamResource(new StreamResource(
-                        new StreamResource.StreamSource() {
-                            public InputStream getStream() {
-                                return new ByteArrayInputStream(imageBytes);
-                            }
-                        }, ((SopdiUI) mainUI).sessionInformation.getStrProjectId()
-                ));
-            }
-            else {
+                ((SopdiUI) mainUI).sessionInformation.setProjectStreamResource(
+                        new StreamResource(
+                                () -> new ByteArrayInputStream(imageBytes),
+                                ((SopdiUI) mainUI).sessionInformation.getStrProjectId()
+                        ));
+            } else {
                 ((SopdiUI) mainUI).sessionInformation.setProjectStreamResource(null);
             }
 
             queryString = "SELECT * FROM contabilidad_empresa WHERE idEmpresa = " + empresasTable.getValue();
-
-            rsRecords = stQuery.executeQuery(queryString);
+            rsRecords   = stQuery.executeQuery(queryString);
             rsRecords.next();
 
-            ((SopdiUI) mainUI).sessionInformation.setStrAccountingCompanyId(rsRecords.getString("IdEmpresa"));
             ((SopdiUI) mainUI).sessionInformation.setStrAccountingCompanyId(rsRecords.getString("IdEmpresa"));
             ((SopdiUI) mainUI).sessionInformation.setStrAccountingCompanyName(rsRecords.getString("Empresa"));
             ((SopdiUI) mainUI).sessionInformation.setStrAccountingCompanySmallName(rsRecords.getString("NombreCorto"));
@@ -365,8 +519,6 @@ public class SelectEmpresaContable extends Window {
             ((SopdiUI) mainUI).sessionInformation.setStrAccountingCompanyDirection(rsRecords.getString("Direccion"));
             ((SopdiUI) mainUI).sessionInformation.setStrAccountingCompanyBillingDirection(rsRecords.getString("DireccionFactura"));
             ((SopdiUI) mainUI).sessionInformation.setStrAccountingCompanyFelCodProdExento(rsRecords.getString("CodigoProductoExentoFel"));
-
-//System.out.println("AccCommpanyId=" + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + " AccCompanyName=" + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyName());
 
             Emisor emisor = new Emisor(
                     rsRecords.getString("Nit"),
@@ -390,9 +542,8 @@ public class SelectEmpresaContable extends Window {
             );
             ((SopdiUI) mainUI).sessionInformation.setInfileEmisor(emisor);
 
-            for (Iterator<Component> it = ((SopdiUI) mainUI).getMenuItemsLayout().iterator(); it.hasNext();) {
+            for (Iterator<Component> it = ((SopdiUI) mainUI).getMenuItemsLayout().iterator(); it.hasNext(); ) {
                 final Component c = it.next();
-//System.out.println(c.getClass().getName());
                 if ("com.vaadin.ui.Label".equals(c.getClass().getName())) {
                     final Label label = (Label) c;
                     if (label.getValue().contains("Contabilidad")) {
@@ -403,50 +554,49 @@ public class SelectEmpresaContable extends Window {
             }
 
             byte[] imageBytes1 = rsRecords.getBytes("Logo");
-
             if (imageBytes1 != null) {
-                ((SopdiUI) mainUI).sessionInformation.setPhotoStreamResource(new StreamResource(
-                        new StreamResource.StreamSource() {
-                            public InputStream getStream() {
-                                return new ByteArrayInputStream(imageBytes1);
-                            }
-                        }, ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId()
-                ));
-            }
-            else {
+                ((SopdiUI) mainUI).sessionInformation.setPhotoStreamResource(
+                        new StreamResource(
+                                () -> new ByteArrayInputStream(imageBytes1),
+                                ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId()
+                        ));
+            } else {
                 ((SopdiUI) mainUI).sessionInformation.setPhotoStreamResource(null);
             }
 
-        }
-        catch (Exception ex) {
-            Notification.show("ERROR AL BUSCAR DATOS DE EMPRESA : " + ex.getMessage(), Notification.Type.WARNING_MESSAGE);
+        } catch (Exception ex) {
+            Notification.show(
+                    "ERROR AL BUSCAR DATOS DE EMPRESA : " + ex.getMessage(),
+                    Notification.Type.WARNING_MESSAGE
+            );
             ex.printStackTrace();
         }
 
         ((SopdiUI) mainUI).fillCuentasContablesPorDefault();
-
         ((SopdiUI) mainUI).fillProveedoresInstitucionales();
-        generarEmpresaCuentasEquivalentes(((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId());
+        generarEmpresaCuentasEquivalentes(
+                ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId());
 
-        if(((SopdiUI) mainUI).getMenuItems().isEmpty()) {
+        if (((SopdiUI) mainUI).getMenuItems().isEmpty()) {
             ((SopdiUI) mainUI).buildMainView();
-        }
-        else {
+        } else {
             mainUI.setContent(((SopdiUI) mainUI).getAppLayout());
-            ((SopdiUI) mainUI).getUserSettingsItem().setIcon(((SopdiUI) UI.getCurrent()).sessionInformation.getPhotoStreamResource());
+            ((SopdiUI) mainUI).getUserSettingsItem().setIcon(
+                    ((SopdiUI) UI.getCurrent()).sessionInformation.getPhotoStreamResource());
         }
 
-//System.out.println(((SopdiUI) mainUI).getNavigator().getCurrentView().getClass().getName());
         if (((SopdiUI) mainUI).currentViewName != null) {
             ((SopdiUI) mainUI).getNavigator().navigateTo(((SopdiUI) mainUI).currentViewName);
         }
 
-        String empresaProyecto = "<strong>" + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyName() + "<br></strong><strong>" + ((SopdiUI) mainUI).sessionInformation.getStrProjectName() + "</strong></br>";
-
-        ((Label)((SopdiUI) mainUI).top.getComponent(0)).setValue(empresaProyecto);
+        String empresaProyecto = "<strong>"
+                + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyName()
+                + "<br></strong><strong>"
+                + ((SopdiUI) mainUI).sessionInformation.getStrProjectName()
+                + "</strong></br>";
+        ((Label) ((SopdiUI) mainUI).top.getComponent(0)).setValue(empresaProyecto);
 
         close();
-
     }
 
     private void generarEmpresaCuentasEquivalentes(String idEmpresa) {
@@ -456,26 +606,29 @@ public class SelectEmpresaContable extends Window {
         queryString += "ORDER BY IdEmpresa, IdNomenclatura, IdEmpresa_1, IdNomenclatura_1";
 
         try {
-            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+            stQuery   = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
 
-            if (rsRecords.next()) { //  encontrado
+            if (rsRecords.next()) {
                 List<Object[]> relaciones = new java.util.ArrayList<>();
                 do {
-                    Object nom = rsRecords.getObject("IdNomenclatura");
+                    Object nom  = rsRecords.getObject("IdNomenclatura");
                     Object emp1 = rsRecords.getObject("IdProveedor_1");
                     Object nom1 = rsRecords.getObject("IdNomenclatura_1");
                     relaciones.add(new Object[]{nom, emp1, nom1});
-                }
-                while (rsRecords.next());
+                } while (rsRecords.next());
+
                 EmpresaCuentasEquivalentesHelper helper = new EmpresaCuentasEquivalentesHelper(relaciones);
                 System.out.println(helper);
                 ((SopdiUI) mainUI).sessionInformation.setEmpresaCuentasEquivalentesHelper(helper);
             }
         } catch (Exception ex) {
-            System.out.println("Error al listar tabla empresas empresa_cuenta_equivalente :" + ex);
+            System.out.println("Error al listar tabla empresas empresa_cuenta_equivalente: " + ex);
             ex.printStackTrace();
-            Notification.show("ERROR AL SELECCIONAR EMPRESAS CONTABLES EQUIVALENTES.", Notification.Type.ERROR_MESSAGE);
+            Notification.show(
+                    "ERROR AL SELECCIONAR EMPRESAS CONTABLES EQUIVALENTES.",
+                    Notification.Type.ERROR_MESSAGE
+            );
         }
     }
 }

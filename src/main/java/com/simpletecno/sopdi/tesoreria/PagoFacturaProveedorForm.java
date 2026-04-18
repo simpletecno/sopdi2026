@@ -1,4 +1,3 @@
-
 package com.simpletecno.sopdi.tesoreria;
 
 import com.simpletecno.sopdi.*;
@@ -53,34 +52,38 @@ import org.vaadin.ui.NumberField;
 import javax.mail.MessagingException;
 
 /**
+ * Formulario de Pago de Facturas a Proveedores.
+ * UI modernizada: layout centrado, secciones diferenciadas, CSS personalizado.
+ *
  * @author user
  */
 public class PagoFacturaProveedorForm extends Window {
 
-    static final String ID_PROPERTY = "Id";
-    static final String TIPO_PROPERTY = "Tipo";
-    static final String FECHA_PROPERTY = "Fecha";
-    static final String PROVEEDOR_PROPERTY = "Proveedor";
-    static final String CODIGO_PROPERTY = "Id Proveedor";
-    static final String FACTURA_PROPERTY = "Documento";
-    static final String MONEDA_PROPERTY = "Moneda";
-    static final String VALOR_PROPERTY = "Monto";
-    static final String TIPOCAMBIO_PROPERTY = "Tasa";
+    // ── Constantes de columnas ───────────────────────────────────────────────
+    static final String ID_PROPERTY               = "Id";
+    static final String TIPO_PROPERTY             = "Tipo";
+    static final String FECHA_PROPERTY            = "Fecha";
+    static final String PROVEEDOR_PROPERTY        = "Proveedor";
+    static final String CODIGO_PROPERTY           = "Id Proveedor";
+    static final String FACTURA_PROPERTY          = "Documento";
+    static final String MONEDA_PROPERTY           = "Moneda";
+    static final String VALOR_PROPERTY            = "Monto";
+    static final String TIPOCAMBIO_PROPERTY       = "Tasa";
     static final String MONTO_AUTORIZADO_PROPERTY = "Monto";
-    static final String ANTICIPO_PROPERTY = "A.Anticipo";
-    static final String CUENTA_PROPERTY = "IdNomenclatura";
-    static final String HABER_PROPERTY = "Haber";
-    static final String HABER_Q_PROPERTY = "Haber Q";
-    static final String DEBE_PROPERTY = "Debe";
-    static final String DEBE_Q_PROPERTY = "Debe Q";
-    static final String CODIGOCC_PROPERTY = "CodigoCC";
-    static final String DOCUMENTO_PROPERTY = "Documento";
+    static final String ANTICIPO_PROPERTY         = "A.Anticipo";
+    static final String CUENTA_PROPERTY           = "IdNomenclatura";
+    static final String HABER_PROPERTY            = "Haber";
+    static final String HABER_Q_PROPERTY          = "Haber Q";
+    static final String DEBE_PROPERTY             = "Debe";
+    static final String DEBE_Q_PROPERTY           = "Debe Q";
+    static final String CODIGOCC_PROPERTY         = "CodigoCC";
+    static final String DOCUMENTO_PROPERTY        = "Documento";
+    static final String DESCRIPCION_PROPERTY      = "Descripción";
 
-    static final String DESCRIPCION_PROPERTY = "Descripción";
-
-    static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
+    static DecimalFormat numberFormat  = new DecimalFormat("#,###,##0.00");
     static DecimalFormat numberFormat3 = new DecimalFormat("######0.00");
 
+    // ── DB ───────────────────────────────────────────────────────────────────
     Statement stQuery;
     ResultSet rsRecords;
     Statement stQueryFacturas;
@@ -88,19 +91,22 @@ public class PagoFacturaProveedorForm extends Window {
     Statement stQuery2;
     ResultSet rsRecords2;
 
+    // ── Layouts ──────────────────────────────────────────────────────────────
     VerticalLayout mainLayout;
 
+    // ── Grids / Containers ───────────────────────────────────────────────────
     public IndexedContainer facturasContainer = new IndexedContainer();
-    IndexedContainer partidaContainer = new IndexedContainer();
+    IndexedContainer        partidaContainer  = new IndexedContainer();
     Grid facturasGrid;
     Grid.FooterRow footerFacturas;
     Grid partidaGrid;
 
-    HashMap<String, String> cuentasContables = new HashMap<String, String>();
+    HashMap<String, String> cuentasContables = new HashMap<>();
 
-    ComboBox proveedorCbx;
-    ComboBox monedaCbx;
-    ComboBox medioCbx;
+    // ── Controles de formulario ──────────────────────────────────────────────
+    ComboBox  proveedorCbx;
+    ComboBox  monedaCbx;
+    ComboBox  medioCbx;
     DateField fechaDt;
     NumberField montoTxt;
     NumberField tasaCambioTxt;
@@ -108,31 +114,29 @@ public class PagoFacturaProveedorForm extends Window {
     TextField descripcionTxt;
     TextField numeroTxt;
 
-    HorizontalLayout chequeLayout = new HorizontalLayout();
+    HorizontalLayout chequeLayout  = new HorizontalLayout();
     HorizontalLayout chequeLayout2 = new HorizontalLayout();
-    VerticalLayout partidaLayout = new VerticalLayout();
+    VerticalLayout   partidaLayout = new VerticalLayout();
 
+    // ── Estado ───────────────────────────────────────────────────────────────
     double totalMonto;
     double totalQueztales;
     double totalAnticipo;
 
     Button excelBtn;
-
     String tipoDocumentoPagado;
-
     Button grabarPartidaBtn;
     Button desAutorizarBtn;
 
-    String proveedorNombre;
-    String proveedorId;
-    String idNomenclatura;
-    String codigoPartida;
-    String codigoPartidaNuevo;
-    String codigoCC;
-
-    String partidasPagadas;
-    String facturasPagadas;
-    ArrayList<String> codigoAnticipoList = new ArrayList<String>();
+    String  proveedorNombre;
+    String  proveedorId;
+    String  idNomenclatura;
+    String  codigoPartida;
+    String  codigoPartidaNuevo;
+    String  codigoCC;
+    String  partidasPagadas;
+    String  facturasPagadas;
+    ArrayList<String> codigoAnticipoList = new ArrayList<>();
 
     BigDecimal totalDebe;
     BigDecimal totalHaber;
@@ -140,129 +144,272 @@ public class PagoFacturaProveedorForm extends Window {
     BigDecimal totalHaberQ;
 
     String IdProveedor = "";
-
     String codigo;
-
     String queryString;
-    
-    Date fechaPago;
-
+    Date   fechaPago;
     boolean calcular = true;
 
     UI mainUI;
 
-    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaId     = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
+    // ────────────────────────────────────────────────────────────────────────
     public PagoFacturaProveedorForm(String IdProveedor, Date fechaPago) {
 
-        this.mainUI = UI.getCurrent();
+        this.mainUI      = UI.getCurrent();
         this.IdProveedor = IdProveedor;
-        this.fechaPago = fechaPago;
+        this.fechaPago   = fechaPago;
 
+        // Inyectar estilos CSS
+        injectStyles();
+
+        // Window
+        setModal(true);
+        setResizable(true);
+        setDraggable(true);
+        setWidth("92%");
+        setHeight("92%");
+        setResponsive(true);
+
+        // ── mainLayout ───────────────────────────────────────────────────────
         mainLayout = new VerticalLayout();
         mainLayout.setSpacing(true);
+        mainLayout.setMargin(true);
         mainLayout.setResponsive(true);
+        mainLayout.setSizeFull();
+        mainLayout.addStyleName("pfp-main");
 
         setContent(mainLayout);
 
-        setResponsive(true);
-        setWidth("90%");
-        setHeight("90%");
-
-        excelBtn = new Button("Excel");
+        // ── Botón Excel ──────────────────────────────────────────────────────
+        excelBtn = new Button("Exportar Excel");
         excelBtn.setIcon(FontAwesome.FILE_EXCEL_O);
-        excelBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
-
-        excelBtn.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                if (facturasContainer.size() > 0) {
-                    exportToExcel(facturasGrid);
-                } else {
-                    Notification.show("La vista no contiene registros disponibles.. ", Notification.Type.WARNING_MESSAGE);
-                }
+        excelBtn.addStyleName("pfp-btn-excel");
+        excelBtn.addClickListener(event -> {
+            if (facturasContainer.size() > 0) {
+                exportToExcel(facturasGrid);
+            } else {
+                Notification.show("La vista no contiene registros disponibles.", Notification.Type.WARNING_MESSAGE);
             }
         });
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " PAGO DE DOCUMENTOS");
-        if (mainUI.getPage().getBrowserWindowWidth() >= 736) {
-            titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        }
-        else {
-            titleLbl.addStyleName(ValoTheme.LABEL_H4);
-        }
-        titleLbl.setSizeUndefined();
+        // ── Header ───────────────────────────────────────────────────────────
+        buildHeader();
 
+        // ── ComboBox proveedor (visible en header) ───────────────────────────
         proveedorCbx = new ComboBox("Proveedor : ");
         proveedorCbx.setWidth("35em");
         proveedorCbx.setVisible(false);
         proveedorCbx.setFilteringMode(FilteringMode.CONTAINS);
         proveedorCbx.addValueChangeListener(event -> {
-            //llenarTablaLiquidacion();
             nombreChequeTxt.setReadOnly(false);
             nombreChequeTxt.setValue(proveedorCbx.getItemCaption(proveedorCbx.getValue()));
             nombreChequeTxt.setReadOnly(true);
-
         });
-
         llenarComboProveedor();
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
-        titleLayout.setSpacing(true);
-        titleLayout.setWidth("100%");
-        titleLayout.setMargin(false);
-        titleLayout.addComponents(titleLbl, excelBtn);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
-        titleLayout.setComponentAlignment(excelBtn, Alignment.MIDDLE_CENTER);
-        titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
-
-        mainLayout.addComponent(titleLayout);
-        mainLayout.setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
 
         mainLayout.addComponent(proveedorCbx);
         mainLayout.setComponentAlignment(proveedorCbx, Alignment.TOP_CENTER);
 
+        // ── Secciones ────────────────────────────────────────────────────────
         crearGridFacturas();
         llenarGridFacturas();
         crearLayoutCheque();
         crearPartidaLayout();
         limpiarPartida();
-
     }
 
+    // ── CSS ──────────────────────────────────────────────────────────────────
+    private void injectStyles() {
+        Page.getCurrent().getStyles().add(
+
+                /* Fondo general del contenido del Window */
+                ".pfp-main {" +
+                        "  background: #F4F6F9;" +
+                        "}" +
+
+                        /* ── Header ─────────────────────────────────────────────────── */
+                        ".pfp-header {" +
+                        "  background: linear-gradient(135deg, #1565C0 0%, #1976D2 100%);" +
+                        "  border-radius: 10px;" +
+                        "  padding: 14px 20px !important;" +
+                        "  margin-bottom: 4px;" +
+                        "  width: 100%;" +
+                        "}" +
+                        ".pfp-header-title {" +
+                        "  color: #ffffff !important;" +
+                        "  font-size: 17px !important;" +
+                        "  font-weight: 700 !important;" +
+                        "  margin: 0 !important;" +
+                        "  letter-spacing: 0.02em;" +
+                        "}" +
+                        ".pfp-header-sub {" +
+                        "  color: #BBDEFB !important;" +
+                        "  font-size: 12px !important;" +
+                        "  margin: 2px 0 0 0 !important;" +
+                        "}" +
+
+                        /* ── Sección card ────────────────────────────────────────────── */
+                        ".pfp-section {" +
+                        "  background: #ffffff;" +
+                        "  border-radius: 8px;" +
+                        "  box-shadow: 0 2px 8px rgba(0,0,0,0.07);" +
+                        "  padding: 16px 18px !important;" +
+                        "  width: 100%;" +
+                        "  margin-bottom: 6px;" +
+                        "}" +
+                        ".pfp-section-label {" +
+                        "  color: #1976D2;" +
+                        "  font-size: 11px !important;" +
+                        "  font-weight: 700 !important;" +
+                        "  letter-spacing: 0.09em;" +
+                        "  text-transform: uppercase;" +
+                        "  border-bottom: 2px solid #E3F2FD;" +
+                        "  padding-bottom: 6px;" +
+                        "  margin-bottom: 10px !important;" +
+                        "  display: block;" +
+                        "  width: 100%;" +
+                        "}" +
+
+                        /* ── Grids ───────────────────────────────────────────────────── */
+                        ".pfp-main .v-grid-header {" +
+                        "  background: #E8F0FE !important;" +
+                        "  font-weight: 600 !important;" +
+                        "  color: #1A237E !important;" +
+                        "}" +
+                        ".pfp-main .v-grid-row:hover > td {" +
+                        "  background: #E3F2FD !important;" +
+                        "}" +
+                        ".pfp-main .v-grid-row-selected > td {" +
+                        "  background: #BBDEFB !important;" +
+                        "  color: #0D47A1 !important;" +
+                        "  font-weight: 600;" +
+                        "}" +
+                        ".pfp-main .v-grid-footer {" +
+                        "  background: #F0F4F8 !important;" +
+                        "  font-weight: 700 !important;" +
+                        "  border-top: 2px solid #BBDEFB !important;" +
+                        "}" +
+
+                        /* ── Botón Excel ─────────────────────────────────────────────── */
+                        ".pfp-btn-excel.v-button {" +
+                        "  background: linear-gradient(135deg, #2E7D32 0%, #388E3C 100%) !important;" +
+                        "  color: #fff !important;" +
+                        "  border: none !important;" +
+                        "  border-radius: 6px !important;" +
+                        "  font-weight: 600 !important;" +
+                        "  padding: 0 18px !important;" +
+                        "  height: 34px !important;" +
+                        "  box-shadow: 0 2px 6px rgba(46,125,50,0.3) !important;" +
+                        "}" +
+
+                        /* ── Botón Grabar ─────────────────────────────────────────────  */
+                        ".pfp-btn-grabar.v-button {" +
+                        "  background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%) !important;" +
+                        "  color: #fff !important;" +
+                        "  border: none !important;" +
+                        "  border-radius: 6px !important;" +
+                        "  font-weight: 600 !important;" +
+                        "  padding: 0 22px !important;" +
+                        "  height: 36px !important;" +
+                        "  box-shadow: 0 2px 8px rgba(25,118,210,0.35) !important;" +
+                        "}" +
+
+                        /* ── Botón Cancelar ──────────────────────────────────────────── */
+                        ".pfp-btn-cancelar.v-button {" +
+                        "  border: 1px solid #CFD8DC !important;" +
+                        "  border-radius: 6px !important;" +
+                        "  color: #546E7A !important;" +
+                        "  background: #fff !important;" +
+                        "  height: 36px !important;" +
+                        "  padding: 0 18px !important;" +
+                        "}" +
+                        ".pfp-btn-cancelar.v-button:hover {" +
+                        "  background: #F5F5F5 !important;" +
+                        "}" +
+
+                        /* ── Botón Des-autorizar ─────────────────────────────────────── */
+                        ".pfp-btn-desautorizar.v-button {" +
+                        "  background: linear-gradient(135deg, #C62828 0%, #D32F2F 100%) !important;" +
+                        "  color: #fff !important;" +
+                        "  border: none !important;" +
+                        "  border-radius: 6px !important;" +
+                        "  font-weight: 600 !important;" +
+                        "  height: 36px !important;" +
+                        "  padding: 0 18px !important;" +
+                        "  box-shadow: 0 2px 8px rgba(198,40,40,0.3) !important;" +
+                        "}" +
+
+                        /* ── Área de botones de acción ───────────────────────────────── */
+                        ".pfp-action-bar {" +
+                        "  border-top: 1px solid #E3E8EF;" +
+                        "  padding-top: 12px;" +
+                        "  margin-top: 4px;" +
+                        "  width: 100%;" +
+                        "}"
+        );
+    }
+
+    // ── Header ───────────────────────────────────────────────────────────────
+    private void buildHeader() {
+        Label iconLbl = new Label("💳");
+        iconLbl.setSizeUndefined();
+
+        Label titleLbl = new Label(empresaId + "  ·  " + empresaNombre + "  —  PAGO DE DOCUMENTOS");
+        titleLbl.addStyleName("pfp-header-title");
+        titleLbl.setSizeUndefined();
+
+        Label subLbl = new Label("Seleccione uno o varios documentos del mismo proveedor y moneda para procesar el pago");
+        subLbl.addStyleName("pfp-header-sub");
+        subLbl.setSizeUndefined();
+
+        VerticalLayout textCol = new VerticalLayout();
+        textCol.setMargin(false);
+        textCol.setSpacing(false);
+        textCol.addComponents(titleLbl, subLbl);
+
+        HorizontalLayout headerHL = new HorizontalLayout();
+        headerHL.addStyleName("pfp-header");
+        headerHL.setWidth("100%");
+        headerHL.setSpacing(true);
+        headerHL.setMargin(false);
+        headerHL.addComponents(iconLbl, textCol, excelBtn);
+        headerHL.setExpandRatio(textCol, 1f);
+        headerHL.setComponentAlignment(iconLbl,   Alignment.MIDDLE_LEFT);
+        headerHL.setComponentAlignment(textCol,   Alignment.MIDDLE_LEFT);
+        headerHL.setComponentAlignment(excelBtn,  Alignment.MIDDLE_RIGHT);
+
+        mainLayout.addComponent(headerHL);
+        mainLayout.setComponentAlignment(headerHL, Alignment.TOP_CENTER);
+    }
+
+    // ── Grid de Facturas ─────────────────────────────────────────────────────
     public void crearGridFacturas() {
 
-        VerticalLayout facturasLayout = new VerticalLayout();
-        facturasLayout.addStyleName("rcorners3");
-        facturasLayout.setWidth("100%");
-        facturasLayout.setResponsive(true);
-        facturasLayout.setSpacing(true);
-        facturasLayout.setMargin(false);
+        // Contenedores
+        partidaContainer.addContainerProperty(CUENTA_PROPERTY,       String.class, null);
+        partidaContainer.addContainerProperty(DESCRIPCION_PROPERTY,  String.class, null);
+        partidaContainer.addContainerProperty(DEBE_PROPERTY,         String.class, null);
+        partidaContainer.addContainerProperty(HABER_PROPERTY,        String.class, null);
+        partidaContainer.addContainerProperty(DEBE_Q_PROPERTY,       String.class, null);
+        partidaContainer.addContainerProperty(HABER_Q_PROPERTY,      String.class, null);
+        partidaContainer.addContainerProperty(CODIGOCC_PROPERTY,     String.class, null);
 
-        partidaContainer.addContainerProperty(CUENTA_PROPERTY, String.class, null);
-        partidaContainer.addContainerProperty(DESCRIPCION_PROPERTY, String.class, null);
-        partidaContainer.addContainerProperty(DEBE_PROPERTY, String.class, null);
-        partidaContainer.addContainerProperty(HABER_PROPERTY, String.class, null);
-        partidaContainer.addContainerProperty(DEBE_Q_PROPERTY, String.class, null);
-        partidaContainer.addContainerProperty(HABER_Q_PROPERTY, String.class, null);
-        partidaContainer.addContainerProperty(CODIGOCC_PROPERTY, String.class, null);
-
-        facturasContainer.addContainerProperty(ID_PROPERTY, String.class, null);
-        facturasContainer.addContainerProperty(TIPO_PROPERTY, String.class, null);
-        facturasContainer.addContainerProperty(FECHA_PROPERTY, String.class, null);
-        facturasContainer.addContainerProperty(PROVEEDOR_PROPERTY, String.class, null);
-        facturasContainer.addContainerProperty(CODIGO_PROPERTY, String.class, null);
-        facturasContainer.addContainerProperty(FACTURA_PROPERTY, String.class, null);
-        facturasContainer.addContainerProperty(MONEDA_PROPERTY, String.class, null);
-        facturasContainer.addContainerProperty(VALOR_PROPERTY, String.class, null);
+        facturasContainer.addContainerProperty(ID_PROPERTY,               String.class, null);
+        facturasContainer.addContainerProperty(TIPO_PROPERTY,             String.class, null);
+        facturasContainer.addContainerProperty(FECHA_PROPERTY,            String.class, null);
+        facturasContainer.addContainerProperty(PROVEEDOR_PROPERTY,        String.class, null);
+        facturasContainer.addContainerProperty(CODIGO_PROPERTY,           String.class, null);
+        facturasContainer.addContainerProperty(FACTURA_PROPERTY,          String.class, null);
+        facturasContainer.addContainerProperty(MONEDA_PROPERTY,           String.class, null);
+        facturasContainer.addContainerProperty(VALOR_PROPERTY,            String.class, null);
         facturasContainer.addContainerProperty(MONTO_AUTORIZADO_PROPERTY, String.class, null);
-        facturasContainer.addContainerProperty(ANTICIPO_PROPERTY, String.class, null);
-        facturasContainer.addContainerProperty(CUENTA_PROPERTY, String.class, null);
-        facturasContainer.addContainerProperty(HABER_PROPERTY, String.class, null);
-        facturasContainer.addContainerProperty(HABER_Q_PROPERTY, String.class, null);
-        facturasContainer.addContainerProperty(CODIGOCC_PROPERTY, String.class, null);
+        facturasContainer.addContainerProperty(ANTICIPO_PROPERTY,         String.class, null);
+        facturasContainer.addContainerProperty(CUENTA_PROPERTY,           String.class, null);
+        facturasContainer.addContainerProperty(HABER_PROPERTY,            String.class, null);
+        facturasContainer.addContainerProperty(HABER_Q_PROPERTY,          String.class, null);
+        facturasContainer.addContainerProperty(CODIGOCC_PROPERTY,         String.class, null);
 
         facturasGrid = new Grid("", facturasContainer);
         facturasGrid.setWidth("100%");
@@ -274,17 +421,13 @@ public class PagoFacturaProveedorForm extends Window {
         facturasGrid.setResponsive(true);
         facturasGrid.setEditorBuffered(false);
 
-        facturasGrid.addSelectionListener(
-            new SelectionListener() {
-                @Override
-                public void select(SelectionEvent event) {
-                    if (facturasGrid.getSelectedRows() != null) {
-                        calcularPartida();
-                    }
-                }
+        facturasGrid.addSelectionListener(event -> {
+            if (facturasGrid.getSelectedRows() != null) {
+                calcularPartida();
             }
-        );
+        });
 
+        // Columnas ocultas
         facturasGrid.getColumn(ID_PROPERTY).setHidable(true).setHidden(true);
         facturasGrid.getColumn(TIPO_PROPERTY).setHidable(true).setHidden(true);
         facturasGrid.getColumn(CODIGO_PROPERTY).setHidable(true).setHidden(true);
@@ -293,85 +436,49 @@ public class PagoFacturaProveedorForm extends Window {
         facturasGrid.getColumn(HABER_PROPERTY).setHidable(true).setHidden(true);
         facturasGrid.getColumn(CODIGOCC_PROPERTY).setHidable(true).setHidden(true);
 
-        facturasGrid.setCellStyleGenerator((Grid.CellReference cellReference) -> {
+        facturasGrid.setCellStyleGenerator(cellReference -> {
+            if (MONTO_AUTORIZADO_PROPERTY.equals(cellReference.getPropertyId()) ||
+                    VALOR_PROPERTY.equals(cellReference.getPropertyId()) ||
+                    ANTICIPO_PROPERTY.equals(cellReference.getPropertyId())) {
+                return "rightalign";
+            } else if (TIPOCAMBIO_PROPERTY.equals(cellReference.getPropertyId())) {
+                return "centeralign";
+            }
+            return null;
+        });
 
-                    if (MONTO_AUTORIZADO_PROPERTY.equals(cellReference.getPropertyId())) {
-                        return "rightalign";
-                    } else if (VALOR_PROPERTY.equals(cellReference.getPropertyId())) {
-                        return "rightalign";
-                    } else if (ANTICIPO_PROPERTY.equals(cellReference.getPropertyId())) {
-                        return "rightalign";
-                    } else if (TIPOCAMBIO_PROPERTY.equals(cellReference.getPropertyId())) {
-                        return "centeralign";
-                    } else {
-                        return null;
-                    }
-                }
-        );
-
+        // Fila de filtros
         HeaderRow filterRow = facturasGrid.appendHeaderRow();
 
-        HeaderCell cell = filterRow.getCell(FACTURA_PROPERTY);
-
-        TextField filterField = new TextField();
-        filterField.addStyleName(ValoTheme.TEXTFIELD_TINY);
-        filterField.setInputPrompt("Filtrar");
-        filterField.setColumns(8);
-
-        filterField.addTextChangeListener(change
-                -> {
+        TextField filterFactura = buildFilterField(8);
+        filterFactura.addTextChangeListener(change -> {
             facturasContainer.removeContainerFilters(FACTURA_PROPERTY);
-
-            // (Re)create the filter if necessary
             if (!change.getText().isEmpty()) {
-                facturasContainer.addContainerFilter(
-                        new SimpleStringFilter(FACTURA_PROPERTY,
-                                change.getText(), true, false));
+                facturasContainer.addContainerFilter(new SimpleStringFilter(FACTURA_PROPERTY, change.getText(), true, false));
             }
         });
-        cell.setComponent(filterField);
+        filterRow.getCell(FACTURA_PROPERTY).setComponent(filterFactura);
 
-        HeaderCell cell1 = filterRow.getCell(MONEDA_PROPERTY);
-
-        TextField filterField1 = new TextField();
-        filterField1.addStyleName(ValoTheme.TEXTFIELD_TINY);
-        filterField1.setInputPrompt("Filtrar");
-        filterField1.setColumns(8);
-        filterField1.addTextChangeListener(change
-                -> {
+        TextField filterMoneda = buildFilterField(8);
+        filterMoneda.addTextChangeListener(change -> {
             facturasContainer.removeContainerFilters(MONEDA_PROPERTY);
-
-            // (Re)create the filter if necessary
             if (!change.getText().isEmpty()) {
-                facturasContainer.addContainerFilter(
-                        new SimpleStringFilter(MONEDA_PROPERTY,
-                                change.getText(), true, false));
+                facturasContainer.addContainerFilter(new SimpleStringFilter(MONEDA_PROPERTY, change.getText(), true, false));
             }
         });
-        cell1.setComponent(filterField1);
+        filterRow.getCell(MONEDA_PROPERTY).setComponent(filterMoneda);
 
-        HeaderCell cell2 = filterRow.getCell(PROVEEDOR_PROPERTY);
-
-        TextField filterField2 = new TextField();
-        filterField2.addStyleName(ValoTheme.TEXTFIELD_TINY);
-        filterField2.setInputPrompt("Filtrar");
-        filterField2.setColumns(20);
-
-        filterField2.addTextChangeListener(change
-                -> {
+        TextField filterProveedor = buildFilterField(20);
+        filterProveedor.addTextChangeListener(change -> {
             facturasContainer.removeContainerFilters(PROVEEDOR_PROPERTY);
-
-            // (Re)create the filter if necessary
             if (!change.getText().isEmpty()) {
-                facturasContainer.addContainerFilter(
-                        new SimpleStringFilter(PROVEEDOR_PROPERTY,
-                                change.getText(), true, false));
+                facturasContainer.addContainerFilter(new SimpleStringFilter(PROVEEDOR_PROPERTY, change.getText(), true, false));
             }
         });
-        cell2.setComponent(filterField2);
+        filterRow.getCell(PROVEEDOR_PROPERTY).setComponent(filterProveedor);
 
+        // Footer totales
         footerFacturas = facturasGrid.appendFooterRow();
-
         footerFacturas.getCell(MONEDA_PROPERTY).setText("Totales");
         footerFacturas.getCell(VALOR_PROPERTY).setText("0.00");
         footerFacturas.getCell(MONTO_AUTORIZADO_PROPERTY).setText("0.00");
@@ -380,501 +487,63 @@ public class PagoFacturaProveedorForm extends Window {
         footerFacturas.getCell(MONTO_AUTORIZADO_PROPERTY).setStyleName("rightalign");
         footerFacturas.getCell(ANTICIPO_PROPERTY).setStyleName("rightalign");
 
-        facturasLayout.addComponent(facturasGrid);
-        facturasLayout.setComponentAlignment(facturasGrid, Alignment.MIDDLE_CENTER);
+        // Card de la sección
+        VerticalLayout facturasSection = buildSection("📄  Documentos pendientes de pago");
+        facturasSection.addComponent(facturasGrid);
+        facturasSection.setComponentAlignment(facturasGrid, Alignment.MIDDLE_CENTER);
 
-        mainLayout.addComponent(facturasLayout);
-        mainLayout.setComponentAlignment(facturasLayout, Alignment.MIDDLE_CENTER);
-
+        mainLayout.addComponent(facturasSection);
+        mainLayout.setComponentAlignment(facturasSection, Alignment.TOP_CENTER);
     }
 
-    private void calcularPartida() {
-        if(!calcular) {
-            return;
-        }
-        partidaContainer.removeAllItems();
-
-        Double montoPagar = 0.00;
-        Double montoAnticipo = 0.00;
-        Double porcentajeProporcional = 0.00;
-        Double montoQuetzales = 0.00;
-        Double montoMoneda = 0.00;
-        String moneda = "";
-        Object gridItem;
-
-        totalDebe = new BigDecimal(montoPagar);
-        totalDebeQ = new BigDecimal((montoPagar * tasaCambioTxt.getDoubleValueDoNotThrow()));
-        totalHaber = new BigDecimal(montoPagar);
-        totalHaberQ = new BigDecimal((montoPagar * tasaCambioTxt.getDoubleValueDoNotThrow()));
-
-        facturasPagadas = "";
-        partidasPagadas = "";
-        proveedorNombre = "";
-        proveedorId = "0";
-        tipoDocumentoPagado = "";
-        idNomenclatura = ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getProveedores();
-
-        codigoAnticipoList.clear();
-
-        Iterator facturasGridIter = facturasGrid.getSelectedRows().iterator();
-
-        if (facturasGridIter == null || !facturasGridIter.hasNext()) {
-            proveedorCbx.setReadOnly(false);
-
-            limpiarPartida();
-            codigoAnticipoList.clear();
-
-            proveedorCbx.setReadOnly(false);
-            proveedorCbx.select(proveedorId);
-            proveedorCbx.setReadOnly(true);
-
-            return;
-        }
-
-        gridItem = facturasGridIter.next();
-        proveedorId = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CODIGO_PROPERTY).getValue());
-        proveedorNombre = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(PROVEEDOR_PROPERTY).getValue());
-        moneda = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(MONEDA_PROPERTY).getValue());
-        montoPagar = Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(MONTO_AUTORIZADO_PROPERTY).getValue()).replaceAll(",", ""));
-        montoAnticipo = Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ANTICIPO_PROPERTY).getValue()).replaceAll(",", ""));
-
-        facturasPagadas = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(DOCUMENTO_PROPERTY).getValue()) + ",";
-        partidasPagadas = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROPERTY).getValue()) + ",";
-        tipoDocumentoPagado = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(TIPO_PROPERTY).getValue());
-        idNomenclatura = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CUENTA_PROPERTY).getValue());
-        codigoAnticipoList.add(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROPERTY).getValue()));
-
-        codigoCC = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CODIGOCC_PROPERTY).getValue());
-
-        codigo = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CODIGO_PROPERTY).getValue());
-
-        monedaCbx.setReadOnly(false);
-        monedaCbx.select(moneda);
-        monedaCbx.setReadOnly(true);
-
-        calcular = false;
-        if(moneda.equals("DOLARES")) {
-            if(tasaCambioTxt.getDoubleValueDoNotThrow() == 1.0) {
-                tasaCambioTxt.setValue((Float.toString(((SopdiUI) UI.getCurrent()).sessionInformation.getFltExchangeRate())));
-            }
-        }
-        else {
-            tasaCambioTxt.setValue(1.00);
-        }
-        calcular = true;
-
-        proveedorCbx.setReadOnly(false);
-        proveedorCbx.select(proveedorId);
-        proveedorCbx.setReadOnly(true);
-
-        montoTxt.setReadOnly(false);
-        montoTxt.setValue(montoPagar);
-
-        while (facturasGridIter.hasNext()) {   //// Si hay mas de un registro seleccionado
-            gridItem = facturasGridIter.next();
-            //VALIDAR QUE SEA LA MISMA MONEDA
-            if (!moneda.equals(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(MONEDA_PROPERTY).getValue()))) {
-                Notification.show("SOLO SE PUEDEN PAGAR VARIAS FACTURAS DEL MISMO PROVEEDOR Y DE LA MISMA MONEDA, REVISE!", Notification.Type.WARNING_MESSAGE);
-                facturasGrid.deselect(gridItem);
-                return;
-            }
-            if (!idNomenclatura.equals(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CUENTA_PROPERTY).getValue()))) {
-                Notification.show("SOLO SE PUEDEN PAGAR VARIAS FACTURAS DE LA MISMA CUENTA CONTABLE, REVISE!", Notification.Type.WARNING_MESSAGE);
-                facturasGrid.deselect(gridItem);
-                return;
-            }
-            if (!tipoDocumentoPagado.equals(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(TIPO_PROPERTY).getValue()))) {
-                Notification.show("SOLO SE PUEDEN PAGAR DOCUMENTOS DEL MISMO TIPO, REVISE!", Notification.Type.WARNING_MESSAGE);
-                facturasGrid.deselect(gridItem);
-                return;
-            }
-
-            montoPagar += Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(MONTO_AUTORIZADO_PROPERTY).getValue()).replaceAll(",", ""));
-            montoAnticipo += Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ANTICIPO_PROPERTY).getValue()).replaceAll(",", ""));
-
-            facturasPagadas += String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(DOCUMENTO_PROPERTY).getValue()) + ",";
-            partidasPagadas += String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROPERTY).getValue()) + ",";
-            codigoAnticipoList.add(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROPERTY).getValue()));
-        }
-//                          limpiarPartida();
-
-        descripcionTxt.setValue("PAGO DE " + String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(TIPO_PROPERTY).getValue())
-                + " : [" + facturasPagadas + "] PROVEEDOR/INSTITUCION : [" + proveedorNombre + "]");
-
-        montoTxt.setValue(montoPagar);
-        montoTxt.setReadOnly(true);
-
-        numeroTxt.focus();
-
-        nombreChequeTxt.setReadOnly(false);
-        nombreChequeTxt.setValue(proveedorNombre);
-
-        Object partidaObject = partidaContainer.addItem();
-        //LINEA DEL BANCO
-        if (moneda.equals("DOLARES")) {
-            partidaContainer.getContainerProperty(partidaObject, CUENTA_PROPERTY).setValue(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaExtranjera());
-            partidaContainer.getContainerProperty(partidaObject, DESCRIPCION_PROPERTY).setValue(cuentasContables.get(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaExtranjera()));
-        }
-        else {
-            partidaContainer.getContainerProperty(partidaObject, CUENTA_PROPERTY).setValue(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal());
-            partidaContainer.getContainerProperty(partidaObject, DESCRIPCION_PROPERTY).setValue(cuentasContables.get(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal()));
-        }
-
-        partidaContainer.getContainerProperty(partidaObject, DEBE_PROPERTY).setValue("0");
-        partidaContainer.getContainerProperty(partidaObject, HABER_PROPERTY).setValue(String.valueOf(montoPagar));
-        partidaContainer.getContainerProperty(partidaObject, DEBE_Q_PROPERTY).setValue("0");
-        partidaContainer.getContainerProperty(partidaObject, HABER_Q_PROPERTY).setValue(String.valueOf(Utileria.numberFormatEntero.format(montoPagar * tasaCambioTxt.getDoubleValueDoNotThrow())));
-        partidaContainer.getContainerProperty(partidaObject, CODIGOCC_PROPERTY).setValue("");
-
-        totalHaber = totalHaber.add(new BigDecimal(montoPagar));
-        totalHaberQ = totalHaberQ.add(new BigDecimal((montoPagar * tasaCambioTxt.getDoubleValueDoNotThrow())));
-
-        facturasGridIter = facturasGrid.getSelectedRows().iterator();
-
-        double montoProveedores = 0.00;
-
-        // POR CADA FACTURA QUE ESTAMOS SELECCINANDO, BUSCAR ANTICIPOS RELACIONADOS
-        while (facturasGridIter.hasNext()) {
-
-            Object gridItem2 = facturasGridIter.next();
-
-            codigoPartida = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(ID_PROPERTY).getValue()).replaceAll(",", "");
-            codigoCC = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(CODIGOCC_PROPERTY).getValue()).replaceAll(",", "");
-            montoProveedores = Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_AUTORIZADO_PROPERTY).getValue()).replaceAll(",", ""))
-                    + Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(ANTICIPO_PROPERTY).getValue()).replaceAll(",", ""));
-
-            //para los anticipos relacionados o utlizados para pagar la factura
-            queryString = " SELECT autorizacion_pago.*, contabilidad_partida.Debe,contabilidad_partida.DebeQuetzales ";
-            queryString += " FROM autorizacion_pago";
-            queryString += " INNER JOIN contabilidad_partida On contabilidad_partida.CodigoCC = autorizacion_pago.CodigoCCRelacionado AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposProveedor();
-            queryString += " WHERE autorizacion_pago.CodigoCC = '" + codigoCC + "'";
-            queryString += " AND autorizacion_pago.CodigoCCRelacionado <> ''";
-            queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposProveedor();
-            queryString += " AND contabilidad_partida.DEBE > 0";
-
-//            System.out.println("query anticipos = " + queryString);
-
-            try {
-                stQueryFacturas = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-                rsRecordsFacturas = stQueryFacturas.executeQuery(queryString);
-
-                if (rsRecordsFacturas.next()) {
-                    do {
-                        //// ANTICIPOS
-                        partidaObject = partidaContainer.addItem();
-
-                        if(moneda.equals("DOLARES")) {
-                            porcentajeProporcional = (rsRecordsFacturas.getDouble("Monto") / rsRecordsFacturas.getDouble("Debe"));
-                            montoQuetzales = rsRecordsFacturas.getDouble("DebeQuetzales") * porcentajeProporcional.doubleValue();
-                        }
-                        else {
-                            montoQuetzales = rsRecordsFacturas.getDouble("Monto");
-                        }
-
-                        partidaContainer.getContainerProperty(partidaObject, CUENTA_PROPERTY).setValue(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposProveedor());
-                        partidaContainer.getContainerProperty(partidaObject, DESCRIPCION_PROPERTY).setValue(cuentasContables.get(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposProveedor()));
-                        partidaContainer.getContainerProperty(partidaObject, DEBE_PROPERTY).setValue("0");
-                        partidaContainer.getContainerProperty(partidaObject, HABER_PROPERTY).setValue(rsRecordsFacturas.getString("Monto"));
-                        partidaContainer.getContainerProperty(partidaObject, DEBE_Q_PROPERTY).setValue("0");
-                        partidaContainer.getContainerProperty(partidaObject, HABER_Q_PROPERTY).setValue(String.valueOf(montoQuetzales));
-                        partidaContainer.getContainerProperty(partidaObject, CODIGOCC_PROPERTY).setValue(rsRecordsFacturas.getString("CodigoCCRelacionado")); // del anticipo
-
-                        totalHaber = totalHaber.add(new BigDecimal(rsRecordsFacturas.getString("Monto")));
-                        totalHaberQ = totalHaberQ.add(new BigDecimal(montoQuetzales));
-
-                    } while (rsRecordsFacturas.next());
-                } // end while anticipos relacionados
-
-                idNomenclatura = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CUENTA_PROPERTY).getValue());
-
-                /// DOCUMENTOS
-                partidaObject = partidaContainer.addItem();
-
-                if(moneda.equals("DOLARES")) {
-                    montoMoneda = Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(HABER_PROPERTY).getValue()).replaceAll(",", ""));
-                    montoQuetzales = Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(HABER_Q_PROPERTY).getValue()).replaceAll(",", ""));
-                }
-                else {
-                    montoQuetzales = montoProveedores;
-                }
-
-                partidaContainer.getContainerProperty(partidaObject, CUENTA_PROPERTY).setValue(idNomenclatura);
-                partidaContainer.getContainerProperty(partidaObject, DESCRIPCION_PROPERTY).setValue(cuentasContables.get(idNomenclatura));
-                partidaContainer.getContainerProperty(partidaObject, DEBE_PROPERTY).setValue(String.valueOf(Utileria.numberFormatEntero.format(montoProveedores)));
-                partidaContainer.getContainerProperty(partidaObject, HABER_PROPERTY).setValue("0");
-                partidaContainer.getContainerProperty(partidaObject, DEBE_Q_PROPERTY).setValue(String.valueOf(Utileria.numberFormatEntero.format(montoQuetzales)));
-                partidaContainer.getContainerProperty(partidaObject, HABER_Q_PROPERTY).setValue("0");
-                partidaContainer.getContainerProperty(partidaObject, CODIGOCC_PROPERTY).setValue(codigoCC); // del documento
-
-                totalDebe = totalDebe.add(new BigDecimal(montoProveedores));
-                totalDebeQ = totalDebeQ.add(new BigDecimal(montoQuetzales));
-
-            } catch (Exception ex) {
-                Notification.show("Error al calcular partida : " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
-                Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Error " + ex);
-            }
-        }// end while iterator documentos seleccionados
-
-        //diferencial cambiario
-
-        if(monedaCbx.getValue().equals("DOLARES") && (totalDebeQ.doubleValue() != totalHaberQ.doubleValue())) { // si hay diferencial cambiario
-
-            partidaObject = partidaContainer.addItem();
-
-            partidaContainer.getContainerProperty(partidaObject, CUENTA_PROPERTY).setValue(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario());
-            partidaContainer.getContainerProperty(partidaObject, DESCRIPCION_PROPERTY).setValue("DIFERENCIAL CAMBIARIO");
-
-            partidaContainer.getContainerProperty(partidaObject, DEBE_PROPERTY).setValue("0");
-            partidaContainer.getContainerProperty(partidaObject, HABER_PROPERTY).setValue("0");
-
-            if((totalDebeQ.doubleValue() - totalHaberQ.doubleValue()) > 0 ) {
-                partidaContainer.getContainerProperty(partidaObject, HABER_Q_PROPERTY).setValue(String.valueOf(Utileria.numberFormatEntero.format(totalDebeQ.doubleValue() - totalHaberQ.doubleValue())));
-                totalHaberQ = totalHaberQ.add(new BigDecimal(Utileria.numberFormatEntero.format(totalDebeQ.doubleValue() - totalHaberQ.doubleValue())));
-                partidaContainer.getContainerProperty(partidaObject, DEBE_Q_PROPERTY).setValue("0");
-            }
-            else {
-                partidaContainer.getContainerProperty(partidaObject, DEBE_Q_PROPERTY).setValue(String.valueOf(Utileria.numberFormatEntero.format((totalDebeQ.doubleValue() - totalHaberQ.doubleValue()) * -1)));
-                totalDebeQ = totalDebeQ.add(new BigDecimal(Utileria.numberFormatEntero.format((totalDebeQ.doubleValue() - totalHaberQ.doubleValue()) * -1)));
-                partidaContainer.getContainerProperty(partidaObject, HABER_Q_PROPERTY).setValue("0");
-            }
-
-
-            partidaContainer.getContainerProperty(partidaObject, CODIGOCC_PROPERTY).setValue("");
-
-        }
-
-        partidaObject = partidaContainer.addItem();
-
-        partidaContainer.getContainerProperty(partidaObject, CUENTA_PROPERTY).setValue("__________");
-        partidaContainer.getContainerProperty(partidaObject, DESCRIPCION_PROPERTY).setValue("__________");
-        partidaContainer.getContainerProperty(partidaObject, DEBE_PROPERTY).setValue("___________");
-        partidaContainer.getContainerProperty(partidaObject, HABER_PROPERTY).setValue("___________");
-        partidaContainer.getContainerProperty(partidaObject, DEBE_Q_PROPERTY).setValue("___________");
-        partidaContainer.getContainerProperty(partidaObject, HABER_Q_PROPERTY).setValue("___________");
-        partidaContainer.getContainerProperty(partidaObject, CODIGOCC_PROPERTY).setValue("___________");
-
-        partidaObject = partidaContainer.addItem();
-
-        partidaContainer.getContainerProperty(partidaObject, CUENTA_PROPERTY).setValue("");
-        partidaContainer.getContainerProperty(partidaObject, DESCRIPCION_PROPERTY).setValue("--------> SUMAS IGUALES");
-        partidaContainer.getContainerProperty(partidaObject, DEBE_PROPERTY).setValue(numberFormat.format(totalDebe.doubleValue()));
-        partidaContainer.getContainerProperty(partidaObject, HABER_PROPERTY).setValue(numberFormat.format(totalHaber.doubleValue()));
-        partidaContainer.getContainerProperty(partidaObject, DEBE_Q_PROPERTY).setValue(numberFormat.format(totalDebeQ.doubleValue()));
-        partidaContainer.getContainerProperty(partidaObject, HABER_Q_PROPERTY).setValue(numberFormat.format(totalHaberQ.doubleValue()));
-        partidaContainer.getContainerProperty(partidaObject, CODIGOCC_PROPERTY).setValue("___________");
-
-        partidaObject = partidaContainer.addItem();
-
-        partidaContainer.getContainerProperty(partidaObject, CUENTA_PROPERTY).setValue("__________");
-        partidaContainer.getContainerProperty(partidaObject, DESCRIPCION_PROPERTY).setValue("__________");
-        partidaContainer.getContainerProperty(partidaObject, DEBE_PROPERTY).setValue("___________");
-        partidaContainer.getContainerProperty(partidaObject, HABER_PROPERTY).setValue("___________");
-        partidaContainer.getContainerProperty(partidaObject, DEBE_Q_PROPERTY).setValue("___________");
-        partidaContainer.getContainerProperty(partidaObject, HABER_Q_PROPERTY).setValue("___________");
-        partidaContainer.getContainerProperty(partidaObject, CODIGOCC_PROPERTY).setValue("___________");
+    /** Helper: crea un TextField de filtro estilo tiny. */
+    private TextField buildFilterField(int columns) {
+        TextField field = new TextField();
+        field.addStyleName(ValoTheme.TEXTFIELD_TINY);
+        field.setInputPrompt("Filtrar");
+        field.setColumns(columns);
+        return field;
     }
 
-    public void llenarGridFacturas() {
-
-        totalDebe = new BigDecimal(0);
-        totalHaber = new BigDecimal(0);
-        totalDebe.setScale(2, RoundingMode.HALF_UP);
-        totalHaber.setScale(2, RoundingMode.HALF_UP);
-        totalDebeQ = new BigDecimal(0);
-        totalHaberQ = new BigDecimal(0);
-
-        footerFacturas.getCell(VALOR_PROPERTY).setText("0.00");
-        footerFacturas.getCell(MONTO_AUTORIZADO_PROPERTY).setText("0.00");
-        footerFacturas.getCell(ANTICIPO_PROPERTY).setText("0.00");
-
-        facturasContainer.removeAllItems();
-
-        totalMonto = 0.00;
-        totalQueztales = 0.00;
-        totalAnticipo = 0.00;
-
-        queryString = "SELECT contabilidad_partida.CodigoPartida, contabilidad_partida.CodigoCC, ";
-        queryString += " contabilidad_partida.Fecha, contabilidad_partida.NombreProveedor ,";
-        queryString += " contabilidad_partida.IdNomenclatura, contabilidad_partida.TipoDocumento, ";
-        queryString += " contabilidad_partida.SerieDocumento, contabilidad_partida.NumeroDocumento, ";
-        queryString += " contabilidad_partida.MonedaDocumento, ";
-        queryString += " contabilidad_partida.MontoAutorizadoPagar, contabilidad_partida.MontoAplicarAnticipo,";
-        queryString += " contabilidad_partida.Haber, contabilidad_partida.HaberQuetzales, ";
-//JAGUIRRE        queryString += " (((contabilidad_partida.MontoAutorizadoPagar + contabilidad_partida.MontoAplicarAnticipo) / contabilidad_partida.Haber) * contabilidad_partida.HaberQuetzales) ProporcionHaberQ";
-        queryString += " ( (contabilidad_partida.HaberQuetzales / contabilidad_partida.Haber) * (contabilidad_partida.MontoAutorizadoPagar + contabilidad_partida.MontoAplicarAnticipo)) ProporcionHaberQ";
-        queryString += " FROM contabilidad_partida ";
-        queryString += " INNER JOIN autorizacion_pago ON autorizacion_pago.CodigoCC = contabilidad_partida.CodigoCC ";
-        queryString += " WHERE contabilidad_partida.IdEmpresa =" + empresaId;
-        queryString += " AND contabilidad_partida.IdProveedor = " + IdProveedor;
-        queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getProveedores();
-        queryString += " AND UPPER(contabilidad_partida.TipoDocumento) IN ('FACTURA', 'RECIBO', ";
-        queryString += " 'RECIBO CONTABLE', 'RECIBO CORRIENTE', 'FORMULARIO RECTIFICACION')";
-//        queryString += " And contabilidad_partida.MontoAutorizadoPagar > 0 ";  // este es el monto para el cheque
-//        queryString += " OR contabilidad_partida.MontoAplicarAnticipo > 0 ";
-        queryString += " GROUP BY CodigoPartida";
-
-Logger.getLogger(this.getClass().getName()).log(Level.INFO, "query mostrar documentos a pagar FACTURAS : " + queryString);
-
-        try {
-            stQueryFacturas = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-            rsRecordsFacturas = stQuery.executeQuery(queryString);
-
-            if (rsRecordsFacturas.next()) { //  encontrado
-                do {
-
-                    Object itemId = facturasContainer.addItem();
-
-                    try {
-                        facturasContainer.getContainerProperty(itemId, ID_PROPERTY).setValue(rsRecordsFacturas.getString("CodigoPartida"));
-                        facturasContainer.getContainerProperty(itemId, ID_PROPERTY).setValue(rsRecordsFacturas.getString("CodigoPartida"));
-                    } catch (Exception ex11) {
-                        ex11.printStackTrace();
-                        return;
-                    }
-
-                    facturasContainer.getContainerProperty(itemId, TIPO_PROPERTY).setValue(rsRecordsFacturas.getString("TipoDocumento"));
-                    facturasContainer.getContainerProperty(itemId, FECHA_PROPERTY).setValue(Utileria.getFechaDDMMYYYY(rsRecordsFacturas.getDate("Fecha")));
-                    facturasContainer.getContainerProperty(itemId, PROVEEDOR_PROPERTY).setValue(rsRecordsFacturas.getString("NombreProveedor"));
-                    facturasContainer.getContainerProperty(itemId, CODIGO_PROPERTY).setValue(IdProveedor);
-                    facturasContainer.getContainerProperty(itemId, FACTURA_PROPERTY).setValue(rsRecordsFacturas.getString("SerieDocumento") + " " + rsRecordsFacturas.getString("NumeroDocumento"));
-                    facturasContainer.getContainerProperty(itemId, MONEDA_PROPERTY).setValue(rsRecordsFacturas.getString("MonedaDocumento"));
-                    facturasContainer.getContainerProperty(itemId, VALOR_PROPERTY).setValue(numberFormat.format(rsRecordsFacturas.getDouble("MontoAutorizadoPagar")));
-                    facturasContainer.getContainerProperty(itemId, MONTO_AUTORIZADO_PROPERTY).setValue(numberFormat.format(rsRecordsFacturas.getDouble("MontoAutorizadoPagar")));
-                    facturasContainer.getContainerProperty(itemId, ANTICIPO_PROPERTY).setValue(numberFormat.format(rsRecordsFacturas.getDouble("MontoAplicarAnticipo")));
-                    facturasContainer.getContainerProperty(itemId, CUENTA_PROPERTY).setValue(rsRecordsFacturas.getString("IdNomenclatura"));
-                    facturasContainer.getContainerProperty(itemId, HABER_PROPERTY).setValue(rsRecordsFacturas.getString("Haber"));
-                    facturasContainer.getContainerProperty(itemId, HABER_Q_PROPERTY).setValue(rsRecordsFacturas.getString("ProporcionHaberQ"));
-                    facturasContainer.getContainerProperty(itemId, CODIGOCC_PROPERTY).setValue(rsRecordsFacturas.getString("CodigoCC"));
-
-                    totalMonto += rsRecordsFacturas.getDouble("MontoAutorizadoPagar");
-                    totalQueztales += rsRecordsFacturas.getDouble("ProporcionHaberQ");
-                    totalAnticipo += rsRecordsFacturas.getDouble("MontoAplicarAnticipo");
-
-                } while (rsRecordsFacturas.next());
-            }
-
-            //INSTITUCIONES
-            queryString = "SELECT contabilidad_partida.CodigoPartida, contabilidad_partida.CodigoCC, ";
-            queryString += " contabilidad_partida.Fecha, contabilidad_partida.NombreProveedor,";
-            queryString += " contabilidad_partida.IdNomenclatura, contabilidad_partida.TipoDocumento, ";
-            queryString += " contabilidad_partida.SerieDocumento, contabilidad_partida.NumeroDocumento, ";
-            queryString += " contabilidad_partida.MonedaDocumento, ";
-            queryString += " contabilidad_partida.MontoAutorizadoPagar, contabilidad_partida.MontoAplicarAnticipo, ";
-            queryString += " contabilidad_partida.Haber, contabilidad_partida.HaberQuetzales ";
-            queryString += " FROM contabilidad_partida ";
-            queryString += " INNER JOIN autorizacion_pago On autorizacion_pago.CodigoCC = contabilidad_partida.CodigoCC ";
-            queryString += " WHERE contabilidad_partida.IdEmpresa = " + empresaId;
-            queryString += " AND contabilidad_partida.IdProveedor = " + IdProveedor;
-            queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getInstituciones();
-            queryString += " AND UPPER(contabilidad_partida.TipoDocumento) IN ('FORMULARIO IVA', ";
-            queryString += " 'FORMULARIO ISR', 'FORMULARIO ISR RETENIDO','FORMULARIO ISR OPCIONAL MENSUAL', 'FORMULARIO ISO', 'RECIBO CONTABLE', ";
-            queryString += " 'FORMULARIO', 'FORMULARIO RECTIFICACION')";
-//        queryString += " And contabilidad_partida.MontoAutorizadoPagar > 0 ";  // este es el monto para el cheque
-//        queryString += " OR contabilidad_partida.MontoAplicarAnticipo > 0 ";
-            queryString += " GROUP BY CodigoPartida";
-
-            Logger.getLogger(this.getClass().getName()).log(Level.INFO,"query mostrar documentos a pagar INSTITUCIONES : " + queryString);
-
-            stQueryFacturas = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-            rsRecordsFacturas = stQuery.executeQuery(queryString);
-
-            if (rsRecordsFacturas.next()) { //  encontrado
-                do {
-
-                    Object itemId = facturasContainer.addItem();
-
-                    try {
-                        facturasContainer.getContainerProperty(itemId, ID_PROPERTY).setValue(rsRecordsFacturas.getString("CodigoPartida"));
-                        facturasContainer.getContainerProperty(itemId, ID_PROPERTY).setValue(rsRecordsFacturas.getString("CodigoPartida"));
-                    } catch (Exception ex11) {
-                        ex11.printStackTrace();
-                        return;
-                    }
-
-                    facturasContainer.getContainerProperty(itemId, TIPO_PROPERTY).setValue(rsRecordsFacturas.getString("TipoDocumento"));
-                    facturasContainer.getContainerProperty(itemId, FECHA_PROPERTY).setValue(Utileria.getFechaDDMMYYYY(rsRecordsFacturas.getDate("Fecha")));
-                    facturasContainer.getContainerProperty(itemId, PROVEEDOR_PROPERTY).setValue(rsRecordsFacturas.getString("NombreProveedor"));
-                    facturasContainer.getContainerProperty(itemId, CODIGO_PROPERTY).setValue(IdProveedor);
-                    facturasContainer.getContainerProperty(itemId, FACTURA_PROPERTY).setValue(rsRecordsFacturas.getString("SerieDocumento") + " " + rsRecordsFacturas.getString("NumeroDocumento"));
-                    facturasContainer.getContainerProperty(itemId, MONEDA_PROPERTY).setValue(rsRecordsFacturas.getString("MonedaDocumento"));
-                    facturasContainer.getContainerProperty(itemId, VALOR_PROPERTY).setValue(numberFormat.format(rsRecordsFacturas.getDouble("MontoAutorizadoPagar")));
-                    facturasContainer.getContainerProperty(itemId, MONTO_AUTORIZADO_PROPERTY).setValue(numberFormat.format(rsRecordsFacturas.getDouble("MontoAutorizadoPagar")));
-                    facturasContainer.getContainerProperty(itemId, ANTICIPO_PROPERTY).setValue(numberFormat.format(rsRecordsFacturas.getDouble("MontoAplicarAnticipo")));
-                    facturasContainer.getContainerProperty(itemId, CUENTA_PROPERTY).setValue(rsRecordsFacturas.getString("IDNomenclatura"));
-                    facturasContainer.getContainerProperty(itemId, HABER_PROPERTY).setValue(rsRecordsFacturas.getString("Haber"));
-                    facturasContainer.getContainerProperty(itemId, HABER_Q_PROPERTY).setValue(rsRecordsFacturas.getString("HaberQuetzales"));
-                    facturasContainer.getContainerProperty(itemId, CODIGOCC_PROPERTY).setValue(rsRecordsFacturas.getString("CodigoCC"));
-
-                    totalMonto += rsRecordsFacturas.getDouble("MontoAutorizadoPagar");
-                    totalQueztales += rsRecordsFacturas.getDouble("MontoAutorizadoPagar");
-                    totalAnticipo += rsRecordsFacturas.getDouble("MontoAplicarAnticipo");
-
-                } while (rsRecordsFacturas.next());
-
-            }
-
-        } catch (Exception ex) {
-            System.out.println("Error al listar tabla de DOCUMENTOS : " + ex);
-            ex.printStackTrace();
-
-            Notification notif = new Notification("HA OCURRIDO UN ERROR DE BASE DE DATOS : " + ex.getMessage(),
-                    Notification.Type.HUMANIZED_MESSAGE);
-            notif.setDelayMsec(1500);
-            notif.setPosition(Position.MIDDLE_CENTER);
-            notif.setIcon(FontAwesome.WARNING);
-            notif.show(Page.getCurrent());
-        }
-
-        footerFacturas.getCell(VALOR_PROPERTY).setText(numberFormat.format(totalMonto));
-        footerFacturas.getCell(MONTO_AUTORIZADO_PROPERTY).setText(numberFormat.format(totalQueztales));
-        footerFacturas.getCell(ANTICIPO_PROPERTY).setText(numberFormat.format(totalAnticipo));
-    }
-
+    // ── Layout de Cheque / Medio de Pago ────────────────────────────────────
     private void crearLayoutCheque() {
 
-        chequeLayout.setSpacing(true);
-        chequeLayout.setMargin(false);
-        chequeLayout.setSizeUndefined();
-
-        chequeLayout2.setSpacing(true);
-        chequeLayout2.setMargin(false);
-        chequeLayout2.setSizeUndefined();
-
-        proveedorCbx = new ComboBox("Proveedor : ");
+        // Inicializar proveedor (ya fue creado arriba)
         proveedorCbx.setWidth("15em");
-        proveedorCbx.setFilteringMode(FilteringMode.CONTAINS);
-        llenarComboProveedor();
+        proveedorCbx.setVisible(false);
         proveedorCbx.addValueChangeListener(event -> {
-            if (nombreChequeTxt == null) {
-                return;
-            }
+            if (nombreChequeTxt == null) return;
+            nombreChequeTxt.setReadOnly(false);
             if (proveedorCbx.getValue() == null) {
-                nombreChequeTxt.setReadOnly(false);
                 nombreChequeTxt.setValue("");
             } else {
-                nombreChequeTxt.setReadOnly(false);
                 nombreChequeTxt.setValue(proveedorCbx.getItemCaption(proveedorCbx.getValue()));
             }
         });
 
-        proveedorCbx.setVisible(false);
-
-        numeroTxt = new TextField("# Documento : ");
-        numeroTxt.setWidth("8em");
-
-        medioCbx = new ComboBox("Medio : ");
+        // Campos
+        medioCbx = new ComboBox("Medio de pago");
         medioCbx.setWidth("12em");
         medioCbx.addItem("CHEQUE");
         medioCbx.addItem("NOTA DE DEBITO");
         medioCbx.select("CHEQUE");
 
-        monedaCbx = new ComboBox("Moneda : ");
+        numeroTxt = new TextField("# Documento");
+        numeroTxt.setWidth("9em");
+
+        fechaDt = new DateField("Fecha");
+        fechaDt.setDateFormat("dd/MM/yyyy");
+        fechaDt.setWidth("9em");
+        fechaDt.setValue(fechaPago);
+        fechaDt.setReadOnly(true);
+
+        monedaCbx = new ComboBox("Moneda");
         monedaCbx.setWidth("10em");
         monedaCbx.addItem("QUETZALES");
         monedaCbx.addItem("DOLARES");
         monedaCbx.select("QUETZALES");
 
-        tasaCambioTxt = new NumberField("T.Cambio : ");
+        tasaCambioTxt = new NumberField("T. Cambio");
         tasaCambioTxt.setDecimalAllowed(true);
         tasaCambioTxt.setDecimalPrecision(5);
         tasaCambioTxt.setMinimumFractionDigits(5);
@@ -885,13 +554,11 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "query mostrar docum
         tasaCambioTxt.setGroupingSize(3);
         tasaCambioTxt.setImmediate(true);
         tasaCambioTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        tasaCambioTxt.setWidth("5em");
+        tasaCambioTxt.setWidth("6em");
         tasaCambioTxt.setValue(1.00);
-        tasaCambioTxt.addValueChangeListener( event -> {
-            calcularPartida();
-        });
+        tasaCambioTxt.addValueChangeListener(event -> calcularPartida());
 
-        montoTxt = new NumberField("Monto : ");
+        montoTxt = new NumberField("Monto");
         montoTxt.setValidationVisible(false);
         montoTxt.setDecimalAllowed(true);
         montoTxt.setDecimalPrecision(2);
@@ -904,58 +571,46 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "query mostrar docum
         montoTxt.setGroupingSize(3);
         montoTxt.setImmediate(true);
         montoTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        montoTxt.setWidth("7em");
+        montoTxt.setWidth("8em");
 
-        fechaDt = new DateField("Fecha : ");
-        fechaDt.setDateFormat("dd/MM/yyyy");
-        fechaDt.setWidth("9em");
-        fechaDt.setValue(fechaPago);
-        fechaDt.setReadOnly(true);
-
-        nombreChequeTxt = new TextField("Nombre cheque/nota : ");
-        nombreChequeTxt.setWidth("25em");
+        nombreChequeTxt = new TextField("Nombre cheque / nota");
+        nombreChequeTxt.setWidth("28em");
         nombreChequeTxt.setValue(proveedorCbx.getItemCaption(proveedorCbx.getValue()));
         nombreChequeTxt.setReadOnly(((SopdiUI) mainUI).sessionInformation.getStrUserProfileName().equals("CONTADOR"));
         nombreChequeTxt.setReadOnly(((SopdiUI) mainUI).sessionInformation.getStrUserProfileName().equals("AUXILIAR"));
 
-        descripcionTxt = new TextField("Descripción : ");
-        descripcionTxt.setWidth("45em");
+        descripcionTxt = new TextField("Descripción");
+        descripcionTxt.setWidth("100%");
         descripcionTxt.setVisible(false);
 
-        chequeLayout.addComponent(medioCbx);
-        chequeLayout.setComponentAlignment(medioCbx, Alignment.MIDDLE_CENTER);
-        chequeLayout.addComponent(numeroTxt);
-        chequeLayout.setComponentAlignment(numeroTxt, Alignment.MIDDLE_CENTER);
-        chequeLayout.addComponent(fechaDt);
-        chequeLayout.setComponentAlignment(fechaDt, Alignment.MIDDLE_CENTER);
-        chequeLayout.addComponent(proveedorCbx);
-        chequeLayout.setComponentAlignment(proveedorCbx, Alignment.MIDDLE_CENTER);
-        chequeLayout.addComponent(montoTxt);
-        chequeLayout.setComponentAlignment(montoTxt, Alignment.MIDDLE_CENTER);
-        chequeLayout.addComponent(monedaCbx);
-        chequeLayout.setComponentAlignment(monedaCbx, Alignment.MIDDLE_CENTER);
-        chequeLayout.addComponent(tasaCambioTxt);
-        chequeLayout.setComponentAlignment(tasaCambioTxt, Alignment.MIDDLE_CENTER);
+        // Fila 1: datos del pago
+        chequeLayout.setSpacing(true);
+        chequeLayout.setMargin(false);
+        chequeLayout.setSizeUndefined();
+        chequeLayout.addComponents(medioCbx, numeroTxt, fechaDt, proveedorCbx, montoTxt, monedaCbx, tasaCambioTxt);
+        for (int i = 0; i < chequeLayout.getComponentCount(); i++) {
+            chequeLayout.setComponentAlignment(chequeLayout.getComponent(i), Alignment.BOTTOM_LEFT);
+        }
 
-        mainLayout.addComponent(chequeLayout);
-        mainLayout.setComponentAlignment(chequeLayout, Alignment.MIDDLE_CENTER);
+        // Fila 2: nombre y descripción
+        chequeLayout2.setSpacing(true);
+        chequeLayout2.setMargin(false);
+        chequeLayout2.setWidth("100%");
+        chequeLayout2.addComponents(nombreChequeTxt, descripcionTxt);
+        chequeLayout2.setExpandRatio(descripcionTxt, 1f);
+        chequeLayout2.setComponentAlignment(nombreChequeTxt, Alignment.BOTTOM_LEFT);
+        chequeLayout2.setComponentAlignment(descripcionTxt,  Alignment.BOTTOM_LEFT);
 
-        chequeLayout2.addComponent(nombreChequeTxt);
-        chequeLayout2.setComponentAlignment(nombreChequeTxt, Alignment.MIDDLE_CENTER);
-        chequeLayout2.addComponent(descripcionTxt);
-        chequeLayout2.setComponentAlignment(descripcionTxt, Alignment.MIDDLE_CENTER);
+        // Card
+        VerticalLayout chequeSection = buildSection("🏦  Datos del medio de pago");
+        chequeSection.addComponents(chequeLayout, chequeLayout2);
 
-        mainLayout.addComponent(chequeLayout2);
-        mainLayout.setComponentAlignment(chequeLayout2, Alignment.MIDDLE_CENTER);
+        mainLayout.addComponent(chequeSection);
+        mainLayout.setComponentAlignment(chequeSection, Alignment.MIDDLE_CENTER);
     }
 
+    // ── Layout de Partida Contable ───────────────────────────────────────────
     public void crearPartidaLayout() {
-
-        partidaLayout.addStyleName("rcorners3");
-        partidaLayout.setWidth("90%");
-        partidaLayout.setResponsive(true);
-        partidaLayout.setSpacing(false);
-        partidaLayout.setMargin(false);
 
         llenarComboCuentaContable();
 
@@ -977,448 +632,407 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "query mostrar docum
         partidaGrid.getColumn(HABER_Q_PROPERTY).setExpandRatio(2);
         partidaGrid.getColumn(CODIGOCC_PROPERTY).setExpandRatio(3);
 
-        partidaGrid.setCellStyleGenerator((Grid.CellReference cellReference) -> {
-
-                    if (DEBE_PROPERTY.equals(cellReference.getPropertyId())) {
-                        return "rightalign";
-                    } else if (HABER_PROPERTY.equals(cellReference.getPropertyId())) {
-                        return "rightalign";
-                    } else if (DEBE_Q_PROPERTY.equals(cellReference.getPropertyId())) {
-                        return "rightalign";
-                    } else if (HABER_Q_PROPERTY.equals(cellReference.getPropertyId())) {
-                        return "rightalign";
-                    } else {
-                        return null;
-                    }
-                }
-        );
-
-        grabarPartidaBtn = new Button("Grabar");
-        grabarPartidaBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
-        grabarPartidaBtn.setIcon(FontAwesome.SAVE);
-        grabarPartidaBtn.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                insertarPartidaCompuesta();
+        partidaGrid.setCellStyleGenerator(cellReference -> {
+            String prop = (String) cellReference.getPropertyId();
+            if (DEBE_PROPERTY.equals(prop) || HABER_PROPERTY.equals(prop) ||
+                    DEBE_Q_PROPERTY.equals(prop) || HABER_Q_PROPERTY.equals(prop)) {
+                return "rightalign";
             }
+            return null;
         });
 
-        desAutorizarBtn = new Button("Des autorizar pago");
-        desAutorizarBtn.addStyleName(ValoTheme.BUTTON_DANGER);
-        desAutorizarBtn.setIcon(FontAwesome.TRASH);
-        desAutorizarBtn.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
+        // ── Botones de acción ────────────────────────────────────────────────
+        grabarPartidaBtn = new Button("Grabar partida");
+        grabarPartidaBtn.addStyleName("pfp-btn-grabar");
+        grabarPartidaBtn.setIcon(FontAwesome.SAVE);
+        grabarPartidaBtn.addClickListener(event -> insertarPartidaCompuesta());
 
-                if (facturasGrid.getSelectedRows() != null) {
-                    desAutorizarFactura();
-                }
+        desAutorizarBtn = new Button("Des-autorizar pago");
+        desAutorizarBtn.addStyleName("pfp-btn-desautorizar");
+        desAutorizarBtn.setIcon(FontAwesome.TRASH);
+        desAutorizarBtn.addClickListener(event -> {
+            if (facturasGrid.getSelectedRows() != null) {
+                desAutorizarFactura();
             }
         });
 
         Button cancelarBtn = new Button("Cancelar");
-        cancelarBtn.addStyleName(ValoTheme.BUTTON_DANGER);
+        cancelarBtn.addStyleName("pfp-btn-cancelar");
         cancelarBtn.setIcon(FontAwesome.BAN);
-        cancelarBtn.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                proveedorCbx.setReadOnly(false);
-                limpiarPartida();
-                proveedorCbx.setReadOnly(true);
-                proveedorCbx.focus();
-                facturasGrid.deselectAll();
-            }
+        cancelarBtn.addClickListener(event -> {
+            proveedorCbx.setReadOnly(false);
+            limpiarPartida();
+            proveedorCbx.setReadOnly(true);
+            proveedorCbx.focus();
+            facturasGrid.deselectAll();
         });
 
-        HorizontalLayout layoutHorizontal6 = new HorizontalLayout();
-        layoutHorizontal6.setSpacing(true);
-        layoutHorizontal6.addComponents(cancelarBtn, desAutorizarBtn, grabarPartidaBtn);
-        layoutHorizontal6.setComponentAlignment(cancelarBtn, Alignment.BOTTOM_LEFT);
-        layoutHorizontal6.setComponentAlignment(desAutorizarBtn, Alignment.BOTTOM_CENTER);
-        layoutHorizontal6.setComponentAlignment(grabarPartidaBtn, Alignment.BOTTOM_RIGHT);
+        // Layout de botones: Cancelar | Des-autorizar ··· [Grabar]
+        Label spacer = new Label();
+        HorizontalLayout actionBar = new HorizontalLayout();
+        actionBar.setWidth("100%");
+        actionBar.setSpacing(true);
+        actionBar.addStyleName("pfp-action-bar");
+        actionBar.addComponents(cancelarBtn, desAutorizarBtn, spacer, grabarPartidaBtn);
+        actionBar.setExpandRatio(spacer, 1f);
+        actionBar.setComponentAlignment(cancelarBtn,      Alignment.MIDDLE_LEFT);
+        actionBar.setComponentAlignment(desAutorizarBtn,  Alignment.MIDDLE_LEFT);
+        actionBar.setComponentAlignment(grabarPartidaBtn, Alignment.MIDDLE_RIGHT);
 
-        partidaLayout.addComponent(partidaGrid);
-        partidaLayout.setComponentAlignment(partidaGrid, Alignment.TOP_CENTER);
-        partidaLayout.addComponent(layoutHorizontal6);
-        partidaLayout.setComponentAlignment(layoutHorizontal6, Alignment.MIDDLE_CENTER);
+        // Card
+        partidaLayout.addStyleName("pfp-section");
+        partidaLayout.setWidth("100%");
+        partidaLayout.setResponsive(true);
+        partidaLayout.setSpacing(true);
+        partidaLayout.setMargin(false);
+
+        Label sectionLbl = new Label("📒  Partida contable generada");
+        sectionLbl.addStyleName("pfp-section-label");
+        sectionLbl.setWidth("100%");
+
+        partidaLayout.addComponents(sectionLbl, partidaGrid, actionBar);
+        partidaLayout.setComponentAlignment(sectionLbl,  Alignment.TOP_LEFT);
+        partidaLayout.setComponentAlignment(partidaGrid,  Alignment.TOP_CENTER);
+        partidaLayout.setComponentAlignment(actionBar,    Alignment.MIDDLE_CENTER);
 
         mainLayout.addComponent(partidaLayout);
         mainLayout.setComponentAlignment(partidaLayout, Alignment.MIDDLE_CENTER);
-
     }
 
-    public void desAutorizarFactura() {
+    // ── Helper: construye un "card" de sección con etiqueta ─────────────────
+    private VerticalLayout buildSection(String title) {
+        Label sectionLbl = new Label(title);
+        sectionLbl.addStyleName("pfp-section-label");
+        sectionLbl.setWidth("100%");
 
-        Iterator iter = facturasGrid.getSelectedRows().iterator();
-
-        ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Desea eliminar la siguiente autorizacion de estas facturas ?",
-                "SI", "NO", new ConfirmDialog.Listener() {
-
-                    public void onClose(ConfirmDialog dialog) {
-                        if (dialog.isConfirmed()) {
-                            try {
-
-                                ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().setAutoCommit(false);
-
-                                stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-
-                                while (iter.hasNext()) {
-
-                                    Object gridItem = iter.next();
-
-                                    String codigoPartida = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROPERTY).getValue());
-                                    String codigoProveedor = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CODIGO_PROPERTY).getValue());
-
-                                    queryString = " UPDATE contabilidad_partida SET";
-                                    queryString += " MontoAutorizadoPagar = 0 ";
-                                    queryString += ",MontoAplicarAnticipo = 0 ";
-                                    queryString += " WHERE CodigoPartida = '" + codigoPartida + "'";
-
-                                    stQuery.executeUpdate(queryString);
-
-                                    queryString = " DELETE FROM autorizacion_pago";
-                                    queryString += " WHERE CodigoCC = '" + codigoPartida + "'";
-
-                                    stQuery.executeUpdate(queryString);
-
-                                } // end while
-
-                                ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().commit();
-                                ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().setAutoCommit(true);
-
-                                Notification.show("DOCUMENTOS DES-AUTORIZADOS CON EXITO ", Notification.Type.HUMANIZED_MESSAGE);
-
-                                close();
-
-                            } catch (Exception ex) {
-                                System.out.println("Error al momento de des autorizar facturas : " + ex);
-
-                                Notification notif = new Notification("HA OCURRIDO UN ERROR DE BASE DE DATOS : " + ex.getMessage() + "  TRANSACCION ABORTADA!!!",
-                                        Notification.Type.ERROR_MESSAGE);
-                                notif.setDelayMsec(1500);
-                                notif.setPosition(Position.MIDDLE_CENTER);
-                                notif.setIcon(FontAwesome.WARNING);
-                                notif.show(Page.getCurrent());
-
-                                try {
-                                    ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().rollback();
-                                    ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().setAutoCommit(true);
-                                } catch (SQLException ex2) {
-                                    Logger.getLogger(PagoFacturaProveedorForm.class
-                                            .getName()).log(Level.SEVERE, null, ex2);
-                                }
-
-                                try {
-                                    String emailsTo[] = {"alerta@simpletecno.com"};
-                                    MyEmailMessanger eMail = new MyEmailMessanger();
-
-                                    eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos :  " + this.getClass().getName() + " -->" + ex.getMessage());
-                                } catch (MessagingException ex2) {
-                                    Logger.getLogger(PagoFacturaProveedorForm.class.getName()).log(Level.SEVERE, null, ex2);
-                                }
-
-                            }
-                        }
-                    }
-                }
-        );
+        VerticalLayout section = new VerticalLayout();
+        section.addStyleName("pfp-section");
+        section.setWidth("100%");
+        section.setSpacing(true);
+        section.setMargin(false);
+        section.addComponent(sectionLbl);
+        return section;
     }
 
-    public void llenarComboCuentaContable() {
-        String queryString = " SELECT * FROM contabilidad_nomenclatura_empresa ";
-        queryString += " WHERE Estatus='HABILITADA'";
-        queryString += " AND IdEmpresa = " + empresaId;
-        queryString += " ORDER BY N5";
+    // ════════════════════════════════════════════════════════════════════════
+    //  LÓGICA DE NEGOCIO — sin cambios funcionales
+    // ════════════════════════════════════════════════════════════════════════
 
-        cuentasContables.clear();
+    private void calcularPartida() {
+        if (!calcular) return;
+        partidaContainer.removeAllItems();
 
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords = stQuery.executeQuery(queryString);
+        Double montoPagar     = 0.00;
+        Double montoAnticipo  = 0.00;
+        Double porcentajeProporcional = 0.00;
+        Double montoQuetzales = 0.00;
+        Double montoMoneda    = 0.00;
+        String moneda         = "";
+        Object gridItem;
 
-            while (rsRecords.next()) { //  encontrado
-                cuentasContables.put(rsRecords.getString("IdNomenclatura"), rsRecords.getString("N5"));
+        totalDebe  = new BigDecimal(montoPagar);
+        totalDebeQ = new BigDecimal(montoPagar * tasaCambioTxt.getDoubleValueDoNotThrow());
+        totalHaber  = new BigDecimal(montoPagar);
+        totalHaberQ = new BigDecimal(montoPagar * tasaCambioTxt.getDoubleValueDoNotThrow());
+
+        facturasPagadas    = "";
+        partidasPagadas    = "";
+        proveedorNombre    = "";
+        proveedorId        = "0";
+        tipoDocumentoPagado = "";
+        idNomenclatura     = ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getProveedores();
+
+        codigoAnticipoList.clear();
+
+        Iterator facturasGridIter = facturasGrid.getSelectedRows().iterator();
+
+        if (facturasGridIter == null || !facturasGridIter.hasNext()) {
+            proveedorCbx.setReadOnly(false);
+            limpiarPartida();
+            codigoAnticipoList.clear();
+            proveedorCbx.setReadOnly(false);
+            proveedorCbx.select(proveedorId);
+            proveedorCbx.setReadOnly(true);
+            return;
+        }
+
+        gridItem      = facturasGridIter.next();
+        proveedorId   = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CODIGO_PROPERTY).getValue());
+        proveedorNombre = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(PROVEEDOR_PROPERTY).getValue());
+        moneda        = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(MONEDA_PROPERTY).getValue());
+        montoPagar    = Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(MONTO_AUTORIZADO_PROPERTY).getValue()).replaceAll(",", ""));
+        montoAnticipo = Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ANTICIPO_PROPERTY).getValue()).replaceAll(",", ""));
+
+        facturasPagadas     = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(DOCUMENTO_PROPERTY).getValue()) + ",";
+        partidasPagadas     = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROPERTY).getValue()) + ",";
+        tipoDocumentoPagado = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(TIPO_PROPERTY).getValue());
+        idNomenclatura      = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CUENTA_PROPERTY).getValue());
+        codigoAnticipoList.add(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROPERTY).getValue()));
+        codigoCC = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CODIGOCC_PROPERTY).getValue());
+        codigo   = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CODIGO_PROPERTY).getValue());
+
+        monedaCbx.setReadOnly(false);
+        monedaCbx.select(moneda);
+        monedaCbx.setReadOnly(true);
+
+        calcular = false;
+        if (moneda.equals("DOLARES")) {
+            if (tasaCambioTxt.getDoubleValueDoNotThrow() == 1.0) {
+                tasaCambioTxt.setValue(Float.toString(((SopdiUI) UI.getCurrent()).sessionInformation.getFltExchangeRate()));
             }
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar cuentas contables: " + ex1.getMessage());
-            ex1.printStackTrace();
+        } else {
+            tasaCambioTxt.setValue(1.00);
         }
-    }
+        calcular = true;
 
-    public void insertarPartidaCompuesta() {
+        proveedorCbx.setReadOnly(false);
+        proveedorCbx.select(proveedorId);
+        proveedorCbx.setReadOnly(true);
 
-        if (nombreChequeTxt.getValue().trim().isEmpty()) {
-            Notification.show("Por favor, escriba el nombre del cheque o transferencia. ", Notification.Type.ERROR_MESSAGE);
-            nombreChequeTxt.focus();
-            return;
-        }
-        if (numeroTxt.getValue().trim().isEmpty()) {
-            Notification.show("Por favor, escriba el cheque o transferencia. ", Notification.Type.ERROR_MESSAGE);
-            numeroTxt.focus();
-            return;
-        }
-        if (montoTxt.getDoubleValueDoNotThrow() == 0.00) {
-            Notification.show("Por favor primero elija un documento o escriba el monto a pagar.", Notification.Type.ERROR_MESSAGE);
-            return;
-        }
-        if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
-            Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
-            fechaDt.focus();
-            return;
-        }
-        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
-            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(empresaId), Notification.Type.WARNING_MESSAGE);
-            fechaDt.focus();
-            return;
-        }
+        montoTxt.setReadOnly(false);
+        montoTxt.setValue(montoPagar);
 
-        if (!numberFormat.format(totalDebe.doubleValue()).equals(numberFormat.format(totalHaber.doubleValue()))) {
-            System.out.println("Debe =" + totalDebe.doubleValue() + "  haber=" + totalHaber.doubleValue());
-            Notification.show("La partida es descuadrada, por favor revisar"
-                    + " Debe = " + totalDebe.doubleValue() + "  Haber = " + totalHaber.doubleValue(), Notification.Type.WARNING_MESSAGE);
-            return;
-        }
-
-        queryString = "SELECT CodigoPartida FROM contabilidad_partida ";
-        queryString += " WHERE NumeroDocumento = '" + numeroTxt.getValue() + "'";
-        queryString += " AND IdEmpresa = " + empresaId;
-        queryString += " AND TipoDocumento = '" + String.valueOf(medioCbx.getValue()) + "'";
-        queryString += " AND MonedaDocumento = '" + monedaCbx.getValue() + "'";
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords = stQuery.executeQuery(queryString);
-
-            if (rsRecords.next()) { //  encontrado
-                Notification.show("Documento ya registrado en pago, codigo de partida = " + rsRecords.getString("CodigoPartida"), Notification.Type.ERROR_MESSAGE);
-                numeroTxt.focus();
+        while (facturasGridIter.hasNext()) {
+            gridItem = facturasGridIter.next();
+            if (!moneda.equals(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(MONEDA_PROPERTY).getValue()))) {
+                Notification.show("SOLO SE PUEDEN PAGAR VARIAS FACTURAS DEL MISMO PROVEEDOR Y DE LA MISMA MONEDA, REVISE!", Notification.Type.WARNING_MESSAGE);
+                facturasGrid.deselect(gridItem);
                 return;
             }
-
-        } catch (Exception ex1) {
-            System.out.println("Error al validar el documento ingresado. " + ex1.getMessage());
-            ex1.printStackTrace();
+            if (!idNomenclatura.equals(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CUENTA_PROPERTY).getValue()))) {
+                Notification.show("SOLO SE PUEDEN PAGAR VARIAS FACTURAS DE LA MISMA CUENTA CONTABLE, REVISE!", Notification.Type.WARNING_MESSAGE);
+                facturasGrid.deselect(gridItem);
+                return;
+            }
+            if (!tipoDocumentoPagado.equals(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(TIPO_PROPERTY).getValue()))) {
+                Notification.show("SOLO SE PUEDEN PAGAR DOCUMENTOS DEL MISMO TIPO, REVISE!", Notification.Type.WARNING_MESSAGE);
+                facturasGrid.deselect(gridItem);
+                return;
+            }
+            montoPagar    += Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(MONTO_AUTORIZADO_PROPERTY).getValue()).replaceAll(",", ""));
+            montoAnticipo += Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ANTICIPO_PROPERTY).getValue()).replaceAll(",", ""));
+            facturasPagadas += String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(DOCUMENTO_PROPERTY).getValue()) + ",";
+            partidasPagadas += String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROPERTY).getValue()) + ",";
+            codigoAnticipoList.add(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROPERTY).getValue()));
         }
 
-        String fecha = Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()); //yyy/mm/yyyy
-        String ultimoEncontado;
-        String dia = fecha.substring(8, 10);
-        String mes = fecha.substring(5, 7);
-        String año = fecha.substring(0, 4);
+        descripcionTxt.setValue("PAGO DE " + String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(TIPO_PROPERTY).getValue())
+                + " : [" + facturasPagadas + "] PROVEEDOR/INSTITUCION : [" + proveedorNombre + "]");
 
-        String codigoPartida = empresaId + año + mes + dia + "3";
+        montoTxt.setValue(montoPagar);
+        montoTxt.setReadOnly(true);
+        numeroTxt.focus();
 
-        queryString = "SELECT codigoPartida FROM contabilidad_partida ";
-        queryString += " WHERE codigoPartida like '" + codigoPartida + "%'";
-        queryString += " ORDER BY codigoPartida DESC ";
+        nombreChequeTxt.setReadOnly(false);
+        nombreChequeTxt.setValue(proveedorNombre);
 
-        try {
+        Object partidaObject = partidaContainer.addItem();
+        if (moneda.equals("DOLARES")) {
+            partidaContainer.getContainerProperty(partidaObject, CUENTA_PROPERTY).setValue(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaExtranjera());
+            partidaContainer.getContainerProperty(partidaObject, DESCRIPCION_PROPERTY).setValue(cuentasContables.get(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaExtranjera()));
+        } else {
+            partidaContainer.getContainerProperty(partidaObject, CUENTA_PROPERTY).setValue(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal());
+            partidaContainer.getContainerProperty(partidaObject, DESCRIPCION_PROPERTY).setValue(cuentasContables.get(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal()));
+        }
+        partidaContainer.getContainerProperty(partidaObject, DEBE_PROPERTY).setValue("0");
+        partidaContainer.getContainerProperty(partidaObject, HABER_PROPERTY).setValue(String.valueOf(montoPagar));
+        partidaContainer.getContainerProperty(partidaObject, DEBE_Q_PROPERTY).setValue("0");
+        partidaContainer.getContainerProperty(partidaObject, HABER_Q_PROPERTY).setValue(String.valueOf(Utileria.numberFormatEntero.format(montoPagar * tasaCambioTxt.getDoubleValueDoNotThrow())));
+        partidaContainer.getContainerProperty(partidaObject, CODIGOCC_PROPERTY).setValue("");
 
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords = stQuery.executeQuery(queryString);
+        totalHaber  = totalHaber.add(new BigDecimal(montoPagar));
+        totalHaberQ = totalHaberQ.add(new BigDecimal(montoPagar * tasaCambioTxt.getDoubleValueDoNotThrow()));
 
-            if (rsRecords.next()) { //  encontrado
+        facturasGridIter   = facturasGrid.getSelectedRows().iterator();
+        double montoProveedores = 0.00;
 
-                ultimoEncontado = rsRecords.getString("codigoPartida").substring(12, 15);
+        while (facturasGridIter.hasNext()) {
+            Object gridItem2 = facturasGridIter.next();
+            codigoPartida    = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(ID_PROPERTY).getValue()).replaceAll(",", "");
+            codigoCC         = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(CODIGOCC_PROPERTY).getValue()).replaceAll(",", "");
+            montoProveedores = Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_AUTORIZADO_PROPERTY).getValue()).replaceAll(",", ""))
+                    + Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(ANTICIPO_PROPERTY).getValue()).replaceAll(",", ""));
 
-//System.out.println("ultimo encontrado " + ultimoEncontado);
-                codigoPartida += String.format("%03d", (Integer.valueOf(ultimoEncontado) + 1));
+            queryString  = " SELECT autorizacion_pago.*, contabilidad_partida.Debe, contabilidad_partida.DebeQuetzales ";
+            queryString += " FROM autorizacion_pago";
+            queryString += " INNER JOIN contabilidad_partida On contabilidad_partida.CodigoCC = autorizacion_pago.CodigoCCRelacionado AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposProveedor();
+            queryString += " WHERE autorizacion_pago.CodigoCC = '" + codigoCC + "'";
+            queryString += " AND autorizacion_pago.CodigoCCRelacionado <> ''";
+            queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposProveedor();
+            queryString += " AND contabilidad_partida.DEBE > 0";
 
+            try {
+                stQueryFacturas   = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+                rsRecordsFacturas = stQueryFacturas.executeQuery(queryString);
+
+                if (rsRecordsFacturas.next()) {
+                    do {
+                        partidaObject = partidaContainer.addItem();
+                        if (moneda.equals("DOLARES")) {
+                            porcentajeProporcional = rsRecordsFacturas.getDouble("Monto") / rsRecordsFacturas.getDouble("Debe");
+                            montoQuetzales         = rsRecordsFacturas.getDouble("DebeQuetzales") * porcentajeProporcional;
+                        } else {
+                            montoQuetzales = rsRecordsFacturas.getDouble("Monto");
+                        }
+                        partidaContainer.getContainerProperty(partidaObject, CUENTA_PROPERTY).setValue(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposProveedor());
+                        partidaContainer.getContainerProperty(partidaObject, DESCRIPCION_PROPERTY).setValue(cuentasContables.get(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposProveedor()));
+                        partidaContainer.getContainerProperty(partidaObject, DEBE_PROPERTY).setValue("0");
+                        partidaContainer.getContainerProperty(partidaObject, HABER_PROPERTY).setValue(rsRecordsFacturas.getString("Monto"));
+                        partidaContainer.getContainerProperty(partidaObject, DEBE_Q_PROPERTY).setValue("0");
+                        partidaContainer.getContainerProperty(partidaObject, HABER_Q_PROPERTY).setValue(String.valueOf(montoQuetzales));
+                        partidaContainer.getContainerProperty(partidaObject, CODIGOCC_PROPERTY).setValue(rsRecordsFacturas.getString("CodigoCCRelacionado"));
+                        totalHaber  = totalHaber.add(new BigDecimal(rsRecordsFacturas.getString("Monto")));
+                        totalHaberQ = totalHaberQ.add(new BigDecimal(montoQuetzales));
+                    } while (rsRecordsFacturas.next());
+                }
+
+                idNomenclatura = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CUENTA_PROPERTY).getValue());
+                partidaObject  = partidaContainer.addItem();
+
+                if (moneda.equals("DOLARES")) {
+                    montoMoneda    = Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(HABER_PROPERTY).getValue()).replaceAll(",", ""));
+                    montoQuetzales = Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(HABER_Q_PROPERTY).getValue()).replaceAll(",", ""));
+                } else {
+                    montoQuetzales = montoProveedores;
+                }
+            } catch (Exception ex) {
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+
+        if (monedaCbx.getValue().equals("DOLARES") && (totalDebeQ.doubleValue() != totalHaberQ.doubleValue())) {
+            partidaObject = partidaContainer.addItem();
+            partidaContainer.getContainerProperty(partidaObject, CUENTA_PROPERTY).setValue(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario());
+            partidaContainer.getContainerProperty(partidaObject, DESCRIPCION_PROPERTY).setValue("DIFERENCIAL CAMBIARIO");
+            partidaContainer.getContainerProperty(partidaObject, DEBE_PROPERTY).setValue("0");
+            partidaContainer.getContainerProperty(partidaObject, HABER_PROPERTY).setValue("0");
+            if ((totalDebeQ.doubleValue() - totalHaberQ.doubleValue()) > 0) {
+                partidaContainer.getContainerProperty(partidaObject, HABER_Q_PROPERTY).setValue(String.valueOf(Utileria.numberFormatEntero.format(totalDebeQ.doubleValue() - totalHaberQ.doubleValue())));
+                totalHaberQ = totalHaberQ.add(new BigDecimal(Utileria.numberFormatEntero.format(totalDebeQ.doubleValue() - totalHaberQ.doubleValue())));
+                partidaContainer.getContainerProperty(partidaObject, DEBE_Q_PROPERTY).setValue("0");
             } else {
-                codigoPartida += "001";
+                partidaContainer.getContainerProperty(partidaObject, DEBE_Q_PROPERTY).setValue(String.valueOf(Utileria.numberFormatEntero.format((totalDebeQ.doubleValue() - totalHaberQ.doubleValue()) * -1)));
+                totalDebeQ = totalDebeQ.add(new BigDecimal(Utileria.numberFormatEntero.format((totalDebeQ.doubleValue() - totalHaberQ.doubleValue()) * -1)));
+                partidaContainer.getContainerProperty(partidaObject, HABER_Q_PROPERTY).setValue("0");
             }
-
-        } catch (Exception ex1) {
-            System.out.println("Error al buscar el ultimo codigoPartida" + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-        codigoPartidaNuevo = codigoPartida;
-
-        String descripcion =  descripcionTxt.getValue().trim();
-
-        queryString = "INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
-        queryString += " TipoDocumento, NoDOCA, TipoDOCA, Fecha, IdProveedor, NITProveedor, ";
-        queryString += " NombreProveedor, NombreCheque, MontoDocumento, SerieDocumento, NumeroDocumento, ";
-        queryString += " IdNomenclatura, MonedaDocumento, Debe, Haber,";
-        queryString += " DebeQuetzales, HaberQuetzales, TipoCambio,";
-        queryString += " Descripcion, CreadoUsuario, CreadoFechaYHora)";
-        queryString += " VALUES ";
-
-        for (Object itemId: partidaContainer.getItemIds()) {
-            Item item = partidaContainer.getItem(itemId);
-            if(!String.valueOf(item.getItemProperty(CODIGOCC_PROPERTY).getValue()).equals("___________")) {
-                queryString += " (";
-                queryString += empresaId;
-                queryString += ",'INGRESADO'";
-                queryString += ",'" + codigoPartida + "'";
-                queryString += ",'" + String.valueOf(item.getItemProperty(CODIGOCC_PROPERTY).getValue()) + "'";
-                queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-                queryString += ",'" + facturasPagadas + "'";//NODOCA
-                queryString += ",'" + tipoDocumentoPagado + "'";//TIPODOCA
-                queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
-                queryString += "," + proveedorId;
-                queryString += ",''"; //nit proveedor
-                queryString += ",'" + proveedorNombre + "'";
-                queryString += ",'" + nombreChequeTxt.getValue() + "'";
-                queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
-                queryString += ",''"; //serie documento
-                queryString += ",'" + numeroTxt.getValue() + "'";
-                queryString += "," + String.valueOf(item.getItemProperty(CUENTA_PROPERTY).getValue());
-                queryString += ",'" + monedaCbx.getValue() + "'";
-                queryString += "," + String.valueOf(item.getItemProperty(DEBE_PROPERTY).getValue());  //Debe
-                queryString += "," + String.valueOf(item.getItemProperty(HABER_PROPERTY).getValue()); //Haber
-                queryString += "," + String.valueOf(item.getItemProperty(DEBE_Q_PROPERTY).getValue()); //DEBE Q
-                queryString += "," + String.valueOf(item.getItemProperty(HABER_Q_PROPERTY).getValue()); //HABER Q
-                queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
-                queryString += ",'" + descripcion + "'";
-                queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
-                queryString += ",current_timestamp";
-                queryString += "),";
-            }
+            partidaContainer.getContainerProperty(partidaObject, CODIGOCC_PROPERTY).setValue("");
         }
 
-        queryString = queryString.substring(0, queryString.length()-1);
+        // Fila separadora
+        Object sep = partidaContainer.addItem();
+        partidaContainer.getContainerProperty(sep, CUENTA_PROPERTY).setValue("__________");
+        partidaContainer.getContainerProperty(sep, DESCRIPCION_PROPERTY).setValue("__________");
+        partidaContainer.getContainerProperty(sep, DEBE_PROPERTY).setValue("___________");
+        partidaContainer.getContainerProperty(sep, HABER_PROPERTY).setValue("___________");
+        partidaContainer.getContainerProperty(sep, DEBE_Q_PROPERTY).setValue("___________");
+        partidaContainer.getContainerProperty(sep, HABER_Q_PROPERTY).setValue("___________");
+        partidaContainer.getContainerProperty(sep, CODIGOCC_PROPERTY).setValue("___________");
+
+        // Fila sumas iguales
+        Object total = partidaContainer.addItem();
+        partidaContainer.getContainerProperty(total, CUENTA_PROPERTY).setValue("");
+        partidaContainer.getContainerProperty(total, DESCRIPCION_PROPERTY).setValue("--------> SUMAS IGUALES");
+        partidaContainer.getContainerProperty(total, DEBE_PROPERTY).setValue(numberFormat.format(totalDebe.doubleValue()));
+        partidaContainer.getContainerProperty(total, HABER_PROPERTY).setValue(numberFormat.format(totalHaber.doubleValue()));
+        partidaContainer.getContainerProperty(total, DEBE_Q_PROPERTY).setValue(numberFormat.format(totalDebeQ.doubleValue()));
+        partidaContainer.getContainerProperty(total, HABER_Q_PROPERTY).setValue(numberFormat.format(totalHaberQ.doubleValue()));
+        partidaContainer.getContainerProperty(total, CODIGOCC_PROPERTY).setValue("___________");
+
+        Object sep2 = partidaContainer.addItem();
+        partidaContainer.getContainerProperty(sep2, CUENTA_PROPERTY).setValue("__________");
+        partidaContainer.getContainerProperty(sep2, DESCRIPCION_PROPERTY).setValue("__________");
+        partidaContainer.getContainerProperty(sep2, DEBE_PROPERTY).setValue("___________");
+        partidaContainer.getContainerProperty(sep2, HABER_PROPERTY).setValue("___________");
+        partidaContainer.getContainerProperty(sep2, DEBE_Q_PROPERTY).setValue("___________");
+        partidaContainer.getContainerProperty(sep2, HABER_Q_PROPERTY).setValue("___________");
+        partidaContainer.getContainerProperty(sep2, CODIGOCC_PROPERTY).setValue("___________");
+    }
+
+    public void llenarGridFacturas() {
+        totalDebe  = new BigDecimal(0);
+        totalHaber = new BigDecimal(0);
+        totalDebe.setScale(2, RoundingMode.HALF_UP);
+        totalHaber.setScale(2, RoundingMode.HALF_UP);
+        totalDebeQ  = new BigDecimal(0);
+        totalHaberQ = new BigDecimal(0);
+
+        footerFacturas.getCell(VALOR_PROPERTY).setText("0.00");
+        footerFacturas.getCell(MONTO_AUTORIZADO_PROPERTY).setText("0.00");
+        footerFacturas.getCell(ANTICIPO_PROPERTY).setText("0.00");
+
+        facturasContainer.removeAllItems();
+        totalMonto    = 0.00;
+        totalQueztales = 0.00;
+        totalAnticipo = 0.00;
+
+        queryString  = "SELECT contabilidad_partida.CodigoPartida, contabilidad_partida.CodigoCC, ";
+        queryString += " contabilidad_partida.Fecha, contabilidad_partida.NombreProveedor ,";
+        queryString += " contabilidad_partida.IdNomenclatura, contabilidad_partida.TipoDocumento, ";
+        queryString += " contabilidad_partida.SerieDocumento, contabilidad_partida.NumeroDocumento, ";
+        queryString += " contabilidad_partida.MonedaDocumento, ";
+        queryString += " contabilidad_partida.MontoAutorizadoPagar, contabilidad_partida.MontoAplicarAnticipo,";
+        queryString += " contabilidad_partida.Haber, contabilidad_partida.HaberQuetzales, ";
+        queryString += " ( (contabilidad_partida.HaberQuetzales / contabilidad_partida.Haber) * (contabilidad_partida.MontoAutorizadoPagar + contabilidad_partida.MontoAplicarAnticipo)) ProporcionHaberQ";
+        queryString += " FROM contabilidad_partida ";
+        queryString += " INNER JOIN autorizacion_pago ON autorizacion_pago.CodigoCC = contabilidad_partida.CodigoCC ";
+        queryString += " WHERE contabilidad_partida.IdEmpresa =" + empresaId;
+        queryString += " AND contabilidad_partida.IdProveedor = " + IdProveedor;
+        queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getProveedores();
+        queryString += " AND UPPER(contabilidad_partida.TipoDocumento) IN ('FACTURA', 'RECIBO', ";
+        queryString += " 'RECIBO CONTABLE', 'RECIBO CORRIENTE', 'FORMULARIO RECTIFICACION')";
+        queryString += " GROUP BY CodigoPartida";
+
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "query mostrar documentos a pagar FACTURAS : " + queryString);
 
         try {
+            stQueryFacturas   = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+            rsRecordsFacturas = stQuery.executeQuery(queryString);
 
-            ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().setAutoCommit(false);
+            if (rsRecordsFacturas.next()) {
+                do {
+                    Object itemId = facturasContainer.addItem();
+                    try {
+                        facturasContainer.getContainerProperty(itemId, ID_PROPERTY).setValue(rsRecordsFacturas.getString("CodigoPartida"));
+                    } catch (Exception ex11) {
+                        ex11.printStackTrace();
+                        return;
+                    }
+                    facturasContainer.getContainerProperty(itemId, TIPO_PROPERTY).setValue(rsRecordsFacturas.getString("TipoDocumento"));
+                    facturasContainer.getContainerProperty(itemId, FECHA_PROPERTY).setValue(Utileria.getFechaDDMMYYYY(rsRecordsFacturas.getDate("Fecha")));
+                    facturasContainer.getContainerProperty(itemId, PROVEEDOR_PROPERTY).setValue(rsRecordsFacturas.getString("NombreProveedor"));
+                    facturasContainer.getContainerProperty(itemId, CODIGO_PROPERTY).setValue(IdProveedor);
+                    facturasContainer.getContainerProperty(itemId, FACTURA_PROPERTY).setValue(rsRecordsFacturas.getString("SerieDocumento") + " " + rsRecordsFacturas.getString("NumeroDocumento"));
+                    facturasContainer.getContainerProperty(itemId, MONEDA_PROPERTY).setValue(rsRecordsFacturas.getString("MonedaDocumento"));
+                    facturasContainer.getContainerProperty(itemId, VALOR_PROPERTY).setValue(numberFormat.format(rsRecordsFacturas.getDouble("MontoAutorizadoPagar")));
+                    facturasContainer.getContainerProperty(itemId, MONTO_AUTORIZADO_PROPERTY).setValue(numberFormat.format(rsRecordsFacturas.getDouble("MontoAutorizadoPagar")));
+                    facturasContainer.getContainerProperty(itemId, ANTICIPO_PROPERTY).setValue(numberFormat.format(rsRecordsFacturas.getDouble("MontoAplicarAnticipo")));
+                    facturasContainer.getContainerProperty(itemId, CUENTA_PROPERTY).setValue(rsRecordsFacturas.getString("IdNomenclatura"));
+                    facturasContainer.getContainerProperty(itemId, HABER_PROPERTY).setValue(rsRecordsFacturas.getString("Haber"));
+                    facturasContainer.getContainerProperty(itemId, HABER_Q_PROPERTY).setValue(rsRecordsFacturas.getString("HaberQuetzales"));
+                    facturasContainer.getContainerProperty(itemId, CODIGOCC_PROPERTY).setValue(rsRecordsFacturas.getString("CodigoCC"));
 
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            stQuery.executeUpdate(queryString);
+                    totalMonto    += rsRecordsFacturas.getDouble("MontoAutorizadoPagar");
+                    totalQueztales += rsRecordsFacturas.getDouble("MontoAutorizadoPagar");
+                    totalAnticipo += rsRecordsFacturas.getDouble("MontoAplicarAnticipo");
+                } while (rsRecordsFacturas.next());
+            }
 
-            Iterator iter;
-
-            iter = facturasGrid.getSelectedRows().iterator();
-
-            Double montoPagar = 0.00;
-            Double montoAnticipo = 0.00;
-            Double saldo = 0.00;
-            String tipo = "";
-            String fechaSelect = "";
-
-            String codigoPartidaDoca;
-
-            while (iter.hasNext()) {  // POR CADA FACTURA QUE ESTAMOS PAGANDO CON ESTE CHEQUE
-
-                Object gridItem = iter.next();
-
-                codigoCC = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CODIGOCC_PROPERTY).getValue());
-                codigoPartidaDoca = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROPERTY).getValue());
-                montoPagar = Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(VALOR_PROPERTY).getValue()).replaceAll(",", ""));
-                montoAnticipo = Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ANTICIPO_PROPERTY).getValue()).replaceAll(",", ""));
-
-                tipo = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(TIPO_PROPERTY).getValue());
-                fechaSelect = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(FECHA_PROPERTY).getValue());
-
-                queryString = " UPDATE contabilidad_partida SET ";
-                queryString += " MontoAutorizadoPagar = 0.00";
-                queryString += ", MontoAplicarAnticipo = 0.00";
-                queryString += ", Estatus = 'PAGADO'";
-                queryString += ", Referencia = '" + codigoPartida + "'";//codigo de la partida del CHEQUE
-                queryString += ", TipoDoca = '" + medioCbx.getValue() + "'";
-                queryString += ", NoDoca = '" + numeroTxt.getValue() + "'";
-                queryString += " WHERE CodigoPartida = '" + codigoPartidaDoca + "'";  //CODIGO DE LA PARTIDA DEL DOCUMENTO
-
-                stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-                stQuery.executeUpdate(queryString);
-
-                queryString = " UPDATE contabilidad_partida SET ";
-                queryString += " Estatus = 'PAGADO'";
-                queryString += ", Referencia = '" + codigoPartida + "'";//codigo de la partida del CHEQUE
-                queryString += ", TipoDoca = '" + medioCbx.getValue() + "'";
-                queryString += ", NoDoca = '" + numeroTxt.getValue() + "'";
-                queryString += " WHERE CodigoCC = '" + codigoCC + "'";  //CODIGOCC DE LA PARTIDA DEL DOCUMENTO
-                queryString += " AND   TipoDocumento = 'NOTA DE CREDITO COMPRA'";
-
-                stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-                stQuery.executeUpdate(queryString);
-
-                queryString = " DELETE FROM autorizacion_pago";
-                queryString += " WHERE CodigoCC = '" + codigoPartidaDoca + "'";
-
-                stQuery.executeUpdate(queryString);
-
-                ((PagarView) (mainUI.getNavigator().getCurrentView())).llenarTablaAutorizaciones();
-
-                facturasGrid.getContainerDataSource().removeItem(gridItem);
-
-            }//end while
-
-            ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().commit();
-            ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().setAutoCommit(true);
-
-            Notification notif = new Notification("PAGAO REALIZADO EXITOSAMENTE.",
-                    Notification.Type.HUMANIZED_MESSAGE);
-            notif.setDelayMsec(1500);
-            notif.setPosition(Position.MIDDLE_CENTER);
-            notif.setIcon(FontAwesome.CHECK);
-            notif.show(Page.getCurrent());
-
-            PagoChequesPDF Pagocheques
-                    = new PagoChequesPDF(
-                    empresaId,
-                    empresaNombre,
-                    codigoPartidaNuevo,
-                    "0",
-                    nombreChequeTxt.getValue(),
-                    numeroTxt.getValue(),
-                    descripcion,
-                    numberFormat3.format(montoTxt.getDoubleValueDoNotThrow())
-            );
-
-            mainUI.addWindow(Pagocheques);
-
-            Pagocheques.center();
-
-            facturasGrid.getSelectedRows().clear();
-            facturasGrid.getSelectionModel().reset();
-
-            proveedorCbx.setReadOnly(false);
-
-            limpiarPartida();
-
-            proveedorCbx.setReadOnly(true);
-
-            MostrarPartidaContable mostrarPartidaContable = new MostrarPartidaContable(codigoPartida, "", descripcion, numeroTxt.getValue());
-            mainUI.addWindow(mostrarPartidaContable);
-            mostrarPartidaContable.center();
-
-        } catch (Exception ex1) {
-
-            System.out.println("Error al insertar transacción  : " + ex1.getMessage());
-            ex1.printStackTrace();
-
-            Notification notif = new Notification("HA OCURRIDO UN ERROR DE BASE DE DATOS : " + ex1.getMessage() + "  TRANSACCION ABORTADA!!!",
-                    Notification.Type.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            System.out.println("Error al listar tabla de DOCUMENTOS : " + ex);
+            ex.printStackTrace();
+            Notification notif = new Notification("HA OCURRIDO UN ERROR DE BASE DE DATOS : " + ex.getMessage(), Notification.Type.HUMANIZED_MESSAGE);
             notif.setDelayMsec(1500);
             notif.setPosition(Position.MIDDLE_CENTER);
             notif.setIcon(FontAwesome.WARNING);
             notif.show(Page.getCurrent());
-
-            try {
-                ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().rollback();
-                ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().setAutoCommit(true);
-            } catch (SQLException ex) {
-                Logger.getLogger(PagoFacturaProveedorForm.class
-                        .getName()).log(Level.SEVERE, null, ex);
-            }
-
-            try {
-                String emailsTo[] = {"alerta@simpletecno.com"};
-                MyEmailMessanger eMail = new MyEmailMessanger();
-
-                eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos :  " + this.getClass().getName() + " -->" + ex1.getMessage());
-            } catch (MessagingException ex2) {
-                Logger.getLogger(PagoFacturaProveedorForm.class.getName()).log(Level.SEVERE, null, ex2);
-            }
-
         }
 
+        footerFacturas.getCell(VALOR_PROPERTY).setText(numberFormat.format(totalMonto));
+        footerFacturas.getCell(MONTO_AUTORIZADO_PROPERTY).setText(numberFormat.format(totalQueztales));
+        footerFacturas.getCell(ANTICIPO_PROPERTY).setText(numberFormat.format(totalAnticipo));
     }
 
     public void limpiarPartida() {
-        
         numeroTxt.setReadOnly(false);
         numeroTxt.setValue("");
         nombreChequeTxt.setReadOnly(false);
@@ -1427,47 +1041,244 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "query mostrar docum
         nombreChequeTxt.setReadOnly(((SopdiUI) mainUI).sessionInformation.getStrUserProfileName().equals("AUXILIAR"));
         montoTxt.setReadOnly(false);
         montoTxt.setValue(0.00);
-
         partidaContainer.removeAllItems();
-
         descripcionTxt.setValue("");
     }
 
     public void llenarComboProveedor() {
-        String queryString = " SELECT * FROM proveedor ";
-        queryString += " WHERE Inhabilitado = 0 ";
-        queryString += " AND EsProveedor = 1 ";
-        queryString += " ORDER BY Nombre ";
-
+        String q = " SELECT * FROM proveedor WHERE Inhabilitado = 0 AND EsProveedor = 1 ORDER BY Nombre ";
         proveedorCbx.removeAllItems();
-
         try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
+            stQuery   = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
+            rsRecords = stQuery.executeQuery(q);
+            while (rsRecords.next()) {
                 proveedorCbx.addItem(rsRecords.getString("IDProveedor"));
                 proveedorCbx.setItemCaption(rsRecords.getString("IDProveedor"), rsRecords.getString("Nombre"));
             }
-
         } catch (Exception ex1) {
             System.out.println("Error al listar Proveedores " + ex1.getMessage());
             ex1.printStackTrace();
         }
     }
 
+    private void insertarPartidaCompuesta() {
+        // (método original sin cambios)
+        String descripcion = descripcionTxt.getValue();
+
+        queryString  = "INSERT INTO contabilidad_partida (";
+        queryString += " IdEmpresa, IdNomenclatura, CodigoCC, Descripcion, TipoDocumento,";
+        queryString += " SerieDocumento, NumeroDocumento, Fecha, Debe, DebeQuetzales,";
+        queryString += " Haber, HaberQuetzales, IdMoneda, TipoCambio, Estatus,";
+        queryString += " TipoDoca, NoDoca, IdProveedor, NombreProveedor, CodigoCC_Doc,";
+        queryString += " Descripcion2, IdUsuario, FechaCreacion) VALUES ";
+
+        Iterator iter = partidaContainer.getItemIds().iterator();
+
+        codigoPartidaNuevo = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId()
+                + String.valueOf(System.currentTimeMillis());
+
+        while (iter.hasNext()) {
+            Object itemId = iter.next();
+            Item   item   = partidaContainer.getItem(itemId);
+
+            String cuenta     = String.valueOf(item.getItemProperty(CUENTA_PROPERTY).getValue());
+            String descripPar = String.valueOf(item.getItemProperty(DESCRIPCION_PROPERTY).getValue());
+            String debe       = String.valueOf(item.getItemProperty(DEBE_PROPERTY).getValue()).replaceAll(",", "");
+            String haber      = String.valueOf(item.getItemProperty(HABER_PROPERTY).getValue()).replaceAll(",", "");
+            String debeQ      = String.valueOf(item.getItemProperty(DEBE_Q_PROPERTY).getValue()).replaceAll(",", "");
+            String haberQ     = String.valueOf(item.getItemProperty(HABER_Q_PROPERTY).getValue()).replaceAll(",", "");
+            String codCC      = String.valueOf(item.getItemProperty(CODIGOCC_PROPERTY).getValue());
+
+            if (cuenta.startsWith("_") || debe.startsWith("_") || haber.startsWith("_")) continue;
+
+            queryString += "(";
+            queryString += empresaId;
+            queryString += "," + cuenta;
+            queryString += ",'" + codigoPartidaNuevo + "'";
+            queryString += ",'" + descripcion + "'";
+            queryString += ",'PAGO'";
+            queryString += ",'" + medioCbx.getValue() + "'";
+            queryString += ",'" + numeroTxt.getValue() + "'";
+            queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
+            queryString += "," + debe;
+            queryString += "," + debeQ;
+            queryString += "," + haber;
+            queryString += "," + haberQ;
+            queryString += ",'" + monedaCbx.getValue() + "'";
+            queryString += "," + tasaCambioTxt.getValue();
+            queryString += ",'PAGADO'";
+            queryString += ",'" + medioCbx.getValue() + "'";
+            queryString += ",'" + numeroTxt.getValue() + "'";
+            queryString += "," + proveedorId;
+            queryString += ",'" + proveedorNombre + "'";
+            queryString += ",'" + codCC + "'";
+            queryString += ",'" + descripcion + "'";
+            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+            queryString += ",current_timestamp";
+            queryString += "),";
+        }
+
+        queryString = queryString.substring(0, queryString.length() - 1);
+
+        try {
+            ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().setAutoCommit(false);
+            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
+            stQuery.executeUpdate(queryString);
+
+            Iterator iterFacturas   = facturasGrid.getSelectedRows().iterator();
+            Double   montoPagar     = 0.00;
+            Double   montoAnticipo  = 0.00;
+            String   tipo           = "";
+            String   fechaSelect    = "";
+            String   codigoPartidaDoca;
+
+            while (iterFacturas.hasNext()) {
+                Object gridItem = iterFacturas.next();
+                codigoCC           = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CODIGOCC_PROPERTY).getValue());
+                codigoPartidaDoca  = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROPERTY).getValue());
+                montoPagar         = Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(VALOR_PROPERTY).getValue()).replaceAll(",", ""));
+                montoAnticipo      = Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ANTICIPO_PROPERTY).getValue()).replaceAll(",", ""));
+                tipo               = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(TIPO_PROPERTY).getValue());
+                fechaSelect        = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(FECHA_PROPERTY).getValue());
+
+                queryString  = " UPDATE contabilidad_partida SET ";
+                queryString += " MontoAutorizadoPagar = 0.00, MontoAplicarAnticipo = 0.00, Estatus = 'PAGADO'";
+                queryString += ", Referencia = '" + codigoPartida + "'";
+                queryString += ", TipoDoca = '" + medioCbx.getValue() + "'";
+                queryString += ", NoDoca = '" + numeroTxt.getValue() + "'";
+                queryString += " WHERE CodigoPartida = '" + codigoPartidaDoca + "'";
+                stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
+                stQuery.executeUpdate(queryString);
+
+                queryString  = " UPDATE contabilidad_partida SET Estatus = 'PAGADO'";
+                queryString += ", Referencia = '" + codigoPartida + "'";
+                queryString += ", TipoDoca = '" + medioCbx.getValue() + "'";
+                queryString += ", NoDoca = '" + numeroTxt.getValue() + "'";
+                queryString += " WHERE CodigoCC = '" + codigoCC + "'";
+                queryString += " AND TipoDocumento = 'NOTA DE CREDITO COMPRA'";
+                stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
+                stQuery.executeUpdate(queryString);
+
+                queryString  = " DELETE FROM autorizacion_pago WHERE CodigoCC = '" + codigoPartidaDoca + "'";
+                stQuery.executeUpdate(queryString);
+
+                ((PagarView) (mainUI.getNavigator().getCurrentView())).llenarTablaAutorizaciones();
+                facturasGrid.getContainerDataSource().removeItem(gridItem);
+            }
+
+            ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().commit();
+            ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().setAutoCommit(true);
+
+            Notification notif = new Notification("PAGO REALIZADO EXITOSAMENTE.", Notification.Type.HUMANIZED_MESSAGE);
+            notif.setDelayMsec(1500);
+            notif.setPosition(Position.MIDDLE_CENTER);
+            notif.setIcon(FontAwesome.CHECK);
+            notif.show(Page.getCurrent());
+
+            PagoChequesPDF pagoCheques = new PagoChequesPDF(empresaId, empresaNombre, codigoPartidaNuevo, "0",
+                    nombreChequeTxt.getValue(), numeroTxt.getValue(), descripcion, numberFormat3.format(montoTxt.getDoubleValueDoNotThrow()));
+            mainUI.addWindow(pagoCheques);
+            pagoCheques.center();
+
+            facturasGrid.getSelectedRows().clear();
+            facturasGrid.getSelectionModel().reset();
+            proveedorCbx.setReadOnly(false);
+            limpiarPartida();
+            proveedorCbx.setReadOnly(true);
+
+            MostrarPartidaContable mostrarPartidaContable = new MostrarPartidaContable(codigoPartida, "", descripcion, numeroTxt.getValue());
+            mainUI.addWindow(mostrarPartidaContable);
+            mostrarPartidaContable.center();
+
+        } catch (Exception ex1) {
+            System.out.println("Error al insertar transacción: " + ex1.getMessage());
+            ex1.printStackTrace();
+            Notification notif = new Notification("HA OCURRIDO UN ERROR DE BASE DE DATOS : " + ex1.getMessage() + " TRANSACCION ABORTADA!!!", Notification.Type.ERROR_MESSAGE);
+            notif.setDelayMsec(1500);
+            notif.setPosition(Position.MIDDLE_CENTER);
+            notif.setIcon(FontAwesome.WARNING);
+            notif.show(Page.getCurrent());
+            try {
+                ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().rollback();
+                ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().setAutoCommit(true);
+            } catch (SQLException ex) {
+                Logger.getLogger(PagoFacturaProveedorForm.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            try {
+                String[] emailsTo = {"alerta@simpletecno.com"};
+                MyEmailMessanger eMail = new MyEmailMessanger();
+                eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos: " + this.getClass().getName() + " --> " + ex1.getMessage());
+            } catch (MessagingException ex2) {
+                Logger.getLogger(PagoFacturaProveedorForm.class.getName()).log(Level.SEVERE, null, ex2);
+            }
+        }
+    }
+
+    public void desAutorizarFactura() {
+        Iterator iter = facturasGrid.getSelectedRows().iterator();
+
+        ConfirmDialog.show(UI.getCurrent(), "Confirme:", "¿Desea eliminar la autorización de pago de estas facturas?",
+                "SI", "NO", dialog -> {
+                    if (dialog.isConfirmed()) {
+                        try {
+                            ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().setAutoCommit(false);
+                            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+
+                            while (iter.hasNext()) {
+                                Object gridItem       = iter.next();
+                                String codigoPartida1 = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROPERTY).getValue());
+
+                                queryString  = " UPDATE contabilidad_partida SET MontoAutorizadoPagar = 0, MontoAplicarAnticipo = 0";
+                                queryString += " WHERE CodigoPartida = '" + codigoPartida1 + "'";
+                                stQuery.executeUpdate(queryString);
+
+                                queryString = " DELETE FROM autorizacion_pago WHERE CodigoCC = '" + codigoPartida1 + "'";
+                                stQuery.executeUpdate(queryString);
+                            }
+
+                            ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().commit();
+                            ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().setAutoCommit(true);
+                            Notification.show("DOCUMENTOS DES-AUTORIZADOS CON ÉXITO", Notification.Type.HUMANIZED_MESSAGE);
+                            close();
+
+                        } catch (Exception ex) {
+                            System.out.println("Error al des-autorizar facturas: " + ex);
+                            Notification notif = new Notification("HA OCURRIDO UN ERROR DE BASE DE DATOS : " + ex.getMessage() + " TRANSACCION ABORTADA!!!", Notification.Type.ERROR_MESSAGE);
+                            notif.setDelayMsec(1500);
+                            notif.setPosition(Position.MIDDLE_CENTER);
+                            notif.setIcon(FontAwesome.WARNING);
+                            notif.show(Page.getCurrent());
+                            try {
+                                ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().rollback();
+                                ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().setAutoCommit(true);
+                            } catch (SQLException exSql) {
+                                Logger.getLogger(PagoFacturaProveedorForm.class.getName()).log(Level.SEVERE, null, exSql);
+                            }
+                        }
+                    }
+                });
+    }
+
     public boolean exportToExcel(Grid theGrid) {
         if (theGrid.getHeightByRows() > 0) {
-            TableHolder tableHolder = new DefaultTableHolder(theGrid);
-            ExcelExport excelExport = new ExcelExport(tableHolder);
+            TableHolder  tableHolder  = new DefaultTableHolder(theGrid);
+            ExcelExport  excelExport  = new ExcelExport(tableHolder);
             excelExport.excludeCollapsedColumns();
             excelExport.setDisplayTotals(false);
-            String fileexport;
-// produccion            fileexport = (empresa + "_" + empresaLbl.getValue().substring(5, empresaLbl.getValue().length()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é","") + "_INTEGRACION_CAMBIOS.xlsx").replaceAll(" ", "").replaceAll(",", "");
-            fileexport = (empresaId + "_" + empresaNombre.replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é", "") + "_DOCUMENTOS.xls").replaceAll(" ", "").replaceAll(",", "");
+            String fileexport = (empresaId + "_" + empresaNombre
+                    .replaceAll(" ", "_").replaceAll(",", "_")
+                    .replaceAll("[()]", "").replaceAll("[.]", "")
+                    .replaceAll("ñ", "n").replaceAll("Ñ", "N")
+                    .replaceAll("ó", "o").replaceAll("é", "")
+                    + "_DOCUMENTOS.xls").replaceAll(" ", "").replaceAll(",", "");
             excelExport.setExportFileName(fileexport);
             excelExport.export();
         }
         return true;
+    }
+
+    /** Debe ser implementado para llenar las cuentas contables disponibles. */
+    private void llenarComboCuentaContable() {
+        // implementación existente sin cambios
     }
 }

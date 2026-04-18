@@ -2049,7 +2049,7 @@ System.out.println(queryString);
 
             if (mainUI.getNavigator().getCurrentView().getClass().getSimpleName().equals("FacturaVentaView")) {
                 Object selectedObject = ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).facturasVentaGrid.getSelectedRow();
-                ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).container.getContainerProperty(selectedObject, IMAGEN_PROPERTY).setValue("Visualizar");
+                ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).facturasVentaContainer.getContainerProperty(selectedObject, IMAGEN_PROPERTY).setValue("Visualizar");
             }
             if (mainUI.getNavigator().getCurrentView().getClass().getSimpleName().equals("IngresoDocumentosView")) {
                 Object selectedObject = ((IngresoDocumentosView) (mainUI.getNavigator().getCurrentView())).documentosGrid.getSelectedRow();

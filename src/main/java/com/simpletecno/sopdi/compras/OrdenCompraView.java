@@ -143,7 +143,7 @@ public class OrdenCompraView extends VerticalLayout implements View {
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.addStyleName("rcorners3");
         contentLayout.setWidth("100%");
-        contentLayout.setHeightUndefined();
+        contentLayout.setSizeFull();
         contentLayout.setResponsive(true);
         contentLayout.setSpacing(true);
 
@@ -197,7 +197,7 @@ public class OrdenCompraView extends VerticalLayout implements View {
         ordenCompraGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
         ordenCompraGrid.setDescription("Seleccione un registro.");
         ordenCompraGrid.setHeightMode(HeightMode.ROW);
-        ordenCompraGrid.setHeightByRows(15);
+        ordenCompraGrid.setHeightByRows(10);
 //        ordenCompraGrid.setHeightMode(HeightMode.UNDEFINED);
 //        ordenCompraGrid.setResponsive(true);
         ordenCompraGrid.setEditorBuffered(false);

@@ -67,7 +67,7 @@ public class OrdenCompraAnticiposForm extends Window {
     public OrdenCompraAnticiposForm() {
         this.mainUI = UI.getCurrent();
         setWidth("85%");
-        setHeight("70%");
+        setHeightUndefined();
 
         mainLayout = new VerticalLayout();
         mainLayout.setSizeUndefined();
@@ -313,10 +313,10 @@ public class OrdenCompraAnticiposForm extends Window {
         try {
 
             queryString = " SELECT *, empresa.Nombre as EmpresaNombre, ";
-            queryString += " proveedor.Nombre AS ProveedorNombre, tipo_orden_compra.Descripcion As TipoOrdenCompra ";
+            queryString += " proveedor_empresa.Nombre AS ProveedorNombre, tipo_orden_compra.Descripcion As TipoOrdenCompra ";
             queryString += " FROM orden_compra";
             queryString += " LEFT JOIN empresa ON orden_compra.IdEmpresa = empresa.IdEmpresa";
-            queryString += " LEFT JOIN proveedor_empresa ON orden_compra_empresa.IdProveedor = proveedor.IdProveedor";
+            queryString += " LEFT JOIN proveedor_empresa ON orden_compra.IdProveedor = proveedor_empresa.IdProveedor";
             queryString += " LEFT JOIN tipo_orden_compra ON orden_compra.IdTipoOrdenCompra = tipo_orden_compra.Id";
             queryString += " WHERE orden_compra.CodigoCCAnticipo = '' AND orden_compra.CodigoCCDocumento = ''";
             queryString += " AND   orden_compra.IdEmpresa =" + empresaId;

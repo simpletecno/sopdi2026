@@ -37,47 +37,55 @@ public class DashboardView extends VerticalLayout implements View {
 
     public DashboardView() {
 
-        setSizeUndefined();
+        // setWidth en lugar de setSizeUndefined: la vista debe ocupar el ancho
+        // completo del navegador para que los layouts internos se anclen correctamente.
+        setWidth("100%");
         setSpacing(true);
-        setDefaultComponentAlignment(Alignment.TOP_CENTER);
+        setMargin(new MarginInfo(false, false, false, false));
+        setDefaultComponentAlignment(Alignment.TOP_LEFT);
 
         Label titleLbl = new Label("Dashboard");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
 
+        refrescarBtn.setIcon(FontAwesome.REFRESH);
+        refrescarBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
+
         HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setMargin(new MarginInfo(false, true, false, true));
+        titleLayout.setMargin(new MarginInfo(true, true, false, true));
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
-
         titleLayout.addComponents(titleLbl, refrescarBtn);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_LEFT);
-        titleLayout.setComponentAlignment(refrescarBtn, Alignment.BOTTOM_CENTER);
+        titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_LEFT);
+        titleLayout.setComponentAlignment(refrescarBtn, Alignment.MIDDLE_RIGHT);
 
         addComponent(titleLayout);
 
+        // topLayout: contenedor de tarjetas KPI.
+        // Se elimina LAYOUT_CARD del contenedor (era incorrecto aplicarlo aquí;
+        // el estilo de tarjeta va en cada componente hijo, no en el wrapper).
         topLayout.setSpacing(true);
-        topLayout.setMargin(true);
-        topLayout.setDefaultComponentAlignment(Alignment.TOP_CENTER);
+        topLayout.setMargin(new MarginInfo(false, true, false, true));
+        topLayout.setDefaultComponentAlignment(Alignment.TOP_LEFT);
         topLayout.addStyleName(ValoTheme.LAYOUT_HORIZONTAL_WRAPPING);
-        topLayout.addStyleName(ValoTheme.LAYOUT_CARD);
         topLayout.setWidth("100%");
 
+        // bottomLayout: gráficas. Necesita ancho 100% para anclar sus hijos.
         bottomLayout.setSpacing(true);
-        bottomLayout.setMargin(true);
-        bottomLayout.setDefaultComponentAlignment(Alignment.TOP_CENTER);
+        bottomLayout.setMargin(new MarginInfo(false, true, true, true));
+        bottomLayout.setDefaultComponentAlignment(Alignment.TOP_LEFT);
         bottomLayout.addStyleName(ValoTheme.LAYOUT_HORIZONTAL_WRAPPING);
+        bottomLayout.setWidth("100%");
 
         addComponents(topLayout, bottomLayout);
 
         createTopData();
         createBottomGraphs();
 
-        refrescarBtn.setIcon(FontAwesome.REFRESH);
-        refrescarBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
         refrescarBtn.addClickListener(e -> {
             topLayout.removeAllComponents();
+            proveedorSaldo.clear();
             createTopData();
         });
     }
@@ -93,24 +101,24 @@ public class DashboardView extends VerticalLayout implements View {
 
     private VerticalLayout createBadget(String titulo, String valor) {
         Label tituloLbl = new Label(titulo);
-        tituloLbl.addStyleName(ValoTheme.LABEL_H4);
-        tituloLbl.setSizeUndefined();
+        tituloLbl.addStyleName(ValoTheme.LABEL_SMALL);
         tituloLbl.addStyleName(ValoTheme.LABEL_COLORED);
+        tituloLbl.addStyleName(ValoTheme.LABEL_BOLD);
         tituloLbl.setIcon(FontAwesome.MONEY);
+        tituloLbl.setSizeUndefined();
 
-        Label valorLbl = new Label();
-        valorLbl.addStyleName(ValoTheme.LABEL_H3);
-        valorLbl.setSizeUndefined();
-        valorLbl.setValue(valor);
-//        valorLbl.addStyleName("mi-label-personalizado");
+        Label valorLbl = new Label(valor);
+        valorLbl.addStyleName(ValoTheme.LABEL_H4);
         valorLbl.addStyleName("label-kpi");
+        valorLbl.setSizeUndefined();
 
         VerticalLayout card = new VerticalLayout(tituloLbl, valorLbl);
-        card.setSizeFull();
-        card.setSpacing(true);
-        card.setMargin(true);
-//        card.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
+        card.setWidth("200px");
+        card.setHeightUndefined();
+        card.setSpacing(false);
+        card.setMargin(false);   // el padding lo controla .kpi-card en CSS
         card.addStyleName("rcorners3");
+        card.addStyleName("kpi-card");
 
         return card;
     }
@@ -332,14 +340,17 @@ public class DashboardView extends VerticalLayout implements View {
 
         EChartsComponent pie = new EChartsComponent();
         EChartsComponent line = new EChartsComponent();
-//        pie.setCaption("Top 10 saldo proveedores ");
 
-//        EChartsComponent bar = new EChartsComponent();
-//        bar.setCaption("Bar chart");
+        // Ancho fijo razonable para que ambas quepan lado a lado y el wrapping
+        // las apile verticalmente en pantallas pequeñas. La altura se mantiene fija
+        // porque ECharts la necesita para renderizar el canvas.
+        pie.setWidth("560px");
+        pie.setHeight("380px");
+
+        line.setWidth("560px");
+        line.setHeight("380px");
 
         pie.setOptionJson(pieOption());
-//        bar.setOptionJson(barOption());
-
         line.setOptionJson(lineChartOption());
 
         bottomLayout.addComponents(pie, line);
@@ -375,7 +386,7 @@ public class DashboardView extends VerticalLayout implements View {
 
         sb.append("]");
 
-System.out.println("sb=" + sb.toString());
+//System.out.println("sb=" + sb.toString());
 
         return "{"
                 + "\"title\":{\"text\":\"Distribución Facturas Por Pagar\",\"left\":\"center\"},"

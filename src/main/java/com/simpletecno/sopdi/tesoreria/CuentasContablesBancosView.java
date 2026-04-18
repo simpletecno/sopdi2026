@@ -230,9 +230,10 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
         queryString += " INNER JOIN contabilidad_nomenclatura_empresa AS cuen";
         queryString += " ON ban.IdNomenclatura = cuen.IdNomenclatura";
         queryString += " INNER JOIN contabilidad_empresa AS emp ON ban.IdEmpresa = emp.IdEmpresa";
-        queryString += " INNER JOIN proveedor AS prov ON ban.IdProveedor = prov.IdProveedor";
+        queryString += " INNER JOIN proveedor_empresa AS prov ON ban.IdProveedor = prov.IdProveedor";
         queryString += " WHERE ban.IdEmpresa = " + empresaId;
         queryString += " AND cuen.IdEmpresa = " + empresaId;
+        queryString += " AND prov.IdEmpresa = " + empresaId;
         queryString += " ORDER BY ban.IdEmpresa, ban.IdNomenclatura";
 
         try {

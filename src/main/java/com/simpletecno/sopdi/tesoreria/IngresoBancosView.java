@@ -158,8 +158,6 @@ public class IngresoBancosView extends VerticalLayout implements View {
             @Override
             public void buttonClick(Button.ClickEvent event) {
                 IngresosVariadosForm nuevosIngresos = new IngresosVariadosForm(empresaId);
-                nuevosIngresos.empresaCbx.select(empresaId);
-                nuevosIngresos.empresaCbx.setReadOnly(true);
                 UI.getCurrent().addWindow(nuevosIngresos);
                 nuevosIngresos.center();
             }
@@ -432,7 +430,7 @@ public class IngresoBancosView extends VerticalLayout implements View {
         queryString += " '" + Utileria.getFechaYYYYMMDD_1(inicioDt.getValue()) + "'";
         queryString += " AND '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "'";
         queryString += " GROUP BY CodigoPartida, Fecha";
-        queryString += " GROUP BY Fecha ASC";
+        queryString += " ORDER BY CodigoPartida, Fecha ASC";
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

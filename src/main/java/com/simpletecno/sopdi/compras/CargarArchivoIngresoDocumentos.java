@@ -182,9 +182,9 @@ public class   CargarArchivoIngresoDocumentos extends Window {
                         
             if (mainUI.getNavigator().getCurrentView().getClass().getSimpleName().equals("FacturaVentaView")) {
                 System.out.println("nombre que lleva para actualizar " + fileName);
-                ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).container.getContainerProperty(selectedObject, IMAGEN_PROPERTY).setValue("Visualizar");
-                ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).container.getContainerProperty(selectedObject, ARCHIVO_PROPERTY).setValue(fileName);
-                ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).container.getContainerProperty(selectedObject, ARCHIVO_TIPO_PROPERTY).setValue(parametro2);
+                ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).facturasVentaContainer.getContainerProperty(selectedObject, IMAGEN_PROPERTY).setValue("Visualizar");
+                ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).facturasVentaContainer.getContainerProperty(selectedObject, ARCHIVO_PROPERTY).setValue(fileName);
+                ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).facturasVentaContainer.getContainerProperty(selectedObject, ARCHIVO_TIPO_PROPERTY).setValue(parametro2);
             }
             if (mainUI.getNavigator().getCurrentView().getClass().getSimpleName().equals("IngresoDocumentosView")) {
               

@@ -139,11 +139,14 @@ public class NotaCreditoVentaInfileForm extends Window {
         footherLayout.setMargin(false);
 
         this.mainUI = UI.getCurrent();
-        setResponsive(true);
         setWidth("80%");
+        setClosable(true);
+        setModal(true);
+        center();
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         Label titleLbl = new Label(empresaId + " " + empresaNombre + " NOTA DE CREDITO FACTURA VENTA");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
+        titleLbl.addStyleName(ValoTheme.LABEL_H3);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
 
@@ -706,12 +709,12 @@ public class NotaCreditoVentaInfileForm extends Window {
         exenta = false;
 
         queryString = "SELECT * ";
-        queryString += "FROM contabilidad_partida cp ";
-        queryString += "INNER JOIN producto_venta_empresa pve ON cp.IdProducto = pve.IdProducto ";
-        queryString += "WHERE cp.CodigoPartida = '" + codigoPartidaFactura + "' ";
-        queryString += "AND cp.IdEmpresa = " + empresaId;
-        queryString += "AND pve.IdEmpresa = " + empresaId;
-        queryString += "AND pve.Especial = 0 ";
+        queryString += " FROM contabilidad_partida cp ";
+        queryString += " INNER JOIN producto_venta_empresa pve ON cp.IdProducto = pve.IdProducto ";
+        queryString += " WHERE cp.CodigoPartida = '" + codigoPartidaFactura + "' ";
+        queryString += " AND cp.IdEmpresa = " + empresaId;
+        queryString += " AND pve.IdEmpresa = " + empresaId;
+        queryString += " AND pve.Especial = 0 ";
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO,"QUERY BUSCAR FACTURA VENTA  : " + queryString);
 
@@ -732,8 +735,8 @@ public class NotaCreditoVentaInfileForm extends Window {
 
                     Map<Integer, Integer> frases = new HashMap<>(); //<Frase, Escenario>
                     queryString =  "SELECT * ";
-                    queryString += "FROM producto_venta_frases ea ";
-                    queryString += "WHERE CorrelativoProducto = ? "; // <-- se le asigna en el setString()
+                    queryString += " FROM producto_venta_frases ea ";
+                    queryString += " WHERE CorrelativoProducto = ? "; // <-- se le asigna en el setString()
 
                     try {
                         PreparedStatement pstQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(queryString);

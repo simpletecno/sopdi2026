@@ -43,6 +43,7 @@ public class Utileria {
     private String referencia = "";
 
     private static final Map<Integer, String> codigosPostales = new HashMap<>();
+
     static {
         codigosPostales.put(1, "01001");
         codigosPostales.put(2, "01002");
@@ -65,8 +66,10 @@ public class Utileria {
         codigosPostales.put(19, "01019");
         codigosPostales.put(21, "01021");
     }
+
     /**
      * Obtiene el código postal correspondiente a una dirección de Guatemala.
+     *
      * @param direccion Cadena de texto que representa la dirección (ej. "Zona 16 Santa Rosita").
      * @return Código postal correspondiente a la zona detectada o un mensaje de error si no se encuentra.
      */
@@ -132,25 +135,31 @@ public class Utileria {
 
     /**
      * Returns the formated form of the number given
+     *
      * @param numero Double a Combertir en String dos decimales
      * @return formated String
      */
-    public static String format(Double numero){
+    public static String format(Double numero) {
         return Utileria.numberFormatEntero.format(numero + 0.0001);
     }
-    public static String format(BigDecimal numero) { return Utileria.numberFormatEntero.format(numero); }
+
+    public static String format(BigDecimal numero) {
+        return Utileria.numberFormatEntero.format(numero);
+    }
 
     /**
      * Returns the formated form of the number given
+     *
      * @param numero Double a Combertir en String un decimal
      * @return formated String
      */
-    public static String formatSimple(Double numero){
+    public static String formatSimple(Double numero) {
         return Utileria.numberFormatSimple.format(numero + 0.0001);
     }
 
     /**
      * Returns the formated form of the number given
+     *
      * @param n Numero a redondear a dos decimales
      * @return BigDecimal Redondeado
      */
@@ -162,9 +171,10 @@ public class Utileria {
 
     /**
      * Returns the formated form of the number given
-     * @param n Numero a redondear
+     *
+     * @param n     Numero a redondear
      * @param scale Numero de decimales a redondear
-     *  @return BigDecimal Redondeado
+     * @return BigDecimal Redondeado
      */
     public static double round(Number n, int scale) {
         if (n == null) throw new IllegalArgumentException("El número no puede ser null");
@@ -233,7 +243,7 @@ public class Utileria {
      * @return la fecha del sistema en formato dd/mm/yy
      */
     public static String getStaticFecha(Date dateToConvert) {
-        if(dateToConvert == null) return "";
+        if (dateToConvert == null) return "";
 
         java.util.GregorianCalendar today = new java.util.GregorianCalendar();
         today.setTime(dateToConvert);
@@ -488,6 +498,7 @@ public class Utileria {
 
     /**
      * Retorna la fecha y la hora del sistema en formato yyyymmdd
+     *
      * @return la fecha y hora del sistema en formato yyyymmdd
      */
     public String getFechaSinFormato(Date laFecha) {
@@ -504,6 +515,7 @@ public class Utileria {
 
     /**
      * Retorna la fecha dada en formato ddmmyyyy
+     *
      * @return la fecha dada en formato ddmmyyyy
      */
     public String getFechaSinFormato_v2(Date laFecha) {
@@ -647,10 +659,10 @@ public class Utileria {
      * Rellena una cadena con el caracter de relleno, de una longitud dada y
      * hacia la izquierda o hacia la derecha.
      *
-     * @param cadena String con la cadena original
+     * @param cadena          String con la cadena original
      * @param caracterRelleno char[1] contiene el caracter de relleno
-     * @param longitud int largo del relleno o de la cadena final...
-     * @param lado int 0=izquierda, 1=derecha
+     * @param longitud        int largo del relleno o de la cadena final...
+     * @param lado            int 0=izquierda, 1=derecha
      * @return String nueva cadena de caracteres.
      */
     public String rellenaString(String cadena, char caracterRelleno, int longitud, int lado) {
@@ -999,11 +1011,11 @@ public class Utileria {
      * Agreaga un filtro de Texto a una columna de un Grid
      *
      * @param filterRow fila de Filto
-     * @param property propiedad de la columna
+     * @param property  propiedad de la columna
      * @param container container del grid
-     * @param size largo del input del filtro
+     * @param size      largo del input del filtro
      */
-    public static void addTextFilter(Grid.HeaderRow filterRow, String property, IndexedContainer container, int size){
+    public static void addTextFilter(Grid.HeaderRow filterRow, String property, IndexedContainer container, int size) {
 
         Grid.HeaderCell cell1 = filterRow.getCell(property);
 
@@ -1012,9 +1024,9 @@ public class Utileria {
         filterField1.addStyleName(ValoTheme.TEXTFIELD_TINY);
 
         filterField1.setInputPrompt("Filtrar por " + property);
-        if(0 < size) {
+        if (0 < size) {
             filterField1.setColumns(size);
-        }else {
+        } else {
             filterField1.setWidth("85%");
         }
         filterField1.addTextChangeListener(change -> {
@@ -1034,7 +1046,7 @@ public class Utileria {
      * Agreaga un ComboBox de filtro a una columna de un Grid
      *
      * @param filterRow fila de Filto
-     * @param property propiedad de la columna
+     * @param property  propiedad de la columna
      * @param container container del grid
      */
     public static void addComboFilter(Grid.HeaderRow filterRow, String property, IndexedContainer container) {
@@ -1075,6 +1087,7 @@ public class Utileria {
         UUID uuid = UUID.randomUUID();
         return uuid.toString();
     }
+
     /**
      * Genera el siguiente {@code codigoPartida} de forma atómica para la tupla
      * ({@code idEmpresa}, {@code fecha}, {@code tipo}).
@@ -1092,8 +1105,7 @@ public class Utileria {
      * @param idEmpresa Identificador numérico de la empresa.
      * @param fecha     Fecha tipo Date.
      * @param tipo      Tipo numérico de 1 dígito (rango esperado: 0..9).
-     * @return          Código generado con el formato indicado.
-     *
+     * @return Código generado con el formato indicado.
      * @throws IllegalArgumentException si la fecha no tiene un formato válido o {@code tipo} no está en 0..9.
      * @throws RuntimeException         si ocurre un error SQL o si el correlativo excede 999.
      */
@@ -1160,11 +1172,10 @@ public class Utileria {
      * @param fecha     Fecha tipo Date.
      * @param tipo      Tipo numérico de 1 dígito (rango esperado: 0..9).
      * @param cantidad  Cantidad de códigos a reservar (mayor o igual que 1).
-     * @return          Arreglo con {@code cantidad} códigos en orden ascendente.
-     *
+     * @return Arreglo con {@code cantidad} códigos en orden ascendente.
      * @throws IllegalArgumentException si la fecha/tipo no son válidos o {@code cantidad} &lt; 1.
      * @throws RuntimeException         si ocurre un error SQL o si el correlativo excede 999.
-     *dc
+     *                                  dc
      */
     public static String[] nextCodigosPartida(Connection conn, String idEmpresa, java.util.Date fecha, int tipo, int cantidad) {
         if (fecha == null) throw new IllegalArgumentException("fecha null");
@@ -1197,7 +1208,8 @@ public class Utileria {
 
             int ultimo;
             try (ResultSet rs = psGet.executeQuery()) {
-                rs.next(); ultimo = rs.getInt(1);
+                rs.next();
+                ultimo = rs.getInt(1);
             }
 
             if (ultimo > 999) {
@@ -1218,7 +1230,10 @@ public class Utileria {
         }
     }
     // ---------- Helpers ----------
-    /** En tu formato actual 'tipo' es 1 dígito (0..9). */
+
+    /**
+     * En tu formato actual 'tipo' es 1 dígito (0..9).
+     */
     private static void validarTipoUnDigito(int tipo) {
         if (tipo < 0 || tipo > 9) {
             throw new IllegalArgumentException("Tipo debe ser un dígito 0..9. Valor=" + tipo);
@@ -1230,5 +1245,24 @@ public class Utileria {
         return uuid.toString();
     }
 
-}
+    /*
+     * Función que obtiene los dias transcurridos entre dos fechas.
+     * Recibe : Date fechaAntes
+     * Return : int dias
+     */
+    public static int antiguedad(java.util.Date fechaAntes) {
+        if(fechaAntes == null) {
+            return 0;
+        }
 
+        Date fechaHoy  = new Date();
+
+        long diffMs   = fechaHoy.getTime() - fechaAntes.getTime();
+        long diasTranscurridos = diffMs / (1000 * 60 * 60 * 24);
+
+       return Math.toIntExact(diasTranscurridos);
+
+    }
+
+
+}

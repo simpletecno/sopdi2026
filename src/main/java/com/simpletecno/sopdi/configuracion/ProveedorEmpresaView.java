@@ -79,6 +79,26 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
         });
         cell1.setComponent(filterField1);
 
+        Grid.HeaderCell cell2 = filterRow.getCell("nit");
+
+        TextField filterField2 = new TextField();
+        filterField2.addStyleName(ValoTheme.TEXTFIELD_TINY);
+        filterField2.setInputPrompt("Filtrar");
+        filterField2.setColumns(15);
+
+        filterField2.addTextChangeListener(change -> {
+            maestroContainer.removeContainerFilters("nit");
+            gridMaestro.deselectAll();
+
+            // (Re)create the filter if necessary
+            if (! change.getText().isEmpty()) {
+                maestroContainer.addContainerFilter(
+                        new SimpleStringFilter("nit",
+                                change.getText(), true, false));
+            }
+        });
+        cell2.setComponent(filterField2);
+
         misContainer.addContainerProperty("codigo", String.class, null);
         misContainer.addContainerProperty("nombre", String.class, "");
         misContainer.addContainerProperty("nit", String.class, "");
@@ -108,6 +128,25 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
             }
         });
         cellMiss1.setComponent(filterFieldMiss1);
+
+        Grid.HeaderCell cellMiss2 = filterRowMis.getCell("nit");
+
+        TextField filterFieldMiss2 = new TextField();
+        filterFieldMiss2.addStyleName(ValoTheme.TEXTFIELD_TINY);
+        filterFieldMiss2.setInputPrompt("Filtrar");
+        filterFieldMiss2.setColumns(15);
+
+        filterFieldMiss2.addTextChangeListener(change -> {
+            misContainer.removeContainerFilters("nit");
+
+            // (Re)create the filter if necessary
+            if (! change.getText().isEmpty()) {
+                misContainer.addContainerFilter(
+                        new SimpleStringFilter("nit",
+                                change.getText(), true, false));
+            }
+        });
+        cellMiss2.setComponent(filterFieldMiss2);
 
         // Botón para pasar seleccionados
         btnAgregar = new Button(">>");
@@ -155,8 +194,8 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
         gridsRow.setComponentAlignment(middleButtons, Alignment.MIDDLE_CENTER);
         gridsRow.addComponent(gridMis);
 
-        gridsRow.setExpandRatio(gridMaestro, 1f);
-        gridsRow.setExpandRatio(gridMis, 1f);
+        gridsRow.setExpandRatio(gridMaestro, 1.5f);
+        gridsRow.setExpandRatio(gridMis, 1.5f);
 
         // Botones bottom del segundo grid
         btnNuevo = new Button("Nuevo");
@@ -170,7 +209,7 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
 
         HorizontalLayout bottomButtons = new HorizontalLayout(btnNuevo, btnEditar);
         bottomButtons.setSpacing(false);
-        bottomButtons.setWidth("25%");
+        bottomButtons.setWidth("15%");
         bottomButtons.setComponentAlignment(btnNuevo, Alignment.MIDDLE_LEFT);
         bottomButtons.setComponentAlignment(btnEditar, Alignment.MIDDLE_LEFT);
 //        bottomButtons.setComponentAlignment(btnQuitar, Alignment.MIDDLE_LEFT);
@@ -185,10 +224,18 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
         setComponentAlignment(bottomButtons, Alignment.BOTTOM_RIGHT);
 //        setExpandRatio(bottomButtons, 1);
 
-        setExpandRatio(gridsRow, 1f);
+        setExpandRatio(gridsRow, 1.5f);
     }
 
     private void loadData() {
+        gridMaestro.deselectAll();
+        gridMis.deselectAll();
+
+        maestroContainer.removeContainerFilters("nit");
+        maestroContainer.removeContainerFilters("nombre");
+        misContainer.removeContainerFilters("nit");
+        misContainer.removeContainerFilters("nombre");
+
         maestroContainer.removeAllItems();
         misContainer.removeAllItems();
 
@@ -196,7 +243,7 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
         queryString += " FROM proveedor";
         queryString += " WHERE Inhabilitado = 0";
         queryString += " AND Codigo NOT IN (SELECT pe.Codigo FROM proveedor_empresa pe WHERE pe.IdEmpresa = " + idEmpresa + ")";
-        queryString += " ORDER BY proveedor.Nombre";
+        queryString += " ORDER BY Nombre";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -208,10 +255,11 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
 
                 do {
                     itemId = maestroContainer.addItem();
-
-                    maestroContainer.getContainerProperty(itemId, "codigo").setValue(rsRecords.getString("Codigo"));
-                    maestroContainer.getContainerProperty(itemId, "nombre").setValue(rsRecords.getString("Nombre"));
-                    maestroContainer.getContainerProperty(itemId, "nit").setValue(rsRecords.getString("Nit"));
+                    if(itemId != null && maestroContainer.getContainerProperty(itemId, "codigo") != null ) {
+                        maestroContainer.getContainerProperty(itemId, "codigo").setValue(rsRecords.getString("Codigo"));
+                        maestroContainer.getContainerProperty(itemId, "nombre").setValue(rsRecords.getString("Nombre"));
+                        maestroContainer.getContainerProperty(itemId, "nit").setValue(rsRecords.getString("Nit"));
+                    }
                 } while (rsRecords.next());
             }
 
@@ -267,13 +315,11 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
             queryString = queryString.substring(0, queryString.length() - 1);
             queryString += ")";
 
-Logger.getLogger(ProveedorEmpresaView.class.getName()).log(Level.INFO, queryString);
+//Logger.getLogger(ProveedorEmpresaView.class.getName()).log(Level.INFO, queryString);
 
             stQuery.executeUpdate(queryString);
 
             Notification.show("Agregados: " + moved, Notification.Type.TRAY_NOTIFICATION);
-            gridMaestro.deselectAll();
-            gridMis.deselectAll();
             loadData();
 
         } catch (Exception ex1) {
@@ -299,7 +345,7 @@ Logger.getLogger(ProveedorEmpresaView.class.getName()).log(Level.INFO, queryStri
             queryString += ")";
             queryString += " AND IdEmpresa = " + idEmpresa;
 
-            Logger.getLogger(ProveedorEmpresaView.class.getName()).log(Level.INFO, queryString);
+//            Logger.getLogger(ProveedorEmpresaView.class.getName()).log(Level.INFO, queryString);
 
             rsRecords = stQuery.executeQuery(queryString);
 

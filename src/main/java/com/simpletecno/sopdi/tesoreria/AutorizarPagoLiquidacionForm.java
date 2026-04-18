@@ -313,8 +313,8 @@ public class AutorizarPagoLiquidacionForm extends Window {
 //            queryString += " AND contabilidad_partida.TipoDocumento in ('FACTURA', 'RECIBO CONTABLE', 'FORMULARIO', 'RECIBO CORRIENTE')";
             queryString += " AND contabilidad_partida.IdLiquidacion > 0 ";
             queryString += " AND contabilidad_partida.MontoAutorizadoPagar = 0";
-            queryString += " And proveedor.IdProveedor = contabilidad_partida.IdLiquidador";
             queryString += " AND contabilidad_partida.Estatus = 'CERRADO'";
+            queryString += " And proveedor_empresa.IdProveedor = contabilidad_partida.IdLiquidador";
             queryString += " AND proveedor_empresa.IdEmpresa = " + empresaId;
             queryString += " GROUP BY contabilidad_partida.IdLiquidacion";
             queryString += " ORDER BY contabilidad_partida.IdLiquidacion";

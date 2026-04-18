@@ -98,12 +98,12 @@ public class ConciliacionBancariaForm extends Window {
         this.mainUI = UI.getCurrent();
 
         setResponsive(true);
-        setWidth("92%");
-        setHeightUndefined();
+        setWidth("98%");
+        setHeight("100%");
 
         mainLayout = new VerticalLayout();
         mainLayout.setSpacing(true);
-        mainLayout.setResponsive(true);
+        mainLayout.setMargin(new MarginInfo(false, true, false, true));
 
         setContent(mainLayout);
 
@@ -137,7 +137,6 @@ public class ConciliacionBancariaForm extends Window {
         repotLayout.setWidth("100%");
         repotLayout.addStyleName("rcorners3");
         repotLayout.setMargin(new MarginInfo(false, true, false, true));
-        repotLayout.setResponsive(true);
 
         HorizontalLayout contentFormularios = new HorizontalLayout();
         contentFormularios.setWidth("100%");
@@ -145,11 +144,9 @@ public class ConciliacionBancariaForm extends Window {
 
         FormLayout formularioLeft = new FormLayout();
         formularioLeft.setWidth("50%");
-        formularioLeft.setResponsive(true);
 
         FormLayout formularioRight = new FormLayout();
         formularioRight.setWidth("50%");
-        formularioRight.setResponsive(true);
 
         cuentaContableCbx = new ComboBox("SELECCIONE LA CUENTA CONTABLE : ");
         cuentaContableCbx.setFilteringMode(FilteringMode.CONTAINS);
@@ -258,7 +255,7 @@ public class ConciliacionBancariaForm extends Window {
         egresosGrid.setSelectionMode(Grid.SelectionMode.MULTI);
         egresosGrid.setDescription("Seleccione uno o varios registros.");
         egresosGrid.setHeightMode(HeightMode.ROW);
-        egresosGrid.setHeightByRows(9);
+        egresosGrid.setHeightByRows(5);
         egresosGrid.setResponsive(true);
         egresosGrid.setEditorBuffered(false);
 
@@ -298,7 +295,7 @@ public class ConciliacionBancariaForm extends Window {
         ingresosGrid.setSelectionMode(Grid.SelectionMode.MULTI);
         ingresosGrid.setDescription("Seleccione uno o varios registros.");
         ingresosGrid.setHeightMode(HeightMode.ROW);
-        ingresosGrid.setHeightByRows(9);
+        ingresosGrid.setHeightByRows(5);
         ingresosGrid.setResponsive(true);
         ingresosGrid.setEditorBuffered(false);
 
@@ -335,17 +332,14 @@ public class ConciliacionBancariaForm extends Window {
 
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.setSpacing(true);
-        buttonLayout.setResponsive(true);
 
         buttonLayout.setMargin(new MarginInfo(false, true, false, true));
 
         FormLayout formulario2Left = new FormLayout();
         formularioLeft.setSpacing(true);
-        formularioLeft.setResponsive(true);
 
         FormLayout formulario2Right = new FormLayout();
         formulario2Right.setSpacing(true);
-        formularioRight.setResponsive(true);
 
         saldoInicialContableTxt = new NumberField("Saldo Inicial Contable: ");
         saldoInicialContableTxt.setDecimalAllowed(true);

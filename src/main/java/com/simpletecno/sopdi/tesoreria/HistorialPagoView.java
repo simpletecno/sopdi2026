@@ -511,7 +511,7 @@ public class HistorialPagoView extends VerticalLayout implements View {
         queryString += " Debe AS Total, usuario.Nombre AS uNombre, contabilidad_nomenclatura.N5, contabilidad_partida.Descripcion,  ";
         queryString += " contabilidad_partida.MontoDocumento";
         queryString += " FROM contabilidad_partida,usuario, contabilidad_nomenclatura  ";
-        queryString += " Where contabilidad_partida.IdEmpresa = " + empresaId;
+        queryString += " WHERE contabilidad_partida.IdEmpresa = " + empresaId;
         queryString += " AND contabilidad_partida.TipoDocumento In ('CHEQUE', 'TRANSFERENCIA', 'NOTA DE DEBITO', 'PAGO DOCUMENTO VENTA')";
         queryString += " AND contabilidad_partida.IdNomenclatura In (";
         if(((SopdiUI) mainUI).cuentasContablesDefault.getBancosMonedaLocal() != null){

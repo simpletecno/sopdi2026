@@ -71,7 +71,7 @@ public class ImportarFelSatView extends VerticalLayout implements View {
     MultiFileUpload singleUpload;
 
     IndexedContainer facturasFelContainer = new IndexedContainer();
-    final Grid facturasFelGrid = new Grid("Facturas FEL SOPDI", facturasFelContainer);
+    final Grid facturasFelGrid = new Grid("Facturas Compra o Gasto FEL SAT", facturasFelContainer);
     Grid.FooterRow footerFacturas;
 
     public File planillaFile;
@@ -351,7 +351,6 @@ public class ImportarFelSatView extends VerticalLayout implements View {
         Page.getCurrent().setTitle("Sopdi- Importar FEL SAT");
 
         Button pdfFile = new Button("Visualizar PDF");
-        pdfFile.addStyleName(ValoTheme.BUTTON_BORDERLESS);
         pdfFile.setIcon(FontAwesome.FILE_PDF_O);
         pdfFile.addClickListener(e -> {
             if (facturasFelGrid.getSelectedRow() == null) {
@@ -363,7 +362,6 @@ public class ImportarFelSatView extends VerticalLayout implements View {
 
         Button ingresoManualBtn = new Button("Ingreso manual de RECIBO NO FEL");
         ingresoManualBtn.setIcon(FontAwesome.PLUS_CIRCLE);
-        ingresoManualBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
         ingresoManualBtn.addClickListener(e -> {
             ingresoManual();
         });
@@ -386,6 +384,7 @@ public class ImportarFelSatView extends VerticalLayout implements View {
         UUID = Utileria.getUUID();
 
         singleUpload.setEnabled(false);
+        singleUpload.setIcon(null);
         facturasFelContainer.removeAllItems();
         footerFacturas.getCell("numeroAutorizacion").setText("0 documentos");
         footerFacturas.getCell("tipoDte").setText("0.00");
@@ -790,7 +789,7 @@ public class ImportarFelSatView extends VerticalLayout implements View {
 
         HorizontalLayout ordenCompraYFormularioLayout = new HorizontalLayout();
         ordenCompraYFormularioLayout.setSpacing(true);
-        ordenCompraYFormularioLayout.setSizeFull();
+//        ordenCompraYFormularioLayout.setSizeFull();
         ordenCompraYFormularioLayout.setMargin(false);
 
         ordenCompraContainer.addContainerProperty(ID_PROPERTY, String.class, null);
@@ -836,8 +835,10 @@ public class ImportarFelSatView extends VerticalLayout implements View {
         ordenCompraYFormularioLayout.addComponent(ordenCompraGrid);
 
         VerticalLayout rithtBottonLayout = new VerticalLayout();
-        rithtBottonLayout.setSizeUndefined();
-        rithtBottonLayout.addStyleName("rcorners4");
+//        rithtBottonLayout.setSizeUndefined();
+        rithtBottonLayout.setSpacing(false);
+        rithtBottonLayout.setMargin(false);
+        rithtBottonLayout.addStyleName("rcorners1");
 
         ordenCompraYFormularioLayout.addComponent(rithtBottonLayout);
 
@@ -845,11 +846,11 @@ public class ImportarFelSatView extends VerticalLayout implements View {
         setComponentAlignment(ordenCompraYFormularioLayout, Alignment.BOTTOM_CENTER);
 
         formLayout = new FormLayout();
-        formLayout.setSizeUndefined();
-        formLayout.setCaption("Datos para contabilizar documento");
+//        formLayout.setSizeUndefined();
+//        formLayout.setCaption("Datos para contabilizar documento");
         formLayout.setSpacing(false);
 
-        centroCostoCbx.setWidth("25em");
+        centroCostoCbx.setWidth("10em");
         centroCostoCbx.setTextInputAllowed(false);
         centroCostoCbx.setInvalidAllowed(false);
         centroCostoCbx.setNewItemsAllowed(false);
@@ -927,10 +928,10 @@ public class ImportarFelSatView extends VerticalLayout implements View {
         buttonsLayout.setWidth(100, Unit.PERCENTAGE);
         buttonsLayout.addComponents(saveBtn, noProcedeBtn);
 
-        formLayout.addComponents(centroCostoCbx, proveedorAbastoCbx, doctoAfectaCbx, buttonsLayout);
+        formLayout.addComponents(centroCostoCbx, proveedorAbastoCbx, buttonsLayout);
         formLayout.setComponentAlignment(centroCostoCbx, Alignment.MIDDLE_CENTER);
         formLayout.setComponentAlignment(proveedorAbastoCbx, Alignment.MIDDLE_CENTER);
-        formLayout.setComponentAlignment(doctoAfectaCbx, Alignment.MIDDLE_CENTER);
+//        formLayout.setComponentAlignment(doctoAfectaCbx, Alignment.MIDDLE_CENTER);
         formLayout.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
 
         rithtBottonLayout.addComponent(formLayout);
@@ -1015,6 +1016,10 @@ public class ImportarFelSatView extends VerticalLayout implements View {
     public void llenarGridOrdenCompra() {
 
         ordenCompraContainer.removeAllItems();
+
+        if(facturasFelGrid.getSelectedRow() == null) {
+            return;
+        }
 
         if (  ( String.valueOf(facturasFelGrid.getContainerDataSource()
                 .getItem(facturasFelGrid.getSelectedRow()).getItemProperty("tipoDte")

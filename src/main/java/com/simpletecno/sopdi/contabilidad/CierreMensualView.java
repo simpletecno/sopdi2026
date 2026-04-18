@@ -89,18 +89,17 @@ public final class CierreMensualView extends VerticalLayout implements View {
 
     public CierreMensualView() {
         this.mainUI = UI.getCurrent();
-        setResponsive(true);
-        setWidth("80%");
-        setHeight("80%");
 
         VerticalLayout contentLayout = new VerticalLayout();
+        contentLayout.setSizeFull();
         contentLayout.setSpacing(true);
-        contentLayout.setMargin(true);
+        contentLayout.setMargin(false);
 
         addComponent(contentLayout);
+        setExpandRatio(contentLayout, 1.0f);
 
         Label titleLbl = new Label(empresaId + " " + empresaNombre + " CIERRE CONTABLE MENSUAL");
-        titleLbl.addStyleName(ValoTheme.LABEL_H1);
+        titleLbl.addStyleName(ValoTheme.LABEL_H3);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
 
@@ -138,9 +137,10 @@ public final class CierreMensualView extends VerticalLayout implements View {
         layoutCerrar.setSpacing(true);
         layoutCerrar.addComponents(mesCbx, omitirSinMovimientoChk, consultarBtn);
         layoutCerrar.setComponentAlignment(mesCbx, Alignment.BOTTOM_RIGHT);
+        layoutCerrar.setComponentAlignment(omitirSinMovimientoChk, Alignment.BOTTOM_RIGHT);
         layoutCerrar.setComponentAlignment(consultarBtn, Alignment.BOTTOM_RIGHT);
 
-        cerrarBtn = new Button("ACEPTAR CERRAR MES");
+        cerrarBtn = new Button("CERRAR ESTE MES");
         cerrarBtn.setIcon(FontAwesome.CHECK);
         cerrarBtn.setStyleName(ValoTheme.BUTTON_FRIENDLY);
         cerrarBtn.setDescription("Click para CERRAR el mes");
@@ -215,9 +215,8 @@ public final class CierreMensualView extends VerticalLayout implements View {
         balanceSaldosGrid.setImmediate(true);
         balanceSaldosGrid.setSelectionMode(Grid.SelectionMode.NONE);
         balanceSaldosGrid.setHeightMode(HeightMode.ROW);
-        balanceSaldosGrid.setHeightByRows(15);
+//        balanceSaldosGrid.setHeightByRows(10);
         balanceSaldosGrid.setWidth("100%");
-        balanceSaldosGrid.setResponsive(true);
         balanceSaldosGrid.setEditorBuffered(false);
 
         balanceSaldosGrid.getColumn(ID_PROPERTY).setHidable(true).setHidden(true);
