@@ -14,6 +14,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.wcs.wcslib.vaadin.widget.multifileupload.ui.MultiFileUpload;
 import com.wcs.wcslib.vaadin.widget.multifileupload.ui.UploadFinishedHandler;
@@ -63,6 +65,9 @@ public class EmpresasContablesForm extends Window {
         this.mainUI = UI.getCurrent();
         setResponsive(true);
         setModal(true);
+        setWidth("500px");
+        setHeight("90%");
+        center();
 
         marginInfo = new MarginInfo(true, true, false, true);
 
@@ -273,13 +278,18 @@ public class EmpresasContablesForm extends Window {
         titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_CENTER);
 
         VerticalLayout contentLayout = new VerticalLayout();
-        contentLayout.setSizeUndefined();
+        contentLayout.setWidth("100%");
+        contentLayout.setHeightUndefined();
         contentLayout.addComponent(titleLayout);
         contentLayout.setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
         contentLayout.addComponent(mainForm);
         contentLayout.setComponentAlignment(mainForm, Alignment.TOP_CENTER);
 
-        setContent(contentLayout);
+        Panel scrollPanel = new Panel();
+        scrollPanel.setSizeFull();
+        scrollPanel.setContent(contentLayout);
+
+        setContent(scrollPanel);
 
     }
 
@@ -388,10 +398,10 @@ public class EmpresasContablesForm extends Window {
                 queryString += ", TokenFEL = '" + tokenFELTxt.getValue() + "'";
                 queryString += ", Regimen = '" + regimenCbx.getValue() + "'";
                 queryString += ", CodigoProductoExentoFel = '" + codigoProductoExcelFELTxt.getValue() + "'";
-                queryString += ",Logo = ?";
+                queryString += ", Logo = ?";
                 queryString += " WHERE IdEmpresa = " + idEmpresaEdit;
             }
-
+Logger.getLogger(EmpresasContablesForm.class.getName()).log(Level.INFO, "queryString={0}", queryString);
             stPreparedQuery  = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().prepareStatement(queryString);
 
             if(logoStreamResource != null) {

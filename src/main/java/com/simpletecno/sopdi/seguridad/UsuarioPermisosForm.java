@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.simpletecno.sopdi.seguridad;
 
 import com.simpletecno.sopdi.SopdiUI;
@@ -12,169 +7,140 @@ import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
 /**
- * PERMISOS DE USUARIO
- * @author joseaguirre
+ * Formulario para asignar permisos de menú a un usuario.
  */
 public class UsuarioPermisosForm extends Window {
-    VerticalLayout mainLayout;
-    MarginInfo  marginInfo;
 
-    private int idUsuario = 0;
+    private static final String COL_ID     = "ID";
+    private static final String COL_OPCION = "Opción";
 
-    Button saveBtn;
+    private final VerticalLayout mainLayout = new VerticalLayout();
+    private final IndexedContainer permisosContainer = new IndexedContainer();
+    private final Grid permisosGrid = new Grid("", permisosContainer);
+    private final UI mainUI;
+    private final int idUsuario;
 
-    Statement stQuery = null;
-    static PreparedStatement stPreparedQuery;
+    Statement stQuery  = null;
     ResultSet rsRecords = null;
 
-    IndexedContainer permisosContainer = new IndexedContainer();
-    Grid permisosGrid = new Grid("", permisosContainer);
-
-    UI mainUI;
-
-    public UsuarioPermisosForm(
-            int idUsuario,
-            String usuarioNombre
-    ) {
+    public UsuarioPermisosForm(int idUsuario, String usuarioNombre) {
         this.idUsuario = idUsuario;
-        this.mainUI = UI.getCurrent();
+        this.mainUI    = UI.getCurrent();
 
         setResponsive(true);
-        setCaption("Permisos de Usuario  : " + idUsuario + " " + usuarioNombre);
-        setWidth("50%");
-        setHeight("75%");
+        setCaption("Permisos de Usuario — " + usuarioNombre + " (ID: " + idUsuario + ")");
+        setWidth("55%");
+        setHeight("80%");
         center();
-        
-        marginInfo = new MarginInfo(true,true,false,true);
-        
-        mainLayout = new VerticalLayout();
+
+        mainLayout.setSizeFull();
         mainLayout.setSpacing(true);
-        mainLayout.setImmediate(true);
-        mainLayout.setResponsive(true);
+        mainLayout.setMargin(new MarginInfo(true, true, false, true));
 
-        createGridIdex();
+        createGrid();
 
-        saveBtn = new Button("Guardar");
-        saveBtn.setIcon(FontAwesome.SAVE); 
+        Button saveBtn = new Button("Guardar", FontAwesome.SAVE);
         saveBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
-        saveBtn.addClickListener( new Button.ClickListener()
-        {
-            @Override
-            public void buttonClick ( Button.ClickEvent event )
-            {
-                saveGroup();
-            }
-        });                
+        saveBtn.addClickListener(e -> saveGroup());
 
-        
         mainLayout.addComponent(saveBtn);
         mainLayout.setComponentAlignment(saveBtn, Alignment.BOTTOM_CENTER);
-        
+        mainLayout.setExpandRatio(permisosGrid, 1f);
+
         setContent(mainLayout);
     }
-    
-    private void createGridIdex() {
 
-        permisosContainer.addContainerProperty("ID", String.class, "");
-        permisosContainer.addContainerProperty("OPCION", String.class, "");
+    private void createGrid() {
+        permisosContainer.addContainerProperty(COL_ID,     String.class, "");
+        permisosContainer.addContainerProperty(COL_OPCION, String.class, "");
 
-        permisosGrid.setWidth("90%");
-        permisosGrid.setImmediate(true);
+        permisosGrid.setSizeFull();
         permisosGrid.setSelectionMode(Grid.SelectionMode.MULTI);
         permisosGrid.setDescription("Seleccione uno o varios permisos.");
-        permisosGrid.setHeight("100%");
         permisosGrid.setResponsive(true);
-        
+
+        // ID column: fixed narrow width; Opción column: expand to fill
+        permisosGrid.getColumn(COL_ID).setWidth(70);
+        permisosGrid.getColumn(COL_OPCION).setExpandRatio(1);
+
         llenarGridPermisos();
 
         mainLayout.addComponent(permisosGrid);
         mainLayout.setComponentAlignment(permisosGrid, Alignment.TOP_CENTER);
-
     }
 
     void llenarGridPermisos() {
-
-        if(permisosGrid == null) {
-            return;
-        }
-
-        String queryString = " SELECT * ";
-        queryString += " FROM opcion_menu OM ";
-        queryString += " LEFT OUTER JOIN usuario_permisos UP ON UP.IdOpcionMenu = OM.IdOpcionMenu AND UP.IdUsuario= " + idUsuario;
-        queryString += " WHERE OM.Estatus = 'ACTIVO'";
-        queryString += " ORDER BY OM.Orden";
+        String query =
+            "SELECT * FROM opcion_menu OM" +
+            " LEFT OUTER JOIN usuario_permisos UP" +
+            "   ON UP.IdOpcionMenu = OM.IdOpcionMenu AND UP.IdUsuario = " + idUsuario +
+            " WHERE OM.Estatus = 'ACTIVO'" +
+            " ORDER BY OM.Orden";
 
         permisosContainer.removeAllItems();
 
         try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery (queryString);
+            stQuery   = ((SopdiUI) UI.getCurrent()).databaseProvider
+                            .getCurrentConnection()
+                            .createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            rsRecords = stQuery.executeQuery(query);
 
-            while(rsRecords.next()) { //  encontrado
+            while (rsRecords.next()) {
                 Object itemId = permisosContainer.addItem();
-                permisosContainer.getContainerProperty(itemId, "ID").setValue(rsRecords.getString("IdOpcionMenu"));
-                if(rsRecords.getString("Clase") == null){
-                    permisosContainer.getContainerProperty(itemId, "OPCION").setValue(">> " + rsRecords.getString("Descripcion") + " <<");
-                }else if(rsRecords.getString("Clase").isEmpty()){
-                    permisosContainer.getContainerProperty(itemId, "OPCION").setValue(">> " + rsRecords.getString("Descripcion") + " <<");
-                }
-                else {
-                    permisosContainer.getContainerProperty(itemId, "OPCION").setValue(rsRecords.getString("Descripcion"));
-                }
-                if(rsRecords.getObject("IdUsuarioPermiso") != null) {
+
+                String clase       = rsRecords.getString("Clase");
+                String descripcion = rsRecords.getString("Descripcion");
+                boolean esCategoria = clase == null || clase.isEmpty();
+
+                permisosContainer.getContainerProperty(itemId, COL_ID)
+                    .setValue(rsRecords.getString("IdOpcionMenu"));
+                permisosContainer.getContainerProperty(itemId, COL_OPCION)
+                    .setValue(esCategoria ? "▶ " + descripcion : descripcion);
+
+                if (rsRecords.getObject("IdUsuarioPermiso") != null) {
                     permisosGrid.select(itemId);
                 }
             }
-        }
-        catch(Exception ex1) {
-            Notification.show("ERROR FATAL DEL SISTEMA", Notification.Type.ERROR_MESSAGE);
-            System.out.println("ERROR AL INTENTAR BUSCAR CATALOGO DE PERMISOS DE USUARIO : " + ex1.getMessage());
-            ex1.printStackTrace();
+        } catch (Exception ex) {
+            Notification.show("Error al cargar permisos: " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
     }
 
     private void saveGroup() {
-
-        String queryString;
-
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
-            //DELETE
-            queryString =  "DELETE FROM usuario_permisos ";
-            queryString += " WHERE IdUsuario = " + idUsuario;
+            // Eliminar permisos actuales del usuario
+            stQuery.executeUpdate("DELETE FROM usuario_permisos WHERE IdUsuario = " + idUsuario);
 
-            stQuery.executeUpdate(queryString);
+            // Insertar sólo si hay permisos seleccionados
+            java.util.Collection<Object> seleccionados = permisosGrid.getSelectedRows();
+            if (!seleccionados.isEmpty()) {
+                StringBuilder insert = new StringBuilder(
+                    "INSERT INTO usuario_permisos (IdUsuario, IdOpcionMenu) VALUES ");
 
-            //INSERT
-
-            queryString =  "Insert Into usuario_permisos (IdUsuario, IdOpcionMenu)";
-            queryString += " Values ";
-
-            for(Object selectedItem: permisosGrid.getSelectedRows()) {
-                queryString += "(";
-                queryString += idUsuario;
-                queryString += "," + permisosContainer.getContainerProperty(selectedItem, "ID").getValue();
-                queryString += "),";
+                boolean primero = true;
+                for (Object item : seleccionados) {
+                    if (!primero) insert.append(",");
+                    insert.append("(")
+                          .append(idUsuario).append(",")
+                          .append(permisosContainer.getContainerProperty(item, COL_ID).getValue())
+                          .append(")");
+                    primero = false;
+                }
+                stQuery.executeUpdate(insert.toString());
             }
 
-            queryString = queryString.substring(0, queryString.length()-1);
-
-            stQuery.executeUpdate(queryString);
-
-            Notification.show("OPERACION EXITOSA!", Notification.Type.HUMANIZED_MESSAGE);
-
+            Notification.show("Permisos guardados correctamente.", Notification.Type.HUMANIZED_MESSAGE);
             close();
 
-        }
-        catch(Exception ex)
-        {
-            Notification.show("Error al creaar/actualizar permisos de usuario: " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
+        } catch (Exception ex) {
+            Notification.show("Error al guardar permisos: " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
             ex.printStackTrace();
         }
     }

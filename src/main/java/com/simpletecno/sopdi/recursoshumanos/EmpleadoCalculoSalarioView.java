@@ -1115,7 +1115,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
 
             // 2 : query por cada empleado activo
             queryString = "SELECT *";
-            queryString += " FROM proveedor";
+            queryString += " FROM proveedor_empresa";
             queryString += " WHERE EsPlanilla = 1";
             queryString += " AND IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
             queryString += " AND EstatusTrabajo NOT IN ('DE BAJA')";
@@ -2039,7 +2039,7 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
 
             queryString = "SELECT *, prv.Cargo, prv.Nombre";
             queryString += " FROM planilla_detalle";
-            queryString += " INNER JOIN proveedor prv ON prv.IdProveedor = IdEmpleado";
+            queryString += " INNER JOIN proveedor_empresa prv ON prv.IdProveedor = IdEmpleado";
             queryString += " WHERE IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
             queryString += " AND IdPlanilla = " + planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), ID_PLANILLA).getValue();
             queryString += " ORDER BY prv.IdProveedor";

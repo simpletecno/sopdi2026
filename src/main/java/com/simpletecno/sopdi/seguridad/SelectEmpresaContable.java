@@ -51,7 +51,7 @@ public class SelectEmpresaContable extends Window {
     Statement stQuery;
     ResultSet rsRecords;
     String    queryString;
-    Button    selectBtn;
+    Button    selectBtn = new Button("Aceptar");
     Button    exitBtn;
 
     // ────────────────────────────────────────────────────────────────────────
@@ -159,11 +159,16 @@ public class SelectEmpresaContable extends Window {
                         "  margin-bottom: 2px !important;" +
                         "}" +
 
+                        /* Card: scroll si la pantalla es pequeña */
+                        ".sec-card {" +
+                        "  max-height: 92vh;" +
+                        "  overflow-y: auto;" +
+                        "}" +
+
                         /* Tablas: quitar bordes extra de Valo y aplicar estilo propio */
                         ".sec-card .v-table-body {" +
                         "  border: 1px solid #E3E8EF !important;" +
                         "  border-radius: 8px;" +
-                        "  overflow: hidden;" +
                         "}" +
                         ".sec-card .v-table-header-wrap {" +
                         "  background: #F0F4F8 !important;" +
@@ -294,6 +299,15 @@ public class SelectEmpresaContable extends Window {
         empresasTable.setColumnWidth(LOGO_PROPERTY, 50);
         empresasTable.setColumnWidth(ID_PROPERTY,   50);
 
+        empresasTable.addItemClickListener(event -> {
+            if (event.isDoubleClick()) {
+                empresasTable.setValue(event.getItemId());
+                if (proyectosTable.getValue() != null) {
+                    setEmpresaYProyecto();
+                }
+            }
+        });
+
         mainLayout.addComponent(empresasTable);
         mainLayout.setComponentAlignment(empresasTable, Alignment.TOP_CENTER);
     }
@@ -381,6 +395,15 @@ public class SelectEmpresaContable extends Window {
 
         proyectosTable.setColumnWidth(LOGO_PROPERTY, 50);
 
+        proyectosTable.addItemClickListener(event -> {
+            if (event.isDoubleClick()) {
+                proyectosTable.setValue(event.getItemId());
+                if (empresasTable.getValue() != null) {
+                    setEmpresaYProyecto();
+                }
+            }
+        });
+
         mainLayout.addComponent(proyectosTable);
         mainLayout.setComponentAlignment(proyectosTable, Alignment.TOP_CENTER);
     }
@@ -438,8 +461,7 @@ public class SelectEmpresaContable extends Window {
 
     // ── Botones ──────────────────────────────────────────────────────────────
     private void crearBotones() {
-        // ── Botón Aceptar ────────────────────────────────────────────────────
-        selectBtn = new Button("Aceptar");
+        // ── Botón Aceptar (ya inicializado como campo) ───────────────────────
         selectBtn.setIcon(FontAwesome.CHECK);
         selectBtn.addStyleName("sec-btn-accept");
         selectBtn.addClickListener(event -> {

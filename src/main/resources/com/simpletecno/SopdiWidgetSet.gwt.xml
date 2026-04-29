@@ -1,5 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module rename-to="AppWidgetset">
     <inherits name="com.vaadin.DefaultWidgetSet" />
-    <inherits name="org.vaadin.teemu.ratingstars.RatingStarsWidgetset" />
+    
+
+    <inherits name="org.vaadin.simplefiledownloader.SimplefiledownloaderWidgetset" />
+
+    <inherits name="com.vaadin.addon.timeline.gwt.TimelineWidgetSet" />
+
+    <inherits name="com.wcs.wcslib.vaadin.widget.multifileupload.MultiFileUploadWidgetSet" />
+
+    <inherits name="org.vaadin.ui.NumberFieldWidgetset" />
+
+    <inherits name="org.vaadin.easyuploads.Widgetset" />
+
+    <inherits name="com.vaadin.addon.charts.Widgetset" />
 </module>

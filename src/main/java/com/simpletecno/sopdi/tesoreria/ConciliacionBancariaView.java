@@ -62,7 +62,7 @@ public class ConciliacionBancariaView extends VerticalLayout implements View {
 
     public ConciliacionBancariaView() {
         this.mainUI = UI.getCurrent();
-        setWidth("100%");
+        setSizeFull();
         setSpacing(true);
         setMargin(false);
 
@@ -84,15 +84,17 @@ public class ConciliacionBancariaView extends VerticalLayout implements View {
         setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
 
         crearFormularioConciliacion();
+        setExpandRatio(titleLayout, 0f);
     }
 
     public void crearFormularioConciliacion() {
 
         VerticalLayout mainLayout = new VerticalLayout();
-        mainLayout.setWidth("96%");
+        mainLayout.setSizeFull();
         mainLayout.addStyleName("rcorners3");
         mainLayout.setResponsive(true);
         mainLayout.setMargin(true);
+        mainLayout.setSpacing(true);
 
         mesDt = new PopupDateField("SELECCIONE EL MES : ");
         mesDt.setResponsive(true);
@@ -124,14 +126,12 @@ public class ConciliacionBancariaView extends VerticalLayout implements View {
         container.addContainerProperty(CREADO_FECHA_PROPERTY, String.class, null);
 
         conciliacionGrid = new Grid("", container);
-        conciliacionGrid.setWidth("100%");
+        conciliacionGrid.setSizeFull();
         conciliacionGrid.setResponsive(true);
         conciliacionGrid.setImmediate(true);
         conciliacionGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
         conciliacionGrid.setDescription("Seleccione una conciliación");
-        conciliacionGrid.setHeightMode(HeightMode.ROW);
-        conciliacionGrid.setHeightByRows(12);
-        conciliacionGrid.setResponsive(true);
+        conciliacionGrid.setHeightMode(HeightMode.CSS);
         conciliacionGrid.setEditorBuffered(false);
 
         conciliacionGrid.setCellStyleGenerator((Grid.CellReference cellReference) -> {
@@ -156,21 +156,26 @@ public class ConciliacionBancariaView extends VerticalLayout implements View {
 
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.setResponsive(true);
-        buttonLayout.setMargin(new MarginInfo(true, false, false, false));
+        buttonLayout.setSpacing(true);
+        buttonLayout.setMargin(new MarginInfo(true, false, true, false));
         buttonLayout.setWidth("100%");
 
-        Button nuevaBtn = new Button("Nueva conciliación");
+        Button nuevaBtn = new Button("Nueva Conciliación");
         nuevaBtn.setStyleName(ValoTheme.BUTTON_PRIMARY);
-        nuevaBtn.setIcon(FontAwesome.PLUS);
+        nuevaBtn.addStyleName(ValoTheme.BUTTON_SMALL);
+        nuevaBtn.setIcon(FontAwesome.PLUS_CIRCLE);
+        nuevaBtn.setDescription("Crear una nueva conciliación bancaria");
         nuevaBtn.addClickListener((event) -> {
             ConciliacionBancariaForm conciliacionForm = new ConciliacionBancariaForm("");
             UI.getCurrent().addWindow(conciliacionForm);
             conciliacionForm.center();
         });
 
-        Button eliminarBtn = new Button("Eliminar conciliación");
+        Button eliminarBtn = new Button("Eliminar Conciliación");
         eliminarBtn.setStyleName(ValoTheme.BUTTON_DANGER);
-        eliminarBtn.setIcon(FontAwesome.TRASH);
+        eliminarBtn.addStyleName(ValoTheme.BUTTON_SMALL);
+        eliminarBtn.setDescription("Eliminar permanentemente la conciliación seleccionada");
+        eliminarBtn.setIcon(FontAwesome.TRASH_O);
         eliminarBtn.addClickListener((event) -> {
             if (conciliacionGrid.getSelectedRow() != null) {
                 ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de ELIMINAR esta Conciliaciòn?",
@@ -218,9 +223,11 @@ public class ConciliacionBancariaView extends VerticalLayout implements View {
             }
         });
 
-        Button editarBtn = new Button("Editar conciliación");
-        editarBtn.setIcon(FontAwesome.EDIT);
+        Button editarBtn = new Button("Abrir / Editar");
+        editarBtn.setIcon(FontAwesome.FOLDER_OPEN_O);
         editarBtn.setStyleName(ValoTheme.BUTTON_PRIMARY);
+        editarBtn.addStyleName(ValoTheme.BUTTON_SMALL);
+        editarBtn.setDescription("Abrir la conciliación seleccionada para editar");
         editarBtn.addClickListener((event) -> {
             if (conciliacionGrid.getSelectedRow() != null) {
 
@@ -252,9 +259,17 @@ public class ConciliacionBancariaView extends VerticalLayout implements View {
             
         }
 
-        Button pdfBtn = new Button("Re imprimir PDF");
-        pdfBtn.setIcon(FontAwesome.FILE_PDF_O);
+        Button refrescarBtn = new Button("Actualizar");
+        refrescarBtn.setIcon(FontAwesome.REFRESH);
+        refrescarBtn.addStyleName(ValoTheme.BUTTON_SMALL);
+        refrescarBtn.setDescription("Recargar la lista de conciliaciones del mes seleccionado");
+        refrescarBtn.addClickListener((event) -> llenarGridConciliacion());
+
+        Button pdfBtn = new Button("Imprimir Conciliación");
+        pdfBtn.setIcon(FontAwesome.PRINT);
         pdfBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
+        pdfBtn.addStyleName(ValoTheme.BUTTON_SMALL);
+        pdfBtn.setDescription("Imprimir en PDF la conciliación finalizada seleccionada");
         pdfBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -274,19 +289,22 @@ public class ConciliacionBancariaView extends VerticalLayout implements View {
             }
         });
 
-        buttonLayout.addComponents(eliminarBtn, editarBtn, pdfBtn, nuevaBtn);
-        buttonLayout.setComponentAlignment(eliminarBtn, Alignment.TOP_LEFT);
-        buttonLayout.setComponentAlignment(editarBtn, Alignment.TOP_CENTER);
-        buttonLayout.setComponentAlignment(pdfBtn, Alignment.TOP_CENTER);
-        buttonLayout.setComponentAlignment(nuevaBtn, Alignment.TOP_RIGHT);
+        buttonLayout.addComponents(eliminarBtn, editarBtn, refrescarBtn, pdfBtn, nuevaBtn);
+        buttonLayout.setComponentAlignment(eliminarBtn, Alignment.MIDDLE_LEFT);
+        buttonLayout.setComponentAlignment(editarBtn, Alignment.MIDDLE_LEFT);
+        buttonLayout.setComponentAlignment(refrescarBtn, Alignment.MIDDLE_CENTER);
+        buttonLayout.setComponentAlignment(pdfBtn, Alignment.MIDDLE_RIGHT);
+        buttonLayout.setComponentAlignment(nuevaBtn, Alignment.MIDDLE_RIGHT);
 
         mainLayout.addComponents(mesDt, conciliacionGrid, buttonLayout);
         mainLayout.setComponentAlignment(mesDt, Alignment.MIDDLE_CENTER);
         mainLayout.setComponentAlignment(conciliacionGrid, Alignment.TOP_CENTER);
-        mainLayout.setComponentAlignment(buttonLayout, Alignment.TOP_CENTER);
+        mainLayout.setComponentAlignment(buttonLayout, Alignment.BOTTOM_CENTER);
+        mainLayout.setExpandRatio(conciliacionGrid, 1.0f);
 
         addComponent(mainLayout);
-        setComponentAlignment(mainLayout, Alignment.MIDDLE_CENTER);
+        setComponentAlignment(mainLayout, Alignment.TOP_CENTER);
+        setExpandRatio(mainLayout, 1.0f);
     }
 
     public String getEmpresaNit() {
