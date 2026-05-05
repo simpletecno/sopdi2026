@@ -861,7 +861,7 @@ public class Utileria {
         fechaHora += String.format("%02d", today.get(GregorianCalendar.MINUTE));
         fechaHora += ":";
         fechaHora += String.format("%02d", today.get(GregorianCalendar.SECOND));
-        fechaHora += today.toZonedDateTime().getOffset().toString();
+//        fechaHora += today.toZonedDateTime().getOffset().toString();
 
         return fechaHora;
     }

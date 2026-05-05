@@ -298,7 +298,7 @@ public class ImportarFelSatView extends VerticalLayout implements View {
                     proveedorAbastoCbx.setValue("Proveedor");
                     proveedorAbastoCbx.select("Proveedor");
 
-                    queryString = "SELECT EsAbastos FROM proveedor WHERE IdProveedor = " + facturasFelContainer.getContainerProperty(facturasFelGrid.getSelectedRow(), "idProveedor").getValue();
+                    queryString = "SELECT EsAbastos FROM proveedor_empresa WHERE IdProveedor = " + facturasFelContainer.getContainerProperty(facturasFelGrid.getSelectedRow(), "idProveedor").getValue();
 
                     try {
                         rsRecords1 = stQuery1.executeQuery(queryString);
@@ -978,7 +978,7 @@ public class ImportarFelSatView extends VerticalLayout implements View {
         queryString += " FROM contabilidad_partida";
         queryString += " WHERE IdEmpresa = " + empresaId;
         queryString += " AND IdProveedor = " + facturasFelGrid.getContainerDataSource().getItem(facturasFelGrid.getSelectedRow()).getItemProperty("idProveedor").getValue();
-        queryString += " AND Moneda = '" + facturasFelGrid.getContainerDataSource().getItem(facturasFelGrid.getSelectedRow()).getItemProperty("moneda").getValue() + "'";
+        queryString += " AND MonedaDocumento = '" + facturasFelGrid.getContainerDataSource().getItem(facturasFelGrid.getSelectedRow()).getItemProperty("moneda").getValue() + "'";
         queryString += " AND Estatus <> 'ANULADO'";
 
         try {

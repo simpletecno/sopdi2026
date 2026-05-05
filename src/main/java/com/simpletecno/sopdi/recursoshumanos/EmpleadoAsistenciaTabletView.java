@@ -307,7 +307,7 @@ public class EmpleadoAsistenciaTabletView extends VerticalLayout implements View
     private void crearBitacora() {
         queryString = "INSERT INTO empleado_asistencia (IdEmpleado, Cargo, Fecha, Estatus, Razon, EsDefinitiva, CreadoFechaYHora, CreadoIdUsuario)";
         queryString += " SELECT IdProveedor, Cargo, '" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "', 'AUSENTE', Razon, 0, current_timestamp, " + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
-        queryString += " FROM proveedor_proveedor ";
+        queryString += " FROM proveedor_empresa ";
         queryString += " WHERE EsPlanilla = 1 ";
         queryString += " AND   Inhabilitado = 0";
         queryString += " AND   EstatusTrabajo <> 'DE BAJA'";

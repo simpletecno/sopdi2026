@@ -342,7 +342,7 @@ public class AutorizarPagoDevolucionClienteForm extends Window {
         queryString += " AND contabilidad_partida.IdNomenclatura In (" + ((SopdiUI) mainUI).cuentasContablesDefault.getEnganches() + "," + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposClientes() + ")";
         queryString += " AND contabildiad_nomenclatura_empresa.IdEmpresa = " + empresaId;
         queryString += " ANd proveedor_empresa.IdEmpresa = " + empresaId;
-        queryString += " GROUP BY contabilidad_partida.MonedaDocumento, contabilidad_partida.IdNomenclatura, contabilidad_partida.CodigoCC, proveedor.IdProveedor ";
+        queryString += " GROUP BY contabilidad_partida.MonedaDocumento, contabilidad_partida.IdNomenclatura, contabilidad_partida.CodigoCC, proveedor_empresa.IdProveedor ";
         queryString += " ORDER BY contabilidad_partida.Fecha desc";
 
         try {
@@ -361,7 +361,7 @@ public class AutorizarPagoDevolucionClienteForm extends Window {
                     queryString += " WHERE IdEmpresa = " + empresaId;
                     queryString += " AND CodigoCC = '" + rsRecords.getString("CodigoCC") + "'";
                     queryString += " AND Estatus <> 'ANULADO'";
-                    queryString += " and IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
+                    queryString += " AND IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
 
                     rsRecords1 = stQuery1.executeQuery(queryString);
 
@@ -461,10 +461,10 @@ public class AutorizarPagoDevolucionClienteForm extends Window {
             codigoCC = String.valueOf(clienteGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CODIGO_CC).getValue());
             proveedorId = String.valueOf(clienteGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROVEEDOR).getValue());
 
-            queryString = "  Insert Into autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
+            queryString = "  INSERT INTO autorizacion_pago (TipoAutorizacion, IdEmpresa, IdProveedor, ";
             queryString += " Fecha, Moneda, Monto, CodigoCC, CuentaContableLiquidar, ";
             queryString += " Objetivo, CreadoUsuario, CreadoFechaYHora)";
-            queryString += " Values ";
+            queryString += " VALUES ";
             queryString += "(";
             queryString += "'" + AutorizacionesPagoView.DEVOLUCION_CLIENTE + "'";
             queryString += "," + empresaId;

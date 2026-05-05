@@ -978,11 +978,11 @@ public class PagoAnticipoProveedorForm extends Window {
             return;
         }
 
-        queryString = " Select CodigoPartida from contabilidad_partida ";
-        queryString += " Where NumeroDocumento = '" + numeroTxt.getValue() + "'";
-        queryString += " And IdEmpresa = " + empresaId;
-        queryString += " And TipoDocumento = '" + String.valueOf(medioCbx.getValue()) + "'";
-        queryString += " And MonedaDocumento = '" + monedaCbx.getValue() + "'";
+        queryString = " SELECT CodigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE NumeroDocumento = '" + numeroTxt.getValue() + "'";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND TipoDocumento = '" + String.valueOf(medioCbx.getValue()) + "'";
+        queryString += " AND MonedaDocumento = '" + monedaCbx.getValue() + "'";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();

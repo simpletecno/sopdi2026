@@ -1575,7 +1575,7 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
 
                 // 2 : query por cada empleado activo
                 queryString = "SELECT *";
-                queryString += " FROM proveedor";
+                queryString += " FROM proveedor_empresa";
                 queryString += " WHERE IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
                 queryString += " AND IdProveedor = " + idProveedor;
                 if(String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), TIPO_PLANILLA).getValue()).equals("Anticipo")) {

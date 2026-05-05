@@ -402,13 +402,13 @@ public class LibroSalariosView extends VerticalLayout implements View {
 
         queryString1 =  "SELECT p.IDProveedor, p.Nombre, p.Cargo, p.Nit, (" + anioCbx.getValue() + " - YEAR(p.FechaNacimiento)) AS Edad, ";
         queryString1 +=        "p.DPI, p.AfiliacionIGSS, p.Genero, p.Nacionalidad, p.FechaIngreso, p.FechaEgreso, ec.Descripcion ";
-        queryString1 += "FROM proveedor_empresa p ";
-        queryString1 += "INNER JOIN empleado_cargo ec on p.Cargo = ec.Cargo ";
-        queryString1 += "AND ec.IdEmpresa = " + empresaId;
-        queryString1 += "AND p.IdEmpresa = " + empresaId;
-        queryString1 += "WHERE  YEAR(FechaEgreso) >= " + anioCbx.getValue() + " ";
-        queryString1 += "OR ISNULL(FechaEgreso) ";
-        queryString1 += "AND EsPlanilla = 1 ";
+        queryString1 += " FROM proveedor_empresa p ";
+        queryString1 += " INNER JOIN empleado_cargo ec on p.Cargo = ec.Cargo ";
+        queryString1 += " AND ec.IdEmpresa = " + empresaId;
+        queryString1 += " AND p.IdEmpresa = " + empresaId;
+        queryString1 += " WHERE  YEAR(FechaEgreso) >= " + anioCbx.getValue() + " ";
+        queryString1 += " OR ISNULL(FechaEgreso) ";
+        queryString1 += " AND EsPlanilla = 1 ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -448,16 +448,17 @@ public class LibroSalariosView extends VerticalLayout implements View {
         libroSalarioContainer.removeAllItems();
 
         queryString1 = "SELECT MONTH(pe.FechaFin) as Mes, pe.Descripcion, pe.Tipo, pd.*, p.FechaEgreso ";
-        queryString1 += "FROM planilla_encabezado pe ";
-        queryString1 += "INNER JOIN planilla_detalle pd ON pe.id = pd.IdPlanilla ";
-        queryString1 += "AND pe.FechaInicio >= '" + anioCbx.getValue() + "-01-01' ";
-        queryString1 += "AND pe.FechaInicio < '" + (((int)anioCbx.getValue()) + 1) + "-01-01' ";
-        queryString1 += "INNER JOIN proveedor_empresa p ON p.IDProveedor = pd.IdEmpleado ";
-        queryString1 += "AND IdEmpleado = " + proveedorCbx.getValue() +  " ";
-        queryString1 += "AND p.IdEmpresa = " + empresaId + " ";
-        queryString1 += "WHERE pe.Tipo IN ('Salario', 'Liquidacion') OR pe.Tipo LIKE '%Provi%' ";
-        queryString1 += "ORDER BY Mes";
+        queryString1 += " FROM planilla_encabezado pe ";
+        queryString1 += " INNER JOIN planilla_detalle pd ON pe.id = pd.IdPlanilla ";
+        queryString1 += " AND pe.FechaInicio >= '" + anioCbx.getValue() + "-01-01' ";
+        queryString1 += " AND pe.FechaInicio < '" + (((int)anioCbx.getValue()) + 1) + "-01-01' ";
+        queryString1 += " INNER JOIN proveedor_empresa p ON p.IDProveedor = pd.IdEmpleado ";
+        queryString1 += " AND IdEmpleado = " + proveedorCbx.getValue() +  " ";
+        queryString1 += " AND p.IdEmpresa = " + empresaId + " ";
+        queryString1 += " WHERE pe.Tipo IN ('Salario', 'Liquidación') OR pe.Tipo LIKE '%Provi%' ";
+        queryString1 += " ORDER BY Mes";
 
+System.out.println("Query: " + queryString1);
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             rsRecords1 = stQuery.executeQuery(queryString1);
@@ -502,7 +503,7 @@ public class LibroSalariosView extends VerticalLayout implements View {
                         if(rsRecords1.getString("Tipo").equals("Salario")){
                             SimpleDateFormat formatoFecha = new SimpleDateFormat("dd-MMM-yyyy", new Locale("es", "ES"));
                             fechaPeriodo = formatoFecha.format(new Date(((Integer) anioCbx.getValue() - 1900), mes, diasPeriodo));
-                            fechaPeriodo = fechaPeriodo.substring(0, 6) + fechaPeriodo.substring(7, 12);
+  //                          fechaPeriodo = fechaPeriodo.substring(0, 6) + fechaPeriodo.substring(7, 12);
 
                             sueldoBase = rsRecords1.getDouble("SueldoBase");
                             otrasDeducciones = sueldoBase - rsRecords1.getDouble("SalarioDevengado");
@@ -511,7 +512,7 @@ public class LibroSalariosView extends VerticalLayout implements View {
                         }else if (rsRecords1.getString("Tipo").contains("Liqui")) {
                             SimpleDateFormat formatoFecha = new SimpleDateFormat("dd-MMM-yyyy", new Locale("es", "ES"));
                             fechaPeriodo = formatoFecha.format(rsRecords1.getDate("FechaEgreso"));
-                            fechaPeriodo = fechaPeriodo.substring(0, 6) + fechaPeriodo.substring(7, 12);
+//                            fechaPeriodo = fechaPeriodo.substring(0, 6) + fechaPeriodo.substring(7, 12);
 
                             sueldoBase = rsRecords1.getDouble("SueldoBase");
                             otrasDeducciones = sueldoBase - rsRecords1.getDouble("SalarioDevengado");
@@ -524,7 +525,8 @@ public class LibroSalariosView extends VerticalLayout implements View {
                             }
 
                             fechaPeriodo = formatoFecha.format(new Date(((Integer) anioCbx.getValue() - 1900), mes, 14));
-                            fechaPeriodo = fechaPeriodo.substring(0, 6) + fechaPeriodo.substring(7, 12);
+System.out.println("Fecha 3: " + fechaPeriodo);
+//                            fechaPeriodo = fechaPeriodo.substring(0, 6) + fechaPeriodo.substring(7, 12);
 
                             sueldoBase = 0d;
                             otrasDeducciones = 0d;
@@ -577,11 +579,11 @@ public class LibroSalariosView extends VerticalLayout implements View {
     // Devuelde el nuemro de Domingos(Septimos) y Asuetosw
     public void getSeptimosAsuetos(){
         queryString1 = "SELECT af.*, ae.Duracion  ";
-        queryString1 += "FROM asueto_empresa ae ";
-        queryString1 += "INNER JOIN asueto_fecha af ON af.IdAsueto = ae.Id ";
-        queryString1 += "AND af.Anio = " + anioCbx.getValue() + " ";
-        queryString1 += "WHERE ae.IdEmpresa = " + ((SopdiUI)mainUI).sessionInformation.getStrAccountingCompanyId() + " ";
-        queryString1 += "ORDER BY af.Mes";
+        queryString1 += " FROM asueto_empresa ae ";
+        queryString1 += " INNER JOIN asueto_fecha af ON af.IdAsueto = ae.Id ";
+        queryString1 += " AND af.Anio = " + anioCbx.getValue() + " ";
+        queryString1 += " WHERE ae.IdEmpresa = " + ((SopdiUI)mainUI).sessionInformation.getStrAccountingCompanyId() + " ";
+        queryString1 += " ORDER BY af.Mes";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -648,13 +650,13 @@ public class LibroSalariosView extends VerticalLayout implements View {
 
         for(Object a : anios) {
             queryString2 = "INSERT INTO asueto_fecha (IdAsueto, Fecha, Anio, Mes, Dia)";
-            queryString2 += "SELECT ae.id, ";
+            queryString2 += " SELECT ae.id, ";
             queryString2 += "       STR_TO_DATE(CONCAT(" + a + ", '-', ae.MesDefault, '-', ae.DiaDefault), '%Y-%m-%d'), ";
             queryString2 += "       " + a + ", ";
             queryString2 += "       ae.MesDefault, ";
             queryString2 += "       ae.DiaDefault ";
-            queryString2 += "FROM asueto_empresa ae ";
-            queryString2 += "WHERE ae.IdEmpresa = " + empresaId;
+            queryString2 += " FROM asueto_empresa ae ";
+            queryString2 += " WHERE ae.IdEmpresa = " + empresaId;
 
             try {
                 stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();

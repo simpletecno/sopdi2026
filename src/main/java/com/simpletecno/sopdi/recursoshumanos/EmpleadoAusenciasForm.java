@@ -618,10 +618,10 @@ public class   EmpleadoAusenciasForm extends Window {
                     Notification.show(mensaje, Notification.Type.ERROR_MESSAGE);
                     return false;
                 }
-                queryString = "Insert into empleado_ausencia ";
+                queryString = "INSERT INTO empleado_ausencia ";
                 queryString += "(Tipo, IdEmpleado, FechaInicio, FechaFin, Dias, CreadoUsuario, ";
                 queryString += "MedioDiaMañana, MedioDiaTarde, Sabados, Boleta) ";
-                queryString += "Values ";
+                queryString += "VALUES ";
                 queryString += "(";
                 queryString += "'" + tipoAusenciaCbx.getValue() + "'";
                 queryString += "," + idEmpleado;
@@ -813,9 +813,9 @@ public class   EmpleadoAusenciasForm extends Window {
 
         String queryString = "";
 
-        queryString = "Delete ";
-        queryString += " From empleado_ausencia ";
-        queryString += " Where Id = " + id;
+        queryString = "DELETE ";
+        queryString += " FROM empleado_ausencia ";
+        queryString += " WHERE Id = " + id;
 //System.out.println("queryEmpleado=" + queryString);
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

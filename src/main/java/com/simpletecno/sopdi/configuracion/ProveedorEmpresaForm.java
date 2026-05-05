@@ -405,8 +405,8 @@ public class ProveedorEmpresaForm extends Window {
         String queryString = "";
 
         if (Objects.equals(idProveedor, "0")) {
-            queryString = "INSERT INTO proveedor (Codigo, Nit, TipoPersona, Regimen, ";
-            queryString += " Genero, Nombre, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, ApellidoDeCasada,  ";
+            queryString = "INSERT INTO proveedor_empresa (Codigo, Nit, TipoPersona, Regimen, ";
+            queryString += " Genero, Nombre, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, ApellidoCasada,  ";
             queryString += " Nacionalidad, Dpi, Direccion, Telefono, TelefonoEmergencia, Email, ";
             queryString +=  "EsProveedor, EsCliente, EsBanco, EsAgenteRetenedorISR, EsAgenteRetenedorIVA, ";
             queryString += " EsInstitucionFiscal, EsInstitucionSeguroSocial, EsAbEsSujetoRetencionDefinitivaISR, ";
@@ -450,7 +450,7 @@ public class ProveedorEmpresaForm extends Window {
             queryString += ", " + (Objects.equals(inabilitadoCbk.getValue(), "NO") ? "0" : "1");
             queryString += ")";
         } else {
-            queryString = "UPDATE proveedor SET ";
+            queryString = "UPDATE proveedor_empresa SET ";
             queryString += " Nit = '" + nitTxt.getValue() + "'";
             queryString += ",TipoPersona = '" + tipoPersonaCbx.getValue() + "'";
             queryString += ",Regimen = '" + regimenCbx.getValue() + "'";
@@ -460,7 +460,7 @@ public class ProveedorEmpresaForm extends Window {
             queryString += ",SegundoNombre = '" + segundoNombreTxt.getValue() + "'";
             queryString += ",PrimerApellido ='" + primerApellidoTxt.getValue() + "'";
             queryString += ",SegundoApellido = '" + segundoApellidoTxt.getValue() + "'";
-            queryString += ",ApellidoDeCasada = '" + apellidoDeCasadaTxt.getValue() + "'";
+            queryString += ",ApellidoCasada = '" + apellidoDeCasadaTxt.getValue() + "'";
             queryString += ",Nacionalidad = '" + nacionalidadTxt.getValue() + "'";
             queryString += ",Dpi = '" + dpiTxt.getValue() + "'";
             queryString += ",Direccion = '" + direccionTxt.getValue() + "'";
@@ -483,7 +483,7 @@ public class ProveedorEmpresaForm extends Window {
             queryString += ",EsAbastos = " + (esAbastosCheck.getValue() ? "1" : "0");
             queryString += ",Cargo = '" + cargoCbx.getValue() + "'";
             queryString += ",IdUsuario = " + usuarioCbx.getValue();
-            queryString += ",InHabilitado " + (Objects.equals(inabilitadoCbk.getValue(), "NO") ? "0" : "1");
+            queryString += ",InHabilitado = " + (Objects.equals(inabilitadoCbk.getValue(), "NO") ? "0" : "1");
             queryString += " WHERE Id = " + idProveedor;
 
         }
@@ -494,7 +494,7 @@ public class ProveedorEmpresaForm extends Window {
 
             Notification.show("OPERACION EXITOSA!", Notification.Type.HUMANIZED_MESSAGE);
 
-            ((ProveedorView) (mainUI.getNavigator().getCurrentView())).fillProveedorTable();
+//            ((ProveedorView) (mainUI.getNavigator().getCurrentView())).fillProveedorTable();
 
         }
         catch(Exception exc99) {

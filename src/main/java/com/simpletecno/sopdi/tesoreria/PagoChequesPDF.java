@@ -859,13 +859,13 @@ public class PagoChequesPDF extends Window {
 
                     do {
 
-                        c3 = new PdfPCell(new Paragraph(rsRecords.getString("contabilidad_nomenclatura.NoCuenta"), small12));
+                        c3 = new PdfPCell(new Paragraph(rsRecords.getString("contabilidad_nomenclatura_empresa.NoCuenta"), small12));
                         c3.setHorizontalAlignment(Element.ALIGN_LEFT);
                         c3.setVerticalAlignment(Element.ALIGN_LEFT);
                         c3.setBorderWidth(0);
                         secondTable.addCell(c3);
 
-                        c3 = new PdfPCell(new Paragraph(rsRecords.getString("contabilidad_nomenclatura.N5"), small12));
+                        c3 = new PdfPCell(new Paragraph(rsRecords.getString("contabilidad_nomenclatura_empresa.N5"), small12));
                         c3.setHorizontalAlignment(Element.ALIGN_LEFT);
                         c3.setVerticalAlignment(Element.ALIGN_LEFT);
                         c3.setBorderWidth(0);

@@ -668,61 +668,22 @@ public class EmpleadoView extends VerticalLayout implements View {
         String queryString = "";
 
         if (esNuevo ) {
-            queryString = "INSERT INTO proveedor (N0, Grupo0, N1, Grupo, N2, Tipo, N3, Numero, N4, IDProveedor, ";
-            queryString += " Nombre, Producto, NIT, DPI,Regimen, GrupoTrabajo, EstatusTrabajo, Razon,";
-            queryString += " AnticipoLote, Provision, DiasAnticipo,";
-            queryString += " DiasCredito, AnticipoUnidad, DiaProvision, Email, ";
-            queryString += " IdEmpresa, CuentaAnticiposLiquidar, CuentaAcreedores, ";
-            queryString += " Inhabilitado, EsProveedor, EsCliente,";
-            queryString += " EsLiquidador, EsComite, EsPlanilla, EsRelacionada, EsBanco, ";
-            queryString += " EsAgenteRetenedorISR,  EsAgenteRetenedorIVA, EsJefe, Cargo, IdUsuario, ";
+            queryString = "INSERT INTO proveedor_empresa (IDProveedor, IdEmpresa, ";
+            queryString += " Nombre, NIT, DPI,Regimen, EsPlanilla, Cargo, ";
             queryString += " PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, ApellidoCasada, ";
             queryString += " Banco, BancoCuenta, Nacionalidad, Direccion, Telefono, TelefonoEmergencia, Genero, TituloAcademico,  ";
             queryString += " AfiliacionIgss, FechaIngreso, FechaEgreso, CodigoOcupacion, CondicionLaboral,";
             queryString += " AplicaAnticipoSalario, AsignadoObra, IdCorrFinal, AplicaIndemnizacion, DiasVacacionesDerecho, DiasVacacionesGozados";
             queryString += ")";
             queryString += " VALUES (";
-            queryString += "9";
-            queryString += ",'Empleado'";
-            queryString += "," + ((SopdiUI)mainUI).sessionInformation.getStrAccountingCompanyId().charAt(0); //N1
-            queryString += ",'Planilla'";
-            queryString += "," + ((SopdiUI)mainUI).sessionInformation.getStrAccountingCompanyId().charAt(1); //N2
-            queryString += ",'Construccion'";
-            queryString += "," + ((String)idEmpleadoTxt.getValue()).charAt(3); //N3
-            queryString += ",'Empresa'";
-            queryString += "," + ((String)idEmpleadoTxt.getValue()).substring(3, 5); //N4
-            queryString += "," + idEmpleadoTxt.getValue();
+            queryString += idEmpleadoTxt.getValue();
+            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
             queryString += ",'" + nombreCompletoTxt.getValue() + "'";
-            queryString += ",'X'";
             queryString += ",'" + nitTxt.getValue() + "'";
             queryString += ",'" + dpiTxt.getValue() + "'";
             queryString += ",'NORMAL'";
-            queryString += ",''";
-            queryString += ",''";
-            queryString += ",''";
-            queryString += ",0";
-            queryString += ",0";
-            queryString += ",0";
-            queryString += ",0";
-            queryString += ",0";
-            queryString += ",0";
-            queryString += ",''";
-            queryString += ", " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
-            queryString += ",''";
-            queryString += ",''";
-            queryString += ", 0"; // INHABILITADO
-            queryString += ", 0"; // ESPROVEEDOR
-            queryString += ", 0"; // ESCLIENTE
-            queryString += ","  + (esLiquidador.getValue() ? "1" : "0");
-            queryString += ", 0"; // ESCOMITE
             queryString += ", 1"; // ESPLANILLA
-            queryString += ", 0"; // ESRELACIONADA
-            queryString += ", 0"; // ESBANCO
-            queryString += ", 0"; // ESAGENTERENEDORISR
-            queryString += ", 0"; // ESAGENTERENEDORIVA
-            queryString += ", 0"; // ESJEFE
             queryString += ", '" + cargoCbx.getValue() + "'";
-            queryString += ",0";
             queryString += ",'" + primerNombreTxt.getValue() + "'";
             queryString += ",'" + segundoNombreTxt.getValue() + "'";
             queryString += ",'" + primerApellidoTxt.getValue() + "'";
@@ -754,11 +715,10 @@ public class EmpleadoView extends VerticalLayout implements View {
             queryString += ","  + vacacionesDiasGozadosTxt.getValue();
             queryString += ")";
         } else {
-            queryString = "UPDATE proveedor SET ";
+            queryString = "UPDATE proveedor_empresa SET ";
             queryString += " IDProveedor = " + idEmpleadoTxt.getValue();
             queryString += ",NIT = '" + nitTxt.getValue() + "'";
             queryString += ",DPI = '" + dpiTxt.getValue() + "'";
-//            queryString += ",Email = '" + emailTxt.getValue() + "'";
             queryString += ",PrimerNombre = '" + primerNombreTxt.getValue() + "'";
             queryString += ",SegundoNombre = '" + segundoNombreTxt.getValue() + "'";
             queryString += ",PrimerApellido = '" + primerApellidoTxt.getValue() + "'";
@@ -787,6 +747,7 @@ public class EmpleadoView extends VerticalLayout implements View {
             queryString += ",DiasVacacionesDerecho = "  + vacacionesDiasDerechoTxt.getValue();
             queryString += ",DiasVacacionesGozados = "  + vacacionesDiasGozadosTxt.getValue();
             queryString += " WHERE IdProveedor = " + idEmpleadoTxt.getValue();
+            queryString += " AND IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
 
         }
 

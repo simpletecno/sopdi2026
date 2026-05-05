@@ -29,6 +29,7 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
@@ -169,18 +170,22 @@ public class PagoFacturaProveedorForm extends Window {
         setResizable(true);
         setDraggable(true);
         setWidth("92%");
-        setHeight("92%");
+        setHeight("98%");
         setResponsive(true);
 
-        // ── mainLayout ───────────────────────────────────────────────────────
+        // ── mainLayout dentro de Panel con scroll ────────────────────────────
         mainLayout = new VerticalLayout();
-        mainLayout.setSpacing(true);
-        mainLayout.setMargin(true);
+        mainLayout.setSpacing(false);
+        mainLayout.setMargin(false);
         mainLayout.setResponsive(true);
-        mainLayout.setSizeFull();
+        mainLayout.setWidth("100%");
         mainLayout.addStyleName("pfp-main");
 
-        setContent(mainLayout);
+        Panel scrollPanel = new Panel();
+        scrollPanel.setSizeFull();
+        scrollPanel.addStyleName("pfp-scroll-panel");
+        scrollPanel.setContent(mainLayout);
+        setContent(scrollPanel);
 
         // ── Botón Excel ──────────────────────────────────────────────────────
         excelBtn = new Button("Exportar Excel");
@@ -197,20 +202,10 @@ public class PagoFacturaProveedorForm extends Window {
         // ── Header ───────────────────────────────────────────────────────────
         buildHeader();
 
-        // ── ComboBox proveedor (visible en header) ───────────────────────────
+        // ── ComboBox proveedor ───────────────────────────────────────────────
         proveedorCbx = new ComboBox("Proveedor : ");
-        proveedorCbx.setWidth("35em");
-        proveedorCbx.setVisible(false);
         proveedorCbx.setFilteringMode(FilteringMode.CONTAINS);
-        proveedorCbx.addValueChangeListener(event -> {
-            nombreChequeTxt.setReadOnly(false);
-            nombreChequeTxt.setValue(proveedorCbx.getItemCaption(proveedorCbx.getValue()));
-            nombreChequeTxt.setReadOnly(true);
-        });
         llenarComboProveedor();
-
-        mainLayout.addComponent(proveedorCbx);
-        mainLayout.setComponentAlignment(proveedorCbx, Alignment.TOP_CENTER);
 
         // ── Secciones ────────────────────────────────────────────────────────
         crearGridFacturas();
@@ -224,52 +219,51 @@ public class PagoFacturaProveedorForm extends Window {
     private void injectStyles() {
         Page.getCurrent().getStyles().add(
 
-                /* Fondo general del contenido del Window */
-                ".pfp-main {" +
+                /* Panel scroll sin borde ni decoración */
+                ".pfp-scroll-panel.v-panel {" +
+                        "  border: none !important;" +
+                        "  border-radius: 0 !important;" +
+                        "  box-shadow: none !important;" +
+                        "}" +
+                        ".pfp-scroll-panel > .v-panel-content {" +
+                        "  background: #F4F6F9 !important;" +
+                        "  padding: 0 !important;" +
+                        "}" +
+
+                        /* Fondo general del mainLayout */
+                        ".pfp-main {" +
                         "  background: #F4F6F9;" +
+                        "  padding: 8px !important;" +
                         "}" +
 
                         /* ── Header ─────────────────────────────────────────────────── */
                         ".pfp-header {" +
                         "  background: linear-gradient(135deg, #1565C0 0%, #1976D2 100%);" +
-                        "  border-radius: 10px;" +
-                        "  padding: 14px 20px !important;" +
-                        "  margin-bottom: 4px;" +
+                        "  border-radius: 8px;" +
+                        "  padding: 10px 16px !important;" +
+                        "  margin-bottom: 6px;" +
                         "  width: 100%;" +
                         "}" +
                         ".pfp-header-title {" +
                         "  color: #ffffff !important;" +
-                        "  font-size: 17px !important;" +
+                        "  font-size: 16px !important;" +
                         "  font-weight: 700 !important;" +
                         "  margin: 0 !important;" +
-                        "  letter-spacing: 0.02em;" +
                         "}" +
                         ".pfp-header-sub {" +
                         "  color: #BBDEFB !important;" +
-                        "  font-size: 12px !important;" +
-                        "  margin: 2px 0 0 0 !important;" +
+                        "  font-size: 11px !important;" +
+                        "  margin: 1px 0 0 0 !important;" +
                         "}" +
 
                         /* ── Sección card ────────────────────────────────────────────── */
                         ".pfp-section {" +
                         "  background: #ffffff;" +
-                        "  border-radius: 8px;" +
-                        "  box-shadow: 0 2px 8px rgba(0,0,0,0.07);" +
-                        "  padding: 16px 18px !important;" +
+                        "  border-radius: 6px;" +
+                        "  box-shadow: 0 1px 4px rgba(0,0,0,0.08);" +
+                        "  padding: 8px 12px !important;" +
                         "  width: 100%;" +
-                        "  margin-bottom: 6px;" +
-                        "}" +
-                        ".pfp-section-label {" +
-                        "  color: #1976D2;" +
-                        "  font-size: 11px !important;" +
-                        "  font-weight: 700 !important;" +
-                        "  letter-spacing: 0.09em;" +
-                        "  text-transform: uppercase;" +
-                        "  border-bottom: 2px solid #E3F2FD;" +
-                        "  padding-bottom: 6px;" +
-                        "  margin-bottom: 10px !important;" +
-                        "  display: block;" +
-                        "  width: 100%;" +
+                        "  margin-bottom: 4px;" +
                         "}" +
 
                         /* ── Grids ───────────────────────────────────────────────────── */
@@ -478,17 +472,17 @@ public class PagoFacturaProveedorForm extends Window {
         filterRow.getCell(PROVEEDOR_PROPERTY).setComponent(filterProveedor);
 
         // Footer totales
-        footerFacturas = facturasGrid.appendFooterRow();
-        footerFacturas.getCell(MONEDA_PROPERTY).setText("Totales");
-        footerFacturas.getCell(VALOR_PROPERTY).setText("0.00");
-        footerFacturas.getCell(MONTO_AUTORIZADO_PROPERTY).setText("0.00");
-        footerFacturas.getCell(ANTICIPO_PROPERTY).setText("0.00");
-        footerFacturas.getCell(VALOR_PROPERTY).setStyleName("rightalign");
-        footerFacturas.getCell(MONTO_AUTORIZADO_PROPERTY).setStyleName("rightalign");
-        footerFacturas.getCell(ANTICIPO_PROPERTY).setStyleName("rightalign");
+//        footerFacturas = facturasGrid.appendFooterRow();
+//        footerFacturas.getCell(MONEDA_PROPERTY).setText("Totales");
+//        footerFacturas.getCell(VALOR_PROPERTY).setText("0.00");
+//        footerFacturas.getCell(MONTO_AUTORIZADO_PROPERTY).setText("0.00");
+//        footerFacturas.getCell(ANTICIPO_PROPERTY).setText("0.00");
+//        footerFacturas.getCell(VALOR_PROPERTY).setStyleName("rightalign");
+//        footerFacturas.getCell(MONTO_AUTORIZADO_PROPERTY).setStyleName("rightalign");
+//        footerFacturas.getCell(ANTICIPO_PROPERTY).setStyleName("rightalign");
 
         // Card de la sección
-        VerticalLayout facturasSection = buildSection("📄  Documentos pendientes de pago");
+        VerticalLayout facturasSection = buildSection();
         facturasSection.addComponent(facturasGrid);
         facturasSection.setComponentAlignment(facturasGrid, Alignment.MIDDLE_CENTER);
 
@@ -574,35 +568,35 @@ public class PagoFacturaProveedorForm extends Window {
         montoTxt.setWidth("8em");
 
         nombreChequeTxt = new TextField("Nombre cheque / nota");
-        nombreChequeTxt.setWidth("28em");
+        nombreChequeTxt.setWidth("100%");
         nombreChequeTxt.setValue(proveedorCbx.getItemCaption(proveedorCbx.getValue()));
         nombreChequeTxt.setReadOnly(((SopdiUI) mainUI).sessionInformation.getStrUserProfileName().equals("CONTADOR"));
         nombreChequeTxt.setReadOnly(((SopdiUI) mainUI).sessionInformation.getStrUserProfileName().equals("AUXILIAR"));
 
-        descripcionTxt = new TextField("Descripción");
+        descripcionTxt = new TextField("Descripción del pago");
         descripcionTxt.setWidth("100%");
-        descripcionTxt.setVisible(false);
 
-        // Fila 1: datos del pago
+        // Fila 1: medio, número, fecha, moneda, tasa de cambio, monto
         chequeLayout.setSpacing(true);
         chequeLayout.setMargin(false);
-        chequeLayout.setSizeUndefined();
-        chequeLayout.addComponents(medioCbx, numeroTxt, fechaDt, proveedorCbx, montoTxt, monedaCbx, tasaCambioTxt);
+        chequeLayout.setWidth("100%");
+        chequeLayout.addComponents(medioCbx, numeroTxt, fechaDt, proveedorCbx, monedaCbx, tasaCambioTxt, montoTxt);
         for (int i = 0; i < chequeLayout.getComponentCount(); i++) {
             chequeLayout.setComponentAlignment(chequeLayout.getComponent(i), Alignment.BOTTOM_LEFT);
         }
 
-        // Fila 2: nombre y descripción
+        // Fila 2: nombre del beneficiario (expandido) y descripción (doble expansión)
         chequeLayout2.setSpacing(true);
         chequeLayout2.setMargin(false);
         chequeLayout2.setWidth("100%");
         chequeLayout2.addComponents(nombreChequeTxt, descripcionTxt);
-        chequeLayout2.setExpandRatio(descripcionTxt, 1f);
+        chequeLayout2.setExpandRatio(nombreChequeTxt, 1f);
+        chequeLayout2.setExpandRatio(descripcionTxt,  2f);
         chequeLayout2.setComponentAlignment(nombreChequeTxt, Alignment.BOTTOM_LEFT);
         chequeLayout2.setComponentAlignment(descripcionTxt,  Alignment.BOTTOM_LEFT);
 
         // Card
-        VerticalLayout chequeSection = buildSection("🏦  Datos del medio de pago");
+        VerticalLayout chequeSection = buildSection();
         chequeSection.addComponents(chequeLayout, chequeLayout2);
 
         mainLayout.addComponent(chequeSection);
@@ -618,7 +612,7 @@ public class PagoFacturaProveedorForm extends Window {
         partidaGrid.setImmediate(true);
         partidaGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
         partidaGrid.setHeightMode(HeightMode.ROW);
-        partidaGrid.setHeightByRows(10);
+        partidaGrid.setHeightByRows(8);
         partidaGrid.setWidth("100%");
         partidaGrid.setResponsive(true);
         partidaGrid.setEditorBuffered(false);
@@ -683,34 +677,24 @@ public class PagoFacturaProveedorForm extends Window {
         partidaLayout.addStyleName("pfp-section");
         partidaLayout.setWidth("100%");
         partidaLayout.setResponsive(true);
-        partidaLayout.setSpacing(true);
+        partidaLayout.setSpacing(false);
         partidaLayout.setMargin(false);
 
-        Label sectionLbl = new Label("📒  Partida contable generada");
-        sectionLbl.addStyleName("pfp-section-label");
-        sectionLbl.setWidth("100%");
-
-        partidaLayout.addComponents(sectionLbl, partidaGrid, actionBar);
-        partidaLayout.setComponentAlignment(sectionLbl,  Alignment.TOP_LEFT);
-        partidaLayout.setComponentAlignment(partidaGrid,  Alignment.TOP_CENTER);
-        partidaLayout.setComponentAlignment(actionBar,    Alignment.MIDDLE_CENTER);
+        partidaLayout.addComponents(partidaGrid, actionBar);
+        partidaLayout.setComponentAlignment(partidaGrid, Alignment.TOP_CENTER);
+        partidaLayout.setComponentAlignment(actionBar,   Alignment.MIDDLE_CENTER);
 
         mainLayout.addComponent(partidaLayout);
         mainLayout.setComponentAlignment(partidaLayout, Alignment.MIDDLE_CENTER);
     }
 
     // ── Helper: construye un "card" de sección con etiqueta ─────────────────
-    private VerticalLayout buildSection(String title) {
-        Label sectionLbl = new Label(title);
-        sectionLbl.addStyleName("pfp-section-label");
-        sectionLbl.setWidth("100%");
-
+    private VerticalLayout buildSection() {
         VerticalLayout section = new VerticalLayout();
         section.addStyleName("pfp-section");
         section.setWidth("100%");
-        section.setSpacing(true);
+        section.setSpacing(false);
         section.setMargin(false);
-        section.addComponent(sectionLbl);
         return section;
     }
 
@@ -956,9 +940,9 @@ public class PagoFacturaProveedorForm extends Window {
         totalDebeQ  = new BigDecimal(0);
         totalHaberQ = new BigDecimal(0);
 
-        footerFacturas.getCell(VALOR_PROPERTY).setText("0.00");
-        footerFacturas.getCell(MONTO_AUTORIZADO_PROPERTY).setText("0.00");
-        footerFacturas.getCell(ANTICIPO_PROPERTY).setText("0.00");
+//        footerFacturas.getCell(VALOR_PROPERTY).setText("0.00");
+//        footerFacturas.getCell(MONTO_AUTORIZADO_PROPERTY).setText("0.00");
+//        footerFacturas.getCell(ANTICIPO_PROPERTY).setText("0.00");
 
         facturasContainer.removeAllItems();
         totalMonto    = 0.00;
@@ -1027,9 +1011,9 @@ public class PagoFacturaProveedorForm extends Window {
             notif.show(Page.getCurrent());
         }
 
-        footerFacturas.getCell(VALOR_PROPERTY).setText(numberFormat.format(totalMonto));
-        footerFacturas.getCell(MONTO_AUTORIZADO_PROPERTY).setText(numberFormat.format(totalQueztales));
-        footerFacturas.getCell(ANTICIPO_PROPERTY).setText(numberFormat.format(totalAnticipo));
+//        footerFacturas.getCell(VALOR_PROPERTY).setText(numberFormat.format(totalMonto));
+//        footerFacturas.getCell(MONTO_AUTORIZADO_PROPERTY).setText(numberFormat.format(totalQueztales));
+//        footerFacturas.getCell(ANTICIPO_PROPERTY).setText(numberFormat.format(totalAnticipo));
     }
 
     public void limpiarPartida() {
@@ -1046,8 +1030,15 @@ public class PagoFacturaProveedorForm extends Window {
     }
 
     public void llenarComboProveedor() {
-        String q = " SELECT * FROM proveedor WHERE Inhabilitado = 0 AND EsProveedor = 1 ORDER BY Nombre ";
+        String q = " SELECT * ";
+        q+= " FROM proveedor_empresa ";
+        q+= " WHERE Inhabilitado = 0 ";
+        q+= " AND EsProveedor = 1 ";
+        q+= " AND IdEmpresa = " + empresaId;
+        q+= " ORDER BY Nombre ";
+
         proveedorCbx.removeAllItems();
+
         try {
             stQuery   = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(q);

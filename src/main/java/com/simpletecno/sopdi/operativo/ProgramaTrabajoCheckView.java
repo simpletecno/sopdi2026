@@ -519,7 +519,7 @@ public class ProgramaTrabajoCheckView extends VerticalLayout implements View {
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
-            String queryString = " SELECT IdProveedor FROM proveedor WHERE IdUsuario = " + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+            String queryString = " SELECT IdProveedor FROM proveedor_empresa WHERE IdUsuario = " + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
 
             rsRecords = stQuery.executeQuery(queryString);
 

@@ -396,7 +396,7 @@ public class ProveedorForm extends Window {
             queryString += ",EsAgenteRetenedorIva = " + (esAgenteRetenedorIVACheck.getValue() ? "1" : "0");
             queryString += ",EsInstitucionFiscal = " + (esInstitucionFiscalCheck.getValue() ? "1" : "0");
             queryString += ",EsInstitucionSeguroSocial = " + (esInstitucionSeguroSocialCheck.getValue() ? "1" : "0");
-            queryString += ",InHabilitado " + (!esInabilitadoCheck.getValue() ? "1" : "0");
+            queryString += ",InHabilitado = " + (!esInabilitadoCheck.getValue() ? "1" : "0");
             queryString += " WHERE Id = " + idProveedor;
 
         }

@@ -1733,8 +1733,8 @@ System.out.println("\n\n"+queryString);
         }
 
         String queryString = "SELECT * ";
-        queryString += " FROM proveedor ";
-        queryString += " WHERE N0 IN (1, 2, 3) "; // <- Camnbio de condicional | escliente = 1 | o cotra condicional
+        queryString += " FROM proveedor_empresa ";
+        queryString += " WHERE EsCliente=1 ";
         queryString += " AND Inhabilitado = 0";
         queryString += " ORDER BY Nombre";
 

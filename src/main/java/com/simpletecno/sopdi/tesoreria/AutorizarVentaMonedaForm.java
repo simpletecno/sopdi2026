@@ -159,7 +159,7 @@ public class AutorizarVentaMonedaForm extends Window {
             }
         });
 
-        layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
+//        layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
 
 //        filtrosLayout.addComponents(monedaCbx, montoAutorizarTxt, proveedorCbx, autorizarBtn,salirBtn);
         filtrosLayout.addComponents(monedaCbx, montoAutorizarTxt, proveedorCbx, autorizarBtn);

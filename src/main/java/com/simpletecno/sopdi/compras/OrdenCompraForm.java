@@ -888,7 +888,7 @@ public class OrdenCompraForm extends Window {
         queryString += " WHERE EsProveedor = 1";
         queryString += " AND Inhabilitado = 0";
         queryString += " AND IdEmpresa = " + empresaId;
-        queryString += " ORDER BY proveedor.Nombre";
+        queryString += " ORDER BY proveedor_empresa.Nombre";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();

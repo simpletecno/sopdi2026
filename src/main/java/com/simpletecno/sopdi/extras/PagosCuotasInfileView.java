@@ -548,10 +548,10 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
     }
 
     private void llenarProveedores(){
-        queryString = "SELECT * FROM proveedor ";
-        //queryString += "WHERE N0 IN (1, 2, 3, 4) ";
-        queryString += "WHERE N0 IN (4) ";
+        queryString = "SELECT * FROM proveedor_empresa ";
+        queryString += "WHERE EsCliente = 1 ";
         queryString += "AND Inhabilitado = 0 ";
+        queryString += "AND IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId() + " ";
         queryString += "ORDER BY IdProveedor";
 
         Object itemId;
