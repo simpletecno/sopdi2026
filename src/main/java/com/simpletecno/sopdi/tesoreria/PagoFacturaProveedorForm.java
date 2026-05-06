@@ -879,6 +879,17 @@ public class PagoFacturaProveedorForm extends Window {
                 } else {
                     montoQuetzales = montoProveedores;
                 }
+
+                partidaContainer.getContainerProperty(partidaObject, CUENTA_PROPERTY).setValue(idNomenclatura);
+                partidaContainer.getContainerProperty(partidaObject, DESCRIPCION_PROPERTY).setValue(cuentasContables.get(idNomenclatura));
+                partidaContainer.getContainerProperty(partidaObject, DEBE_PROPERTY).setValue(String.valueOf(Utileria.numberFormatEntero.format(montoProveedores)));
+                partidaContainer.getContainerProperty(partidaObject, HABER_PROPERTY).setValue("0");
+                partidaContainer.getContainerProperty(partidaObject, DEBE_Q_PROPERTY).setValue(String.valueOf(Utileria.numberFormatEntero.format(montoQuetzales)));
+                partidaContainer.getContainerProperty(partidaObject, HABER_Q_PROPERTY).setValue("0");
+                partidaContainer.getContainerProperty(partidaObject, CODIGOCC_PROPERTY).setValue(codigoCC); // del documento
+
+                totalDebe = totalDebe.add(new BigDecimal(montoProveedores));
+                totalDebeQ = totalDebeQ.add(new BigDecimal(montoQuetzales));
             } catch (Exception ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
             }
@@ -1056,57 +1067,45 @@ public class PagoFacturaProveedorForm extends Window {
         // (método original sin cambios)
         String descripcion = descripcionTxt.getValue();
 
-        queryString  = "INSERT INTO contabilidad_partida (";
-        queryString += " IdEmpresa, IdNomenclatura, CodigoCC, Descripcion, TipoDocumento,";
-        queryString += " SerieDocumento, NumeroDocumento, Fecha, Debe, DebeQuetzales,";
-        queryString += " Haber, HaberQuetzales, IdMoneda, TipoCambio, Estatus,";
-        queryString += " TipoDoca, NoDoca, IdProveedor, NombreProveedor, CodigoCC_Doc,";
-        queryString += " Descripcion2, IdUsuario, FechaCreacion) VALUES ";
+        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
+        queryString += " TipoDocumento, NoDOCA, TipoDOCA, Fecha, IdProveedor, NITProveedor, ";
+        queryString += " NombreProveedor, NombreCheque, MontoDocumento, SerieDocumento, NumeroDocumento, ";
+        queryString += " IdNomenclatura, MonedaDocumento, Debe, Haber,";
+        queryString += " DebeQuetzales, HaberQuetzales, TipoCambio,";
+        queryString += " Descripcion, CreadoUsuario, CreadoFechaYHora)";
+        queryString += " Values ";
 
-        Iterator iter = partidaContainer.getItemIds().iterator();
-
-        codigoPartidaNuevo = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId()
-                + String.valueOf(System.currentTimeMillis());
-
-        while (iter.hasNext()) {
-            Object itemId = iter.next();
-            Item   item   = partidaContainer.getItem(itemId);
-
-            String cuenta     = String.valueOf(item.getItemProperty(CUENTA_PROPERTY).getValue());
-            String descripPar = String.valueOf(item.getItemProperty(DESCRIPCION_PROPERTY).getValue());
-            String debe       = String.valueOf(item.getItemProperty(DEBE_PROPERTY).getValue()).replaceAll(",", "");
-            String haber      = String.valueOf(item.getItemProperty(HABER_PROPERTY).getValue()).replaceAll(",", "");
-            String debeQ      = String.valueOf(item.getItemProperty(DEBE_Q_PROPERTY).getValue()).replaceAll(",", "");
-            String haberQ     = String.valueOf(item.getItemProperty(HABER_Q_PROPERTY).getValue()).replaceAll(",", "");
-            String codCC      = String.valueOf(item.getItemProperty(CODIGOCC_PROPERTY).getValue());
-
-            if (cuenta.startsWith("_") || debe.startsWith("_") || haber.startsWith("_")) continue;
-
-            queryString += "(";
-            queryString += empresaId;
-            queryString += "," + cuenta;
-            queryString += ",'" + codigoPartidaNuevo + "'";
-            queryString += ",'" + descripcion + "'";
-            queryString += ",'PAGO'";
-            queryString += ",'" + medioCbx.getValue() + "'";
-            queryString += ",'" + numeroTxt.getValue() + "'";
-            queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
-            queryString += "," + debe;
-            queryString += "," + debeQ;
-            queryString += "," + haber;
-            queryString += "," + haberQ;
-            queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + tasaCambioTxt.getValue();
-            queryString += ",'PAGADO'";
-            queryString += ",'" + medioCbx.getValue() + "'";
-            queryString += ",'" + numeroTxt.getValue() + "'";
-            queryString += "," + proveedorId;
-            queryString += ",'" + proveedorNombre + "'";
-            queryString += ",'" + codCC + "'";
-            queryString += ",'" + descripcion + "'";
-            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
-            queryString += ",current_timestamp";
-            queryString += "),";
+        for (Object itemId: partidaContainer.getItemIds()) {
+            Item item = partidaContainer.getItem(itemId);
+            if (!String.valueOf(item.getItemProperty(CODIGOCC_PROPERTY).getValue()).equals("___________")) {
+                queryString += " (";
+                queryString += empresaId;
+                queryString += ",'INGRESADO'";
+                queryString += ",'" + codigoPartida + "'";
+                queryString += ",'" + String.valueOf(item.getItemProperty(CODIGOCC_PROPERTY).getValue()) + "'";
+                queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+                queryString += ",'" + facturasPagadas + "'";//NODOCA
+                queryString += ",'" + tipoDocumentoPagado + "'";//TIPODOCA
+                queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
+                queryString += "," + proveedorId;
+                queryString += ",''"; //nit proveedor
+                queryString += ",'" + proveedorNombre + "'";
+                queryString += ",'" + nombreChequeTxt.getValue() + "'";
+                queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+                queryString += ",''"; //serie documento
+                queryString += ",'" + numeroTxt.getValue() + "'";
+                queryString += "," + String.valueOf(item.getItemProperty(CUENTA_PROPERTY).getValue());
+                queryString += ",'" + monedaCbx.getValue() + "'";
+                queryString += "," + String.valueOf(item.getItemProperty(DEBE_PROPERTY).getValue());  //Debe
+                queryString += "," + String.valueOf(item.getItemProperty(HABER_PROPERTY).getValue()); //Haber
+                queryString += "," + String.valueOf(item.getItemProperty(DEBE_Q_PROPERTY).getValue()); //DEBE Q
+                queryString += "," + String.valueOf(item.getItemProperty(HABER_Q_PROPERTY).getValue()); //HABER Q
+                queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += ",'" + descripcion + "'";
+                queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+                queryString += ",current_timestamp";
+                queryString += "),";
+            }
         }
 
         queryString = queryString.substring(0, queryString.length() - 1);

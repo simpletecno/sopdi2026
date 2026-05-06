@@ -421,6 +421,7 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         facturasYPartidasLayout.addComponent(partidasGrid);
 
         continuarBtn = new Button("Ingresar más facturas");
+        continuarBtn.setWidth("100%");
         continuarBtn.setIcon(FontAwesome.NEWSPAPER_O);
         continuarBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
         continuarBtn.setDescription("Continuar ingresando facturas de ésta liquidación");
@@ -448,6 +449,7 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         });
 
         notaCreditoBtn = new Button("NOTA DE CREDITO");
+        notaCreditoBtn.setWidth("100%");
         notaCreditoBtn.addStyleName(ValoTheme.BUTTON_FRIENDLY);
         notaCreditoBtn.setDescription("NOTA DE CREDITO");
         notaCreditoBtn.addListener((Button.ClickListener) (Button.ClickEvent event) -> {
@@ -488,6 +490,7 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
 //        notaCreditoBtn.setVisible(false);
 
         cerrarBtn = new Button("Cerrar liquidación");
+        cerrarBtn.setWidth("100%");
         cerrarBtn.setIcon(FontAwesome.CLOSE);
         cerrarBtn.addStyleName(ValoTheme.BUTTON_DANGER);
         cerrarBtn.setDescription("Cerrar ésta liquidación");
@@ -514,43 +517,42 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         });
 
         editBtn = new Button("Editar");
+        editBtn.setWidth("100%");
         editBtn.setIcon(FontAwesome.EDIT);
         editBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
         editBtn.setDescription("Actualizar datos del documento y partida contable.");
-        editBtn.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                if (facturasGrid.getSelectedRow() == null) {
-                    Notification.show("Por favor, seleccione el registro correspondiente.", Notification.Type.WARNING_MESSAGE);
-                } else {
-                    queryString = "UPDATE  contabilidad_partida";
-                    queryString += " SET Estatus = 'INGRESADO'";
-                    queryString += " WHERE IdLiquidador = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue());
-                    queryString += " AND IdLiquidacion = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
-                    queryString += " AND IdEmpresa = " + empresaId;
-                    queryString += " AND CodigoPartida = '" + String.valueOf(containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
+        editBtn.addClickListener((Button.ClickListener) event -> {
+            if (liquidacionesGrid.getSelectedRow() == null || facturasGrid.getSelectedRow() == null) {
+                Notification.show("Por favor, seleccione el registro correspondiente.", Notification.Type.WARNING_MESSAGE);
+            } else {
+                queryString = "UPDATE  contabilidad_partida";
+                queryString += " SET Estatus = 'INGRESADO'";
+                queryString += " WHERE IdLiquidador = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue());
+                queryString += " AND IdLiquidacion = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
+                queryString += " AND IdEmpresa = " + empresaId;
+                queryString += " AND CodigoPartida = '" + String.valueOf(containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
 
-                    try {
+                try {
 //                        System.out.println("query editar liquidacion" + queryString);
-                        stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-                        stQuery.executeUpdate(queryString);
-                    } catch (SQLException ex) {
-                        System.out.println("Error al intentar modificar estatus a INGRESADO" + ex);
-                        Notification.show("ERROR AL INTENTAR CAMBIAR EL ESTATUS INGRESADO A PARTIDA CONTABLE", Notification.Type.ERROR_MESSAGE);
-                        ex.printStackTrace();
-                    }
-
-                    EditarPartidaLiquidacion partidaLiquidacion
-                            = new EditarPartidaLiquidacion(
-                            String.valueOf(containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue()),
-                            String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), CODIGOCC_PROPERTY).getValue()));
-                    UI.getCurrent().addWindow(partidaLiquidacion);
-                    partidaLiquidacion.center();
+                    stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
+                    stQuery.executeUpdate(queryString);
+                } catch (SQLException ex) {
+                    System.out.println("Error al intentar modificar estatus a INGRESADO" + ex);
+                    Notification.show("ERROR AL INTENTAR CAMBIAR EL ESTATUS INGRESADO A PARTIDA CONTABLE", Notification.Type.ERROR_MESSAGE);
+                    ex.printStackTrace();
                 }
+
+                EditarPartidaLiquidacion partidaLiquidacion
+                        = new EditarPartidaLiquidacion(
+                        String.valueOf(containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue()),
+                        String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), CODIGOCC_PROPERTY).getValue()));
+                UI.getCurrent().addWindow(partidaLiquidacion);
+                partidaLiquidacion.center();
             }
         });
 
         revisadoBtn = new Button("Revisado");
+        revisadoBtn.setWidth("100%");
         revisadoBtn.setIcon(FontAwesome.CHECK);
         revisadoBtn.addStyleName(ValoTheme.BUTTON_FRIENDLY);
         revisadoBtn.setDescription("Dar por revisado un documento / partida contable.");

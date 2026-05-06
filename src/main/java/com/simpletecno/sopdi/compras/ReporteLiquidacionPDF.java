@@ -273,15 +273,16 @@ public class ReporteLiquidacionPDF extends Window {
             String queryString = "";
             queryString += " Select contabilidad_partida.Fecha, contabilidad_partida.IdLiquidacion, contabilidad_partida.IdLiquidador,";
             queryString += " contabilidad_partida.Haber, contabilidad_partida.HaberQuetzales, contabilidad_partida.MonedaDocumento,";
-            queryString += " proveedor.Nombre as NombreLiquidador, contabilidad_partida.Archivo, ";
+            queryString += " proveedor_empresa.Nombre as NombreLiquidador, contabilidad_partida.Archivo, ";
             queryString += " contabilidad_partida.SerieDocumento, contabilidad_partida.NumeroDocumento, ";
             queryString += " contabilidad_partida.NitProveedor, contabilidad_partida.NombreProveedor";
-            queryString += " From contabilidad_partida, proveedor ";
+            queryString += " From contabilidad_partida, proveedor_empresa ";
             queryString += " Where contabilidad_partida.IdEmpresa = " + idEmpresa;
             queryString += " And UPPER(contabilidad_partida.TipoDocumento) IN ('FACTURA', 'RECIBO', 'RECIBO CONTABLE', 'FORMULARIO','NOTA DE CREDITO')";
             queryString += " And contabilidad_partida.IdLiquidacion = " + idLiquidacion;
-            queryString += " And proveedor.IdProveedor = contabilidad_partida.IdLiquidador";
+            queryString += " And proveedor_empresa.IdProveedor = contabilidad_partida.IdLiquidador";
             queryString += " And contabilidad_partida.Haber > 0.00";
+            queryString += " And proveedor_empresa.IdEmpresa = " + idEmpresa;
 //            queryString += " Group by contabilidad_partida.IdLiquidacion, contabilidad_partida.IdLiquidador";
 
             System.out.println("query liquidaciones" + queryString);

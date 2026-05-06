@@ -570,11 +570,12 @@ public class EditarPartidaLiquidacion extends Window {
 
         estatusPartidaEdit = "INGRESADO";
 
-        queryString = " SELECT contabilidad_partida.*, proveedor.Nombre AS LiquidadorNombre ";
+        queryString = " SELECT contabilidad_partida.*, proveedor_empresa.Nombre AS LiquidadorNombre ";
         queryString += " FROM contabilidad_partida ";
-        queryString += " LEFT JOIN proveedor ON proveedor.IdProveedor =  contabilidad_partida.IdLiquidador ";
+        queryString += " LEFT JOIN proveedor_empresa ON proveedor_empresa.IdProveedor =  contabilidad_partida.IdLiquidador ";
         queryString += " WHERE contabilidad_partida.CodigoPartida = '" + codigoPartidaEdit + "'";
-
+        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
+        queryString += " AND proveedor_empresa.IdEmpresa = " + empresaId;
         try {
             stQuery2 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             rsRecords2 = stQuery2.executeQuery(queryString);

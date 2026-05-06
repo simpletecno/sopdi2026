@@ -206,7 +206,8 @@ public class MostrarPartidaContable extends Window {
         queryString += " contabilidad_partida.TipoCambio, contabilidad_partida.CodigoCentroCosto";
         queryString += " FROM contabilidad_partida,contabilidad_nomenclatura_empresa";
         queryString += " WHERE contabilidad_partida.CodigoPartida = '" + codigoPartida + "'";
-        queryString += " AND contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+        queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+        queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = contabilidad_partida.IdEmpresa";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();

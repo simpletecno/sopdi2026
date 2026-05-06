@@ -89,7 +89,7 @@ public class IngresoDepositoVentaMonedaForm extends Window {
         this.mainUI = UI.getCurrent();
         setResponsive(true);
         setWidth("87%");
-        setHeight("85%");
+        setHeight("95%");
         setModal(true);
 
         mainLayout = new VerticalLayout();
@@ -536,10 +536,10 @@ public class IngresoDepositoVentaMonedaForm extends Window {
     }
 
     public void llenarComboProveedor() {
-        queryString = " SELECT * from proveedor ";
+        queryString = " SELECT * from proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0 ";
-        queryString += " And IdEmpresa =  " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-        queryString += " Order By Nombre";
+        queryString += " AND IdEmpresa =  " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString += " ORDER BY Nombre";
 
         proveedorCbx.removeAllItems();
 

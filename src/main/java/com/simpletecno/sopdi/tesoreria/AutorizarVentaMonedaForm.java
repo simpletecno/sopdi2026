@@ -120,7 +120,7 @@ public class AutorizarVentaMonedaForm extends Window {
         proveedorCbx.setWidth("100%");
         proveedorCbx.setInputPrompt("Proveedor");
         proveedorCbx.addContainerProperty(NIT_PROPERTY, String.class, "");
-        proveedorCbx.addContainerProperty(GRUPO_PROPERTY, String.class, "");
+//        proveedorCbx.addContainerProperty(GRUPO_PROPERTY, String.class, "");
         proveedorCbx.addContainerProperty(NOMBRESINCODIGO_PROPERTY, String.class, "");
         proveedorCbx.setInvalidAllowed(false);
         proveedorCbx.setNewItemsAllowed(false);
@@ -184,7 +184,7 @@ public class AutorizarVentaMonedaForm extends Window {
         queryString += " WHERE Inhabilitado = 0 ";
         queryString += " AND EsPlanilla = 0";
         queryString += " AND IdEmpresa = " + empresaId;
-        queryString += " Order By Nombre ";
+        queryString += " ORDER BY Nombre ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -195,7 +195,7 @@ public class AutorizarVentaMonedaForm extends Window {
                 proveedorCbx.addItem(rsRecords.getString("IDProveedor"));
                 proveedorCbx.setItemCaption(rsRecords.getString("IDProveedor"), rsRecords.getString("Nombre"));
                 proveedorCbx.getItem(rsRecords.getString("IDProveedor")).getItemProperty(NIT_PROPERTY).setValue(rsRecords.getString("NIT"));
-                proveedorCbx.getItem(rsRecords.getString("IDProveedor")).getItemProperty(GRUPO_PROPERTY).setValue(rsRecords.getString("GRUPO"));
+//                proveedorCbx.getItem(rsRecords.getString("IDProveedor")).getItemProperty(GRUPO_PROPERTY).setValue(rsRecords.getString("GRUPO"));
                 proveedorCbx.getItem(rsRecords.getString("IDProveedor")).getItemProperty(NOMBRESINCODIGO_PROPERTY).setValue(rsRecords.getString("Nombre"));
 
                 if(rsRecords.getInt("EsBanco") == 1) {
