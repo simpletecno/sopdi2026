@@ -282,13 +282,13 @@ public class EmpleadoSalarioForm extends Window {
 
     private void fillComboCuentaContable() {
 
-        String queryString = "SELECT * FROM contabilidad_nomenclatura_empresa ";
-        queryString += "WHERE Estatus = 'HABILITADA' ";
-        queryString += "AND IdEmpresa = " + empresaId;
-        queryString += "AND idNomenclatura in (" + ((SopdiUI)mainUI).cuentasContablesDefault.getSueldoOrdinario() + ", ";
-        queryString +=                             ((SopdiUI)mainUI).cuentasContablesDefault.getBonificacionDCTO07_2001() + ", ";
-        queryString +=                             ((SopdiUI)mainUI).cuentasContablesDefault.getBonificacionDCTO78_89() + ") ";
-        queryString += "ORDER BY N5";
+        String queryString = "SELECT * FROM contabilidad_nomenclatura_empresa";
+        queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND idNomenclatura in (" + ((SopdiUI)mainUI).cuentasContablesDefault.getSueldoOrdinario() + ",";
+        queryString +=                             ((SopdiUI)mainUI).cuentasContablesDefault.getBonificacionDCTO07_2001() + ",";
+        queryString +=                             ((SopdiUI)mainUI).cuentasContablesDefault.getBonificacionDCTO78_89() + ")";
+        queryString += " ORDER BY N5";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
