@@ -2078,7 +2078,7 @@ System.out.println("TEMPORALLOG=queryStringInsertDOCA=" + queryStringDOCA);
 
             codigoCC = codigoPartida;
 
-            queryString = "SELECT IdNomenclatura, IdNomenclaturaProvision ";
+            queryString = "SELECT CodigoCentroCosto, IdNomenclatura, IdNomenclaturaProvision ";
             queryString += " FROM centro_costo ";
             queryString += " WHERE IdCentroCosto = " + centroCostoCbx.getValue();
             queryString += " AND IdEmpresa = " + empresaId;
@@ -2232,7 +2232,7 @@ System.out.println("TEMPORALLOG=queryStringInsertDOCA=" + queryStringDOCA);
                 queryString += ",0" ;
                 queryString += ",'" + tipoDocumento + " " + nombreProveedor + " " + serie + " " + numero + "'";
                 queryString += "," + centroCostoCbx.getValue();
-                queryString += ",'" + centroCostoCbx.getItemCaption(centroCostoCbx.getValue())+ "'";
+                queryString += ",'" + centroCostoCbx.getItemCaption(centroCostoCbx.getValue()) + "'";
                 queryString += "," + idOrdenCompra;
                 queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
                 queryString += ",current_timestamp";
@@ -2273,7 +2273,7 @@ System.out.println("TEMPORALLOG=queryStringInsertDOCA=" + queryStringDOCA);
                 queryString += "," + rsRecords1.getString("IdNomenclatura");
             }
 
-            queryString += "," + idNomenclatura;
+//            queryString += "," + idNomenclatura;
             queryString += ",'" + moneda + "'";
             queryString += "," + costo; //DEBE
             queryString += ",0.00"; // HABER

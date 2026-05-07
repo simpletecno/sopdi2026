@@ -120,6 +120,8 @@ public class FacturaVentaView extends VerticalLayout implements View {
     String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
+    InfileClient infileClient;
+
     public FacturaVentaView() {
         this.mainUI = UI.getCurrent();
         addStyleName("facturas-venta-view");
@@ -347,7 +349,62 @@ public class FacturaVentaView extends VerticalLayout implements View {
                 cargarArchivo.center();
 
             } else {
-                actualizarArchivo(e);
+                //actualizarArchivo(e);
+
+                String UUID = String.valueOf(facturasVentaContainer.getContainerProperty(e.getItemId(), UUID_PROPERTY).getValue());
+                pdfFile = infileClient.obtenerDTEPdf(UUID, ((SopdiUI) UI.getCurrent()).enviromentsVars.getDtePath());
+
+                if (pdfFile == null) {
+                    Notification.show("ERROR AL OBTENER PDF DEL DTE, NOTIFIQUE!", Notification.Type.ERROR_MESSAGE);
+                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "ERROR AL OBTENER PDF DEL DTE, VERIFIQUE!");
+                }
+                else {
+                    try {
+                        Window window = new Window();
+                        window.setResizable(true);
+                        window.setWidth("80%");
+                        window.setHeight("80%");
+                        window.center();
+
+                        final byte[] docBytes = Files.readAllBytes(pdfFile.toPath());
+                        final String fileName = pdfFile.getName();
+
+                        StreamResource documentStreamResource = null;
+
+                        if (docBytes != null) {
+                            documentStreamResource = new StreamResource(
+                                    new StreamResource.StreamSource() {
+                                        public InputStream getStream() {
+                                            return new ByteArrayInputStream(docBytes);
+                                        }
+                                    }, fileName
+                            );
+                        }
+                        documentStreamResource.setMIMEType("pdf");
+                        documentStreamResource.setFilename(fileName);
+                        documentStreamResource.getStream().setParameter("Content-Disposition", "attachment; filename=" + fileName);
+
+                        window.setWidth("98%");
+                        window.setHeight("98%");
+
+                        VerticalLayout pdfLayout = new VerticalLayout();
+                        pdfLayout.setSizeFull();
+                        pdfLayout.setSpacing(true);
+
+                        BrowserFrame browserFrame = new BrowserFrame();
+                        browserFrame.setSizeFull();
+                        browserFrame.setSource(documentStreamResource);
+
+                        pdfLayout.addComponent(browserFrame);
+                        window.setContent(pdfLayout);
+                        UI.getCurrent().addWindow(window);
+                        window.center();
+                    }
+                    catch(Exception ignored) {
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "ERROR AL OBTENER PDF DEL DTE, VERIFIQUE!");
+                        Notification.show("ERROR AL OBTENER PDF DEL DTE, NOTIFIQUE!", Notification.Type.ERROR_MESSAGE);
+                    }
+                }
             }
         }));
 

@@ -453,7 +453,6 @@ public class InfileClient {
         }
     }
 
-
     public File obtenerDTEPdf(String savePath) {
         byte[] buffer = new byte[1024];
         int bytesRead;
