@@ -27,6 +27,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -727,6 +728,8 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
 
     public boolean documentoCeritficaroInfile(ComboBox proveedorCbx){
         String correo;
+        Date fechaEmision = fechaDt.getValue();
+
         if (proveedorCbx.getContainerProperty(proveedorCbx.getValue(), CORREO_PROPERTY).getValue() == null) {
             correo = "";
         } else {
@@ -755,6 +758,16 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
         }
 
 
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_YEAR, -5);  // hoy - 5 días
+        Date fechaLimite = cal.getTime();
+
+        // fechaEmision es más de 5 días antes que hoy
+        if (fechaEmision.before(fechaLimite)) {
+            fechaEmision = fechaLimite;
+        }
+
+
         infileClient = new InfileClient(((SopdiUI)mainUI).sessionInformation.getInfileEmisor());
         return infileClient.generarDocumentoBase(
                 receptor,
@@ -762,13 +775,14 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
                 productoList,
                 exentoIva ?"RDON":"FACT",
                 "",
-                fechaDt.getValue(),
+                fechaEmision,
                 "GTQ",
                 1.00
         );
     }
 
     public void generarDatosDePago(){
+        aplicaRetencionIva = false;     // <--- IMPORTANTÍSIMO
         pagarList = new LinkedList<>();
         montoTotal = 0d;
         netoMontoTotal = 0d;
