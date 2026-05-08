@@ -352,7 +352,7 @@ public class FacturaVentaView extends VerticalLayout implements View {
                 //actualizarArchivo(e);
 
                 String UUID = String.valueOf(facturasVentaContainer.getContainerProperty(e.getItemId(), UUID_PROPERTY).getValue());
-                pdfFile = infileClient.obtenerDTEPdf(UUID, ((SopdiUI) UI.getCurrent()).enviromentsVars.getDtePath());
+                pdfFile = infileClient.obtenerDTEPdf(UUID, ((SopdiUI) UI.getCurrent()).enviromentsVars.getDtePath() + UUID + ".pdf");
 
                 if (pdfFile == null) {
                     Notification.show("ERROR AL OBTENER PDF DEL DTE, NOTIFIQUE!", Notification.Type.ERROR_MESSAGE);
