@@ -676,17 +676,18 @@ public class IngresoReembolsoSueldo extends Window {
         sueldosContainer.removeAllItems();
 
         queryString = " SELECT contabilidad_partida.codigoPartida, contabilidad_partida.CodigoCc, contabilidad_partida.IdNomenclatura,";
-        queryString += " contabilidad_nomenclatura.NoCuenta, contabilidad_partida.MonedaDocumento,";
+        queryString += " contabilidad_nomenclatura_empresa.NoCuenta, contabilidad_partida.MonedaDocumento,";
         queryString += " contabilidad_partida.IdEmpresa , contabilidad_partida.IdProveedor, contabilidad_partida.NumeroDocumento,";
         queryString += " SUM(contabilidad_partida.Debe) TOTALDEBE, SUM(contabilidad_partida.Haber) TOTALHABER,";
         queryString += " SUM(contabilidad_partida.DebeQuetzales) TOTALDEBEQ, SUM(contabilidad_partida.HaberQuetzales) TOTALHABERQ,";
         queryString += " SUM(DEBE - HABER) TOTALSALDO, SUM(DebeQuetzales - HaberQuetzales) TOTALSALDOQ";
         queryString += " FROM contabilidad_partida";
-        queryString += " INNER JOIN contabilidad_nomenclatura ON contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
-        queryString += " And contabilidad_partida.IdProveedor = " + proveedorCbx.getValue();
-        queryString += " And contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
+        queryString += " INNER JOIN contabilidad_nomenclatura_empresa ON contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+        queryString += " AND contabilidad_partida.IdProveedor = " + proveedorCbx.getValue();
+        queryString += " AND contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
+        queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaCbx.getValue();
         queryString += " AND (trim(contabilidad_partida.CodigoCC) <> '' AND contabilidad_partida.CodigoCC <> '0')";
-        queryString += " AND contabilidad_nomenclatura.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposSueldos();
+        queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposSueldos();
         queryString += " GROUP BY contabilidad_partida.CodigoCC, contabilidad_partida.IdNomenclatura";
         queryString += " HAVING TOTALSALDO > 0";
 
@@ -722,8 +723,8 @@ public class IngresoReembolsoSueldo extends Window {
 
     public void llenarComboEmpresa() {
 
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString = " SELECT * FROM contabilidad_empresa";
+        queryString += " WHERE IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -753,10 +754,11 @@ public class IngresoReembolsoSueldo extends Window {
 //        queryString += " Order By prov.Nombre";
 
         queryString = " SELECT * ";
-        queryString += " FROM proveedor ";
+        queryString += " FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0 ";
         queryString += " AND EsPlanilla = 1";
-        queryString += " Order By Nombre";
+        queryString += " AND IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString += " ORDER BY Nombre";
 
         proveedorCbx.removeAllItems();
 
@@ -778,9 +780,9 @@ public class IngresoReembolsoSueldo extends Window {
 
     public void llenarComboCuentaContable() {
 
-        queryString = " SELECT * from contabilidad_nomenclatura";
-        queryString += " where Estatus = 'HABILITADA'";
-        queryString += " Order By N5";
+        queryString = " SELECT * FROM contabilidad_nomenclatura";
+        queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " ORDER BY N5";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -837,7 +839,7 @@ public class IngresoReembolsoSueldo extends Window {
             int dias = (int) ((fechaInicial.getTime() - fechaFinal.getTime()) / 86400000);
 
             if (dias > 30) {
-
+/*
                 if (((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserToken().isEmpty()) {
                     ValidarTokenForm validarTokenForm = new ValidarTokenForm(false);
                     UI.getCurrent().addWindow(validarTokenForm);
@@ -847,6 +849,7 @@ public class IngresoReembolsoSueldo extends Window {
                     variableTemp = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserToken();
                     ((SopdiUI) UI.getCurrent()).sessionInformation.setStrUserToken("");
                 }
+ */
             }
 
         } catch (Exception e) {

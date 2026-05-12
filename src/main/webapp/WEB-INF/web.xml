@@ -39,6 +39,27 @@
             <param-value>com.simpletecno.sopdi.AppWidgetSet</param-value>
         </init-param>
     </servlet>
+
+    <!-- ===== Archivos estáticos servidos directamente (sin pasar por Vaadin) ===== -->
+    <servlet-mapping>
+        <servlet-name>default</servlet-name>
+        <url-pattern>/swagger-ui.html</url-pattern>
+    </servlet-mapping>
+
+    <!-- ===== REST API (Jersey / JAX-RS) ===== -->
+    <servlet>
+        <servlet-name>JerseyAPI</servlet-name>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
+        <init-param>
+            <param-name>javax.ws.rs.Application</param-name>
+            <param-value>com.simpletecno.sopdi.api.ApiApplication</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>JerseyAPI</servlet-name>
+        <url-pattern>/api/*</url-pattern>
+    </servlet-mapping>
      <env-entry>
         <env-entry-name>DTE_PATH</env-entry-name>
         <env-entry-type>java.lang.String</env-entry-type>

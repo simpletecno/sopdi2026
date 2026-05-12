@@ -43,8 +43,6 @@ public class TransaccionesEspecialesView extends VerticalLayout implements View 
     UI mainUI;
     Statement stQuery;
     ResultSet rsRecords;
-    Statement stQuery1;
-    ResultSet rsRecords2;
     String queryString;
     Double totalHaber;
     Double totalDebe;
@@ -52,8 +50,6 @@ public class TransaccionesEspecialesView extends VerticalLayout implements View 
     DateField inicioDt;
     DateField finDt;
     Button consultarBtn;
-    Button editarBtn;
-    Button revisarBtn;
 
     Grid transaccionesEspecialesGrid;
     Grid.FooterRow transaccionesFooter;
@@ -547,11 +543,11 @@ public class TransaccionesEspecialesView extends VerticalLayout implements View 
         double totalHaberQ = 0.00;
 
         queryString = "";
-        queryString = " SELECT contabilidad_partida.*,contabilidad_nomenclatura_emprewsa.N5, contabilidad_nomenclatura_emprewsa.NoCuenta";
-        queryString += " FROM contabilidad_partida,contabilidad_nomenclatura_emprewsa";
+        queryString = " SELECT contabilidad_partida.*,contabilidad_nomenclatura_empresa.N5, contabilidad_nomenclatura_empresa.NoCuenta";
+        queryString += " FROM contabilidad_partida,contabilidad_nomenclatura_empresa";
         queryString += " WHERE contabilidad_partida.CodigoPartida = '" + codigoPartida + "'";
-        queryString += " AND contabilidad_nomenclatura_emprewsa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
-        queryString += " AND contabilidad_nomenclatura_emprewsa.IdEmpresa = " + empresaId;
+        queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+        queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

@@ -375,7 +375,7 @@ public class LibroVentasView extends VerticalLayout implements View {
             queryString += " contabilidad_partida.NitProveedor, contabilidad_partida.NombreProveedor,";
             queryString += " contabilidad_partida.DebeQuetzales, contabilidad_partida.HaberQuetzales,";
             queryString += " contabilidad_partida.Fecha, contabilidad_nomenclatura_empresa.Tipo ";
-            queryString += " FROM contabilidad_partida,contabilidad_nomenclatura";
+            queryString += " FROM contabilidad_partida,contabilidad_nomenclatura_empresa";
             queryString += " WHERE contabilidad_partida.IdEmpresa  = " + empresaId;
             queryString += " AND contabilidad_partida.TipoDocumento IN ('FACTURA VENTA', 'CONSTANCIA RETENCION IVA')";
             queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";

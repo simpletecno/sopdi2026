@@ -118,7 +118,7 @@ public class ProveedorEmpresaForm extends Window {
         formLayout.setSpacing(true);
 
         codigoTxt.setWidth("10em");
-        codigoTxt.setReadOnly(true);
+//        codigoTxt.setReadOnly(true);
 
         nitTxt = new TextField("NIT : ");
         nitTxt.setWidth("10em");
@@ -409,7 +409,7 @@ public class ProveedorEmpresaForm extends Window {
             queryString += " Genero, Nombre, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, ApellidoCasada,  ";
             queryString += " Nacionalidad, Dpi, Direccion, Telefono, TelefonoEmergencia, Email, ";
             queryString +=  "EsProveedor, EsCliente, EsBanco, EsAgenteRetenedorISR, EsAgenteRetenedorIVA, ";
-            queryString += " EsInstitucionFiscal, EsInstitucionSeguroSocial, EsAbEsSujetoRetencionDefinitivaISR, ";
+            queryString += " EsInstitucionFiscal, EsInstitucionSeguroSocial, EsSujetoRetencionDefinitivaISR, ";
             queryString += " EsLiquidador, EsComite, EsJefe, EsPlanilla, EsContactoObra, EsVisitaResponsable, ";
             queryString += " EsAutorizadoPagar, EsAbastos, Cargo, Usuario, Inhabilitado)";
             queryString += " VALUES (";

@@ -324,7 +324,7 @@ public class TransaccionesEspecialesISRForm extends Window {
         else {
             queryString += " AND EsProveedor = 1";
         }
-
+        queryString += " AND IdEmpresa = " + empresa;
         queryString += " ORDER BY Nombre ";
 
         try {

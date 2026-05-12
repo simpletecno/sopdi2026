@@ -106,7 +106,7 @@ public class ProveedorForm extends Window {
         formLayout.setSpacing(true);
 
         codigoTxt.setWidth("10em");
-        codigoTxt.setReadOnly(true);
+//        codigoTxt.setReadOnly(true);
 
         codigoAnteriorTxt.setReadOnly(false);
         codigoAnteriorTxt.setWidth("10em");
@@ -171,8 +171,6 @@ public class ProveedorForm extends Window {
         esAgenteRetenedorIVACheck.setValue(false);
         esBancoCheck.setValue(false);
 
-        esInabilitadoCheck.setValue(false);
-
         formLayout.addComponents(codigoTxt, codigoAnteriorTxt, codigoAnteriorTxt, nitTxt, tipoPersonaCbx, generoCbx);
         formLayout.addComponents(nombreTxt, primerNombreTxt, segundoNombreTxt, primerApellidoTxt, segundoApellidoTxt, apellidoDeCasadaTxt);
         formLayout.addComponents(nacionalidadTxt, dpiTxt, regimenCbx);
@@ -185,6 +183,7 @@ public class ProveedorForm extends Window {
         layoutEs.setHeight("100%");
         layoutEs.addStyleName("rcorners3");
 
+        esInabilitadoCheck.setValue(false);
         layoutEs.addComponents(esProveedorCheck, esClienteCheck, esSujetoARetencionDefinitivaISRCheck);
         layoutEs.addComponents(esInstitucionFiscalCheck, esInstitucionSeguroSocialCheck);
         layoutEs.addComponents(esAgenteRetenedorISRCheck, esAgenteRetenedorIVACheck);
@@ -230,7 +229,8 @@ public class ProveedorForm extends Window {
 
     public void fillData() {
 
-        codigoAnteriorTxt.focus();
+//        codigoAnteriorTxt.focus();
+        codigoTxt.focus();
 
         if(Objects.equals(idProveedor, "0")) {
             captionLbl.setValue("NUEVO REGISTRO");
@@ -336,10 +336,10 @@ public class ProveedorForm extends Window {
 
         if (Objects.equals(idProveedor, "0")) {
             queryString = "INSERT INTO proveedor (Codigo, CodigoAnterior, Nit, TipoPersona, Regimen, ";
-            queryString += " Genero, Nombre, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, ApellidoDeCasada,  ";
+            queryString += " Genero, Nombre, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, ApellidoCasada,  ";
             queryString += " Nacionalidad, Dpi, Direccion, Telefono, TelefonoEmergencia, Email, ";
             queryString +=  "EsProveedor, EsCliente, EsBanco, EsAgenteRetenedorISR, EsAgenteRetenedorIVA, ";
-            queryString += " EsInstitucionFiscal, EsInstitucionSeguroSocial, EsAbEsSujetoRetencionDefinitivaISR, ";
+            queryString += " EsInstitucionFiscal, EsInstitucionSeguroSocial, EsSujetoRetencionDefinitivaISR, ";
             queryString += " Inhabilitado)";
             queryString += " VALUES (";
             queryString += "'" + codigoTxt.getValue() + "'";
@@ -382,7 +382,7 @@ public class ProveedorForm extends Window {
             queryString += ",SegundoNombre = '" + segundoNombreTxt.getValue() + "'";
             queryString += ",PrimerApellido ='" + primerApellidoTxt.getValue() + "'";
             queryString += ",SegundoApellido = '" + segundoApellidoTxt.getValue() + "'";
-            queryString += ",ApellidoDeCasada = '" + apellidoDeCasadaTxt.getValue() + "'";
+            queryString += ",ApellidoCasada = '" + apellidoDeCasadaTxt.getValue() + "'";
             queryString += ",Nacionalidad = '" + nacionalidadTxt.getValue() + "'";
             queryString += ",Dpi = '" + dpiTxt.getValue() + "'";
             queryString += ",Direccion = '" + direccionTxt.getValue() + "'";
@@ -402,12 +402,15 @@ public class ProveedorForm extends Window {
         }
 
         try {
+            Logger.getLogger(ProveedorForm.class.getName()).log(Level.INFO, queryString);
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);
 
             Notification.show("OPERACION EXITOSA!", Notification.Type.HUMANIZED_MESSAGE);
 
             ((ProveedorView) (mainUI.getNavigator().getCurrentView())).fillProveedorTable();
+
+            close();
 
         }
         catch(Exception exc99) {

@@ -468,13 +468,13 @@ public class TransaccionesEspecialesIVAForm extends Window {
             queryString = " SELECT *, contabilidad_nomenclatura_empresa.N5, contabilidad_nomenclatura_empresa.NoCuenta";
             queryString += " FROM contabilidad_partida,contabilidad_nomenclatura_empresa";
             queryString += " WHERE contabilidad_partida.CodigoPartida = '" + codigoCC + "'";
-            queryString += " and contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
+            queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
             if (tipoDocumento.equals("CONSTANCIA IVA COMPRA")) {
-                queryString += " and contabilidad_nomenclatura_empresa.IdNomenclatura = " +   ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getProveedores();
+                queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura = " +   ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getProveedores();
             } else if (tipoDocumento.equals("CONSTANCIA RETENCION IVA")) {
-                queryString += " and contabilidad_nomenclatura_empresa.IdNomenclatura in (" + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getClientes() + "," + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposClientes() + ")";
+                queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura in (" + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getClientes() + "," + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposClientes() + ")";
             }
-            queryString += " and contabilidad_nomenclatura_empresa.IdEmpresa = " + empresa;
+            queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresa;
             queryString += " GROUP BY contabilidad_partida.CodigoPartida";
 
             try {

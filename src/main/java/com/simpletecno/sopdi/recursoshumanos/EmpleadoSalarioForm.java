@@ -319,7 +319,7 @@ public class EmpleadoSalarioForm extends Window {
         queryString = "SELECT * ";
         queryString += " FROM empleado_salario ";
         queryString += " INNER JOIN contabilidad_nomenclatura_empresa ON contabilidad_nomenclatura_empresa.IdNomenclatura = empleado_salario.IdNomenclatura";
-        queryString += " WHERE Id = " + id;
+        queryString += " WHERE empleado_salario.Id = " + id;
         queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
 
         try {

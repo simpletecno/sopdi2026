@@ -380,7 +380,7 @@ public class FacturaVentaView extends VerticalLayout implements View {
                                     }, fileName
                             );
                         }
-                        documentStreamResource.setMIMEType("pdf");
+                        documentStreamResource.setMIMEType("application/pdf");
                         documentStreamResource.setFilename(fileName);
                         documentStreamResource.getStream().setParameter("Content-Disposition", "attachment; filename=" + fileName);
 

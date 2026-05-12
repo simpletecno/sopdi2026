@@ -370,7 +370,7 @@ public class TransaccionesEspecialesForm extends Window {
     }
 
     public void llenarComboProveedor() {
-        queryString = " SELECT * FROM proveedor ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0 ";
         if (tipoDocumento.equals("CONSTANCIA ISR VENTA")) {
             queryString += " AND EsCliente = 1";
@@ -378,7 +378,7 @@ public class TransaccionesEspecialesForm extends Window {
         else {
             queryString += " AND EsProveedor = 1";
         }
-
+        queryString += " AND IdEmpresa = " + empresa;
         queryString += " ORDER BY Nombre ";
 
         try {
@@ -534,7 +534,7 @@ public class TransaccionesEspecialesForm extends Window {
                 queryString += "AND contabilidad_nomenclatura_empresa.IdNomenclatura = " +  ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getClientes() + " ";
             }
             queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresa;
-            queryString += "GROUP by contabilidad_partida.CodigoPartida";
+            queryString += " GROUP by contabilidad_partida.CodigoPartida";
 
             try {
                 double debe = 0.00;
@@ -615,7 +615,7 @@ public class TransaccionesEspecialesForm extends Window {
         footer.getCell("DEBE").setText("0.00");
         footer.getCell("HABER").setText("0.00");
 
-        queryString = " SELECT contabilidad_partida.*,contabilidad_nomenclatura_empresa.N5, contabilidad_nomenclatura.NoCuenta";
+        queryString = " SELECT contabilidad_partida.*,contabilidad_nomenclatura_empresa.N5, contabilidad_nomenclatura_empresa.NoCuenta";
         queryString += " FROM contabilidad_partida,contabilidad_nomenclatura_empresa";
         queryString += " WHERE contabilidad_partida.CodigoPartida = '" + codigoPartida + "'";
         queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
