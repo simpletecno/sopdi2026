@@ -576,7 +576,7 @@ public class IvaPorDeclararForm extends Window {
                         queryString = " SELECT contabilidad_partida.TipoDocumento, contabilidad_partida.SerieDocumento, contabilidad_partida.NumeroDocumento, ";
                         queryString += " contabilidad_partida.CodigoPartida,  contabilidad_nomenclatura_empresa.NoCuenta,";
                         queryString += " contabilidad_partida.NitProveedor, contabilidad_partida.NombreProveedor, ";
-                        queryString += " IFNULL(proveedor.Regimen, 'SINREGIMEN') PROV_REGIMEN,";
+                        queryString += " IFNULL(proveedor_empresa.Regimen, 'SINREGIMEN') PROV_REGIMEN,";
                         queryString += " contabilidad_partida.DebeQuetzales, contabilidad_partida.HaberQuetzales,";
                         queryString += " contabilidad_partida.Fecha, contabilidad_nomenclatura_empresa.IdNomenclatura, contabilidad_nomenclatura_empresa.Tipo ";
                         queryString += " FROM contabilidad_partida ";

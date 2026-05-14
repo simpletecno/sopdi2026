@@ -435,15 +435,16 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
     private void llenarEnganches() {
         queryString = "SELECT contabilidad_partida.IdNomenclatura, contabilidad_partida.CodigoPartida, contabilidad_partida.CodigoCC, ";
         queryString += " contabilidad_partida.MonedaDocumento, contabilidad_partida.Fecha, contabilidad_partida.Debe, contabilidad_partida.Haber, ";
-        queryString += "contabilidad_partida.NumeroDocumento, proveedor.IdProveedor, proveedor.Nombre, TipoCambio ";
+        queryString += "contabilidad_partida.NumeroDocumento, proveedor_empresa.IdProveedor, proveedor_empresa.Nombre, TipoCambio ";
         queryString += " FROM contabilidad_partida";
-        queryString += " INNER JOIN proveedor ON contabilidad_partida.IdProveedor = proveedor.IDProveedor ";
+        queryString += " INNER JOIN proveedor_empresa ON contabilidad_partida.IdProveedor = proveedor_empresa.IDProveedor ";
         queryString += " WHERE contabilidad_partida.IdEmpresa =" + empresaId;
         queryString += " AND contabilidad_partida.Fecha >= '2019-01-01'";
         queryString += " AND contabilidad_partida.IdProveedor = " + proveedorCbx.getValue();
         queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
 //        queryString += " and contabilidad_partida.IdNomenclatura IN (" + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getEnganches() + "," + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposClientes() + ")";
         queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getEnganches();
+        queryString += " AND proveedor_empresa.Iempresa = " + empresaId;
         queryString += " ORDER BY contabilidad_partida.Fecha DESC";
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO,"QUERY BUSCAR ENGANCHES DE UN CLIENTE : " + queryString);

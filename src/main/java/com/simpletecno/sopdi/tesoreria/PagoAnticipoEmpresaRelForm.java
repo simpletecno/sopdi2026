@@ -293,7 +293,7 @@ public class PagoAnticipoEmpresaRelForm extends Window {
     public void llenarTablaAnticipos() {
         container.removeAllItems();
 
-        queryString = " SELECT autorizacion_pago.*, proveedor.Nombre ";
+        queryString = " SELECT autorizacion_pago.*, proveedor_empresa.Nombre ";
         queryString += " FROM autorizacion_pago  ";
         queryString += " INNER JOIN proveedor_empresa ON autorizacion_pago.IdProveedor = proveedor_empresa.IdProveedor";
         queryString += " WHERE autorizacion_pago.IdEmpresa = " + empresaId;

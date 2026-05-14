@@ -296,9 +296,9 @@ public class PagoPlanillaForm extends Window {
 
         anticiposContainer.removeAllItems();
 
-        queryString = " SELECT autorizacion_pago.*, proveedor.Nombre ";
+        queryString = " SELECT autorizacion_pago.*, proveedor_empresa.Nombre ";
         queryString += " FROM autorizacion_pago  ";
-        queryString += " INNER JOIN  proveedor ON autorizacion_pago.IdProveedor = proveedor.IdProveedor";
+        queryString += " INNER JOIN  proveedor_empresa ON autorizacion_pago.IdProveedor = proveedor_empresa.IdProveedor";
         queryString += " WHERE autorizacion_pago.IdEmpresa = " + empresaId;
         queryString += " AND autorizacion_pago.IdProveedor = " + idProveedor;
 

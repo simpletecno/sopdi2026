@@ -392,16 +392,17 @@ public class PagoFacturaVentaForm extends Window {
         anticiposGrind.getSelectedRows().clear();
         anticiposGrind.getSelectionModel().reset();
 
-        queryString = "  select contabilidad_partida.CodigoPartida, contabilidad_partida.CodigoCC, contabilidad_partida.Fecha,";
-        queryString += " contabilidad_partida.DebeQuetzales, contabilidad_partida.HaberQuetzales, proveedor.IdProveedor, proveedor.Nombre ";
-        queryString += " from contabilidad_partida";
-        queryString += " inner join proveedor on contabilidad_partida.IdProveedor = proveedor.IDProveedor ";
-        queryString += " where contabilidad_partida.IdEmpresa =" + empresaCbx.getValue();
-        queryString += " and contabilidad_partida.Fecha >= '2019-01-01'";
-        queryString += " and contabilidad_partida.IdProveedor = " + idproveedor;
-        queryString += " and contabilidad_partida.Estatus = 'REVISADO'";
-        queryString += " and contabilidad_partida.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposClientes();
-        queryString += " Order by contabilidad_partida.Fecha desc";
+        queryString = "  SELECT contabilidad_partida.CodigoPartida, contabilidad_partida.CodigoCC, contabilidad_partida.Fecha,";
+        queryString += " contabilidad_partida.DebeQuetzales, contabilidad_partida.HaberQuetzales, proveedor_empresa.IdProveedor, proveedor_empresa.Nombre ";
+        queryString += " FROM contabilidad_partida";
+        queryString += " INNER JOIN proveedor_empresa ON contabilidad_partida.IdProveedor = proveedor_empresa.IDProveedor ";
+        queryString += " WHERE contabilidad_partida.IdEmpresa =" + empresaCbx.getValue();
+        queryString += " AND contabilidad_partida.Fecha >= '2019-01-01'";
+        queryString += " AND contabilidad_partida.IdProveedor = " + idproveedor;
+        queryString += " AND contabilidad_partida.Estatus = 'REVISADO'";
+        queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAnticiposClientes();
+        queryString += " AND proveedor_empresa.IdEmpresa = contabilidad_partida.IdEmpresa";
+        queryString += " ORDER BY contabilidad_partida.Fecha DESC";
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

@@ -490,15 +490,16 @@ public class PagoLiquidacionForm extends Window {
         queryString += " contabilidad_partida.MonedaDocumento, contabilidad_partida.TipoCambio,  ";
         queryString += " contabilidad_partida.IdProveedor, contabilidad_partida.NombreProveedor, ";
         queryString += " contabilidad_partida.IdLiquidacion, contabilidad_partida.IdLiquidador,  ";
-        queryString += " SUM(Haber) AS Total,usuario.Nombre AS uNombre, proveedor.Nombre AS NLiquidador   ";
-        queryString += " FROM contabilidad_partida,usuario, proveedor ";
+        queryString += " SUM(Haber) AS Total,usuario.Nombre AS uNombre, proveedor_empresa.Nombre AS NLiquidador   ";
+        queryString += " FROM contabilidad_partida,usuario, proveedor_empresa ";
         queryString += " WHERE contabilidad_partida.IdEmpresa = " + empresaId;
         queryString += " AND UPPER(contabilidad_partida.TipoDocumento) IN ('FACTURA', 'RECIBO','RECIBO CONTABLE', 'RECIBO CORRIENTE', 'FORMULARIO','NOTA DE CREDITO')";
         queryString += " And contabilidad_partida.IdLiquidador = " + IdProveedor;
         queryString += " AND contabilidad_partida.IdLiquidacion > 0   ";
         queryString += " AND contabilidad_partida.MontoAutorizadoPagar > 0   ";
         queryString += " AND usuario.IdUsuario = contabilidad_partida.CreadoUsuario   ";
-        queryString += " AND proveedor.IdProveedor = contabilidad_partida.IdLiquidador  ";
+        queryString += " AND proveedor_empresa.IdProveedor = contabilidad_partida.IdLiquidador  ";
+        queryString += " AND proveedor_empresa.IdEmpresa = contabilidad_partida.IdEmpresa  ";
         queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getLiquidacionesCajaChicha();
         queryString += " GROUP BY contabilidad_partida.IdLiquidacion, contabilidad_partida.IdLiquidador ";
 

@@ -45,15 +45,15 @@ public class HeaderFooterPageEventOrdenCompra extends PdfPageEventHelper {
     private final Font small10Red = new Font(Font.FontFamily.TIMES_ROMAN, 10, Font.NORMAL, BaseColor.RED);
 
     private final String LOGOCASTANOS = VaadinService.getCurrent()
-            .getBaseDirectory().getAbsolutePath() + "/WEB-INF/logos/logocastanos.jpeg";
+            .getBaseDirectory().getAbsolutePath() + "/WEB-INF/logos/logocastanos.png";
     private final String LOGONISA = VaadinService.getCurrent()
-            .getBaseDirectory().getAbsolutePath() + "/WEB-INF/logos/logonisa.jpg";
+            .getBaseDirectory().getAbsolutePath() + "/WEB-INF/logos/logonisa.png";
     private final String LOGONACSA = VaadinService.getCurrent()
-            .getBaseDirectory().getAbsolutePath() + "/WEB-INF/logos/logonacsa.jpg";
+            .getBaseDirectory().getAbsolutePath() + "/WEB-INF/logos/logonacsa.png";
     private final String LOGOSIENA = VaadinService.getCurrent()
             .getBaseDirectory().getAbsolutePath() + "/WEB-INF/logos/logosiena.png";
     private final String LOGOFUNDAMEX = VaadinService.getCurrent()
-            .getBaseDirectory().getAbsolutePath() + "/WEB-INF/logos/logofundamex.jpeg";
+            .getBaseDirectory().getAbsolutePath() + "/WEB-INF/logos/logofundamex.png";
 
     private String companyName = "";
     private String companyTaxid = "";
@@ -205,11 +205,12 @@ public class HeaderFooterPageEventOrdenCompra extends PdfPageEventHelper {
 
             Paragraph preface;
 
-            String queryString = " SELECT *, proveedor.Nombre, proveedor.NIT, proveedor.Email";
+            String queryString = " SELECT *, proveedor_empresa.Nombre, proveedor_empresa.NIT, proveedor_empresa.Email";
             queryString += " FROM orden_compra";
-            queryString += " INNER JOIN proveedor";
-            queryString += " ON orden_compra.IdProveedor = proveedor.IDProveedor";
+            queryString += " INNER JOIN proveedor_empresa";
+            queryString += " ON orden_compra.IdProveedor = proveedor_empresa.IDProveedor";
             queryString += " WHERE orden_compra.Id = " + idOrdenCompra;
+            queryString += " AND proveedor_empresa.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
 
             try {
 

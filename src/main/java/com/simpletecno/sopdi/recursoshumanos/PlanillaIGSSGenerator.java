@@ -207,21 +207,21 @@ public class PlanillaIGSSGenerator extends Window {
     private void generarCuerpo(){
 
         queryString = "SELECT p.*, (pd.SalarioDevengado + pd.SalarioExtraordinario) as SueldoYExtra, ";
-        queryString +=       "(IF(p.FechaIngreso BETWEEN pe_fechas.FechaInicio AND pe_fechas.FechaFin, p.FechaIngreso, NULL)) as IngresoFecha, ";
-        queryString +=       "(IF(p.FechaEgreso BETWEEN pe_fechas.FechaInicio AND pe_fechas.FechaFin, p.FechaEgreso, NULL)) as EgresoFecha ";
-        queryString += "FROM planilla_detalle pd ";
-        queryString += "INNER JOIN proveedor_empresa p ON pd.IdEmpleado = p.IDProveedor ";
-        queryString += "INNER JOIN planilla_encabezado pe ON pd.IdPlanilla = pe.Id ";
-        queryString += "INNER JOIN ( SELECT FechaInicio, FechaFin ";
-        queryString +=              "FROM planilla_encabezado ";
-        queryString +=              "WHERE id = " + idPlanilla;
+        queryString +=       " (IF(p.FechaIngreso BETWEEN pe_fechas.FechaInicio AND pe_fechas.FechaFin, p.FechaIngreso, NULL)) as IngresoFecha, ";
+        queryString +=       " (IF(p.FechaEgreso BETWEEN pe_fechas.FechaInicio AND pe_fechas.FechaFin, p.FechaEgreso, NULL)) as EgresoFecha ";
+        queryString += " FROM planilla_detalle pd ";
+        queryString += " INNER JOIN proveedor_empresa p ON pd.IdEmpleado = p.IDProveedor ";
+        queryString += " INNER JOIN planilla_encabezado pe ON pd.IdPlanilla = pe.Id ";
+        queryString += " INNER JOIN ( SELECT FechaInicio, FechaFin ";
+        queryString +=              " FROM planilla_encabezado ";
+        queryString +=              " WHERE id = " + idPlanilla;
         queryString +=            ") pe_fechas ON pe.FechaInicio BETWEEN pe_fechas.FechaInicio AND pe_fechas.FechaFin ";
-        queryString += "WHERE pe.Tipo IN ('Salario', 'Liquidacion') ";
-        queryString += "AND pe.IdEmpresa = " + empresaId;
-        queryString += "AND p.IdEmpresa = " + empresaId;
-        queryString += "AND pe.Estatus = 'GENERADA' ";
-        queryString += "AND pd.idplanilla = " + idPlanilla + " ";
-        queryString += "GROUP BY p.IDProveedor";
+        queryString += " WHERE pe.Tipo IN ('Salario', 'Liquidacion') ";
+        queryString += " AND pe.IdEmpresa = " + empresaId;
+        queryString += " AND p.IdEmpresa = " + empresaId;
+        queryString += " AND pe.Estatus = 'GENERADA' ";
+        queryString += " AND pd.idplanilla = " + idPlanilla + " ";
+        queryString += " GROUP BY p.IDProveedor";
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

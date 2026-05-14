@@ -272,7 +272,7 @@ public class AsignarProveedorProductoForm extends Window {
         try {
             proveedorContainer.removeAllItems();
 
-            queryString = " SELECT *, proveedor.Nombre AS nombreProveedor, proveedor.IdProveedor as IdProv";
+            queryString = " SELECT *, proveedor_empresa.Nombre AS nombreProveedor, proveedor_empresa.IdProveedor as IdProv";
             queryString += " FROM proveedor_productos";
             queryString += " INNER JOIN proveedor_empresa on proveedor_productos.IdProveedor = proveedor_empresa.IdProveedor";
             queryString += " WHERE proveedor_productos.IdProveedor = " + idProveedor;

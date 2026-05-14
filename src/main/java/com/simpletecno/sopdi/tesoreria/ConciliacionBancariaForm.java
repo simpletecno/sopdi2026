@@ -1041,7 +1041,7 @@ public class ConciliacionBancariaForm extends Window {
             rsRecords2 = stQuery2.executeQuery(queryString);
 
             if (rsRecords2.next()) {
-                nombreBanco = rsRecords2.getString("proveedor.Nombre") + rsRecords2.getString("CCB.NoCuenta");
+                nombreBanco = rsRecords2.getString("proveedor_empresa.Nombre") + rsRecords2.getString("CCB.NoCuenta");
             }
 
         } catch (Exception ex1) {

@@ -1110,8 +1110,7 @@ public class PagoCompraMonedaForm extends Window {
 
     public void llenarComboProveedor(String codigos) {
         String queryString = " SELECT * FROM proveedor_empresa ";
-        queryString += " WHERE N0 IN (" + codigos + ")";
-        queryString += " AND Inhabilitado = 0 ";
+        queryString += " WHERE Inhabilitado = 0 ";
         queryString += " AND IdEmpresa = " + empresaId;
         queryString += " ORDER BY Nombre ";
 

@@ -373,7 +373,7 @@ public class OrdenCompraView extends VerticalLayout implements View {
                                             rsRecords2.getString("orden_compra.Id"),
                                             rsRecords2.getString("orden_compra.IdTipoOrdenCompra"),
                                             rsRecords2.getString("tipo_orden_compra.Descripcion"),
-                                            rsRecords2.getString("proveedor.IdProveedor") + " " + rsRecords2.getString("proveedor.Nombre"),
+                                            rsRecords2.getString("proveedor_empresa.IdProveedor") + " " + rsRecords2.getString("proveedor_empresa.Nombre"),
                                             rsRecords2.getDouble("orden_compra.Anticipo")
                                     );
                             UI.getCurrent().addWindow(pdfOrdenCompra);
@@ -384,7 +384,7 @@ public class OrdenCompraView extends VerticalLayout implements View {
                                             rsRecords2.getString("Id"),
                                             rsRecords2.getString("IdTipoOrdenCompra"),
                                             rsRecords2.getString("tipo_orden_compra.Descripcion"),
-                                            rsRecords2.getString("proveedor.IdProveedor") + " " + rsRecords2.getString("proveedor.Nombre"),
+                                            rsRecords2.getString("proveedor_empresa.IdProveedor") + " " + rsRecords2.getString("proveedor_empresa.Nombre"),
                                             rsRecords2.getDouble("orden_compra.Anticipo")
                                     );
                             UI.getCurrent().addWindow(pdfOrdenCompra);

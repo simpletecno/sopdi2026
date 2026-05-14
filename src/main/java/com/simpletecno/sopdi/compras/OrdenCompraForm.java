@@ -1329,7 +1329,7 @@ public class OrdenCompraForm extends Window {
     }
 
     private void buscarProductos(String cuenta) {
-        queryString = "  SELECT *, proveedor.Nombre NombreProveedor";
+        queryString = "  SELECT *, proveedor_empresa.Nombre NombreProveedor";
         queryString += " FROM proveedor_plu ";
         queryString += " INNER JOIN proveedor_empresa on proveedor_plu.IdProveedor = proveedor_empresa.IdProveedor ";
         queryString += " INNER JOIN centro_costo_cuenta ON centro_costo_cuenta.IdCuentaCentroCosto = proveedor_plu.IdCuentaCentroCosto ";
