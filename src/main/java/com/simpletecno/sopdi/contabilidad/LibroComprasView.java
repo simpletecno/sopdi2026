@@ -102,17 +102,22 @@ public class LibroComprasView extends VerticalLayout implements View {
         monthDt.setValue(new java.util.Date());
         monthDt.setResolution(Resolution.MONTH);
         monthDt.setDateFormat("MM/yyyy");
-        monthDt.addValueChangeListener(new Property.ValueChangeListener() {
-            @Override
-            public void valueChange(Property.ValueChangeEvent event) {
+//        monthDt.addValueChangeListener(new Property.ValueChangeListener() {
+//            @Override
+//            public void valueChange(Property.ValueChangeEvent event) {
+//
+//                if (libroComprasGrid != null) {
+//                    llenarGridLibroCompras(empresaId);
+//                }
+//            }
+//        });
 
-                if (libroComprasGrid != null) {
-                    llenarGridLibroCompras(empresaId);
-                }
-            }
-        });
+        Button buscarBtn = new Button("Generar libro");
+        buscarBtn.setIcon(FontAwesome.SEARCH);
+        buscarBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
+        buscarBtn.addClickListener((Button.ClickListener) event -> llenarGridLibroCompras(empresaId));
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " LIBRO COMPRAS");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " LIBRO IVA COMPRAS");
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
 
@@ -121,9 +126,11 @@ public class LibroComprasView extends VerticalLayout implements View {
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(titleLbl, monthDt);
+
+        titleLayout.addComponents(titleLbl, monthDt, buscarBtn);
         titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.setComponentAlignment(monthDt, Alignment.MIDDLE_CENTER);
+        titleLayout.setComponentAlignment(buscarBtn, Alignment.MIDDLE_LEFT);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
         addComponent(titleLayout);
@@ -131,12 +138,14 @@ public class LibroComprasView extends VerticalLayout implements View {
 
         crearTablaLibroCompras();
 
+        llenarGridLibroCompras(empresaId);
+
     }
 
     public void crearTablaLibroCompras() {
         VerticalLayout layoutTablaLibroCompras = new VerticalLayout();
         layoutTablaLibroCompras.setWidth("100%");
-//        layoutTablaLibroCompras.setHeightUndefined();
+        layoutTablaLibroCompras.setHeight("100%");
         layoutTablaLibroCompras.addStyleName("rcorners3");
 
         HorizontalLayout layoutButtons = new HorizontalLayout();
@@ -163,7 +172,7 @@ public class LibroComprasView extends VerticalLayout implements View {
         libroComprasGrid.setImmediate(true);
         libroComprasGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
         libroComprasGrid.setHeightMode(HeightMode.ROW);
-        libroComprasGrid.setHeightByRows(15);
+        libroComprasGrid.setHeightByRows(12);
         libroComprasGrid.setWidth("100%");
         libroComprasGrid.setResponsive(true);
         libroComprasGrid.setEditorBuffered(false);
@@ -312,6 +321,11 @@ public class LibroComprasView extends VerticalLayout implements View {
         folioTxt.setValue("1");
         folioTxt.setValidationVisible(false);
 
+        Button buscarBtn = new Button("Buscar");
+        buscarBtn.setIcon(FontAwesome.SEARCH);
+        buscarBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
+        buscarBtn.addClickListener((Button.ClickListener) event -> llenarGridLibroCompras(empresaId));
+
         Button generarPDF = new Button("Generar PDF");
         generarPDF.setIcon(FontAwesome.PAPER_PLANE);
         generarPDF.addStyleName(ValoTheme.BUTTON_PRIMARY);
@@ -448,17 +462,18 @@ public class LibroComprasView extends VerticalLayout implements View {
 
             queryString = " SELECT contabilidad_partida.TipoDocumento, contabilidad_partida.SerieDocumento, contabilidad_partida.NumeroDocumento, ";
             queryString += " contabilidad_partida.CodigoPartida,  contabilidad_nomenclatura_empresa.NoCuenta,";
-            queryString += " contabilidad_partida.NitProveedor, contabilidad_partida.NombreProveedor, IFNULL(proveedor.Regimen, 'SINREGIMEN') PROV_REGIMEN,";
+            queryString += " contabilidad_partida.NitProveedor, contabilidad_partida.NombreProveedor, IFNULL(proveedor_empresa.Regimen, 'SINREGIMEN') PROV_REGIMEN,";
             queryString += " contabilidad_partida.DebeQuetzales, contabilidad_partida.HaberQuetzales,";
             queryString += " contabilidad_partida.Fecha, contabilidad_nomenclatura_empresa.IdNomenclatura, contabilidad_nomenclatura_empresa.Tipo ";
             queryString += " FROM contabilidad_partida ";
             queryString += " INNER JOIN contabilidad_nomenclatura_empresa ON contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura ";
-            queryString += " LEFT JOIN proveedor ON proveedor.IdProveedor = contabilidad_partida.IdProveedor";
+            queryString += " LEFT JOIN proveedor_empresa ON proveedor_empresa.IdProveedor = contabilidad_partida.IdProveedor";
             queryString += " WHERE contabilidad_partida.IdEmpresa = " + empresa;
             queryString += " AND contabilidad_partida.TIPODOCUMENTO IN ('FACTURA', 'NOTA DE CREDITO COMPRA', 'RECIBO CONTABLE')";
             queryString += " AND Extract(YEAR_MONTH From contabilidad_partida.Fecha) = " + utileria.getFechaHoraSinFormato(monthDt.getValue()).substring(0, 6);
             queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
             queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresa;
+            queryString += " AND proveedor_empresa.IdEmpresa = " + empresa;
             queryString += " ORDER BY contabilidad_partida.CodigoPartida, contabilidad_partida.Debe DESC";
 
 //            System.out.println("query libro compras " + queryString);

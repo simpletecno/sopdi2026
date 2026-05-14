@@ -2,18 +2,18 @@ package com.simpletecno.sopdi.compras;
 
 import com.simpletecno.sopdi.SopdiUI;
 import com.simpletecno.sopdi.utilerias.Utileria;
+import com.vaadin.data.util.GeneratedPropertyContainer;
 import com.vaadin.data.util.IndexedContainer;
-import com.vaadin.event.SelectionEvent;
-import com.vaadin.event.SelectionEvent.SelectionListener;
+import com.vaadin.data.util.PropertyValueGenerator;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.shared.Position;
+import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.HorizontalLayout;
@@ -28,7 +28,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DecimalFormat;
-import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -69,6 +68,7 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
     static final String ID_LIQUIDACION_FACTURA_PROPERTY = "Liquidación";
     static final String DESCRIPCION_FACTURA_PROPERTY = "Descripcion";
     static final String CODIGOCC_PROPERTY = "CodigoCC";
+    static final String SERIE_NUMERO_PROPERTY = "Serie/No.";
     Grid.FooterRow footerFactura;
 
     Grid partidasGrid;
@@ -108,23 +108,30 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
     public IngresoLiquidacionGastoView() {
         setWidth("100%");
         setSpacing(true);
+        setMargin(true);
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " LIQUIDACIONES CAJA CHICA");
+        Label iconLbl = new Label(FontAwesome.MONEY.getHtml(), ContentMode.HTML);
+        iconLbl.setSizeUndefined();
+
+        Label titleLbl = new Label(empresaNombre);
         titleLbl.addStyleName(ValoTheme.LABEL_H2);
+        titleLbl.addStyleName(ValoTheme.LABEL_BOLD);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h2_custom");
 
+        Label subtitleLbl = new Label("— Liquidaciones de Caja Chica");
+        subtitleLbl.addStyleName(ValoTheme.LABEL_H3);
+        subtitleLbl.addStyleName(ValoTheme.LABEL_COLORED);
+        subtitleLbl.setSizeUndefined();
+
         HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
-        titleLayout.setMargin(false);
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
-        titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
+        titleLayout.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
+        titleLayout.addComponents(iconLbl, titleLbl, subtitleLbl);
 
         addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
+        setComponentAlignment(titleLayout, Alignment.TOP_LEFT);
 
         crearTablaLiquidaciones();
         createTablaFacturasYPartidas();
@@ -136,56 +143,50 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
 
     public void crearTablaLiquidaciones() {
 
+        Label seccionLbl = new Label(FontAwesome.LIST_ALT.getHtml() + "  Liquidaciones registradas", ContentMode.HTML);
+        seccionLbl.addStyleName(ValoTheme.LABEL_H3);
+        seccionLbl.addStyleName(ValoTheme.LABEL_COLORED);
+
         VerticalLayout liquidacionesLayout = new VerticalLayout();
         liquidacionesLayout.addStyleName("rcorners3");
         liquidacionesLayout.setWidth("100%");
         liquidacionesLayout.setResponsive(true);
         liquidacionesLayout.setSpacing(true);
+        liquidacionesLayout.setMargin(true);
 
         HorizontalLayout filtrosLayout = new HorizontalLayout();
         filtrosLayout.setSpacing(true);
+        filtrosLayout.setDefaultComponentAlignment(Alignment.BOTTOM_LEFT);
 
-        inicioDt = new DateField("Facturas Desde:");
+        inicioDt = new DateField("Desde:");
         inicioDt.setDateFormat("dd/MM/yyyy");
-        Date primerDia = Utileria.getPrimerDiaDelMes();
-        inicioDt.setValue(primerDia);
+        inicioDt.setValue(Utileria.getPrimerDiaDelMes());
         inicioDt.setWidth("10em");
 
-        finDt = new DateField("Facturas Hasta:");
+        finDt = new DateField("Hasta:");
         finDt.setDateFormat("dd/MM/yyyy");
-        Date ultimoDia = Utileria.getUltimoDiaDelMes();
-        finDt.setValue(ultimoDia);
+        finDt.setValue(Utileria.getUltimoDiaDelMes());
         finDt.setWidth("10em");
 
         consultarBtn = new Button("Consultar");
         consultarBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
         consultarBtn.setIcon(FontAwesome.SEARCH);
-        consultarBtn.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                llenarTablaLiquidacion(empresaId);
-            }
-        });
+        consultarBtn.addClickListener(event -> llenarTablaLiquidacion(empresaId));
 
         Button newBtn = new Button("Nueva liquidación");
-        newBtn.setIcon(FontAwesome.PLUS);
-        newBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
+        newBtn.setIcon(FontAwesome.PLUS_CIRCLE);
+        newBtn.addStyleName(ValoTheme.BUTTON_FRIENDLY);
         newBtn.setDescription("Agregar nueva liquidación.");
-        newBtn.addListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                try {
-
-                    containerFactura.removeAllItems();
-                    IngresoLiquidacionGastoForm newIngreso =
-                            new IngresoLiquidacionGastoForm("", "", "", "", "");
-                    UI.getCurrent().addWindow(newIngreso);
-                    newIngreso.center();
-
-                } catch (Exception ex) {
-                    System.out.println("Error en el boton nuevo" + ex);
-                    ex.printStackTrace();
-                }
+        newBtn.addClickListener(event -> {
+            try {
+                containerFactura.removeAllItems();
+                IngresoLiquidacionGastoForm newIngreso =
+                        new IngresoLiquidacionGastoForm("", "", "", "", "");
+                UI.getCurrent().addWindow(newIngreso);
+                newIngreso.center();
+            } catch (Exception ex) {
+                System.out.println("Error en el boton nuevo" + ex);
+                ex.printStackTrace();
             }
         });
 
@@ -198,23 +199,19 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         containerLiquidacion.addContainerProperty(IMPRIMIR_PROPERTY, String.class, null);
         containerLiquidacion.addContainerProperty(CODIGOCC_PROPERTY, String.class, null);
 
-        liquidacionesGrid = new Grid("Listado de liquidaciones", containerLiquidacion);
+        liquidacionesGrid = new Grid(containerLiquidacion);
         liquidacionesGrid.setWidth("100%");
         liquidacionesGrid.setImmediate(true);
         liquidacionesGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
-        liquidacionesGrid.setDescription("Seleccione un registro.");
+        liquidacionesGrid.setDescription("Seleccione una liquidación.");
         liquidacionesGrid.setHeightMode(HeightMode.ROW);
-        liquidacionesGrid.setHeightByRows(5);
+        liquidacionesGrid.setHeightByRows(4);
         liquidacionesGrid.setResponsive(true);
         liquidacionesGrid.setEditorBuffered(false);
 
-        liquidacionesGrid.getColumn(IMPRIMIR_PROPERTY).setRenderer(new ButtonRenderer(e
-                -> {
-            ReporteLiquidacionPDF reporteLiquidacionPDF
-                    = new ReporteLiquidacionPDF(
-                    empresaId,
-                    empresaNombre,
-                    getEmpresaNit(),
+        liquidacionesGrid.getColumn(IMPRIMIR_PROPERTY).setRenderer(new ButtonRenderer(e -> {
+            ReporteLiquidacionPDF reporteLiquidacionPDF = new ReporteLiquidacionPDF(
+                    empresaId, empresaNombre, getEmpresaNit(),
                     String.valueOf(containerLiquidacion.getContainerProperty(e.getItemId(), ID_LIQUIDACION_PROPERTY).getValue()),
                     String.valueOf(containerLiquidacion.getContainerProperty(e.getItemId(), LIQUIDADOR_PROPERTY).getValue())
             );
@@ -225,26 +222,39 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         liquidacionesGrid.getColumn(ID_PROPERTY).setHidable(true).setHidden(true);
         liquidacionesGrid.getColumn(ID_LIQUIDADOR_PROPERTY).setHidable(true).setHidden(true);
         liquidacionesGrid.getColumn(CODIGOCC_PROPERTY).setHidable(true).setHidden(true);
-        liquidacionesGrid.setCellStyleGenerator((Grid.CellReference cellReference) -> {
 
+        liquidacionesGrid.getColumn(ID_LIQUIDACION_PROPERTY).setWidth(95);
+        liquidacionesGrid.getColumn(MONTO_QUETZALES_PROPERTY).setWidth(130);
+        liquidacionesGrid.getColumn(ESTATUS_PROPERTY).setWidth(115);
+        liquidacionesGrid.getColumn(IMPRIMIR_PROPERTY).setWidth(100);
+        liquidacionesGrid.getColumn(LIQUIDADOR_PROPERTY).setExpandRatio(1);
+
+        liquidacionesGrid.setCellStyleGenerator((Grid.CellReference cellReference) -> {
             if (ID_LIQUIDACION_PROPERTY.equals(cellReference.getPropertyId())) {
                 return "centeralign";
             } else if (MONTO_QUETZALES_PROPERTY.equals(cellReference.getPropertyId())) {
                 return "rightalign";
-            } else {
-                return null;
             }
-
+            return null;
         });
 
-        liquidacionesGrid.addSelectionListener(new SelectionListener() {
-            @Override
-            public void select(SelectionEvent event) {
-                if (liquidacionesGrid.getSelectedRow() != null) {
-                    llenarTablaFactura(
-                            String.valueOf(liquidacionesGrid.getContainerDataSource().getItem(liquidacionesGrid.getSelectedRow()).getItemProperty(ID_LIQUIDACION_PROPERTY).getValue())
-                    );
-                }
+        liquidacionesGrid.addSelectionListener(event -> {
+            if (liquidacionesGrid.getSelectedRow() != null) {
+                continuarBtn.setEnabled(true);
+                cerrarBtn.setEnabled(true);
+                // Resetear botones dependientes de factura hasta nueva selección
+                notaCreditoBtn.setEnabled(false);
+                editBtn.setEnabled(false);
+                revisadoBtn.setEnabled(false);
+
+                llenarTablaFactura(
+                        String.valueOf(liquidacionesGrid.getContainerDataSource()
+                                .getItem(liquidacionesGrid.getSelectedRow())
+                                .getItemProperty(ID_LIQUIDACION_PROPERTY).getValue())
+                );
+            } else {
+                continuarBtn.setEnabled(false);
+                cerrarBtn.setEnabled(false);
             }
         });
 
@@ -253,18 +263,12 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         footerliquidaciones.getCell(MONTO_QUETZALES_PROPERTY).setText("0.00");
         footerliquidaciones.getCell(MONTO_QUETZALES_PROPERTY).setStyleName("rightalign");
 
-        filtrosLayout.addComponent(inicioDt);
-        filtrosLayout.addComponent(finDt);
-        filtrosLayout.addComponent(consultarBtn);
-        filtrosLayout.setComponentAlignment(consultarBtn, Alignment.BOTTOM_CENTER);
-        filtrosLayout.addComponent(newBtn);
-        filtrosLayout.setComponentAlignment(newBtn, Alignment.BOTTOM_CENTER);
+        filtrosLayout.addComponents(inicioDt, finDt, consultarBtn, newBtn);
 
+        liquidacionesLayout.addComponent(seccionLbl);
         liquidacionesLayout.addComponent(filtrosLayout);
-        liquidacionesLayout.setComponentAlignment(filtrosLayout, Alignment.MIDDLE_CENTER);
-
+        liquidacionesLayout.setComponentAlignment(filtrosLayout, Alignment.MIDDLE_LEFT);
         liquidacionesLayout.addComponent(liquidacionesGrid);
-        liquidacionesLayout.setComponentAlignment(liquidacionesGrid, Alignment.MIDDLE_CENTER);
 
         addComponent(liquidacionesLayout);
         setComponentAlignment(liquidacionesLayout, Alignment.MIDDLE_CENTER);
@@ -276,18 +280,23 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         detalleLayout.setWidth("100%");
         detalleLayout.addStyleName("rcorners2");
         detalleLayout.setSpacing(true);
+        detalleLayout.setMargin(true);
+
+        Label seccionDetalle = new Label(FontAwesome.FILE_TEXT_O.getHtml() + "  Detalle de la liquidación", ContentMode.HTML);
+        seccionDetalle.addStyleName(ValoTheme.LABEL_H3);
+        seccionDetalle.addStyleName(ValoTheme.LABEL_COLORED);
 
         HorizontalLayout facturasYPartidasLayout = new HorizontalLayout();
         facturasYPartidasLayout.setWidth("100%");
-        facturasYPartidasLayout.addStyleName("rcorners3");
         facturasYPartidasLayout.setSpacing(true);
 
         HorizontalLayout botonesLayout = new HorizontalLayout();
         botonesLayout.setSpacing(true);
         botonesLayout.setWidth("100%");
 
-        detalleLayout.addComponents(facturasYPartidasLayout, botonesLayout);
+        detalleLayout.addComponents(seccionDetalle, facturasYPartidasLayout, botonesLayout);
 
+        // --- Container facturas ---
         containerFactura.addContainerProperty(ID_FACTURA_PROPERTY, String.class, null);
         containerFactura.addContainerProperty(CODIGO_PARTIDA_PROPERTY, String.class, null);
         containerFactura.addContainerProperty(TIPODOCUMENTO_PROPERTY, String.class, null);
@@ -302,45 +311,86 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         containerFactura.addContainerProperty(DESCRIPCION_FACTURA_PROPERTY, String.class, null);
         containerFactura.addContainerProperty(ESTATUS_PROPERTY, String.class, null);
 
-        facturasGrid = new Grid(containerFactura);
+        // Columna generada que combina Serie + Número
+        GeneratedPropertyContainer gpcFacturas = new GeneratedPropertyContainer(containerFactura);
+        gpcFacturas.addGeneratedProperty(SERIE_NUMERO_PROPERTY, new PropertyValueGenerator<String>() {
+            @Override
+            public String getValue(com.vaadin.data.Item item, Object itemId, Object propertyId) {
+                String serie = (String) item.getItemProperty(SERIE_PROPERTY).getValue();
+                String numero = (String) item.getItemProperty(NUMERO_PROPERTY).getValue();
+                return (serie != null ? serie : "") + " " + (numero != null ? numero : "");
+            }
+            @Override
+            public Class<String> getType() { return String.class; }
+        });
+
+        facturasGrid = new Grid("Facturas de la liquidación", gpcFacturas);
         facturasGrid.setImmediate(true);
         facturasGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
-        facturasGrid.setDescription("Seleccione un registro.");
+        facturasGrid.setDescription("Seleccione una factura.");
         facturasGrid.setHeightMode(HeightMode.ROW);
-        facturasGrid.setHeightByRows(4);
+        facturasGrid.setHeightByRows(3);
         facturasGrid.setWidth("100%");
         facturasGrid.setResponsive(true);
         facturasGrid.setEditorBuffered(false);
 
+        // Columnas ocultas (datos internos)
         facturasGrid.getColumn(ID_FACTURA_PROPERTY).setHidable(true).setHidden(true);
         facturasGrid.getColumn(ID_LIQUIDACION_FACTURA_PROPERTY).setHidable(true).setHidden(true);
         facturasGrid.getColumn(CODIGO_PARTIDA_PROPERTY).setHidable(true).setHidden(true);
         facturasGrid.getColumn(ID_LIQUIDADOR_FACTURA_PROPERTY).setHidable(true).setHidden(true);
         facturasGrid.getColumn(DESCRIPCION_FACTURA_PROPERTY).setHidable(true).setHidden(true);
+        facturasGrid.getColumn(TIPODOCUMENTO_PROPERTY).setHidable(true).setHidden(true);
+        facturasGrid.getColumn(SERIE_PROPERTY).setHidable(true).setHidden(true);
+        facturasGrid.getColumn(NUMERO_PROPERTY).setHidable(true).setHidden(true);
+        facturasGrid.getColumn(NITPROVEEDOR_FACTURA_PROPERTY).setHidable(true).setHidden(true);
 
-        facturasGrid.addSelectionListener(new SelectionListener() {
-            @Override
-            public void select(SelectionEvent event) {
-                if (facturasGrid.getSelectedRow() != null) {
-                    llenarTablaPartida(
-                            String.valueOf(facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(ID_LIQUIDACION_FACTURA_PROPERTY).getValue()),
-                            String.valueOf(facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue())
-                    );
+        // Columnas visibles con anchos
+        facturasGrid.getColumn(SERIE_NUMERO_PROPERTY).setWidth(130);
+        facturasGrid.getColumn(FECHA_FACTURA_PROPERTY).setWidth(90);
+        facturasGrid.getColumn(MONTO_QUETZALES_PROPERTY).setWidth(130);
+        facturasGrid.getColumn(ESTATUS_PROPERTY).setWidth(100);
+        facturasGrid.getColumn(PROVEEDOR_PROPERTY).setExpandRatio(1);
+
+        facturasGrid.addSelectionListener(event -> {
+            if (facturasGrid.getSelectedRow() != null) {
+                String estatusFactura = String.valueOf(
+                        containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue()
+                );
+                boolean esAuxiliar = ((SopdiUI) UI.getCurrent()).sessionInformation
+                        .getStrUserProfileName().equals("AUXILIAR");
+
+                revisadoBtn.setEnabled(false);
+                editBtn.setEnabled(false);
+                notaCreditoBtn.setEnabled(false);
+
+                switch (estatusFactura) {
+                    case "INGRESADO":
+                        editBtn.setEnabled(true);
+                        notaCreditoBtn.setEnabled(true);
+                        revisadoBtn.setEnabled(!esAuxiliar);
+                        break;
+                    case "REVISADO":
+                    case "CERRADO":
+                        if (!esAuxiliar) {
+                            editBtn.setEnabled(true);
+                            notaCreditoBtn.setEnabled(true);
+                        }
+                        break;
                 }
+
+                llenarTablaPartida(
+                        String.valueOf(facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(ID_LIQUIDACION_FACTURA_PROPERTY).getValue()),
+                        String.valueOf(facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue())
+                );
             }
         });
 
         facturasGrid.setCellStyleGenerator((Grid.CellReference cellReference) -> {
-
-//            System.out.println("celda=" + cellReference.getProperty());
             if (MONTO_QUETZALES_PROPERTY.equals(cellReference.getPropertyId())) {
                 return "rightalign";
-            } else if (HABER_PROPERTY.equals(cellReference.getPropertyId())) {
-                return "rightalign";
-            } else {
-                return null;
             }
-
+            return null;
         });
 
         footerFactura = facturasGrid.appendFooterRow();
@@ -349,6 +399,7 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         footerFactura.getCell(MONTO_QUETZALES_PROPERTY).setText("0.00");
         footerFactura.getCell(MONTO_QUETZALES_PROPERTY).setStyleName("rightalign");
 
+        // --- Container partidas ---
         containerPartida.addContainerProperty(ID_PARTIDA_PROPERTY, String.class, null);
         containerPartida.addContainerProperty(CUENTA_PARTIDA_PROPERTY, String.class, null);
         containerPartida.addContainerProperty(DESCRIPCION_PROPERTY, String.class, null);
@@ -359,54 +410,25 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         partidasGrid.setImmediate(true);
         partidasGrid.setSelectionMode(Grid.SelectionMode.NONE);
         partidasGrid.setHeightMode(HeightMode.ROW);
-        partidasGrid.setHeightByRows(4);
+        partidasGrid.setHeightByRows(3);
         partidasGrid.setWidth("100%");
         partidasGrid.setResponsive(true);
         partidasGrid.setEditorBuffered(false);
 
-        partidasGrid.getColumn(ID_FACTURA_PROPERTY).setHidable(true).setHidden(true);
+        partidasGrid.getColumn(ID_PARTIDA_PROPERTY).setHidable(true).setHidden(true);
+
+        partidasGrid.getColumn(CUENTA_PARTIDA_PROPERTY).setWidth(145);
+        partidasGrid.getColumn(DEBE_PROPERTY).setWidth(130);
+        partidasGrid.getColumn(HABER_PROPERTY).setWidth(130);
+        partidasGrid.getColumn(DESCRIPCION_PROPERTY).setExpandRatio(1);
 
         partidasGrid.setCellStyleGenerator((Grid.CellReference cellReference) -> {
-
-//            System.out.println("celda=" + cellReference.getProperty());
             if (DEBE_PROPERTY.equals(cellReference.getPropertyId())) {
                 return "rightalign";
             } else if (HABER_PROPERTY.equals(cellReference.getPropertyId())) {
                 return "rightalign";
-            } else {
-                return null;
             }
-
-        });
-
-        partidasGrid.addSelectionListener(new SelectionListener() {
-            @Override
-            public void select(SelectionEvent event) {
-
-                revisadoBtn.setEnabled(false);
-                editBtn.setEnabled(false);
-                notaCreditoBtn.setEnabled(false);
-
-                switch (String.valueOf(partidasGrid.getContainerDataSource().getItem(partidasGrid.getSelectedRow()).getItemProperty(ESTATUS_PROPERTY).getValue())) {
-                    case "INGRESADO":
-                        if (!((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserProfileName().equals("AUXILIAR")) {
-                            revisadoBtn.setEnabled(true);
-                        }
-                        editBtn.setEnabled(true);
-                        notaCreditoBtn.setEnabled(true);
-                        break;
-                    case "REVISADO":
-                    case "CERRADO":
-                        if (!((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserProfileName().equals("AUXILIAR")) {
-                            editBtn.setEnabled(true);
-                            notaCreditoBtn.setEnabled(true);
-                        }
-                        break;
-                }
-                if (((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserProfileName().equals("AUXILIAR")) {
-                    revisadoBtn.setEnabled(false);
-                }
-            }
+            return null;
         });
 
         footerPartida = partidasGrid.appendFooterRow();
@@ -417,29 +439,43 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         footerPartida.getCell(DEBE_PROPERTY).setStyleName("rightalign");
         footerPartida.getCell(HABER_PROPERTY).setStyleName("rightalign");
 
-        facturasYPartidasLayout.addComponent(facturasGrid);
-        facturasYPartidasLayout.addComponent(partidasGrid);
+        // Grids: facturas ocupa 60%, partidas 40%
+        VerticalLayout facturasWrapper = new VerticalLayout();
+        facturasWrapper.setWidth("100%");
+        facturasWrapper.setSpacing(false);
+        facturasWrapper.setMargin(false);
+        facturasWrapper.addComponent(facturasGrid);
 
-        continuarBtn = new Button("Ingresar más facturas");
-        continuarBtn.setWidth("100%");
+        VerticalLayout partidasWrapper = new VerticalLayout();
+        partidasWrapper.setWidth("100%");
+        partidasWrapper.setSpacing(false);
+        partidasWrapper.setMargin(false);
+        partidasWrapper.addComponent(partidasGrid);
+
+        facturasYPartidasLayout.addComponent(facturasWrapper);
+        facturasYPartidasLayout.addComponent(partidasWrapper);
+        facturasYPartidasLayout.setExpandRatio(facturasWrapper, 6);
+        facturasYPartidasLayout.setExpandRatio(partidasWrapper, 4);
+
+        // --- Botones ---
+        continuarBtn = new Button("Más facturas");
         continuarBtn.setIcon(FontAwesome.NEWSPAPER_O);
         continuarBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
         continuarBtn.setDescription("Continuar ingresando facturas de ésta liquidación");
-        continuarBtn.addListener((Button.ClickListener) (Button.ClickEvent event) -> {
-
+        continuarBtn.setEnabled(false);
+        continuarBtn.addClickListener(event -> {
             if (liquidacionesGrid.getSelectedRow() == null) {
                 Notification.show("Por favor, seleccione el registro correspondiente.", Notification.Type.WARNING_MESSAGE);
             } else {
-
-                if (String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue()).equals("INGRESADO")
-                        || String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue()).equals("REVISADO")) {
-                    IngresoLiquidacionGastoForm newFacturasGasto
-                            = new IngresoLiquidacionGastoForm(
+                String estatus = String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue());
+                if (estatus.equals("INGRESADO") || estatus.equals("REVISADO")) {
+                    IngresoLiquidacionGastoForm newFacturasGasto = new IngresoLiquidacionGastoForm(
                             String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_PROPERTY).getValue()),
                             String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue()),
                             String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue()),
                             empresaId,
-                            String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), CODIGOCC_PROPERTY).getValue()));
+                            String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), CODIGOCC_PROPERTY).getValue())
+                    );
                     UI.getCurrent().addWindow(newFacturasGasto);
                     newFacturasGasto.center();
                 } else {
@@ -448,12 +484,12 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
             }
         });
 
-        notaCreditoBtn = new Button("NOTA DE CREDITO");
-        notaCreditoBtn.setWidth("100%");
+        notaCreditoBtn = new Button("Nota de crédito");
+        notaCreditoBtn.setIcon(FontAwesome.CREDIT_CARD);
         notaCreditoBtn.addStyleName(ValoTheme.BUTTON_FRIENDLY);
-        notaCreditoBtn.setDescription("NOTA DE CREDITO");
-        notaCreditoBtn.addListener((Button.ClickListener) (Button.ClickEvent event) -> {
-
+        notaCreditoBtn.setDescription("Registrar nota de crédito para la factura seleccionada");
+        notaCreditoBtn.setEnabled(false);
+        notaCreditoBtn.addClickListener(event -> {
             if (facturasGrid.getSelectedRow() == null) {
                 Notification notif = new Notification("Por favor, seleccione el registro correspondiente.",
                         Notification.Type.WARNING_MESSAGE);
@@ -462,13 +498,9 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                 notif.setIcon(FontAwesome.WARNING);
                 notif.show(Page.getCurrent());
             } else {
-
                 if (String.valueOf(containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), TIPODOCUMENTO_PROPERTY).getValue()).equals("FACTURA")) {
-                    NotaCreditoCompra nuevaNotaCredito
-                            = new NotaCreditoCompra(
-                            empresaId,
-                            containerFactura,
-                            facturasGrid.getSelectedRow(),
+                    NotaCreditoCompra nuevaNotaCredito = new NotaCreditoCompra(
+                            empresaId, containerFactura, facturasGrid.getSelectedRow(),
                             String.valueOf(containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue()),
                             String.valueOf(containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), SERIE_PROPERTY).getValue()),
                             String.valueOf(containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), NUMERO_PROPERTY).getValue())
@@ -476,9 +508,8 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                     UI.getCurrent().addWindow(nuevaNotaCredito);
                     nuevaNotaCredito.center();
                     nuevaNotaCredito.getSerieTxt().focus();
-                }
-                else {
-                    Notification notif = new Notification("SOLO SE PERMITEN NOTAS DE CREDITO PARA FACTURAS.",
+                } else {
+                    Notification notif = new Notification("SOLO SE PERMITEN NOTAS DE CRÉDITO PARA FACTURAS.",
                             Notification.Type.WARNING_MESSAGE);
                     notif.setDelayMsec(1500);
                     notif.setPosition(Position.MIDDLE_CENTER);
@@ -487,25 +518,22 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                 }
             }
         });
-//        notaCreditoBtn.setVisible(false);
 
         cerrarBtn = new Button("Cerrar liquidación");
-        cerrarBtn.setWidth("100%");
-        cerrarBtn.setIcon(FontAwesome.CLOSE);
+        cerrarBtn.setIcon(FontAwesome.LOCK);
         cerrarBtn.addStyleName(ValoTheme.BUTTON_DANGER);
         cerrarBtn.setDescription("Cerrar ésta liquidación");
-        cerrarBtn.addListener((Button.ClickListener) (Button.ClickEvent event) -> {
-
+        cerrarBtn.setEnabled(false);
+        cerrarBtn.addClickListener(event -> {
             if (liquidacionesGrid.getSelectedRow() == null) {
                 Notification.show("Por favor, seleccione el registro correspondiente.", Notification.Type.WARNING_MESSAGE);
             } else {
-                if (String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue()).equals("CERRADO")
-                        || String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue()).equals("PAGADO")) {
+                String estatus = String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue());
+                if (estatus.equals("CERRADO") || estatus.equals("PAGADO")) {
                     Notification.show("Liquidación ya CERRADA o PAGADA. Seleccione una ABIERTA.", Notification.Type.ERROR_MESSAGE);
                 } else {
-                    ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de CERRAR esta liquidación ?\nTome en cuenta que ya no podrá agregar más facturas a esta liquidación.",
+                    ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de CERRAR esta liquidación?\nYa no podrá agregar más facturas.",
                             "SI", "NO", new ConfirmDialog.Listener() {
-
                                 public void onClose(ConfirmDialog dialog) {
                                     if (dialog.isConfirmed()) {
                                         cerrarLiquidacion();
@@ -517,15 +545,15 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         });
 
         editBtn = new Button("Editar");
-        editBtn.setWidth("100%");
         editBtn.setIcon(FontAwesome.EDIT);
         editBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
         editBtn.setDescription("Actualizar datos del documento y partida contable.");
-        editBtn.addClickListener((Button.ClickListener) event -> {
+        editBtn.setEnabled(false);
+        editBtn.addClickListener(event -> {
             if (liquidacionesGrid.getSelectedRow() == null || facturasGrid.getSelectedRow() == null) {
                 Notification.show("Por favor, seleccione el registro correspondiente.", Notification.Type.WARNING_MESSAGE);
             } else {
-                queryString = "UPDATE  contabilidad_partida";
+                queryString = "UPDATE contabilidad_partida";
                 queryString += " SET Estatus = 'INGRESADO'";
                 queryString += " WHERE IdLiquidador = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue());
                 queryString += " AND IdLiquidacion = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
@@ -533,7 +561,6 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                 queryString += " AND CodigoPartida = '" + String.valueOf(containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
 
                 try {
-//                        System.out.println("query editar liquidacion" + queryString);
                     stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                     stQuery.executeUpdate(queryString);
                 } catch (SQLException ex) {
@@ -542,33 +569,31 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                     ex.printStackTrace();
                 }
 
-                EditarPartidaLiquidacion partidaLiquidacion
-                        = new EditarPartidaLiquidacion(
+                EditarPartidaLiquidacion partidaLiquidacion = new EditarPartidaLiquidacion(
                         String.valueOf(containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue()),
-                        String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), CODIGOCC_PROPERTY).getValue()));
+                        String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), CODIGOCC_PROPERTY).getValue())
+                );
                 UI.getCurrent().addWindow(partidaLiquidacion);
                 partidaLiquidacion.center();
             }
         });
 
         revisadoBtn = new Button("Revisado");
-        revisadoBtn.setWidth("100%");
-        revisadoBtn.setIcon(FontAwesome.CHECK);
+        revisadoBtn.setIcon(FontAwesome.CHECK_CIRCLE);
         revisadoBtn.addStyleName(ValoTheme.BUTTON_FRIENDLY);
         revisadoBtn.setDescription("Dar por revisado un documento / partida contable.");
-        revisadoBtn.addListener((Button.ClickListener) (Button.ClickEvent event) -> {
-
+        revisadoBtn.setEnabled(false);
+        revisadoBtn.addClickListener(event -> {
             if (facturasGrid.getSelectedRow() == null) {
                 Notification.show("Por favor, seleccione el registro correspondiente.", Notification.Type.WARNING_MESSAGE);
+                return;
             }
 
-            ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de dar por REVISADA esta partida contable  ?",
+            ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de dar por REVISADA esta partida contable?",
                     "SI", "NO", new ConfirmDialog.Listener() {
-
                         public void onClose(ConfirmDialog dialog) {
                             if (dialog.isConfirmed()) {
-
-                                queryString = "UPDATE  contabilidad_partida";
+                                queryString = "UPDATE contabilidad_partida";
                                 queryString += " SET Estatus = 'REVISADO'";
                                 queryString += " WHERE IdLiquidador = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue());
                                 queryString += " AND IdLiquidacion = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
@@ -578,9 +603,7 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                                 try {
                                     stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                                     stQuery.executeUpdate(queryString);
-
                                     llenarTablaLiquidacion(empresaId);
-
                                 } catch (SQLException ex) {
                                     System.out.println("Error al intentar modificar estatus a REVISADO" + ex);
                                     Notification.show("ERROR AL INTENTAR CAMBIAR EL ESTATUS A REVISADO DE PARTIDA CONTABLE", Notification.Type.ERROR_MESSAGE);
@@ -591,18 +614,24 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                     });
         });
 
-        botonesLayout.addComponents(continuarBtn, notaCreditoBtn, cerrarBtn);
-        botonesLayout.setComponentAlignment(continuarBtn, Alignment.BOTTOM_LEFT);
-        botonesLayout.setComponentAlignment(notaCreditoBtn, Alignment.BOTTOM_LEFT);
-        botonesLayout.setComponentAlignment(cerrarBtn, Alignment.BOTTOM_RIGHT);
-        botonesLayout.addComponent(editBtn);
-        botonesLayout.setComponentAlignment(editBtn, Alignment.BOTTOM_RIGHT);
-        botonesLayout.addComponent(revisadoBtn);
-        botonesLayout.setComponentAlignment(revisadoBtn, Alignment.BOTTOM_RIGHT);
+        // Grupo izquierdo: acciones sobre la liquidación/factura
+        HorizontalLayout leftButtons = new HorizontalLayout();
+        leftButtons.setSpacing(true);
+        leftButtons.addComponents(continuarBtn, notaCreditoBtn);
+
+        // Grupo derecho: cambios de estado
+        HorizontalLayout rightButtons = new HorizontalLayout();
+        rightButtons.setSpacing(true);
+        rightButtons.addComponents(editBtn, revisadoBtn, cerrarBtn);
+
+        Label spacer = new Label();
+        botonesLayout.addComponents(leftButtons, spacer, rightButtons);
+        botonesLayout.setExpandRatio(spacer, 1);
+        botonesLayout.setComponentAlignment(leftButtons, Alignment.MIDDLE_LEFT);
+        botonesLayout.setComponentAlignment(rightButtons, Alignment.MIDDLE_RIGHT);
 
         addComponent(detalleLayout);
         setComponentAlignment(detalleLayout, Alignment.MIDDLE_CENTER);
-
     }
 
     public void llenarTablaFactura(String idLiquidacion) {
@@ -612,7 +641,6 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
 
         footerPartida.getCell(DEBE_PROPERTY).setText("0.00");
         footerPartida.getCell(HABER_PROPERTY).setText("0.00");
-
         footerFactura.getCell(MONTO_QUETZALES_PROPERTY).setText("0.00");
 
         this.facturasGrid.setCaption("Facturas de la liquidación : " + idLiquidacion);
@@ -623,14 +651,14 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         queryString += " FROM contabilidad_partida";
         queryString += " WHERE IdEmpresa = " + empresaId;
         queryString += " AND IdLiquidacion = " + idLiquidacion;
-        queryString += " AND IdNomenclatura = " +  ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getLiquidacionesCajaChicha();
+        queryString += " AND IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getLiquidacionesCajaChicha();
         queryString += " GROUP BY NumeroDocumento,SerieDocumento,NombreProveedor,NITProveedor";
 
         try {
             stQuery3 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords3 = stQuery3.executeQuery(queryString);
 
-            if (rsRecords3.next()) { //  encontrado  
+            if (rsRecords3.next()) {
                 totalMontoFactura = 0.00;
                 do {
                     Object itemId = containerFactura.addItem();
@@ -657,7 +685,6 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
             System.out.println("Error al listar tabla partida facturas:" + ex);
             ex.printStackTrace();
         }
-
     }
 
     public void llenarTablaLiquidacion(String empresa) {
@@ -669,7 +696,6 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         totalMonto = 0.00;
 
         try {
-
             if (inicioDt.getValue().before(finDt.getValue()) == true) {
 
                 queryString = " SELECT contabilidad_partida.IdPartida,";
@@ -687,7 +713,7 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                 queryString += "     '" + Utileria.getFechaYYYYMMDD_1(inicioDt.getValue()) + "'";
                 queryString += " AND '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "'";
                 queryString += " AND contabilidad_partida.IdEmpresa =" + empresa;
-                queryString += " AND contabilidad_partida.IdLiquidacion > 0 "; // PARA QUE MUESTRE SOLAMENTE LAS LIQUIDACIONES
+                queryString += " AND contabilidad_partida.IdLiquidacion > 0 ";
                 queryString += " AND proveedor_empresa.IdProveedor = contabilidad_partida.IdLiquidador";
                 queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getLiquidacionesCajaChicha();
                 queryString += " AND proveedor_empresa.IdEmpresa = " + empresa;
@@ -702,9 +728,8 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
 
                 String estatus = "";
 
-                if (rsRecords.next()) { //  encontrado                                                
+                if (rsRecords.next()) {
                     do {
-
                         queryString = " SELECT * FROM contabilidad_partida ";
                         queryString += " WHERE Fecha BETWEEN '" + Utileria.getFechaYYYYMMDD_1(inicioDt.getValue()) + "'";
                         queryString += " AND '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "'";
@@ -716,7 +741,6 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                         rsRecords2 = stQuery2.executeQuery(queryString);
 
                         if (rsRecords2.next()) {
-
                             do {
                                 if (rsRecords.getString("Estatus").equals("REVISADO") &&
                                         rsRecords2.getString("Estatus").equals("REVISADO")) {
@@ -733,7 +757,7 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                                 } else if (rsRecords.getString("Estatus").equals("CERRADO") &&
                                         rsRecords2.getString("Estatus").equals("CERRADO")) {
                                     estatus = "CERRADO";
-                                }else if (rsRecords.getString("Estatus").equals("PAGADO") &&
+                                } else if (rsRecords.getString("Estatus").equals("PAGADO") &&
                                         rsRecords2.getString("Estatus").equals("PAGADO")) {
                                     estatus = "PAGADO";
                                 }
@@ -755,7 +779,6 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                     } while (rsRecords.next());
 
                     liquidacionesGrid.select(liquidacionesGrid.getContainerDataSource().getIdByIndex(0));
-
                     footerliquidaciones.getCell(MONTO_QUETZALES_PROPERTY).setText(numberFormat.format(totalMonto));
                 }
             } else {
@@ -777,10 +800,10 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
 
         String documento = String.valueOf(facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(SERIE_PROPERTY).getValue());
         documento += " " + String.valueOf(facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(NUMERO_PROPERTY).getValue());
-        documento += " " + String.valueOf(facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(PROVEEDOR_PROPERTY).getValue());
+//        documento += " " + String.valueOf(facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(PROVEEDOR_PROPERTY).getValue());
 
         if (partidasGrid != null) {
-            partidasGrid.setCaption("Partida contable  : " + codigoPartida + " Documento : " + documento);
+            partidasGrid.setCaption("Partida : " + codigoPartida + " — " + documento);
         }
 
         queryString = " SELECT contabilidad_partida.IdPartida, contabilidad_partida.IdNomenclatura, ";
@@ -793,13 +816,11 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
         queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
 
-//System.out.println("queryString Liqudacion partida = " + queryString);
-
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
 
-            if (rsRecords.next()) { //  encontrado                                                
+            if (rsRecords.next()) {
                 do {
                     Object itemId = containerPartida.addItem();
                     containerPartida.getContainerProperty(itemId, ID_PARTIDA_PROPERTY).setValue(rsRecords.getString("IdPartida"));
@@ -844,8 +865,6 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         queryString += " AND  IdLiquidacion = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
         queryString += " AND  IdEmpresa = " + empresaId;
 
-//System.out.println("Query cerrrar liquidacion=" + queryString);
-
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);
@@ -867,13 +886,9 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         queryString += " AND  IdLiquidacion = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
         queryString += " AND  IdEmpresa = " + empresaId;
 
-//System.out.println("Query cerrrar liquidacion=" + queryString);
-
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);
-
-//            Notification.show("Liquidación  exitosamente.", Notification.Type.HUMANIZED_MESSAGE);
 
             containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ESTATUS_PROPERTY).setValue("INGRESADO");
 

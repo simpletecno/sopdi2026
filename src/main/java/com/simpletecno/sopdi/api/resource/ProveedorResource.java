@@ -136,7 +136,7 @@ public class ProveedorResource {
                 "PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, ApellidoCasada, " +
                 "Nacionalidad, Dpi, Direccion, Telefono, TelefonoEmergencia, Email, " +
                 "EsProveedor, EsCliente, EsBanco, EsAgenteRetenedorISR, EsAgenteRetenedorIVA, " +
-                "EsInstitucionFiscal, EsInstitucionSeguroSocial, EsAbEsSujetoRetencionDefinitivaISR, Inhabilitado) " +
+                "EsInstitucionFiscal, EsInstitucionSeguroSocial, EsSujetoRetencionDefinitivaISR, Inhabilitado) " +
                 "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
         try (Connection conn = DbHelper.getConnection();

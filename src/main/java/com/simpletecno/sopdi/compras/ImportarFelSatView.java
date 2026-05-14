@@ -1021,6 +1021,12 @@ public class ImportarFelSatView extends VerticalLayout implements View {
             return;
         }
 
+        if (facturasFelGrid.getContainerDataSource()
+                .getItem(facturasFelGrid.getSelectedRow()).getItemProperty("tipoDte") == null
+         ) {
+            return;
+        }
+
         if (  ( String.valueOf(facturasFelGrid.getContainerDataSource()
                 .getItem(facturasFelGrid.getSelectedRow()).getItemProperty("tipoDte")
                 .getValue()).equals("FACTURA")

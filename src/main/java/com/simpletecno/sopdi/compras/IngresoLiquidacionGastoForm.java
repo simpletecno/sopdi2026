@@ -287,7 +287,7 @@ public class IngresoLiquidacionGastoForm extends Window {
         String queryString  = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0 ";
         queryString += " AND EsProveedor = 1";
-        queryString += " AND IdEmmpresa = " + empresaId;
+        queryString += " AND IdEmpresa = " + empresaId;
         queryString += " ORDER BY Nombre ";
 
         try {

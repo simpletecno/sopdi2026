@@ -77,8 +77,8 @@ public class SelectEmpresaContable extends Window {
         // ── mainLayout: el "card" central ────────────────────────────────────
         mainLayout.setWidth("680px");        // ancho fijo, se ve bien en cualquier resolución
         mainLayout.setHeightUndefined();     // altura se adapta al contenido
-        mainLayout.setMargin(new MarginInfo(true, true, true, true));
-        mainLayout.setSpacing(true);
+        mainLayout.setMargin(new MarginInfo(false, false, false, true));
+        mainLayout.setSpacing(false);
         mainLayout.addStyleName("sec-card");
 
         // ── Título / encabezado ──────────────────────────────────────────────
@@ -115,7 +115,7 @@ public class SelectEmpresaContable extends Window {
                         "  background: #ffffff;" +
                         "  border-radius: 12px;" +
                         "  box-shadow: 0 8px 40px rgba(0,0,0,0.18);" +
-                        "  padding: 32px !important;" +
+                        "  padding: 18px !important;" +
                         "}" +
 
                         /* Encabezado */
@@ -156,7 +156,7 @@ public class SelectEmpresaContable extends Window {
                         "  font-weight: 600 !important;" +
                         "  letter-spacing: 0.08em;" +
                         "  text-transform: uppercase;" +
-                        "  margin-bottom: 2px !important;" +
+                        "  margin-bottom: 1px !important;" +
                         "}" +
 
                         /* Card: scroll si la pantalla es pequeña */
@@ -277,7 +277,7 @@ public class SelectEmpresaContable extends Window {
 
         empresasTable.setSelectable(true);
         empresasTable.setWidth("100%");
-        empresasTable.setHeight("200px");
+        empresasTable.setHeight("160px");
         empresasTable.setPageLength(5);
         empresasTable.setImmediate(true);
 
@@ -313,8 +313,6 @@ public class SelectEmpresaContable extends Window {
     }
 
     public void llenarTablaEmpresas() {
-        Image empresaLogo;
-
         String queryString = "SELECT * ";
         queryString += "FROM contabilidad_empresa CE ";
         queryString += "INNER JOIN usuario_permisos_empresa UPE ON UPE.IdEmpresa = CE.IdEmpresa AND UPE.IdUsuario = "
@@ -329,24 +327,20 @@ public class SelectEmpresaContable extends Window {
                 int primeraEmpresa = rsRecords.getInt("IdEmpresa");
 
                 do {
-                    final byte[] docBytes        = rsRecords.getBytes("Logo");
-                    StreamResource logoStreamResource = null;
+                    final byte[] docBytes = rsRecords.getBytes("Logo");
+                    final String idEmp    = rsRecords.getString("IdEmpresa");
+                    StreamResource logoRes = (docBytes != null)
+                            ? new StreamResource(() -> new ByteArrayInputStream(docBytes), idEmp)
+                            : defaultLogoResource("emp_" + idEmp);
 
-                    if (docBytes != null) {
-                        logoStreamResource = new StreamResource(
-                                () -> new ByteArrayInputStream(docBytes),
-                                rsRecords.getString("IdEmpresa")
-                        );
-                    }
-
-                    empresaLogo = new Image(null, logoStreamResource);
-                    empresaLogo.setImmediate(true);
-                    empresaLogo.setWidth("35px");
-                    empresaLogo.setHeight("35px");
+                    Image logo = new Image(null, logoRes);
+                    logo.setImmediate(true);
+                    logo.setWidth("35px");
+                    logo.setHeight("35px");
 
                     empresasTable.addItem(new Object[]{
-                            empresaLogo,
-                            rsRecords.getString("IdEmpresa"),
+                            logo,
+                            idEmp,
                             rsRecords.getString("Empresa"),
                             rsRecords.getString("NombreCorto"),
                             rsRecords.getString("Nit")
@@ -354,9 +348,8 @@ public class SelectEmpresaContable extends Window {
 
                 } while (rsRecords.next());
 
-                if (empresasTable.size() == 1) {
-                    empresasTable.select(primeraEmpresa);
-                }
+                // Siempre pre-seleccionar la primera empresa
+                empresasTable.select(primeraEmpresa);
             } else {
                 selectBtn.setEnabled(false);
             }
@@ -381,8 +374,8 @@ public class SelectEmpresaContable extends Window {
 
         proyectosTable.setSelectable(true);
         proyectosTable.setWidth("100%");
-        proyectosTable.setHeight("160px");
-        proyectosTable.setPageLength(4);
+        proyectosTable.setHeight("120px");
+        proyectosTable.setPageLength(3);
         proyectosTable.setImmediate(true);
 
         proyectosTable.addContainerProperty(LOGO_PROPERTY,   Image.class,  null);
@@ -421,34 +414,28 @@ public class SelectEmpresaContable extends Window {
 
             if (rsRecords.next()) {
                 int primerRegistro = rsRecords.getInt("IdProyecto");
-                Image proyectoLogo;
 
                 do {
-                    final byte[] docBytes        = rsRecords.getBytes("Logo");
-                    StreamResource logoStreamResource = null;
+                    final byte[] docBytes = rsRecords.getBytes("Logo");
+                    final String idProy   = rsRecords.getString("IdProyecto");
+                    StreamResource logoRes = (docBytes != null)
+                            ? new StreamResource(() -> new ByteArrayInputStream(docBytes), idProy)
+                            : defaultLogoResource("proy_" + idProy);
 
-                    if (docBytes != null) {
-                        logoStreamResource = new StreamResource(
-                                () -> new ByteArrayInputStream(docBytes),
-                                rsRecords.getString("IdProyecto")
-                        );
-                    }
-
-                    proyectoLogo = new Image(null, logoStreamResource);
-                    proyectoLogo.setImmediate(true);
-                    proyectoLogo.setWidth("40px");
-                    proyectoLogo.setHeight("40px");
+                    Image logo = new Image(null, logoRes);
+                    logo.setImmediate(true);
+                    logo.setWidth("35px");
+                    logo.setHeight("35px");
 
                     proyectosTable.addItem(new Object[]{
-                            proyectoLogo,
+                            logo,
                             rsRecords.getString("Nombre")
                     }, rsRecords.getInt("IdProyecto"));
 
                 } while (rsRecords.next());
 
-                if (proyectosTable.size() == 1) {
-                    proyectosTable.select(primerRegistro);
-                }
+                // Siempre pre-seleccionar el primer proyecto
+                proyectosTable.select(primerRegistro);
             } else {
                 selectBtn.setEnabled(false);
             }
@@ -457,6 +444,23 @@ public class SelectEmpresaContable extends Window {
             System.out.println("Error al intentar leer registros de proyectos: " + ex.getMessage());
             Notification.show("Error al intentar leer registros de proyectos..!", Notification.Type.ERROR_MESSAGE);
         }
+    }
+
+    /** Logo SVG genérico para empresas/proyectos sin imagen registrada. */
+    private StreamResource defaultLogoResource(String id) {
+        String svg =
+            "<svg xmlns='http://www.w3.org/2000/svg' width='35' height='35'>" +
+            "<rect width='35' height='35' rx='5' fill='#E8EEF5'/>" +
+            "<rect x='6' y='7' width='23' height='16' rx='2' fill='#B0BEC5'/>" +
+            "<rect x='10' y='11' width='5' height='4' rx='1' fill='#E8EEF5'/>" +
+            "<rect x='20' y='11' width='5' height='4' rx='1' fill='#E8EEF5'/>" +
+            "<rect x='11' y='24' width='4' height='6' fill='#90A4AE'/>" +
+            "<rect x='20' y='24' width='4' height='6' fill='#90A4AE'/>" +
+            "</svg>";
+        byte[] bytes = svg.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        StreamResource res = new StreamResource(() -> new ByteArrayInputStream(bytes), "nologoid_" + id + ".svg");
+        res.setMIMEType("image/svg+xml");
+        return res;
     }
 
     // ── Botones ──────────────────────────────────────────────────────────────
