@@ -555,10 +555,10 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
             } else {
                 queryString = "UPDATE contabilidad_partida";
                 queryString += " SET Estatus = 'INGRESADO'";
-                queryString += " WHERE IdLiquidador = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue());
-                queryString += " AND IdLiquidacion = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
+                queryString += " WHERE IdLiquidador = " + containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue();
+                queryString += " AND IdLiquidacion = " + containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue();
                 queryString += " AND IdEmpresa = " + empresaId;
-                queryString += " AND CodigoPartida = '" + String.valueOf(containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
+                queryString += " AND CodigoPartida = '" + containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue() + "'";
 
                 try {
                     stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -595,10 +595,10 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                             if (dialog.isConfirmed()) {
                                 queryString = "UPDATE contabilidad_partida";
                                 queryString += " SET Estatus = 'REVISADO'";
-                                queryString += " WHERE IdLiquidador = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue());
-                                queryString += " AND IdLiquidacion = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
+                                queryString += " WHERE IdLiquidador = " + containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue();
+                                queryString += " AND IdLiquidacion = " + containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue();
                                 queryString += " AND IdEmpresa = " + empresaId;
-                                queryString += " AND CodigoPartida = '" + String.valueOf(containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
+                                queryString += " AND CodigoPartida = '" + containerFactura.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue() + "'";
 
                                 try {
                                     stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -696,7 +696,7 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         totalMonto = 0.00;
 
         try {
-            if (inicioDt.getValue().before(finDt.getValue()) == true) {
+            if (inicioDt.getValue().before(finDt.getValue())) {
 
                 queryString = " SELECT contabilidad_partida.IdPartida,";
                 queryString += " contabilidad_partida.Fecha, ";
@@ -799,7 +799,7 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         totalHaber = 0.00;
 
         String documento = String.valueOf(facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(SERIE_PROPERTY).getValue());
-        documento += " " + String.valueOf(facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(NUMERO_PROPERTY).getValue());
+        documento += " " + facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(NUMERO_PROPERTY).getValue();
 //        documento += " " + String.valueOf(facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(PROVEEDOR_PROPERTY).getValue());
 
         if (partidasGrid != null) {
@@ -861,8 +861,8 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
     public void cerrarLiquidacion() {
         queryString = " UPDATE contabilidad_partida";
         queryString += " SET Estatus = 'CERRADO'";
-        queryString += " WHERE IdLiquidador = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue());
-        queryString += " AND  IdLiquidacion = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
+        queryString += " WHERE IdLiquidador = " + containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue();
+        queryString += " AND  IdLiquidacion = " + containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue();
         queryString += " AND  IdEmpresa = " + empresaId;
 
         try {
@@ -882,8 +882,8 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
     public void abrirLiquidacion() {
         queryString = " UPDATE contabilidad_partida";
         queryString += " SET Estatus = 'INGRESADO'";
-        queryString += " WHERE IdLiquidador = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue());
-        queryString += " AND  IdLiquidacion = " + String.valueOf(containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
+        queryString += " WHERE IdLiquidador = " + containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue();
+        queryString += " AND  IdLiquidacion = " + containerLiquidacion.getContainerProperty(liquidacionesGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue();
         queryString += " AND  IdEmpresa = " + empresaId;
 
         try {

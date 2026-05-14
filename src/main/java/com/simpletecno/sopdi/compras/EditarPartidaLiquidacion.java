@@ -19,10 +19,10 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import org.vaadin.ui.NumberField;
@@ -542,7 +542,6 @@ public class EditarPartidaLiquidacion extends Window {
 
     public void verificarProveedorInsititucion(String id) {
         if (id == null) {
-            return;
         }
         /**
          * cuentaContableCbx.setReadOnly(false);
@@ -721,14 +720,14 @@ public class EditarPartidaLiquidacion extends Window {
 
         totalDebe = totalDebe = new BigDecimal(debe1Txt.getDoubleValueDoNotThrow()
                 + debe2Txt.getDoubleValueDoNotThrow() + debe3Txt.getDoubleValueDoNotThrow()
-                + debe4Txt.getDoubleValueDoNotThrow()).setScale(2, BigDecimal.ROUND_HALF_UP);
+                + debe4Txt.getDoubleValueDoNotThrow()).setScale(2, RoundingMode.HALF_UP);
 
         totalHaber = totalDebe = new BigDecimal(haberTxt.getDoubleValueDoNotThrow() + haber1Txt.getDoubleValueDoNotThrow()
                 + haber2Txt.getDoubleValueDoNotThrow() + haber3Txt.getDoubleValueDoNotThrow()
-                + haber4Txt.getDoubleValueDoNotThrow()).setScale(2, BigDecimal.ROUND_HALF_UP);
+                + haber4Txt.getDoubleValueDoNotThrow()).setScale(2, RoundingMode.HALF_UP);
 
-        totalDebe.setScale(2, BigDecimal.ROUND_DOWN);
-        totalHaber.setScale(2, BigDecimal.ROUND_DOWN);
+        totalDebe.setScale(2, RoundingMode.DOWN);
+        totalHaber.setScale(2, RoundingMode.DOWN);
 
         if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
             Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
@@ -859,11 +858,11 @@ public class EditarPartidaLiquidacion extends Window {
             queryString += "," + cuentaContableCbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
             queryString += ",0.00"; //DEBE
-            queryString += "," + String.valueOf(haberTxt.getDoubleValueDoNotThrow()); // Haber
+            queryString += "," + haberTxt.getDoubleValueDoNotThrow(); // Haber
             queryString += ",0.00"; //DEBEQ.
-            queryString += "," + String.valueOf(haberTxt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(haberTxt.getDoubleValueDoNotThrow()); // Haber (SALDO)
+            queryString += "," + haberTxt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + haberTxt.getDoubleValueDoNotThrow(); // Haber (SALDO)
 //            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
             queryString += "," + idLiquidadorEdit;
             queryString += "," + idLiquidacionEdit;
@@ -897,19 +896,19 @@ public class EditarPartidaLiquidacion extends Window {
             queryString += "," + cuentaContable1Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
             if (debe1Txt.getDoubleValueDoNotThrow() > 0 && haber1Txt.getDoubleValueDoNotThrow() == 0.00) {
-                queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow()); // DEBE
+                queryString += "," + debe1Txt.getDoubleValueDoNotThrow(); // DEBE
                 queryString += ",0.00"; //HABER
-                queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += "," + debe1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",0.00"; //HABER Q.
             } else {
                 if (haber1Txt.getDoubleValueDoNotThrow() > 0 && debe1Txt.getDoubleValueDoNotThrow() == 0.00) {
                     queryString += ",0.00"; //DEBE
-                    queryString += "," + String.valueOf(haber1Txt.getDoubleValueDoNotThrow()); // Haber
+                    queryString += "," + haber1Txt.getDoubleValueDoNotThrow(); // Haber
                     queryString += ",0.00"; //DEBEQ.
-                    queryString += "," + String.valueOf(haber1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                    queryString += "," + haber1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 }
             }
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += "," + idLiquidadorEdit;
             queryString += "," + idLiquidacionEdit;
@@ -944,19 +943,19 @@ public class EditarPartidaLiquidacion extends Window {
             queryString += "," + cuentaContable2Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
             if (debe2Txt.getDoubleValueDoNotThrow() > 0 && haber2Txt.getDoubleValueDoNotThrow() == 0.00) {
-                queryString += "," + String.valueOf(debe2Txt.getDoubleValueDoNotThrow()); // DEBE
+                queryString += "," + debe2Txt.getDoubleValueDoNotThrow(); // DEBE
                 queryString += ",0.00"; //HABER
-                queryString += "," + String.valueOf(debe2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += "," + debe2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",0.00"; //HABER Q.
             } else {
                 if (haber2Txt.getDoubleValueDoNotThrow() > 0 && debe2Txt.getDoubleValueDoNotThrow() == 0.00) {
                     queryString += ",0.00"; //DEBE
-                    queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow()); // Haber
+                    queryString += "," + haber2Txt.getDoubleValueDoNotThrow(); // Haber
                     queryString += ",0.00"; //DEBEQ.
-                    queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                    queryString += "," + haber2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 }
             }
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
 
             queryString += "," + idLiquidadorEdit;
@@ -992,19 +991,19 @@ public class EditarPartidaLiquidacion extends Window {
             queryString += "," + cuentaContable3Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
             if (debe3Txt.getDoubleValueDoNotThrow() > 0 && haber3Txt.getDoubleValueDoNotThrow() == 0.00) {
-                queryString += "," + String.valueOf(debe3Txt.getDoubleValueDoNotThrow()); // DEBE
+                queryString += "," + debe3Txt.getDoubleValueDoNotThrow(); // DEBE
                 queryString += ",0.00"; //HABER
-                queryString += "," + String.valueOf(debe3Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += "," + debe3Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",0.00"; //HABER Q.
             } else {
                 if (haber3Txt.getDoubleValueDoNotThrow() > 0 && debe3Txt.getDoubleValueDoNotThrow() == 0.00) {
                     queryString += ",0.00"; //DEBE
-                    queryString += "," + String.valueOf(haber3Txt.getDoubleValueDoNotThrow()); // Haber
+                    queryString += "," + haber3Txt.getDoubleValueDoNotThrow(); // Haber
                     queryString += ",0.00"; //DEBEQ.
-                    queryString += "," + String.valueOf(haber3Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                    queryString += "," + haber3Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 }
             }
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += "," + idLiquidadorEdit;
             queryString += "," + idLiquidacionEdit;
@@ -1040,19 +1039,19 @@ public class EditarPartidaLiquidacion extends Window {
             queryString += ",'" + monedaCbx.getValue() + "'";
 
             if (debe4Txt.getDoubleValueDoNotThrow() > 0 && haber4Txt.getDoubleValueDoNotThrow() == 0.00) {
-                queryString += "," + String.valueOf(debe4Txt.getDoubleValueDoNotThrow()); // DEBE
+                queryString += "," + debe4Txt.getDoubleValueDoNotThrow(); // DEBE
                 queryString += ",0.00"; //HABER
-                queryString += "," + String.valueOf(debe4Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += "," + debe4Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",0.00"; //HABER Q.
             } else {
                 if (haber4Txt.getDoubleValueDoNotThrow() > 0 && debe4Txt.getDoubleValueDoNotThrow() == 0.00) {
                     queryString += ",0.00"; //DEBE
-                    queryString += "," + String.valueOf(haber4Txt.getDoubleValueDoNotThrow()); // Haber
+                    queryString += "," + haber4Txt.getDoubleValueDoNotThrow(); // Haber
                     queryString += ",0.00"; //DEBEQ.
-                    queryString += "," + String.valueOf(haber4Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                    queryString += "," + haber4Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 }
             }
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += "," + idLiquidadorEdit;
             queryString += "," + idLiquidacionEdit;

@@ -21,7 +21,6 @@ import java.io.*;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -119,7 +118,7 @@ public class ProgramaTrabajoTaskPDF extends Window {
         private final String RECEIPTFILE
                 = VaadinService.getCurrent()
                         .getBaseDirectory().getAbsolutePath() + "/pdfreceipts/";
-        private String TDLOGO = VaadinService.getCurrent()
+        private final String TDLOGO = VaadinService.getCurrent()
                 .getBaseDirectory().getAbsolutePath() + "/VAADIN/themes/tests-valo-flat/img/logo_simpletecno.png";
 
         private final Font catFont = new Font(Font.FontFamily.TIMES_ROMAN, 18, Font.BOLD);
@@ -371,7 +370,7 @@ public class ProgramaTrabajoTaskPDF extends Window {
                 queryString = "SELECT *";
                 queryString += " FROM plan_trabajo_idex_rh ";
                 queryString += " INNER JOIN proveedor ON proveedor.IdProveedor = plan_trabajo_idex_rh.IdEmpleado";
-                queryString += " WHERE plan_trabajo_idex_rh.IdPlanTrabajoIdex = " + String.valueOf(idexContainer.getItem(itemId).getItemProperty(ProgramaTrabajoCheckView.ID_PROPERTY).getValue());
+                queryString += " WHERE plan_trabajo_idex_rh.IdPlanTrabajoIdex = " + idexContainer.getItem(itemId).getItemProperty(ProgramaTrabajoCheckView.ID_PROPERTY).getValue();
                 queryString += " AND proveedor.IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
                 queryString += " ORDER BY proveedor.Nombre";
 

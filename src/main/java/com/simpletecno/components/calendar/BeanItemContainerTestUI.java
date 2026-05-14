@@ -43,7 +43,7 @@ public class BeanItemContainerTestUI extends UI {
 
     private Table table;
 
-    private BeanItemContainer<BasicEvent> events = new BeanItemContainer<BasicEvent>(
+    private final BeanItemContainer<BasicEvent> events = new BeanItemContainer<BasicEvent>(
             BasicEvent.class);
 
     @SuppressWarnings("deprecation")
@@ -66,8 +66,8 @@ public class BeanItemContainerTestUI extends UI {
         // Add event table connected to same data source
         table = createTable();
         table.setContainerDataSource(events);
-        table.setVisibleColumns(new Object[] { "caption", "description",
-                "start", "end" });
+        table.setVisibleColumns("caption", "description",
+                "start", "end");
         content.addComponent(table);
     }
 

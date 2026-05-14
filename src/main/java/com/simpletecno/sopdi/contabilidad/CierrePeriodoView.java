@@ -20,7 +20,6 @@ import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.DateField;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.Grid.FooterRow;
 import com.vaadin.ui.HorizontalLayout;
@@ -30,6 +29,7 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
@@ -271,9 +271,9 @@ public class CierrePeriodoView extends VerticalLayout implements View {
                 return;
             }
 
-            BigDecimal totalDebe = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-            BigDecimal totalHaber = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-            BigDecimal diferenciaDeSaldos = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+            BigDecimal totalDebe = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+            BigDecimal totalHaber = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+            BigDecimal diferenciaDeSaldos = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
             queryString = " SELECT contabilidad_balance_saldo.*, contabilidad_nomenclatura_empresa.NoCuenta, ";
             queryString += " contabilidad_nomenclatura_empresa.N5,contabilidad_nomenclatura_empresa.Reporte  ";
@@ -319,14 +319,14 @@ public class CierrePeriodoView extends VerticalLayout implements View {
                 balanceSaldosContainer.getContainerProperty(itemId, SALDO_FINAL_PROPERTY).setValue(numberFormat.format(Double.parseDouble(String.valueOf(rsRecords.getDouble("SaldoFinal")))));
                 balanceSaldosContainer.getContainerProperty(itemId, TIPO_CUENTA_PROPERTY).setValue(rsRecords.getString("Reporte"));
 
-                totalDebe = totalDebe.add(new BigDecimal(rsRecords.getDouble("Debe")).setScale(2, BigDecimal.ROUND_HALF_UP));
-                totalHaber = totalHaber.add(new BigDecimal(rsRecords.getDouble("Haber")).setScale(2, BigDecimal.ROUND_HALF_UP));
+                totalDebe = totalDebe.add(new BigDecimal(rsRecords.getDouble("Debe")).setScale(2, RoundingMode.HALF_UP));
+                totalHaber = totalHaber.add(new BigDecimal(rsRecords.getDouble("Haber")).setScale(2, RoundingMode.HALF_UP));
 
                 if (cuenta.startsWith("1") || cuenta.startsWith("5") || cuenta.startsWith("6")) { // se carga en el debe
-                    diferenciaDeSaldos = diferenciaDeSaldos.add(BigDecimal.valueOf((rsRecords.getDouble("SaldoFinal"))).setScale(2, BigDecimal.ROUND_HALF_UP));
+                    diferenciaDeSaldos = diferenciaDeSaldos.add(BigDecimal.valueOf((rsRecords.getDouble("SaldoFinal"))).setScale(2, RoundingMode.HALF_UP));
                 }
                 else {
-                    diferenciaDeSaldos = diferenciaDeSaldos.subtract(BigDecimal.valueOf((rsRecords.getDouble("SaldoFinal"))).setScale(2, BigDecimal.ROUND_HALF_UP));
+                    diferenciaDeSaldos = diferenciaDeSaldos.subtract(BigDecimal.valueOf((rsRecords.getDouble("SaldoFinal"))).setScale(2, RoundingMode.HALF_UP));
                 }
 
             } while (rsRecords.next());
@@ -370,7 +370,7 @@ public class CierrePeriodoView extends VerticalLayout implements View {
         Calendar fechaCierre = Calendar.getInstance();
         fechaCierre.set(anio, 11, 31);
 
-        String codigoPartidaCierre = empresaId + String.valueOf(anio) + "31129999"; //= 21202012CIERR  21202101APERT
+        String codigoPartidaCierre = empresaId + anio + "31129999"; //= 21202012CIERR  21202101APERT
 
         try {
 
@@ -461,7 +461,7 @@ public class CierrePeriodoView extends VerticalLayout implements View {
 
             fechaCierre.set(anio+1, 0, 1);
 
-            String codigoPartidaApertura = empresaId + String.valueOf(anio + 1) + "01010000"; //= 21202012CIERR  21202101APERT
+            String codigoPartidaApertura = empresaId + (anio + 1) + "01010000"; //= 21202012CIERR  21202101APERT
 
             double saldoDebe = 0.00;
             double saldoHaber = 0.00;

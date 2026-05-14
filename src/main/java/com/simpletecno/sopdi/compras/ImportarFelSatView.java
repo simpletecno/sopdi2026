@@ -655,8 +655,8 @@ public class ImportarFelSatView extends VerticalLayout implements View {
             rsRecords = stQuery.executeQuery(queryString);
 
             if (rsRecords.next()) {
-                if (marcaAnulado.toUpperCase().equals("ANULADO")) { //anularon el documento
-                    if (rsRecords.getString("Estatus").toUpperCase().equals("ACTIVA")) {
+                if (marcaAnulado.equalsIgnoreCase("ANULADO")) { //anularon el documento
+                    if (rsRecords.getString("Estatus").equalsIgnoreCase("ACTIVA")) {
                         stQuery.executeUpdate("UPDATE documentos_fel_sat SET Estatus = 'ANULADA' WHERE Id =" + rsRecords.getString("Id"));
 //                //ANULAR DOCUMENTO EN CONTABILIDAD SI ES QUE EXIST
                         queryString = "UPDATE contabilidad_partida SET ESTATUS = 'ANULADO'"
@@ -1130,7 +1130,7 @@ public class ImportarFelSatView extends VerticalLayout implements View {
             otrosImpuestos += rsRecords.getDouble("Tabaco")  + rsRecords.getDouble("Cemento");
             otrosImpuestos += rsRecords.getDouble("BebidasNoAlcoholicas")  + rsRecords.getDouble("TarifaPortuaria");
 
-            double tasaCambio = (double)((SopdiUI) mainUI).getTasaCambioDelDia(fechaEmision);
+            double tasaCambio = ((SopdiUI) mainUI).getTasaCambioDelDia(fechaEmision);
 
             if(moneda.equals("DOLARES") && tasaCambio == 1.00 ) {
                 Notification.show("No se ha encontrado tasa de cambio para la fecha de emisión de la factura : " + serie + " " + numero, Notification.Type.ERROR_MESSAGE);
@@ -1589,7 +1589,7 @@ System.out.println("\n--->queryStringOrdenesCompra="+queryString);
                                     }
                                     queryString += ",'" + moneda + "'";
                                     queryString += ",0.00"; // DEBE
-                                    queryString += "," + String.valueOf(Double.parseDouble(monto)); //HABER
+                                    queryString += "," + Double.parseDouble(monto); //HABER
                                     queryString += ",0.00"; //DEBE Q
                                     queryString += "," + tasaCambio * (Double.parseDouble(monto)); //HABER Q
                                 } else { // hay cheque por anticipo, aplicar la diferencia en Haber
@@ -1852,7 +1852,7 @@ System.out.println("TEMPORALLOG=subQueryStringVerificaFacturaVenta=" + subQueryS
                                         queryStringDOCA += ",'" + rsRecords1.getString("IDCC") + "'"; //centro costo
                                         queryStringDOCA += ",'" + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName() + "'";
                                         queryStringDOCA += "," + empresaId;
-                                        queryStringDOCA += "," + rsRecords1.getString("Total");; //total
+                                        queryStringDOCA += "," + rsRecords1.getString("Total");//total
                                         queryStringDOCA += ",'" + moneda + "'"; //moneda
                                         queryStringDOCA += "," + rsRecords1.getString("Cantidad");
                                         queryStringDOCA += "," + rsRecords1.getString("Precio");
@@ -1862,7 +1862,7 @@ System.out.println("TEMPORALLOG=subQueryStringVerificaFacturaVenta=" + subQueryS
                                         queryStringDOCA += ",'" + tasaCambio + "'"; //tasa
                                         queryStringDOCA += "," + tasaCambio * rsRecords1.getDouble("Total"); //totalq
                                         queryStringDOCA += ",current_date"; //fechaingreso
-                                        queryStringDOCA += ",'" + NOC.substring(7, NOC.length()) + "'"; // noc
+                                        queryStringDOCA += ",'" + NOC.substring(7) + "'"; // noc
                                         queryStringDOCA += ",0"; //lote
                                         queryStringDOCA += ",0"; //idexanterior
                                         queryStringDOCA += ",null";// rebajado
@@ -2335,7 +2335,7 @@ System.out.println("TEMPORALLOG=queryStringInsertDOCA=" + queryStringDOCA);
 
             String fileName = filePath + numeroAutorizacion + ".pdf";
 //Logger.getLogger(this.getClass()).log(Level.INFO, fileName);
-            final byte docBytes[] = Files.readAllBytes(new File(fileName).toPath());
+            final byte[] docBytes = Files.readAllBytes(new File(fileName).toPath());
 
             if (docBytes == null) {
                 Notification.show("Documento PDF no disponible para visualizar!");
@@ -2438,12 +2438,10 @@ System.out.println("TEMPORALLOG=queryStringInsertDOCA=" + queryStringDOCA);
                             notif.setPosition(Position.MIDDLE_CENTER);
                             notif.setIcon(FontAwesome.WARNING);
                             notif.show(Page.getCurrent());
-                            return;
                         }
                     } catch (java.io.IOException fIoEx) {
                         fIoEx.printStackTrace();
                         Notification.show("Error al cargar el archivo PDF!", Notification.Type.ERROR_MESSAGE);
-                        return;
                     }
                 }
             };

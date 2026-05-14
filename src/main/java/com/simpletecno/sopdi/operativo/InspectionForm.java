@@ -23,7 +23,6 @@ import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Image;
 import com.vaadin.ui.TextArea;
 import com.vaadin.ui.themes.Runo;
 import com.vaadin.ui.UI;
@@ -84,7 +83,7 @@ public class InspectionForm extends Window {
     ResultSet rsRecords1 = null;
     PreparedStatement stPreparedQuery = null;
 
-    private UI mainUI;
+    private final UI mainUI;
     String codigoVisita = "";
     String queryString = "";
     String idVisitaInspeccion = "";
@@ -368,7 +367,7 @@ System.out.println("centro costo=" + centroCostoCbx.getItem(_item));
 
                     InspectionTasksWindow inspectionTaskView
                             = new InspectionTasksWindow(
-                                    String.valueOf(idVisitaInspeccion),
+                            idVisitaInspeccion,
                                     String.valueOf(codigoVisitaInspeccion),
                                     String.valueOf(motivoCbx.getItemCaption(motivoCbx.getValue())),
                                     String.valueOf(centroCostoCbx.getItemCaption(centroCostoCbx.getValue())),
@@ -391,8 +390,8 @@ System.out.println("centro costo=" + centroCostoCbx.getItem(_item));
                         = new ReporteVisitasReunionesPDF(
                                 idVisitaInspeccion,
                                 codigoVisitaInspeccion,
-                                String.valueOf(Utileria.getFechaDDMMYYYY_HHMM_2(fechaYHoraInicioDt.getValue())),
-                                String.valueOf(Utileria.getFechaDDMMYYYY_HHMM_2(fechaYHoraFinDt.getValue())),
+                        Utileria.getFechaDDMMYYYY_HHMM_2(fechaYHoraInicioDt.getValue()),
+                        Utileria.getFechaDDMMYYYY_HHMM_2(fechaYHoraFinDt.getValue()),
                                 String.valueOf(motivoCbx.getValue()),
                                 "",
                                 String.valueOf(centroCostoCbx.getItemCaption(centroCostoCbx.getValue())),
@@ -785,9 +784,9 @@ System.out.println("centro costo=" + centroCostoCbx.getItem(_item));
                 queryString += ",'" + codigoVisita + "'";
                 queryString += ",'" + Utileria.getFechaYYYYMMDDHHMMSS(fechaYHoraInicioDt.getValue()) + "'";
                 queryString += ",'" + Utileria.getFechaYYYYMMDDHHMMSS(fechaYHoraFinDt.getValue()) + "'";
-                queryString += ",'" + String.valueOf(motivoCbx.getItemCaption(motivoCbx.getValue())) + "'";
-                queryString += ", " + String.valueOf(clienteCbx.getValue());
-                queryString += ", " + String.valueOf(centroCostoCbx.getValue());
+                queryString += ",'" + motivoCbx.getItemCaption(motivoCbx.getValue()) + "'";
+                queryString += ", " + clienteCbx.getValue();
+                queryString += ", " + centroCostoCbx.getValue();
                 queryString += ",'" + referenciaTxt.getValue() + "'";
                 queryString += ",'" + participantesContainer.getContainerProperty(1, "Nombre").getValue() + "'";
                 queryString += ",'" + participantesContainer.getContainerProperty(1, "Empresa").getValue() + "'";
@@ -824,11 +823,11 @@ System.out.println("centro costo=" + centroCostoCbx.getItem(_item));
                 queryString += ")";
             } else {
                 queryString = "UPDATE visita_inspeccion SET";
-                queryString += " IdCliente = " + String.valueOf(clienteCbx.getValue());
+                queryString += " IdCliente = " + clienteCbx.getValue();
                 queryString += ",FechaYHoraInicio = '" + Utileria.getFechaYYYYMMDDHHMMSS(fechaYHoraInicioDt.getValue()) + "'";
                 queryString += ",FechaYHoraFin = '" + Utileria.getFechaYYYYMMDDHHMMSS(fechaYHoraFinDt.getValue()) + "'";
-                queryString += ",Motivo = '" + String.valueOf(motivoCbx.getItemCaption(motivoCbx.getValue())) + "'";
-                queryString += ",IdCentroCosto = " + String.valueOf(centroCostoCbx.getValue());
+                queryString += ",Motivo = '" + motivoCbx.getItemCaption(motivoCbx.getValue()) + "'";
+                queryString += ",IdCentroCosto = " + centroCostoCbx.getValue();
                 queryString += ",Referencia = '" + referenciaTxt.getValue() + "'";
                 queryString += ",Participante1 = '" + participantesContainer.getContainerProperty(1, "Nombre").getValue() + "'";
                 queryString += ",Participante1Empresa = '" + participantesContainer.getContainerProperty(1, "Empresa").getValue() + "'";

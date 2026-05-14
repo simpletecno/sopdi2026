@@ -865,7 +865,7 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
 
                             queryString += "(";
                             queryString += ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
-                            queryString += "," + selectedItem.toString();
+                            queryString += "," + selectedItem;
                             queryString += ",'" + rsRecords.getString("Reporte") + "'";
                             queryString += ",'" + rsRecords.getString("Id1") + "'";
                             queryString += ",'" + rsRecords.getString("N1") + "'";

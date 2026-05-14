@@ -124,7 +124,7 @@ public class ReporteVisitasReunionesPDF extends Window {
             buttonLayout.addStyleName("rcorners3");
             buttonLayout.setSizeUndefined();
 
-            fileName = "ReporteVisitaReunion_" + String.valueOf(codigoVisitaInspeccion) + "_" + new Utileria().getFechaHoraSinFormato() + ".pdf";
+            fileName = "ReporteVisitaReunion_" + codigoVisitaInspeccion + "_" + new Utileria().getFechaHoraSinFormato() + ".pdf";
 
             Pdf pdf = new Pdf(fileName);
 
@@ -201,7 +201,7 @@ public class ReporteVisitasReunionesPDF extends Window {
         private final String RECEIPTFILE
                 = VaadinService.getCurrent()
                         .getBaseDirectory().getAbsolutePath() + "/pdfreceipts/";
-        private String TDLOGO = VaadinService.getCurrent()
+        private final String TDLOGO = VaadinService.getCurrent()
                 .getBaseDirectory().getAbsolutePath() + "/VAADIN/themes/tests-valo-flat/img/logo_simpletecno.png";
 
         private final Font catFont = new Font(Font.FontFamily.TIMES_ROMAN, 18, Font.BOLD);
@@ -232,7 +232,7 @@ public class ReporteVisitasReunionesPDF extends Window {
 
                 new File(VaadinService.getCurrent().getBaseDirectory().getAbsolutePath() + "/pdfreceipts").mkdirs();
 
-                fileName = "ReporteVisitaReunion_" + String.valueOf(codigoVisita) + "_" + new Utileria().getFechaHoraSinFormato() + ".pdf";
+                fileName = "ReporteVisitaReunion_" + codigoVisita + "_" + new Utileria().getFechaHoraSinFormato() + ".pdf";
                 new File(VaadinService.getCurrent().getBaseDirectory().getAbsolutePath() + "/pdfreceipts").mkdirs();
 
                 fileName = RECEIPTFILE + fileName;
@@ -251,7 +251,7 @@ public class ReporteVisitasReunionesPDF extends Window {
 
                 writer = PdfWriter.getInstance(document2, os);
                 HeaderFooterPageEvent event = new HeaderFooterPageEvent();
-                event.setFirstLineReportTitle("REPORTE DE VISITA / REUNION #. " + String.valueOf(codigoVisita));
+                event.setFirstLineReportTitle("REPORTE DE VISITA / REUNION #. " + codigoVisita);
                 event.setCompanyName(((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectName());
                 event.setPrintBy(((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserName());
                 event.setPrintTime(Utileria.getFechaDDMMYYYY_HHMM_2(new java.util.Date()));
@@ -296,7 +296,7 @@ public class ReporteVisitasReunionesPDF extends Window {
         // Reader
         // under File -> Properties
         private void addMetaData(Document document) {
-            document.addTitle("REPORTE DE VISITA REUNION " + String.valueOf(codigoVisita) + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectName() + " AL : " + Utileria.getFechaDDMMYYYY(new java.util.Date()));
+            document.addTitle("REPORTE DE VISITA REUNION " + codigoVisita + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectName() + " AL : " + Utileria.getFechaDDMMYYYY(new java.util.Date()));
             document.addSubject("Using iText");
             document.addKeywords("Java, PDF, iText");
             document.addAuthor("www.sopdi.com");
@@ -574,7 +574,7 @@ public class ReporteVisitasReunionesPDF extends Window {
                         cell.setBorderWidth(1);
                         agendaTable.addCell(cell);
                         i++;
-                        linea = linea + (rsRecords.getString("Resolucion").length() * 12);
+                        linea = linea + (rsRecords.getString("Resolucion").length() * 12L);
                     }while (rsRecords.next());
 
 
@@ -697,11 +697,11 @@ public class ReporteVisitasReunionesPDF extends Window {
                         cell.setHorizontalAlignment(Element.ALIGN_LEFT);
                         cell.setBorderWidth(0);
                         tareaTable.addCell(cell);
-                        linea = linea + (rsRecords.getString("Instruccion").length()*10);
+                        linea = linea + (rsRecords.getString("Instruccion").length()* 10L);
 
                     } else {
 
-                        if (rsRecords.isFirst() == false) {
+                        if (!rsRecords.isFirst()) {
                             cell = new PdfPCell(new Paragraph("——————————", small10));
                             cell.setHorizontalAlignment(Element.ALIGN_LEFT);
                             cell.setVerticalAlignment(Element.ALIGN_LEFT);

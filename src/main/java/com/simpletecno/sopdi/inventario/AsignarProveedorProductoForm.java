@@ -308,15 +308,15 @@ public class AsignarProveedorProductoForm extends Window {
                 if (item.getItemProperty(PRECIO_PROPERTY) != null && precio > 0) {
 
                     queryString = "SELECT * FROM proveedor_productos";
-                    queryString += " WHERE IdProveedor = " + String.valueOf(item.getItemProperty(ID_PROVEEDOR_PROPERTY).getValue());
+                    queryString += " WHERE IdProveedor = " + item.getItemProperty(ID_PROVEEDOR_PROPERTY).getValue();
                     queryString += " AND IdProducto = " + idProducto;
                     
                     rsRecords = stQuery.executeQuery(queryString);
 
                     if (rsRecords.next()) {
                         queryString = "  UPDATE proveedor_productos SET";
-                        queryString += " PLU ='" + String.valueOf(item.getItemProperty(PLU_PROPERTY).getValue()) + "'";
-                        queryString += ",Precio ="+ String.valueOf(item.getItemProperty(PRECIO_PROPERTY).getValue());
+                        queryString += " PLU ='" + item.getItemProperty(PLU_PROPERTY).getValue() + "'";
+                        queryString += ",Precio ="+ item.getItemProperty(PRECIO_PROPERTY).getValue();
                         queryString += " WHERE Id =" + rsRecords.getString("Id");
                     } else {
                         queryString = "  INSERT INTO proveedor_productos(IdProveedor, IdProducto, PLU, PLUDescripcion, Precio) ";
@@ -324,9 +324,9 @@ public class AsignarProveedorProductoForm extends Window {
                         queryString += "(";
                         queryString += String.valueOf(item.getItemProperty(ID_PROVEEDOR_PROPERTY).getValue());
                         queryString += "," + idProducto;
-                        queryString += ",'" + String.valueOf(item.getItemProperty(PLU_PROPERTY).getValue()) + "'";
+                        queryString += ",'" + item.getItemProperty(PLU_PROPERTY).getValue() + "'";
                         queryString += ",'" + nombreProducto + "'";
-                        queryString += "," + String.valueOf(item.getItemProperty(PRECIO_PROPERTY).getValue());
+                        queryString += "," + item.getItemProperty(PRECIO_PROPERTY).getValue();
                         queryString += ")";
                     }
 

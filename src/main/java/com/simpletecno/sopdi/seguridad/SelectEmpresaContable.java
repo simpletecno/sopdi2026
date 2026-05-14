@@ -9,10 +9,8 @@ import com.vaadin.event.ShortcutAction;
 import com.vaadin.server.*;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.*;
-import com.vaadin.ui.themes.ValoTheme;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Iterator;
@@ -381,10 +379,8 @@ public class SelectEmpresaContable extends Window {
         proyectosTable.addContainerProperty(LOGO_PROPERTY,   Image.class,  null);
         proyectosTable.addContainerProperty(NOMBRE_PROPERTY, String.class, null);
 
-        proyectosTable.setColumnAlignments(new Table.Align[]{
-                Table.Align.CENTER,
-                Table.Align.LEFT
-        });
+        proyectosTable.setColumnAlignments(Table.Align.CENTER,
+                Table.Align.LEFT);
 
         proyectosTable.setColumnWidth(LOGO_PROPERTY, 50);
 
@@ -612,7 +608,7 @@ public class SelectEmpresaContable extends Window {
         }
 
         if (((SopdiUI) mainUI).currentViewName != null) {
-            ((SopdiUI) mainUI).getNavigator().navigateTo(((SopdiUI) mainUI).currentViewName);
+            mainUI.getNavigator().navigateTo(((SopdiUI) mainUI).currentViewName);
         }
 
         String empresaProyecto = "<strong>"

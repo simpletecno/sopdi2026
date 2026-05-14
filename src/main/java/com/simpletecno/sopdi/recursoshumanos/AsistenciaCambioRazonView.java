@@ -151,20 +151,20 @@ public class AsistenciaCambioRazonView extends VerticalLayout implements View {
                 for(Object objectItem : groupBitacoraContainer.getItemIds()) {
 
                     if(String.valueOf(groupBitacoraContainer.getContainerProperty(objectItem, ESTATUS_PROPERTY).getValue()).equals("PRESENTE") & !String.valueOf(groupBitacoraContainer.getContainerProperty(objectItem, RAZON_PROPERTY).getValue()).trim().isEmpty() ) {
-                        Notification.show("El estatus de asistencia del empleado : " + String.valueOf(groupBitacoraContainer.getContainerProperty(objectItem, EMPLEADO_PROPERTY).getValue()) + " es PRESENTE, debe primero cambiarlo a AUSENTE para elgir razón de ausencia.", Notification.Type.WARNING_MESSAGE);
+                        Notification.show("El estatus de asistencia del empleado : " + groupBitacoraContainer.getContainerProperty(objectItem, EMPLEADO_PROPERTY).getValue() + " es PRESENTE, debe primero cambiarlo a AUSENTE para elgir razón de ausencia.", Notification.Type.WARNING_MESSAGE);
                         return;
                     }
 
                     queryString = "UPDATE empleado_asistencia SET ";
-                    queryString += " Razon   = '" + String.valueOf(groupBitacoraContainer.getContainerProperty(objectItem, RAZON_PROPERTY).getValue()) + "'";
+                    queryString += " Razon   = '" + groupBitacoraContainer.getContainerProperty(objectItem, RAZON_PROPERTY).getValue() + "'";
                     queryString += ",EsDefinitiva = 1";
-                    queryString += " WHERE Id = " + String.valueOf(groupBitacoraContainer.getContainerProperty(objectItem, IDBITACORA_PROPERTY).getValue());
+                    queryString += " WHERE Id = " + groupBitacoraContainer.getContainerProperty(objectItem, IDBITACORA_PROPERTY).getValue();
 
                     stQuery.executeUpdate(queryString);
 
                     queryString = "UPDATE proveedor_empresa SET ";
-                    queryString += " Razon   = '" + String.valueOf(groupBitacoraContainer.getContainerProperty(objectItem, RAZON_PROPERTY).getValue()) + "'";
-                    queryString += " WHERE IdProveedor = " + String.valueOf(groupBitacoraContainer.getContainerProperty(objectItem, IDEMPLEADO_PROPERTY).getValue());
+                    queryString += " Razon   = '" + groupBitacoraContainer.getContainerProperty(objectItem, RAZON_PROPERTY).getValue() + "'";
+                    queryString += " WHERE IdProveedor = " + groupBitacoraContainer.getContainerProperty(objectItem, IDEMPLEADO_PROPERTY).getValue();
 
                     stQuery.executeUpdate(queryString);
 
@@ -290,7 +290,6 @@ public class AsistenciaCambioRazonView extends VerticalLayout implements View {
 
             if(!rsRecords.next()) { //NO EXISTE BITACORA PARA HOY, HAY QUE CREARLA
                 Notification.show("NO HAY BITACORA DE ASISTENCIA DE ESTE DIA.", Notification.Type.WARNING_MESSAGE);
-                return;
             }
             else {
                 do {

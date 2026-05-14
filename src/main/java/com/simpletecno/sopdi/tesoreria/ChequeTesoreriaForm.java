@@ -16,6 +16,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.ui.NumberField;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -485,7 +486,7 @@ public class ChequeTesoreriaForm extends Window {
                             }
                             else {
                                 haber2Txt.setValue(Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "")));
-                                facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_PAGADO_PROPERTY).setValue(String.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "")));
+                                facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_PAGADO_PROPERTY).setValue(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", ""));
                             }
                             montoDisponible -= Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", ""));
                             codigo2Txt.setValue(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(CODIGO_CC_PROPERTY).getValue()));
@@ -501,7 +502,7 @@ public class ChequeTesoreriaForm extends Window {
                             }
                             else {
                                 haber3Txt.setValue(Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "")));
-                                facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_PAGADO_PROPERTY).setValue(String.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "")));
+                                facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_PAGADO_PROPERTY).setValue(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", ""));
                             }
                             montoDisponible -= Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", ""));
                             codigo3Txt.setValue(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(CODIGO_CC_PROPERTY).getValue()));
@@ -517,7 +518,7 @@ public class ChequeTesoreriaForm extends Window {
                             }
                             else {
                                 haber4Txt.setValue(Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "")));
-                                facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_PAGADO_PROPERTY).setValue(String.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "")));
+                                facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_PAGADO_PROPERTY).setValue(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", ""));
                             }
                             montoDisponible -= Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", ""));
                             codigo4Txt.setValue(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(CODIGO_CC_PROPERTY).getValue()));
@@ -533,7 +534,7 @@ public class ChequeTesoreriaForm extends Window {
                             }
                             else {
                                 haber4Txt.setValue(Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "")));
-                                facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_PAGADO_PROPERTY).setValue(String.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "")));
+                                facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_PAGADO_PROPERTY).setValue(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", ""));
                             }
                             montoDisponible -= Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", ""));
                             codigo5Txt.setValue(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(CODIGO_CC_PROPERTY).getValue()));
@@ -550,7 +551,7 @@ public class ChequeTesoreriaForm extends Window {
                             }
                             else {
                                 haber6Txt.setValue(Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "")));
-                                facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_PAGADO_PROPERTY).setValue(String.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "")));
+                                facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_PAGADO_PROPERTY).setValue(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", ""));
                             }
                             montoDisponible -= Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", ""));
                             codigo6Txt.setValue(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(CODIGO_CC_PROPERTY).getValue()));
@@ -567,7 +568,7 @@ public class ChequeTesoreriaForm extends Window {
                             }
                             else {
                                 haber7Txt.setValue(Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "")));
-                                facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_PAGADO_PROPERTY).setValue(String.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "")));
+                                facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_PAGADO_PROPERTY).setValue(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", ""));
                             }
                             montoDisponible -= Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", ""));
                             codigo7Txt.setValue(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(CODIGO_CC_PROPERTY).getValue()));
@@ -584,7 +585,7 @@ public class ChequeTesoreriaForm extends Window {
                             }
                             else {
                                 haber8Txt.setValue(Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "")));
-                                facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_PAGADO_PROPERTY).setValue(String.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "")));
+                                facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_PAGADO_PROPERTY).setValue(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", ""));
                             }
                             montoDisponible -= Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", ""));
                             codigo8Txt.setValue(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(CODIGO_CC_PROPERTY).getValue()));
@@ -601,7 +602,7 @@ public class ChequeTesoreriaForm extends Window {
                             }
                             else {
                                 haber9Txt.setValue(Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "")));
-                                facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_PAGADO_PROPERTY).setValue(String.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "")));
+                                facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_PAGADO_PROPERTY).setValue(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", ""));
                             }
                             montoDisponible -= Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", ""));
                             codigo9Txt.setValue(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(CODIGO_CC_PROPERTY).getValue()));
@@ -618,7 +619,7 @@ public class ChequeTesoreriaForm extends Window {
                             }
                             else {
                                 haber10Txt.setValue(Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "")));
-                                facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_PAGADO_PROPERTY).setValue(String.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "")));
+                                facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_PAGADO_PROPERTY).setValue(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", ""));
                             }
                             montoDisponible -= Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONTO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", ""));
                             codigo10Txt.setValue(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(CODIGO_CC_PROPERTY).getValue()));
@@ -1051,7 +1052,7 @@ public class ChequeTesoreriaForm extends Window {
         guardarBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                if (validarCamposParaIngresarChequesNoConciliados() == false) {
+                if (!validarCamposParaIngresarChequesNoConciliados()) {
                     actualizarSaldosFacturas();
                 }
             }
@@ -1238,7 +1239,7 @@ public class ChequeTesoreriaForm extends Window {
                 + debe6Txt.getDoubleValueDoNotThrow() + debe7Txt.getDoubleValueDoNotThrow()
                 + debe8Txt.getDoubleValueDoNotThrow() + debe9Txt.getDoubleValueDoNotThrow()
                 + debe10Txt.getDoubleValueDoNotThrow()
-        ).setScale(2, BigDecimal.ROUND_HALF_UP);
+        ).setScale(2, RoundingMode.HALF_UP);
 
         totalHaber = new BigDecimal(haber1Txt.getDoubleValueDoNotThrow()
                 + haber2Txt.getDoubleValueDoNotThrow() + haber3Txt.getDoubleValueDoNotThrow()
@@ -1246,10 +1247,10 @@ public class ChequeTesoreriaForm extends Window {
                 + haber6Txt.getDoubleValueDoNotThrow() + haber7Txt.getDoubleValueDoNotThrow()
                 + haber8Txt.getDoubleValueDoNotThrow() + haber9Txt.getDoubleValueDoNotThrow()
                 + haber10Txt.getDoubleValueDoNotThrow()
-        ).setScale(2, BigDecimal.ROUND_HALF_UP);
+        ).setScale(2, RoundingMode.HALF_UP);
 
-        totalDebe.setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalHaber.setScale(2, BigDecimal.ROUND_HALF_UP);
+        totalDebe.setScale(2, RoundingMode.HALF_UP);
+        totalHaber.setScale(2, RoundingMode.HALF_UP);
 
         if (totalDebe.doubleValue() != totalHaber.doubleValue()) {
             System.out.println("Debe =" + totalDebe.doubleValue() + "  haber=" + totalHaber);
@@ -1401,9 +1402,9 @@ public class ChequeTesoreriaForm extends Window {
 
         queryString = " SELECT * FROM contabilidad_partida";
         queryString += " WHERE NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " AND IdProveedor     =  " + String.valueOf(proveedorCbx.getValue());
+        queryString += " AND IdProveedor     =  " + proveedorCbx.getValue();
         queryString += " AND IdEmpresa = " + empresaId;
-        queryString += " AND TipoDocumento = '" + String.valueOf(medioCbx.getValue())  + "'";
+        queryString += " AND TipoDocumento = '" + medioCbx.getValue() + "'";
         queryString += " AND MonedaDocumento = '" + monedaCbx.getValue() + "'";
 
         System.out.println("\n\nQuery=" + queryString + "\n\n");
@@ -1463,7 +1464,7 @@ public class ChequeTesoreriaForm extends Window {
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",''";
-        queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+        queryString += ",'" + medioCbx.getValue() + "'";
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += "," + proveedorCbx.getValue();
         queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1471,13 +1472,13 @@ public class ChequeTesoreriaForm extends Window {
         queryString += "," + cuentaContable1Cbx.getValue();
         queryString += ",'" + monedaCbx.getValue() + "'";
         queryString += ","  + montoTxt.getDoubleValueDoNotThrow();
-        queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow()); // DEBE
+        queryString += "," + debe1Txt.getDoubleValueDoNotThrow(); // DEBE
         queryString += ",0.00"; //HABER
-        queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + debe1Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
         queryString += ",0.00"; //HABER Q.
-        queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
         queryString += ",0.00";
-        queryString += ",'Ingreso por " + String.valueOf(tipoIngresoCbx.getValue()) + " " + descripcionTxt.getValue() + "'";
+        queryString += ",'Ingreso por " + tipoIngresoCbx.getValue() + " " + descripcionTxt.getValue() + "'";
         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
         queryString += ",current_timestamp";
         queryString += ")";
@@ -1490,7 +1491,7 @@ public class ChequeTesoreriaForm extends Window {
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo2Txt.getValue() + "'";   /// CODIGOCC
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1498,13 +1499,13 @@ public class ChequeTesoreriaForm extends Window {
             queryString += "," + cuentaContable2Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
             queryString += ","  + montoTxt.getDoubleValueDoNotThrow();
-            queryString += "," + String.valueOf(debe2Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow());  //HABER
-            queryString += "," + String.valueOf(debe2Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe2Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber2Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe2Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber2Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
-            queryString += ",'Ingreso por " + String.valueOf(tipoIngresoCbx.getValue()) + " " + descripcionTxt.getValue() + "'";
+            queryString += ",'Ingreso por " + tipoIngresoCbx.getValue() + " " + descripcionTxt.getValue() + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ")";
@@ -1518,7 +1519,7 @@ public class ChequeTesoreriaForm extends Window {
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo3Txt.getValue() + "'";   /// CODIGOCC
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1526,13 +1527,13 @@ public class ChequeTesoreriaForm extends Window {
             queryString += "," + cuentaContable3Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
             queryString += ","  + montoTxt.getDoubleValueDoNotThrow();
-            queryString += "," + String.valueOf(debe3Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber3Txt.getDoubleValueDoNotThrow());  //HABER
-            queryString += "," + String.valueOf(debe3Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber3Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe3Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber3Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe3Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber3Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
-            queryString += ",'Ingreso por " + String.valueOf(tipoIngresoCbx.getValue()) + " " + descripcionTxt.getValue() + "'";
+            queryString += ",'Ingreso por " + tipoIngresoCbx.getValue() + " " + descripcionTxt.getValue() + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ")";
@@ -1547,7 +1548,7 @@ public class ChequeTesoreriaForm extends Window {
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo4Txt.getValue() + "'";   /// CODIGOCC
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1555,13 +1556,13 @@ public class ChequeTesoreriaForm extends Window {
             queryString += "," + cuentaContable4Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
             queryString += ","  + montoTxt.getDoubleValueDoNotThrow();
-            queryString += "," + String.valueOf(debe4Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber4Txt.getDoubleValueDoNotThrow());  //HABER
-            queryString += "," + String.valueOf(debe4Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber4Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe4Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber4Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe4Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber4Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
-            queryString += ",'Ingreso por " + String.valueOf(tipoIngresoCbx.getValue()) + " " + descripcionTxt.getValue() + "'";
+            queryString += ",'Ingreso por " + tipoIngresoCbx.getValue() + " " + descripcionTxt.getValue() + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ")";
@@ -1575,7 +1576,7 @@ public class ChequeTesoreriaForm extends Window {
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo5Txt.getValue() + "'";   /// CODIGOCC
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1583,13 +1584,13 @@ public class ChequeTesoreriaForm extends Window {
             queryString += "," + cuentaContable5Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
             queryString += ","  + montoTxt.getDoubleValueDoNotThrow();
-            queryString += "," + String.valueOf(debe5Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber5Txt.getDoubleValueDoNotThrow());  //HABER
-            queryString += "," + String.valueOf(debe5Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber5Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe5Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber5Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe5Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber5Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
-            queryString += ",'Ingreso por " + String.valueOf(tipoIngresoCbx.getValue()) + " " + descripcionTxt.getValue() + "'";
+            queryString += ",'Ingreso por " + tipoIngresoCbx.getValue() + " " + descripcionTxt.getValue() + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ")";
@@ -1603,7 +1604,7 @@ public class ChequeTesoreriaForm extends Window {
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo6Txt.getValue() + "'";   /// CODIGOCC
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1611,13 +1612,13 @@ public class ChequeTesoreriaForm extends Window {
             queryString += "," + cuentaContable6Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
             queryString += ","  + montoTxt.getDoubleValueDoNotThrow();
-            queryString += "," + String.valueOf(debe6Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber6Txt.getDoubleValueDoNotThrow());  //HABER
-            queryString += "," + String.valueOf(debe6Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber6Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe6Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber6Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe6Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber6Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
-            queryString += ",'Ingreso por " + String.valueOf(tipoIngresoCbx.getValue()) + " " + descripcionTxt.getValue() + "'";
+            queryString += ",'Ingreso por " + tipoIngresoCbx.getValue() + " " + descripcionTxt.getValue() + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ")";
@@ -1630,7 +1631,7 @@ public class ChequeTesoreriaForm extends Window {
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo7Txt.getValue() + "'";   /// CODIGOCC
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1638,13 +1639,13 @@ public class ChequeTesoreriaForm extends Window {
             queryString += "," + cuentaContable7Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
             queryString += ","  + montoTxt.getDoubleValueDoNotThrow();
-            queryString += "," + String.valueOf(debe7Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber7Txt.getDoubleValueDoNotThrow());  //HABER
-            queryString += "," + String.valueOf(debe7Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber7Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe7Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber7Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe7Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber7Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
-            queryString += ",'Ingreso por " + String.valueOf(tipoIngresoCbx.getValue()) + " " + descripcionTxt.getValue() + "'";
+            queryString += ",'Ingreso por " + tipoIngresoCbx.getValue() + " " + descripcionTxt.getValue() + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ")";
@@ -1658,7 +1659,7 @@ public class ChequeTesoreriaForm extends Window {
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo8Txt.getValue() + "'";   /// CODIGOCC
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1666,13 +1667,13 @@ public class ChequeTesoreriaForm extends Window {
             queryString += "," + cuentaContable8Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
             queryString += ","  + montoTxt.getDoubleValueDoNotThrow();
-            queryString += "," + String.valueOf(debe8Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber8Txt.getDoubleValueDoNotThrow());  //HABER
-            queryString += "," + String.valueOf(debe8Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber8Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe8Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber8Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe8Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber8Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
-            queryString += ",'Ingreso por " + String.valueOf(tipoIngresoCbx.getValue()) + " " + descripcionTxt.getValue() + "'";
+            queryString += ",'Ingreso por " + tipoIngresoCbx.getValue() + " " + descripcionTxt.getValue() + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ")";
@@ -1686,7 +1687,7 @@ public class ChequeTesoreriaForm extends Window {
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo9Txt.getValue() + "'";   /// CODIGOCC
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1694,13 +1695,13 @@ public class ChequeTesoreriaForm extends Window {
             queryString += "," + cuentaContable9Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
             queryString += ","  + montoTxt.getDoubleValueDoNotThrow();
-            queryString += "," + String.valueOf(debe9Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber9Txt.getDoubleValueDoNotThrow());  //HABER
-            queryString += "," + String.valueOf(debe9Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber9Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe9Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber9Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe9Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber9Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
-            queryString += ",'Ingreso por " + String.valueOf(tipoIngresoCbx.getValue()) + " " + descripcionTxt.getValue() + "'";
+            queryString += ",'Ingreso por " + tipoIngresoCbx.getValue() + " " + descripcionTxt.getValue() + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ")";
@@ -1714,7 +1715,7 @@ public class ChequeTesoreriaForm extends Window {
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo10Txt.getValue() + "'";   /// CODIGOCC
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1722,13 +1723,13 @@ public class ChequeTesoreriaForm extends Window {
             queryString += "," + cuentaContable10Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
             queryString += ","  + montoTxt.getDoubleValueDoNotThrow();
-            queryString += "," + String.valueOf(debe10Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber10Txt.getDoubleValueDoNotThrow());  //HABER
-            queryString += "," + String.valueOf(debe10Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber10Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe10Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber10Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe10Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber10Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
-            queryString += ",'Ingreso por " + String.valueOf(tipoIngresoCbx.getValue()) + " " + descripcionTxt.getValue() + "'";
+            queryString += ",'Ingreso por " + tipoIngresoCbx.getValue() + " " + descripcionTxt.getValue() + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ")";

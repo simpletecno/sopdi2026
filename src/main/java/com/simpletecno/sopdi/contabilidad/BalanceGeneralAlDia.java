@@ -10,12 +10,12 @@ import com.simpletecno.sopdi.utilerias.Utileria;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.util.filter.SimpleStringFilter;
 import com.vaadin.server.FontAwesome;
-import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -279,10 +279,10 @@ public final class BalanceGeneralAlDia extends Window {
 
     public void fillGridBalanceSaldos() {
 
-        BigDecimal totalSaldoAnterior = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalDebe = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalHaber = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalSaldoFinal = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal totalSaldoAnterior = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalDebe = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalHaber = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalSaldoFinal = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
         if (balanceSaldosContainer == null) {
             return;
@@ -314,19 +314,19 @@ public final class BalanceGeneralAlDia extends Window {
 
                 do {
 
-                    debe  = new BigDecimal(getDebeHaberCuenta(false, rsRecords.getString("IdNomenclatura"), "DebeQuetzales")).setScale(2, BigDecimal.ROUND_HALF_UP);
-                    haber = new BigDecimal(getDebeHaberCuenta(false, rsRecords.getString("IdNomenclatura"), "HaberQuetzales")).setScale(2, BigDecimal.ROUND_HALF_UP);
+                    debe  = new BigDecimal(getDebeHaberCuenta(false, rsRecords.getString("IdNomenclatura"), "DebeQuetzales")).setScale(2, RoundingMode.HALF_UP);
+                    haber = new BigDecimal(getDebeHaberCuenta(false, rsRecords.getString("IdNomenclatura"), "HaberQuetzales")).setScale(2, RoundingMode.HALF_UP);
 
-                    saldoAnterior = new BigDecimal(getSaldoCuentaMesAnterior(false,rsRecords.getString("IdNomenclatura")).doubleValue()).setScale(2, BigDecimal.ROUND_HALF_UP);
-                    saldoFinal = new BigDecimal(saldoAnterior.doubleValue()).setScale(2, BigDecimal.ROUND_HALF_UP);
+                    saldoAnterior = new BigDecimal(getSaldoCuentaMesAnterior(false,rsRecords.getString("IdNomenclatura")).doubleValue()).setScale(2, RoundingMode.HALF_UP);
+                    saldoFinal = new BigDecimal(saldoAnterior.doubleValue()).setScale(2, RoundingMode.HALF_UP);
 
                     if(   rsRecords.getString("NoCuenta").startsWith("1")
                             || rsRecords.getString("NoCuenta").startsWith("5")
                             || rsRecords.getString("NoCuenta").startsWith("6")) {
-                        saldoFinal = saldoFinal.add(new BigDecimal(debe.doubleValue() - haber.doubleValue())).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        saldoFinal = saldoFinal.add(new BigDecimal(debe.doubleValue() - haber.doubleValue())).setScale(2, RoundingMode.HALF_UP);
                     }
                     else {
-                        saldoFinal = saldoFinal.subtract(new BigDecimal(debe.doubleValue() - haber.doubleValue())).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        saldoFinal = saldoFinal.subtract(new BigDecimal(debe.doubleValue() - haber.doubleValue())).setScale(2, RoundingMode.HALF_UP);
                     }
 
 //System.out.println(queryString);
@@ -347,10 +347,10 @@ public final class BalanceGeneralAlDia extends Window {
                     balanceSaldosContainer.getContainerProperty(itemId, HABER_PROPERTY).setValue(numberFormat.format(haber));
                     balanceSaldosContainer.getContainerProperty(itemId, SALDO_FINAL_PROPERTY).setValue(numberFormat.format(saldoFinal));
 
-                    totalSaldoAnterior = totalSaldoAnterior.add(saldoAnterior).setScale(2, BigDecimal.ROUND_HALF_UP);
-                    totalSaldoFinal = totalSaldoFinal.add(saldoFinal).setScale(2, BigDecimal.ROUND_HALF_UP);
-                    totalDebe = totalDebe.add(debe).setScale(2, BigDecimal.ROUND_HALF_UP);
-                    totalHaber = totalHaber.add(haber).setScale(2, BigDecimal.ROUND_HALF_UP);
+                    totalSaldoAnterior = totalSaldoAnterior.add(saldoAnterior).setScale(2, RoundingMode.HALF_UP);
+                    totalSaldoFinal = totalSaldoFinal.add(saldoFinal).setScale(2, RoundingMode.HALF_UP);
+                    totalDebe = totalDebe.add(debe).setScale(2, RoundingMode.HALF_UP);
+                    totalHaber = totalHaber.add(haber).setScale(2, RoundingMode.HALF_UP);
 
                 } while (rsRecords.next());
 
@@ -385,14 +385,14 @@ public final class BalanceGeneralAlDia extends Window {
         rsRecords2 = stQuery2.executeQuery(queryString);
 
         if(rsRecords2.next()) {
-            saldo = rsRecords2.getBigDecimal("Saldo").setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+            saldo = rsRecords2.getBigDecimal("Saldo").setScale(2, RoundingMode.HALF_UP).doubleValue();
         }
         
         return saldo;
     }
 
     public BigDecimal getSaldoCuentaMesAnterior(boolean enQuetzales, String idNomenclatura) throws SQLException {
-        BigDecimal saldo = new BigDecimal(0.00);
+        BigDecimal saldo = new BigDecimal("0.00");
 
         Calendar c = Calendar.getInstance();
         c.set(Calendar.MONTH, 11);
@@ -415,7 +415,7 @@ public final class BalanceGeneralAlDia extends Window {
         rsRecords2 = stQuery2.executeQuery(queryString);
 
         if(rsRecords2.next()) { //  encontrado        
-            saldo = rsRecords2.getBigDecimal("SaldoMesAnterior").setScale(2, BigDecimal.ROUND_HALF_UP);
+            saldo = rsRecords2.getBigDecimal("SaldoMesAnterior").setScale(2, RoundingMode.HALF_UP);
         }
         
         return saldo;

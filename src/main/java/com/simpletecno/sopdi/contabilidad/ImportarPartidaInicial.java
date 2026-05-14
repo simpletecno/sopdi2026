@@ -31,7 +31,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigDecimal;
-import java.sql.PreparedStatement;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
@@ -77,11 +77,11 @@ public class ImportarPartidaInicial extends Window {
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
     static DecimalFormat numberFormat2 = new DecimalFormat("##,###");
 
-    BigDecimal totalDebe = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-    BigDecimal totalHaber = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+    BigDecimal totalDebe = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+    BigDecimal totalHaber = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
-    BigDecimal totalDebeQ = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-    BigDecimal totalHaberQ = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+    BigDecimal totalDebeQ = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+    BigDecimal totalHaberQ = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
     UI mainUI;
 
@@ -142,7 +142,6 @@ public class ImportarPartidaInicial extends Window {
             } catch (java.io.IOException fIoEx) {
                 fIoEx.printStackTrace();
                 Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                return;
             }
         };
 
@@ -188,9 +187,7 @@ public class ImportarPartidaInicial extends Window {
         partidaTable.addContainerProperty("DebeQuetzales", String.class, "");
         partidaTable.addContainerProperty("HaberQuetzales", String.class, "");
 
-        partidaTable.setColumnAlignments(new Table.Align[]{
-            Table.Align.LEFT, Table.Align.LEFT, Table.Align.RIGHT, Table.Align.RIGHT
-        });
+        partidaTable.setColumnAlignments(Table.Align.LEFT, Table.Align.LEFT, Table.Align.RIGHT, Table.Align.RIGHT);
 
         partidaTable.setColumnWidth("Cuenta", 100);
         partidaTable.setColumnWidth("Descripción", 160);
@@ -311,7 +308,7 @@ public class ImportarPartidaInicial extends Window {
             }
         });
 
-        Page.getCurrent().setTitle(String.valueOf(empresaLbl.getValue()) + " - Importar partida inicial");
+        Page.getCurrent().setTitle(empresaLbl.getValue() + " - Importar partida inicial");
         cargarBtn.setEnabled(false);
         cargarBtn.addStyleName(ValoTheme.BUTTON_LINK);
         cargarBtn.addStyleName(".v-button { text-decoration : underline;}");
@@ -412,10 +409,10 @@ System.out.println("...INICIO...");
                     numberFormat.format(sheet.getRow(linea).getCell(8).getNumericCellValue())  //haber Q
                 }, partidaTable.size() + 1);
 
-                totalDebe = totalDebe.add(new BigDecimal(sheet.getRow(linea).getCell(3).getNumericCellValue())).setScale(2, BigDecimal.ROUND_HALF_UP);
-                totalHaber = totalHaber.add(new BigDecimal(sheet.getRow(linea).getCell(4).getNumericCellValue())).setScale(2, BigDecimal.ROUND_HALF_UP);
-                totalDebeQ = totalDebe.add(new BigDecimal(sheet.getRow(linea).getCell(7).getNumericCellValue())).setScale(2, BigDecimal.ROUND_HALF_UP);
-                totalHaberQ = totalHaber.add(new BigDecimal(sheet.getRow(linea).getCell(8).getNumericCellValue())).setScale(2, BigDecimal.ROUND_HALF_UP);
+                totalDebe = totalDebe.add(new BigDecimal(sheet.getRow(linea).getCell(3).getNumericCellValue())).setScale(2, RoundingMode.HALF_UP);
+                totalHaber = totalHaber.add(new BigDecimal(sheet.getRow(linea).getCell(4).getNumericCellValue())).setScale(2, RoundingMode.HALF_UP);
+                totalDebeQ = totalDebe.add(new BigDecimal(sheet.getRow(linea).getCell(7).getNumericCellValue())).setScale(2, RoundingMode.HALF_UP);
+                totalHaberQ = totalHaber.add(new BigDecimal(sheet.getRow(linea).getCell(8).getNumericCellValue())).setScale(2, RoundingMode.HALF_UP);
 
 //System.out.println("IDEX="+String.valueOf(Double.valueOf(sheet.getRow(linea).getCell(1).getNumericCellValue()).intValue()));
             } //endfor
@@ -449,7 +446,7 @@ System.out.println("...FIN...");
             return;
         }
 
-        ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de GUARDAR esta partida de la empresa : " + String.valueOf(empresaLbl.getValue()) + ",  en base de datos?",
+        ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de GUARDAR esta partida de la empresa : " + empresaLbl.getValue() + ",  en base de datos?",
                 "SI", "NO", new ConfirmDialog.Listener() {
 
             public void onClose(ConfirmDialog dialog) {

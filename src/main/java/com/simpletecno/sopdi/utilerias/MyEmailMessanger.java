@@ -86,7 +86,7 @@ public class MyEmailMessanger {
      * @throws MessagingException 
      *
      */
-    public void postMail(String recipients[], String subject, String message) throws MessagingException {
+    public void postMail(String[] recipients, String subject, String message) throws MessagingException {
         boolean debug = false;
 
         if (this.emailActivo.equals("false")) {
@@ -147,7 +147,7 @@ public class MyEmailMessanger {
      * @throws MessagingException 
      *
      */
-    public void postMail(String recipients[], String subject, String message, String fileAttachment) throws MessagingException {
+    public void postMail(String[] recipients, String subject, String message, String fileAttachment) throws MessagingException {
         boolean debug = false;
 
         if (this.emailActivo.equals("false")) {

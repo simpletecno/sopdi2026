@@ -16,7 +16,6 @@ import com.vaadin.server.Page;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.HorizontalLayout;
@@ -28,6 +27,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.renderers.ButtonRenderer;
 import com.vaadin.ui.themes.ValoTheme;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -586,7 +586,7 @@ public class IngresoBancosView extends VerticalLayout implements View {
 
                         queryString = "UPDATE  contabilidad_partida";
                         queryString += " SET Estatus = 'REVISADO'";
-                        queryString += " WHERE CodigoPartida = '" + String.valueOf(container.getContainerProperty(ingresoBancosGrid.getSelectedRow(), ID_PROPERTY).getValue()) + "'";
+                        queryString += " WHERE CodigoPartida = '" + container.getContainerProperty(ingresoBancosGrid.getSelectedRow(), ID_PROPERTY).getValue() + "'";
 
                         stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                         stQuery.executeUpdate(queryString);
@@ -672,7 +672,7 @@ public class IngresoBancosView extends VerticalLayout implements View {
     }
 
     private void setTotal() {
-        BigDecimal total = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal total = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
         for (Object rid : ingresoBancosGrid.getContainerDataSource()
                 .getItemIds()) {
             total = total.add(new BigDecimal(
@@ -680,7 +680,7 @@ public class IngresoBancosView extends VerticalLayout implements View {
                             String.valueOf(container.getContainerProperty(rid, MONTOSF_PROPERTY).getValue())
                     )));
         }
-        ingresosFooter.getCell(MONEDA_PROPERTY).setText(String.valueOf(container.size()) + " TRANSACCIONES");
+        ingresosFooter.getCell(MONEDA_PROPERTY).setText(container.size() + " TRANSACCIONES");
         ingresosFooter.getCell(MONTO_PROPERTY).setText(numberFormat.format(total));
     }
 

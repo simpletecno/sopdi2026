@@ -10,7 +10,6 @@ import com.simpletecno.sopdi.SopdiUI;
 import com.vaadin.addon.tableexport.DefaultTableHolder;
 import com.vaadin.addon.tableexport.ExcelExport;
 import com.vaadin.addon.tableexport.TableHolder;
-import com.vaadin.data.Property;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.util.filter.SimpleStringFilter;
 import com.vaadin.navigator.View;
@@ -23,6 +22,7 @@ import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -396,10 +396,10 @@ public final class CierreMensualView extends VerticalLayout implements View {
 
     public void fillGridBalanceSaldos() {
 
-        BigDecimal totalSaldoAnterior = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalDebe = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalHaber = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalSaldoFinal = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal totalSaldoAnterior = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalDebe = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalHaber = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalSaldoFinal = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
         if (balanceSaldosContainer == null) {
             return;
@@ -430,18 +430,18 @@ public final class CierreMensualView extends VerticalLayout implements View {
 
                 do {
 
-                    debe = new BigDecimal(getDebeHaberCuenta(rsRecords.getString("IdNomenclatura"), "DebeQuetzales")).setScale(2, BigDecimal.ROUND_HALF_UP);
-                    haber = new BigDecimal(getDebeHaberCuenta(rsRecords.getString("IdNomenclatura"), "HaberQuetzales")).setScale(2, BigDecimal.ROUND_HALF_UP);
+                    debe = new BigDecimal(getDebeHaberCuenta(rsRecords.getString("IdNomenclatura"), "DebeQuetzales")).setScale(2, RoundingMode.HALF_UP);
+                    haber = new BigDecimal(getDebeHaberCuenta(rsRecords.getString("IdNomenclatura"), "HaberQuetzales")).setScale(2, RoundingMode.HALF_UP);
 
-                    saldoAnterior = new BigDecimal(getSaldoCuentaMesAnterior(rsRecords.getString("IdNomenclatura")).doubleValue()).setScale(2, BigDecimal.ROUND_HALF_UP);
-                    saldoFinal = new BigDecimal(saldoAnterior.doubleValue()).setScale(2, BigDecimal.ROUND_HALF_UP);
+                    saldoAnterior = new BigDecimal(getSaldoCuentaMesAnterior(rsRecords.getString("IdNomenclatura")).doubleValue()).setScale(2, RoundingMode.HALF_UP);
+                    saldoFinal = new BigDecimal(saldoAnterior.doubleValue()).setScale(2, RoundingMode.HALF_UP);
 
                     if (rsRecords.getString("NoCuenta").startsWith("1")
                             || rsRecords.getString("NoCuenta").startsWith("5")
                             || rsRecords.getString("NoCuenta").startsWith("6")) {
-                        saldoFinal = saldoFinal.add(new BigDecimal(debe.doubleValue() - haber.doubleValue())).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        saldoFinal = saldoFinal.add(new BigDecimal(debe.doubleValue() - haber.doubleValue())).setScale(2, RoundingMode.HALF_UP);
                     } else {
-                        saldoFinal = saldoFinal.subtract(new BigDecimal(debe.doubleValue() - haber.doubleValue())).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        saldoFinal = saldoFinal.subtract(new BigDecimal(debe.doubleValue() - haber.doubleValue())).setScale(2, RoundingMode.HALF_UP);
                     }
 
 //System.out.println(queryString);
@@ -461,10 +461,10 @@ public final class CierreMensualView extends VerticalLayout implements View {
                     balanceSaldosContainer.getContainerProperty(itemId, HABER_PROPERTY).setValue(numberFormat.format(haber));
                     balanceSaldosContainer.getContainerProperty(itemId, SALDO_FINAL_PROPERTY).setValue(numberFormat.format(saldoFinal));
 
-                    totalSaldoAnterior = totalSaldoAnterior.add(saldoAnterior).setScale(2, BigDecimal.ROUND_HALF_UP);
-                    totalSaldoFinal = totalSaldoFinal.add(saldoFinal).setScale(2, BigDecimal.ROUND_HALF_UP);
-                    totalDebe = totalDebe.add(debe).setScale(2, BigDecimal.ROUND_HALF_UP);
-                    totalHaber = totalHaber.add(haber).setScale(2, BigDecimal.ROUND_HALF_UP);
+                    totalSaldoAnterior = totalSaldoAnterior.add(saldoAnterior).setScale(2, RoundingMode.HALF_UP);
+                    totalSaldoFinal = totalSaldoFinal.add(saldoFinal).setScale(2, RoundingMode.HALF_UP);
+                    totalDebe = totalDebe.add(debe).setScale(2, RoundingMode.HALF_UP);
+                    totalHaber = totalHaber.add(haber).setScale(2, RoundingMode.HALF_UP);
 
                 } while (rsRecords.next());
 
@@ -512,29 +512,29 @@ public final class CierreMensualView extends VerticalLayout implements View {
 
             while (rsRecords1.next()) {
 
-                debe = new BigDecimal(getDebeHaberCuenta(rsRecords1.getString("IdNomenclatura"), "DebeQuetzales")).setScale(2, BigDecimal.ROUND_HALF_UP);
-                haber = new BigDecimal(getDebeHaberCuenta(rsRecords1.getString("IdNomenclatura"), "HaberQuetzales")).setScale(2, BigDecimal.ROUND_HALF_UP);
+                debe = new BigDecimal(getDebeHaberCuenta(rsRecords1.getString("IdNomenclatura"), "DebeQuetzales")).setScale(2, RoundingMode.HALF_UP);
+                haber = new BigDecimal(getDebeHaberCuenta(rsRecords1.getString("IdNomenclatura"), "HaberQuetzales")).setScale(2, RoundingMode.HALF_UP);
 
-                saldoAnterior = new BigDecimal(getSaldoCuentaMesAnterior(rsRecords1.getString("IdNomenclatura")).doubleValue()).setScale(2, BigDecimal.ROUND_HALF_UP);
-                saldoFinal = new BigDecimal(saldoAnterior.doubleValue()).setScale(2, BigDecimal.ROUND_HALF_UP);
+                saldoAnterior = new BigDecimal(getSaldoCuentaMesAnterior(rsRecords1.getString("IdNomenclatura")).doubleValue()).setScale(2, RoundingMode.HALF_UP);
+                saldoFinal = new BigDecimal(saldoAnterior.doubleValue()).setScale(2, RoundingMode.HALF_UP);
 
                 if (rsRecords1.getString("NoCuenta").startsWith("1")
                         || rsRecords1.getString("NoCuenta").startsWith("5")
                         || rsRecords1.getString("NoCuenta").startsWith("6")) {
-                    saldoFinal = saldoFinal.add(new BigDecimal(debe.doubleValue() - haber.doubleValue())).setScale(2, BigDecimal.ROUND_HALF_UP);
+                    saldoFinal = saldoFinal.add(new BigDecimal(debe.doubleValue() - haber.doubleValue())).setScale(2, RoundingMode.HALF_UP);
                 } else {
-                    saldoFinal = saldoFinal.subtract(new BigDecimal(debe.doubleValue() - haber.doubleValue())).setScale(2, BigDecimal.ROUND_HALF_UP);
+                    saldoFinal = saldoFinal.subtract(new BigDecimal(debe.doubleValue() - haber.doubleValue())).setScale(2, RoundingMode.HALF_UP);
                 }
 
                 queryString = " Insert Into contabilidad_balance_saldo (IdEmpresa, IdNomenclatura, AnioMesCierre,";
                 queryString += " SaldoAnterior, Debe, Haber, SaldoFinal ) Values (";
                 queryString += " " + empresaId;
                 queryString += "," + rsRecords1.getString("IdNomenclatura");
-                queryString += ",'" + String.valueOf(mesCbx.getValue()) + "'";
-                queryString += "," + String.valueOf(saldoAnterior.doubleValue());
-                queryString += "," + String.valueOf(debe.doubleValue());
-                queryString += "," + String.valueOf(haber.doubleValue());
-                queryString += "," + String.valueOf(saldoFinal.doubleValue());
+                queryString += ",'" + mesCbx.getValue() + "'";
+                queryString += "," + saldoAnterior.doubleValue();
+                queryString += "," + debe.doubleValue();
+                queryString += "," + haber.doubleValue();
+                queryString += "," + saldoFinal.doubleValue();
                 queryString += ")";
 
                 stQuery2.executeUpdate(queryString);
@@ -587,7 +587,7 @@ public final class CierreMensualView extends VerticalLayout implements View {
             notif.show(Page.getCurrent());
 
             try {
-                String emailsTo[] = {"alerta@simpletecno.com"};
+                String[] emailsTo = {"alerta@simpletecno.com"};
                 MyEmailMessanger eMail = new MyEmailMessanger();
 
                 eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos :  " + this.getClass().getName() + " -->" + ex1.getMessage());
@@ -604,7 +604,7 @@ public final class CierreMensualView extends VerticalLayout implements View {
         queryString += " FROM contabilidad_partida";
         queryString += " WHERE IdNomenclatura = " + idNomenclatura;
         queryString += " AND   IdEmpresa = " + empresaId;
-        queryString += " AND   Extract(YEAR_MONTH From contabilidad_partida.Fecha) = " + String.valueOf(mesCbx.getValue());
+        queryString += " AND   Extract(YEAR_MONTH From contabilidad_partida.Fecha) = " + mesCbx.getValue();
         queryString += " AND   Estatus <> 'ANULADO'";
 //        queryString += " And   TipoDocumento NOT IN ('PARTIDA CIERRE', 'PARTIDA APERTURA', 'PARTIDA INICIAL')";
         queryString += " AND   TipoDocumento <> 'PARTIDA CIERRE'";
@@ -613,14 +613,14 @@ public final class CierreMensualView extends VerticalLayout implements View {
         rsRecords2 = stQuery2.executeQuery(queryString);
 
         if (rsRecords2.next()) {
-            saldo = rsRecords2.getBigDecimal("Saldo").setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+            saldo = rsRecords2.getBigDecimal("Saldo").setScale(2, RoundingMode.HALF_UP).doubleValue();
         }
 
         return saldo;
     }
 
     public BigDecimal getSaldoCuentaMesAnterior(String idNomenclatura) throws SQLException {
-        BigDecimal saldo = new BigDecimal(0.00);
+        BigDecimal saldo = new BigDecimal("0.00");
         String mesCierre = String.valueOf(mesCbx.getValue());
 
         if (Integer.valueOf(mesCierre.substring(4, 6)) == 1) {
@@ -635,13 +635,13 @@ public final class CierreMensualView extends VerticalLayout implements View {
         queryString += " FROM contabilidad_balance_saldo";
         queryString += " WHERE IdNomenclatura = " + idNomenclatura;
         queryString += " AND  IdEmpresa = " + empresaId;
-        queryString += " AND  AnioMesCierre = " + String.valueOf(c.get(Calendar.YEAR)) + String.format("%02d", c.get(Calendar.MONTH) + 1);
+        queryString += " AND  AnioMesCierre = " + c.get(Calendar.YEAR) + String.format("%02d", c.get(Calendar.MONTH) + 1);
 
         stQuery2 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
         rsRecords2 = stQuery2.executeQuery(queryString);
 
         if (rsRecords2.next()) { //  encontrado        
-            saldo = rsRecords2.getBigDecimal("SaldoMesAnterior").setScale(2, BigDecimal.ROUND_HALF_UP);
+            saldo = rsRecords2.getBigDecimal("SaldoMesAnterior").setScale(2, RoundingMode.HALF_UP);
         }
 
         return saldo;

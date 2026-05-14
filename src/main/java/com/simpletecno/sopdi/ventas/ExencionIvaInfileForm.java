@@ -27,6 +27,7 @@ import org.vaadin.ui.NumberField;
 import javax.mail.MessagingException;
 import java.io.File;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
@@ -810,15 +811,15 @@ public class ExencionIvaInfileForm extends Window {
             return;
         }
 
-        totalDebe = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalHaber = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+        totalDebe = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+        totalHaber = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
 
         for (Object itemId : containerExencion.getItemIds()) {
             Item item = containerExencion.getItem(itemId);
             String debeValue = item.getItemProperty("DEBE").getValue().toString().replaceAll(",","");
             String haberValue = item.getItemProperty("HABER").getValue().toString().replaceAll(",","");
-            totalDebe = totalDebe.add(new BigDecimal(Double.valueOf(debeValue)).setScale(2, BigDecimal.ROUND_HALF_UP));
-            totalHaber = totalHaber.add(new BigDecimal(Double.valueOf(haberValue)).setScale(2, BigDecimal.ROUND_HALF_UP));
+            totalDebe = totalDebe.add(new BigDecimal(Double.valueOf(debeValue)).setScale(2, RoundingMode.HALF_UP));
+            totalHaber = totalHaber.add(new BigDecimal(Double.valueOf(haberValue)).setScale(2, RoundingMode.HALF_UP));
 
         }
 
@@ -873,9 +874,9 @@ public class ExencionIvaInfileForm extends Window {
                 queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();                      //TipoCambio
                 queryString += "," + montoTxt.getDoubleValueDoNotThrow();                                      //MontoDocumento
                                                                                             //Debe
-                queryString += ", " + item.getItemProperty("DEBE").getValue() + "";
+                queryString += ", " + item.getItemProperty("DEBE").getValue();
                                                                                             //Haber
-                queryString += ", " + item.getItemProperty("HABER").getValue() + "";
+                queryString += ", " + item.getItemProperty("HABER").getValue();
                                                                                             //DebeQuetzales
                 queryString += "," + Utileria.round(debe * tasaCambioTxt.getDoubleValueDoNotThrow());
                                                                                             //HaberQuetzales
@@ -942,7 +943,7 @@ public class ExencionIvaInfileForm extends Window {
     private boolean documentoCeritficaroInfile(){
         Receptor receptor = new Receptor(
                 nitProveedotTxt.getValue().replaceAll("-", ""),
-                proveedorTxt.getValue().toString(),
+                proveedorTxt.getValue(),
                 correo,
                 direccion
         );
@@ -1057,7 +1058,7 @@ public class ExencionIvaInfileForm extends Window {
             notif.show(Page.getCurrent());
 
             try {
-                String emailsTo[] = {"alerta@simpletecno.com"};
+                String[] emailsTo = {"alerta@simpletecno.com"};
                 MyEmailMessanger eMail = new MyEmailMessanger();
 
                 eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos :  " + this.getClass().getName() + " -->" + ex1.getMessage());

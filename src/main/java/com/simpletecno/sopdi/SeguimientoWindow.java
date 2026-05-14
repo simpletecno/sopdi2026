@@ -22,7 +22,6 @@ import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 
 import javax.mail.MessagingException;
-import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,7 +44,7 @@ public class SeguimientoWindow extends Window {
     String estatus;
     String mailTo;
 
-    private VerticalLayout mainLayout = new VerticalLayout();
+    private final VerticalLayout mainLayout = new VerticalLayout();
 
     Statement stQuery = null;
     SeguimientoHandler seguimientoHandler;
@@ -194,7 +193,7 @@ public class SeguimientoWindow extends Window {
                     queryString += " Estatus = 'EN PROCESO' ";
                     ((TicketsSoporteView) (mainUI.getNavigator().getCurrentView())).ticketsContainer.getContainerProperty(((TicketsSoporteView) (mainUI.getNavigator().getCurrentView())).ticketsGrid.getSelectedRow(), TicketsSoporteView.ESTATUS_PROPERTY).setValue("EN PROCESO");
                 }
-                queryString += " Where IdTicket = " + registroId + "";
+                queryString += " Where IdTicket = " + registroId;
                 stQuery.executeUpdate(queryString);
             }
 
@@ -213,7 +212,7 @@ public class SeguimientoWindow extends Window {
 
             if (mainUI.getNavigator().getCurrentView().getClass().getSimpleName().compareTo("TicketsSoporteView") == 0) {
                 try {
-                    String emailsTo[] = {mailTo};
+                    String[] emailsTo = {mailTo};
                     MyEmailMessanger eMail = new MyEmailMessanger();
 
                     String texto = "DESCRIPCION : " + nombreTxt.getValue() + "\n";

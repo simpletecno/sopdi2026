@@ -339,7 +339,7 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
         guardarBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                if (validarCamposParaIngresarPagoDocumentos() == false) {
+                if (!validarCamposParaIngresarPagoDocumentos()) {
                     actualizarSaldosFacturas();
                 }
             }
@@ -504,9 +504,9 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
         Double totalEnganches = 0.00;
         Object gridItem;
         Double totalDebe = 0.00;
-        Double totalHaber = 0.00;;
-        Double totalDebeQ = 0.00;;
-        Double totalHaberQ = 0.00;;
+        Double totalHaber = 0.00;
+        Double totalDebeQ = 0.00;
+        Double totalHaberQ = 0.00;
 
 //        codigoEnganches.clear();
 
@@ -538,7 +538,7 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
             return;
         }
 
-        descripcionTxt.setValue("PAGO DOCUMENTO VENTA CON ENGANCHES " + String.valueOf(facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(NUMERO_DOCUMENTO_PROPERTY).getValue())
+        descripcionTxt.setValue("PAGO DOCUMENTO VENTA CON ENGANCHES " + facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(NUMERO_DOCUMENTO_PROPERTY).getValue()
             + " CLIENTE [" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "]");
 
         Object partidaObject = partidaContainer.addItem();
@@ -698,7 +698,7 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
 
         queryString = "SELECT * FROM contabilidad_partida";
         queryString += " WHERE NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " AND IdProveedor =  " + String.valueOf(proveedorCbx.getValue());
+        queryString += " AND IdProveedor =  " + proveedorCbx.getValue();
         queryString += " AND IdEmpresa = " + empresaId;
         queryString += " AND TipoDocumento = 'PAGO DOCUMENTO VENTA'";
         queryString += " AND MonedaDocumento = 'DOLARES'";
@@ -766,9 +766,9 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
                 queryString += empresaId;
                 queryString += ",'INGRESADO'";
                 queryString += ",'" + codigoPartida + "'";
-                queryString += ",'" + String.valueOf(item.getItemProperty(CODIGOCC_PROPERTY).getValue()) + "'";
+                queryString += ",'" + item.getItemProperty(CODIGOCC_PROPERTY).getValue() + "'";
                 queryString += ",'PAGO DOCUMENTO VENTA'";
-                queryString += ",'" + String.valueOf(facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(NUMERO_DOCUMENTO_PROPERTY).getValue()) + "'";//NODOCA
+                queryString += ",'" + facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(NUMERO_DOCUMENTO_PROPERTY).getValue() + "'";//NODOCA
                 queryString += ",'FACTURA VENTA'";//TIPODOCA
                 queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
                 queryString += "," + proveedorCbx.getValue();
@@ -778,13 +778,13 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
                 queryString += "," + String.valueOf(facturasGrid.getContainerDataSource().getItem(facturasGrid.getSelectedRow()).getItemProperty(SALDO_DOCUMENTO_PROPERTY).getValue()).replaceAll(",", "");
                 queryString += ",''"; //serie documento
                 queryString += ",'" + numeroTxt.getValue() + "'";
-                queryString += "," + String.valueOf(item.getItemProperty(CUENTA_PROPERTY).getValue());
+                queryString += "," + item.getItemProperty(CUENTA_PROPERTY).getValue();
                 queryString += ",'DOLARES'";
-                queryString += "," + String.valueOf(item.getItemProperty(DEBE_PROPERTY).getValue());  //Debe
-                queryString += "," + String.valueOf(item.getItemProperty(HABER_PROPERTY).getValue()); //Haber
-                queryString += "," + String.valueOf(item.getItemProperty(DEBE_Q_PROPERTY).getValue()); //DEBE Q
-                queryString += "," + String.valueOf(item.getItemProperty(HABER_Q_PROPERTY).getValue()); //HABER Q
-                queryString += "," + String.valueOf(item.getItemProperty(TIPO_CAMBIO_PROPERTY).getValue());
+                queryString += "," + item.getItemProperty(DEBE_PROPERTY).getValue();  //Debe
+                queryString += "," + item.getItemProperty(HABER_PROPERTY).getValue(); //Haber
+                queryString += "," + item.getItemProperty(DEBE_Q_PROPERTY).getValue(); //DEBE Q
+                queryString += "," + item.getItemProperty(HABER_Q_PROPERTY).getValue(); //HABER Q
+                queryString += "," + item.getItemProperty(TIPO_CAMBIO_PROPERTY).getValue();
                 queryString += ",'" + descripcionTxt.getValue() + "'";
                 queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
                 queryString += ",current_timestamp";

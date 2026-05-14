@@ -233,7 +233,7 @@ public class PagoPrestamoForm extends Window {
                     proveedorCbx.setReadOnly(true);
 
                     descripcionTxt.setReadOnly(false);
-                    descripcionTxt.setValue("Pago de préstamo a " + String.valueOf(prestamosContainer.getContainerProperty(prestamosGrid.getSelectedRow(), PROVEEDOR).getValue()));
+                    descripcionTxt.setValue("Pago de préstamo a " + prestamosContainer.getContainerProperty(prestamosGrid.getSelectedRow(), PROVEEDOR).getValue());
                 }
             }
         });
@@ -871,8 +871,8 @@ public class PagoPrestamoForm extends Window {
             return;
         }
 
-        if (String.valueOf(cuentaContable2Cbx.getValue()).equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal()) == false
-                && String.valueOf(cuentaContable2Cbx.getValue()).equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaExtranjera()) == false) {
+        if (!String.valueOf(cuentaContable2Cbx.getValue()).equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal())
+                && !String.valueOf(cuentaContable2Cbx.getValue()).equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaExtranjera())) {
             Notification.show("Por favor elija la cuenta contable BANCOS que corresponda. ", Notification.Type.ERROR_MESSAGE);
             cuentaContable2Cbx.focus();
             return;
@@ -881,7 +881,7 @@ public class PagoPrestamoForm extends Window {
         queryString = " SELECT CodigoPartida FROM contabilidad_partida ";
         queryString += " WHERE NumeroDocumento = '" + numeroTxt.getValue() + "'";
         queryString += " AND IdEmpresa = " + empresaId;
-        queryString += " AND TipoDocumento = '" + String.valueOf(medioCbx.getValue()) + "'";
+        queryString += " AND TipoDocumento = '" + medioCbx.getValue() + "'";
         queryString += " AND MonedaDocumento = '" + monedaCbx.getValue() + "'";
 
         try {
@@ -947,24 +947,24 @@ public class PagoPrestamoForm extends Window {
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + cuentaContable1Cbx.getContainerProperty(cuentaContable1Cbx.getValue(), "CODIGOCC").getValue() + "'";
-        queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+        queryString += ",'" + medioCbx.getValue() + "'";
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += "," + proveedorCbx.getValue();
         queryString += ",''"; // nit del proveedor
         queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
         queryString += ",'" + nombreChequeTxt.getValue() + "'";
-        queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+        queryString += "," + montoTxt.getDoubleValueDoNotThrow();
         queryString += ",'0'";
         queryString += ",'" + numeroTxt.getValue() + "'";
         queryString += ",''"; //tipodoca
         queryString += ",''"; //doca
         queryString += ",'" + monedaCbx.getValue() + "'";
-        queryString += "," + String.valueOf(cuentaContable1Cbx.getValue()); //idcuentacontable
-        queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow()); //DEBE
+        queryString += "," + cuentaContable1Cbx.getValue(); //idcuentacontable
+        queryString += "," + debe1Txt.getDoubleValueDoNotThrow(); //DEBE
         queryString += ",0.00"; //HABER
-        queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //DEBE Q
+        queryString += "," + debe1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //DEBE Q
         queryString += ",0.00"; //HABER Q.
-        queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
         queryString += ",'" + descripcion + "'";
         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
         queryString += ",current_timestamp";
@@ -976,24 +976,24 @@ public class PagoPrestamoForm extends Window {
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + cuentaContable2Cbx.getContainerProperty(cuentaContable1Cbx.getValue(), "CODIGOCC").getValue() + "'";
-        queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+        queryString += ",'" + medioCbx.getValue() + "'";
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += "," + proveedorCbx.getValue();
         queryString += ",''"; // nit del proveedor
         queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
         queryString += ",'" + nombreChequeTxt.getValue() + "'";
-        queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+        queryString += "," + montoTxt.getDoubleValueDoNotThrow();
         queryString += ",'0'";
         queryString += ",'" + numeroTxt.getValue() + "'";
         queryString += ",''"; //tipodoca
         queryString += ",''"; //doca
         queryString += ",'" + monedaCbx.getValue() + "'";
-        queryString += "," + String.valueOf(cuentaContable2Cbx.getValue()); //idcuentacontable
+        queryString += "," + cuentaContable2Cbx.getValue(); //idcuentacontable
         queryString += ",0.00"; //debe
-        queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow()); //HABER
+        queryString += "," + haber2Txt.getDoubleValueDoNotThrow(); //HABER
         queryString += ",0.00"; //debe Q.
-        queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //DEBE Q
-        queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + haber2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //DEBE Q
+        queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
         queryString += ",'" + descripcion + "'";
         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
         queryString += ",current_timestamp";
@@ -1101,7 +1101,7 @@ public class PagoPrestamoForm extends Window {
                                 }
 
                                 try {
-                                    String emailsTo[] = {"alerta@simpletecno.com"};
+                                    String[] emailsTo = {"alerta@simpletecno.com"};
                                     MyEmailMessanger eMail = new MyEmailMessanger();
 
                                     eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos :  " + this.getClass().getName() + " -->" + ex.getMessage());
@@ -1126,7 +1126,7 @@ public class PagoPrestamoForm extends Window {
         try {
 
             queryString = "DELETE FROM autorizacion_pago";
-            queryString += " WHERE IdAutorizacion = " + String.valueOf(prestamosContainer.getContainerProperty(prestamosGrid.getSelectedRow(), NO).getValue());;
+            queryString += " WHERE IdAutorizacion = " + prestamosContainer.getContainerProperty(prestamosGrid.getSelectedRow(), NO).getValue();
 
             stQuery2 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             stQuery2.executeUpdate(queryString);

@@ -238,7 +238,8 @@ System.out.println("\n\n"+queryString);
         excelExport.excludeCollapsedColumns();
         excelExport.setExportFileName("SOPDI_Usuarios.xls");
 
-        String mainTitle = "SOPDI - RELACION LIQUIDADOR CONTABILIDAD AL: "  + new Utileria().getFechaYYYYMMDD_1(new Date());
+        new Utileria();
+        String mainTitle = "SOPDI - RELACION LIQUIDADOR CONTABILIDAD AL: "  + Utileria.getFechaYYYYMMDD_1(new Date());
 
         excelExport.setReportTitle(mainTitle);
 

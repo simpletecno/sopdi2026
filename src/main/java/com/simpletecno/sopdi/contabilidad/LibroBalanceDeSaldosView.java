@@ -6,7 +6,6 @@
 package com.simpletecno.sopdi.contabilidad;
 
 import com.simpletecno.sopdi.SopdiUI;
-import com.simpletecno.sopdi.utilerias.Utileria;
 import com.vaadin.addon.tableexport.DefaultTableHolder;
 import com.vaadin.addon.tableexport.ExcelExport;
 import com.vaadin.addon.tableexport.TableHolder;
@@ -26,6 +25,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.ui.NumberField;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
@@ -472,10 +472,10 @@ public class LibroBalanceDeSaldosView extends VerticalLayout implements View {
             return;
         }
 
-        BigDecimal totalSaldoAnterior = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalDebe = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalHaber = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalSaldoFinal = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal totalSaldoAnterior = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalDebe = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalHaber = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalSaldoFinal = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
         if (balanceSaldosContainer == null) {
             return;
@@ -526,10 +526,10 @@ public class LibroBalanceDeSaldosView extends VerticalLayout implements View {
                         balanceSaldosContainer.getContainerProperty(itemId, DEBE_PROPERTY).setValue(numberFormat.format(rsRecords1.getDouble("Debe")));
                         balanceSaldosContainer.getContainerProperty(itemId, HABER_PROPERTY).setValue(numberFormat.format(rsRecords1.getDouble("Haber")));
                         balanceSaldosContainer.getContainerProperty(itemId, SALDO_FINAL_PROPERTY).setValue(numberFormat.format(rsRecords1.getDouble("SaldoFinal")));
-                        totalSaldoAnterior = totalSaldoAnterior.add(new BigDecimal(rsRecords1.getDouble("SaldoAnterior"))).setScale(2, BigDecimal.ROUND_HALF_UP);
-                        totalSaldoFinal = totalSaldoFinal.add(new BigDecimal(rsRecords1.getDouble("SaldoFinal"))).setScale(2, BigDecimal.ROUND_HALF_UP);
-                        totalDebe = totalDebe.add(new BigDecimal(rsRecords1.getDouble("Debe")).setScale(2, BigDecimal.ROUND_HALF_UP));
-                        totalHaber = totalHaber.add(new BigDecimal(rsRecords1.getDouble("Haber")).setScale(2, BigDecimal.ROUND_HALF_UP));
+                        totalSaldoAnterior = totalSaldoAnterior.add(new BigDecimal(rsRecords1.getDouble("SaldoAnterior"))).setScale(2, RoundingMode.HALF_UP);
+                        totalSaldoFinal = totalSaldoFinal.add(new BigDecimal(rsRecords1.getDouble("SaldoFinal"))).setScale(2, RoundingMode.HALF_UP);
+                        totalDebe = totalDebe.add(new BigDecimal(rsRecords1.getDouble("Debe")).setScale(2, RoundingMode.HALF_UP));
+                        totalHaber = totalHaber.add(new BigDecimal(rsRecords1.getDouble("Haber")).setScale(2, RoundingMode.HALF_UP));
                     }
                     else {
                         balanceSaldosContainer.getContainerProperty(itemId, SALDO_ANTERIOR_PROPERTY).setValue("0.00");

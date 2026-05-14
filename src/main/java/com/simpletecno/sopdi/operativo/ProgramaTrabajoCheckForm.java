@@ -497,7 +497,7 @@ public class ProgramaTrabajoCheckForm extends Window {
             rsRecords = stQuery.executeQuery(queryString);
 
             if (rsRecords.next()) { //  encontrado
-                bloqueada = (rsRecords.getInt("VerificacionBloqueada") == 1 ? true : false);
+                bloqueada = (rsRecords.getInt("VerificacionBloqueada") == 1);
             }
         }
         catch (Exception ex1) {

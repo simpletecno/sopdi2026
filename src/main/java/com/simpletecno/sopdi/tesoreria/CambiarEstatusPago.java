@@ -149,7 +149,7 @@ public class CambiarEstatusPago extends Window {
         try {
 
             queryString = " UPDATE contabilidad_partida SET ";
-            queryString += " Estatus = '" + String.valueOf(estatusCbx.getValue()) + "'";
+            queryString += " Estatus = '" + estatusCbx.getValue() + "'";
             queryString += ",NumeroDocumento = '" + numeroTxt.getValue() + "'";
             queryString += " WHERE CodigoPartida = '" + codigoPartida + "'";
 

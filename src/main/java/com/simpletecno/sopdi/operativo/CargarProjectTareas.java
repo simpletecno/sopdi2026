@@ -27,7 +27,6 @@ import java.io.OutputStream;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.text.DecimalFormat;
 import java.util.Locale;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -204,7 +203,6 @@ public class CargarProjectTareas extends Window {
                 } catch (java.io.IOException fIoEx) {
                     fIoEx.printStackTrace();
                     Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                    return;
                 }
             }
 
@@ -279,14 +277,12 @@ public class CargarProjectTareas extends Window {
 
         tareasTable.addContainerProperty("FechaRealFin", String.class, "");
 
-        tareasTable.setColumnAlignments(new Table.Align[]{
-                Table.Align.CENTER, Table.Align.LEFT, Table.Align.LEFT,
+        tareasTable.setColumnAlignments(Table.Align.CENTER, Table.Align.LEFT, Table.Align.LEFT,
                 Table.Align.LEFT, Table.Align.LEFT, Table.Align.CENTER,
                 Table.Align.CENTER, Table.Align.CENTER, Table.Align.CENTER,
                 Table.Align.CENTER, Table.Align.CENTER, Table.Align.CENTER,
                 Table.Align.CENTER, Table.Align.CENTER, Table.Align.LEFT,
-                Table.Align.LEFT
-        });
+                Table.Align.LEFT);
 
         tareasTable.setColumnWidth("TID", 50);
         tareasTable.setColumnWidth("IDEX", 50);
@@ -468,7 +464,7 @@ public class CargarProjectTareas extends Window {
             queryString += " " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
             queryString += "," + numeroTxt.getValue();
-            queryString += ",'" + String.valueOf(projectCbx.getValue()).replaceAll("'", "\'") + "'";
+            queryString += ",'" + String.valueOf(projectCbx.getValue()).replaceAll("'", "'") + "'";
             queryString += ",'" + file.getName() + "'";
             queryString += ",'" + etiquetaTxt.getValue().toUpperCase() + "'";
             queryString += ",'" + idVisitaTxt.getValue() + "'";
@@ -585,7 +581,7 @@ public class CargarProjectTareas extends Window {
                 queryString += "," + numeroTxt.getValue();
                 queryString += "," + task.getID();
                 if (task.getParentTask() != null) {
-                    queryString += "," + String.valueOf(task.getParentTask().getID());
+                    queryString += "," + task.getParentTask().getID();
                 } else {
                     queryString += ",0";
                 }
@@ -678,7 +674,7 @@ Logger.getLogger(this.getClass()).log(Level.SEVERE,queryString);
             Notification.show("Error al insertar registro de tareas en base de datos..Transaccion abortada..!", Notification.Type.ERROR_MESSAGE);
             ex1.printStackTrace();
 
-            String emailRecipients[] = {"alerta@simpletecno.com"};
+            String[] emailRecipients = {"alerta@simpletecno.com"};
 
             MyEmailMessanger eMail = new MyEmailMessanger();
 
@@ -687,7 +683,6 @@ Logger.getLogger(this.getClass()).log(Level.SEVERE,queryString);
             } catch (Exception ex) {
 //                    Logger.getLogger(MyUI.class.getName()).log(Level.SEVERE, null, ex);
             }
-            return;
         }//endcatch//endcatch
 
 //                    file.delete();

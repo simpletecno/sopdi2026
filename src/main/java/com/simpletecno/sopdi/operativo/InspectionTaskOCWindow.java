@@ -924,14 +924,14 @@ public class InspectionTaskOCWindow extends Window {
                         ocIdexContainer.getContainerProperty(itemId, ES_NUEVO_PROPERTY).setValue("NO");
 
                         if (ocGrid.getSelectedRow() != null) { // no es nueva OC
-                            if (buscarOC(
+                            if (!buscarOC(
                                     itemId,
                                     idRecordProject,
                                     idcc,
                                     rsRecords.getString("Idex"),
                                     rsRecords.getString("NoCuenta"),
                                     rsRecords.getString("IdEmpresa"),
-                                    rsRecords.getString("IdProveedor")) == false) {
+                                    rsRecords.getString("IdProveedor"))) {
 
                                 if (   String.valueOf(ocContainer.getContainerProperty(ocGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue()).equals("EN REVISION")
                                     || String.valueOf(ocContainer.getContainerProperty(ocGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue()).equals("AUTORIZADA")
@@ -1329,7 +1329,7 @@ public class InspectionTaskOCWindow extends Window {
                     queryString += ",'" + rsRecords2.getString("Unidad") + "'"; //16
                     queryString += ",'" + rsRecords2.getString("Tipo") + "'";
                     queryString += ",'" + rsRecords2.getString("Fecha") + "'";
-                    queryString += "," +  String.valueOf(ocContainer.getContainerProperty(ocGrid.getSelectedRows().iterator().next(), CODIGOOC_PROPERTY).getValue());
+                    queryString += "," + ocContainer.getContainerProperty(ocGrid.getSelectedRows().iterator().next(), CODIGOOC_PROPERTY).getValue();
                     queryString += ",0"; //OCInicial
                     queryString += "," + rsRecords2.getString("Idex"); //idexan
                     queryString += ",'" + rsRecords2.getString("Idex") + "'";

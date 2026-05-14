@@ -87,8 +87,8 @@ public class ConciliacionBancariaForm extends Window {
 
     Utileria utilidadesFecha = new Utileria();
 
-    BigDecimal ingresosMes = new BigDecimal(0.00).setScale(2, RoundingMode.FLOOR);
-    BigDecimal egresosMes = new BigDecimal(0.00).setScale(2, RoundingMode.FLOOR);
+    BigDecimal ingresosMes = new BigDecimal("0.00").setScale(2, RoundingMode.FLOOR);
+    BigDecimal egresosMes = new BigDecimal("0.00").setScale(2, RoundingMode.FLOOR);
 
     String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
@@ -181,11 +181,7 @@ public class ConciliacionBancariaForm extends Window {
                 }
             }
         });
-        if (!idConciliacion.trim().isEmpty()) {
-            buscarBtn.setEnabled(false);
-        } else {
-            buscarBtn.setEnabled(true);
-        }
+        buscarBtn.setEnabled(idConciliacion.trim().isEmpty());
 
         conciliacionTxt = new TextField("CORRELATIVO DE CONCILIACIÓN :");
         conciliacionTxt.setWidth("22em");
@@ -270,7 +266,7 @@ public class ConciliacionBancariaForm extends Window {
 
         egresosGrid.getColumn(CODIGO_PARTIDA_PROPERTY).setHidable(true);
         egresosGrid.getColumn(FECHA2_PROPERTY).setHidable(false).setHidden(true);
-        egresosGrid.getColumn(DESCRIPCION_PROPERTY).setHidable(true).setHidden(true);;
+        egresosGrid.getColumn(DESCRIPCION_PROPERTY).setHidable(true).setHidden(true);
 
         egresoFooter = egresosGrid.appendFooterRow();
         egresoFooter.getCell(NOMBRE_CHEQUE_PROPERTY).setText("Totales");
@@ -662,8 +658,8 @@ public class ConciliacionBancariaForm extends Window {
         ingresosContainer.removeAllItems();
         egresosContainer.removeAllItems();
 
-        BigDecimal totalIngresos = new BigDecimal(0.00).setScale(2, RoundingMode.FLOOR);
-        BigDecimal totalEgresos = new BigDecimal(0.00).setScale(2, RoundingMode.FLOOR);
+        BigDecimal totalIngresos = new BigDecimal("0.00").setScale(2, RoundingMode.FLOOR);
+        BigDecimal totalEgresos = new BigDecimal("0.00").setScale(2, RoundingMode.FLOOR);
                 
         ingresosMes = new BigDecimal(0);
         egresosMes = new BigDecimal(0);
@@ -764,7 +760,7 @@ public class ConciliacionBancariaForm extends Window {
                 //egresosMes  = totalEgresos;
 
                 conciliacionTxt.setReadOnly(false);
-                conciliacionTxt.setValue(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId() + String.valueOf(cuentaContableCbx.getValue()) + Utileria.getFechaYYYYMM(mesDt.getValue()));
+                conciliacionTxt.setValue(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId() + cuentaContableCbx.getValue() + Utileria.getFechaYYYYMM(mesDt.getValue()));
                 conciliacionTxt.setReadOnly(true);
 
                 ingresoFooter.getCell(INGRESO_PROPERTY).setText(numberFormat.format(totalIngresos.doubleValue()));
@@ -801,8 +797,8 @@ public class ConciliacionBancariaForm extends Window {
 
         try {
 
-            BigDecimal totalMontoEgresosNoConciliado = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-            BigDecimal totalMontoIngreosNoConciliado = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+            BigDecimal totalMontoEgresosNoConciliado = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+            BigDecimal totalMontoIngreosNoConciliado = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
 
@@ -829,7 +825,7 @@ public class ConciliacionBancariaForm extends Window {
                 queryString += " Correlativo, TotalIngresos, TotalEgresos, SaldoFinalBanco, CreadoUsuario , CreadoFechaYHora, Estatus)";
                 queryString += " VALUES ";
                 queryString += "(";
-                queryString += "" + idRegistroCuentaBancos;
+                queryString += idRegistroCuentaBancos;
                 queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
                 queryString += "," + cuentaContableCbx.getValue();
                 queryString += ",'" + Utileria.getFechaYYYYMM(mesDt.getValue()).replaceAll("/", "") + "'";
@@ -888,7 +884,7 @@ public class ConciliacionBancariaForm extends Window {
                 } else {
                     queryString += " SET IdConciliacion = 0 ";
                 }
-                queryString += " WHERE CodigoPartida = '" + String.valueOf(item.getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
+                queryString += " WHERE CodigoPartida = '" + item.getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue() + "'";
                 queryString += " AND IdNomenclatura = " + cuentaContableCbx.getValue();
 
                 stQuery.executeUpdate(queryString);
@@ -899,15 +895,15 @@ public class ConciliacionBancariaForm extends Window {
                     queryString += "  Fecha, Descripcion, Monto, Tipo)";
                     queryString += " VALUES ";
                     queryString += "(";
-                    queryString += "" + idRegistroCuentaBancos;
+                    queryString += idRegistroCuentaBancos;
                     queryString += "," + idConciliacion;
                     queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
                     queryString += "," + cuentaContableCbx.getValue();
                     queryString += ",'" + Utileria.getFechaYYYYMM(mesDt.getValue()).replaceAll("/", "") + "'";
-                    queryString += ",'" + String.valueOf(item.getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
-                    queryString += ",'" + String.valueOf(item.getItemProperty(DOCTO_PROPERTY).getValue()) + "'";
-                    queryString += ",'" + String.valueOf(item.getItemProperty(FECHA2_PROPERTY).getValue()) + "'";
-                    queryString += ",'" + String.valueOf(item.getItemProperty(NOMBRE_CHEQUE_PROPERTY).getValue()) + "'";
+                    queryString += ",'" + item.getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue() + "'";
+                    queryString += ",'" + item.getItemProperty(DOCTO_PROPERTY).getValue() + "'";
+                    queryString += ",'" + item.getItemProperty(FECHA2_PROPERTY).getValue() + "'";
+                    queryString += ",'" + item.getItemProperty(NOMBRE_CHEQUE_PROPERTY).getValue() + "'";
                     queryString += "," + String.valueOf(item.getItemProperty(EGRESO_PROPERTY).getValue()).replaceAll(",", "");
                     queryString += ",'EGRESOS'";
                     queryString += ")";
@@ -926,7 +922,7 @@ public class ConciliacionBancariaForm extends Window {
                 } else {
                     queryString += " SET IdConciliacion = 0 ";
                 }
-                queryString += " WHERE CodigoPartida = '" + String.valueOf(item.getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
+                queryString += " WHERE CodigoPartida = '" + item.getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue() + "'";
                 queryString += " AND IdNomenclatura = " + cuentaContableCbx.getValue();
 
                 stQuery.executeUpdate(queryString);
@@ -937,15 +933,15 @@ public class ConciliacionBancariaForm extends Window {
                     queryString += "  Fecha, Descripcion, Monto, Tipo)";
                     queryString += " VALUES ";
                     queryString += "(";
-                    queryString += "" + idRegistroCuentaBancos;
+                    queryString += idRegistroCuentaBancos;
                     queryString += "," + idConciliacion;
                     queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
                     queryString += "," + cuentaContableCbx.getValue();
                     queryString += ",'" + Utileria.getFechaYYYYMM(mesDt.getValue()).replaceAll("/", "") + "'";
-                    queryString += ",'" + String.valueOf(item.getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
-                    queryString += ",'" + String.valueOf(item.getItemProperty(DOCTO_PROPERTY).getValue()) + "'";
-                    queryString += ",'" + String.valueOf(item.getItemProperty(FECHA2_PROPERTY).getValue()) + "'";
-                    queryString += ",'" + String.valueOf(item.getItemProperty(NOMBRE_CHEQUE_PROPERTY).getValue()) + "'";
+                    queryString += ",'" + item.getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue() + "'";
+                    queryString += ",'" + item.getItemProperty(DOCTO_PROPERTY).getValue() + "'";
+                    queryString += ",'" + item.getItemProperty(FECHA2_PROPERTY).getValue() + "'";
+                    queryString += ",'" + item.getItemProperty(NOMBRE_CHEQUE_PROPERTY).getValue() + "'";
                     queryString += "," + String.valueOf(item.getItemProperty(INGRESO_PROPERTY).getValue()).replaceAll(",", "");
                     queryString += ",'INGRESO'";
                     queryString += ")";

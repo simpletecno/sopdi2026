@@ -2,7 +2,6 @@ package com.simpletecno.sopdi.recursoshumanos;
 
 import com.simpletecno.sopdi.SopdiUI;
 import com.simpletecno.sopdi.utilerias.Utileria;
-import com.vaadin.data.Item;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.navigator.View;
@@ -327,19 +326,11 @@ public class LibroSalariosView extends VerticalLayout implements View {
                         }
                     }
                     if (anteriorBtn != null && !proveedorList.isEmpty()) {
-                        if (proveedorList.indexOf((String) proveedorCbx.getValue()) == 0) {
-                            anteriorBtn.setEnabled(false);
-                        } else {
-                            anteriorBtn.setEnabled(true);
-                        }
+                        anteriorBtn.setEnabled(proveedorList.indexOf((String) proveedorCbx.getValue()) != 0);
                     }
 
                     if (siguienteBtn != null && !proveedorList.isEmpty()) {
-                        if (proveedorList.indexOf((String) proveedorCbx.getValue()) == (proveedorList.size() - 1)) {
-                            siguienteBtn.setEnabled(false);
-                        } else {
-                            siguienteBtn.setEnabled(true);
-                        }
+                        siguienteBtn.setEnabled(proveedorList.indexOf((String) proveedorCbx.getValue()) != (proveedorList.size() - 1));
                     }
                 }
             }

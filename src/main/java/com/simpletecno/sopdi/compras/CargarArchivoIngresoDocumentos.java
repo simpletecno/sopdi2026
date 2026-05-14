@@ -96,7 +96,7 @@ public class   CargarArchivoIngresoDocumentos extends Window {
                         new File(filePath).mkdirs();
                         
 //                        fileName = filePath + codigoPartidaUpdate + fileName.substring(fileName.length()-4, fileName.length());
-                        fileName = filePath + codigoPartidaUpdate + fileName.substring(fileName.length()-4, fileName.length());
+                        fileName = filePath + codigoPartidaUpdate + fileName.substring(fileName.length()-4);
                         
                         targetFile = new File(fileName);
                         OutputStream outStream = new FileOutputStream(targetFile);
@@ -127,13 +127,11 @@ public class   CargarArchivoIngresoDocumentos extends Window {
                         
                     } else {
                         Notification.show("El archivo no contiene un formato compatible. solo puede subir archivos con formato 'PNG','JEPG','JPG','PDF'", Notification.Type.ERROR_MESSAGE);
-                        return;
                     }
                     
                 } catch (Exception fIoEx) {
                     fIoEx.printStackTrace();
                     Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                    return;
                 }
             }
         };

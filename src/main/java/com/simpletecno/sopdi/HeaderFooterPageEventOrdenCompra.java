@@ -16,7 +16,6 @@ import com.vaadin.server.VaadinService;
 import com.vaadin.ui.UI;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -45,15 +44,15 @@ public class HeaderFooterPageEventOrdenCompra extends PdfPageEventHelper {
     private final Font small12 = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL);
     private final Font small10Red = new Font(Font.FontFamily.TIMES_ROMAN, 10, Font.NORMAL, BaseColor.RED);
 
-    private String LOGOCASTANOS = VaadinService.getCurrent()
+    private final String LOGOCASTANOS = VaadinService.getCurrent()
             .getBaseDirectory().getAbsolutePath() + "/WEB-INF/logos/logocastanos.jpeg";
-    private String LOGONISA = VaadinService.getCurrent()
+    private final String LOGONISA = VaadinService.getCurrent()
             .getBaseDirectory().getAbsolutePath() + "/WEB-INF/logos/logonisa.jpg";
-    private String LOGONACSA = VaadinService.getCurrent()
+    private final String LOGONACSA = VaadinService.getCurrent()
             .getBaseDirectory().getAbsolutePath() + "/WEB-INF/logos/logonacsa.jpg";
-    private String LOGOSIENA = VaadinService.getCurrent()
+    private final String LOGOSIENA = VaadinService.getCurrent()
             .getBaseDirectory().getAbsolutePath() + "/WEB-INF/logos/logosiena.png";
-    private String LOGOFUNDAMEX = VaadinService.getCurrent()
+    private final String LOGOFUNDAMEX = VaadinService.getCurrent()
             .getBaseDirectory().getAbsolutePath() + "/WEB-INF/logos/logofundamex.jpeg";
 
     private String companyName = "";

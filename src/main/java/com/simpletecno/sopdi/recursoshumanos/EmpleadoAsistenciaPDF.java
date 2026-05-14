@@ -142,7 +142,7 @@ public class EmpleadoAsistenciaPDF extends Window {
         private final String RECEIPTFILE
                 = VaadinService.getCurrent()
                         .getBaseDirectory().getAbsolutePath() + "/pdfreceipts/";
-        private String TDLOGO = VaadinService.getCurrent()
+        private final String TDLOGO = VaadinService.getCurrent()
                 .getBaseDirectory().getAbsolutePath() + "/VAADIN/themes/tests-valo-flat/img/logo_simpletecno.png";
 
         private final Font catFont = new Font(Font.FontFamily.TIMES_ROMAN, 18, Font.BOLD);
@@ -372,7 +372,7 @@ public class EmpleadoAsistenciaPDF extends Window {
                     c2.setBorderWidth(0);
                     table.addCell(c2);
 
-                    c2 = new PdfPCell(new Paragraph(String.valueOf(asistenciaContainer.getItem(itemId).getItemProperty(EmpleadoAsistenciaView.IDEMPLEADO_PROPERTY).getValue()) + " " + String.valueOf(asistenciaContainer.getItem(itemId).getItemProperty(EmpleadoAsistenciaView.EMPLEADO_PROPERTY).getValue()), small8));
+                    c2 = new PdfPCell(new Paragraph(asistenciaContainer.getItem(itemId).getItemProperty(EmpleadoAsistenciaView.IDEMPLEADO_PROPERTY).getValue() + " " + asistenciaContainer.getItem(itemId).getItemProperty(EmpleadoAsistenciaView.EMPLEADO_PROPERTY).getValue(), small8));
                     c2.setHorizontalAlignment(Element.ALIGN_LEFT);
                     c2.setBorderWidth(0);
                     table.addCell(c2);

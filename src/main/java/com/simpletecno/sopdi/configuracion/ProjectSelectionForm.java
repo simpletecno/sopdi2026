@@ -5,13 +5,11 @@
 package com.simpletecno.sopdi.configuracion;
 
 import com.simpletecno.sopdi.SopdiUI;
-import com.simpletecno.sopdi.utilerias.Utileria;
 import com.vaadin.event.ItemClickEvent;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Responsive;
 import com.vaadin.server.StreamResource;
-import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Component;
@@ -157,10 +155,8 @@ public class ProjectSelectionForm extends VerticalLayout {
         projectsTable.addContainerProperty(RESERVA_PROPERTY,       String.class, null);
         projectsTable.addContainerProperty(COSTO_TRAMITE_PROPERTY, String.class, null);
 
-        projectsTable.setColumnAlignments(new Table.Align[] { 
-                Table.Align.CENTER, Table.Align.LEFT,  Table.Align.LEFT,
-                Table.Align.RIGHT,  Table.Align.RIGHT
-        });
+        projectsTable.setColumnAlignments(Table.Align.CENTER, Table.Align.LEFT, Table.Align.LEFT,
+                Table.Align.RIGHT, Table.Align.RIGHT);
         
         projectsTable.addListener(new ItemClickEvent.ItemClickListener() {
             public void itemClick(ItemClickEvent event) {
@@ -202,7 +198,7 @@ public class ProjectSelectionForm extends VerticalLayout {
                 Image proyectoLogo;
                 
                 do {
-                    final byte docBytes[] = rsRecords.getBytes("Logo");
+                    final byte[] docBytes = rsRecords.getBytes("Logo");
                     StreamResource logoStreamResource = null;
 
                     if(docBytes != null ) {
@@ -253,7 +249,7 @@ public class ProjectSelectionForm extends VerticalLayout {
 
             do {
                 if(rsRecords.getString("IdProyecto").compareTo(String.valueOf(projectsTable.getValue())) == 0) {
-                    final byte docBytes[] = rsRecords.getBytes("Logo");
+                    final byte[] docBytes = rsRecords.getBytes("Logo");
                     StreamResource logoStreamResource = null;
 
                     if(docBytes != null ) {

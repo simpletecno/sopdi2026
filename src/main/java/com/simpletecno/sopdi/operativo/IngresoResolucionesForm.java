@@ -94,7 +94,6 @@ public class IngresoResolucionesForm extends Window {
                         return;
                     }
                     if(String.valueOf(event.getItem().getItemProperty("Punto de Agenda").getValue()).trim().isEmpty()) {
-                        return;
                     }
 //                    InspectionTextWindow inspectionTextWindow = 
 //                            new InspectionTextWindow(

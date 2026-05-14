@@ -312,7 +312,7 @@ public class LibroVentasPDF extends Window {
 
 //System.out.println(libroVentasContainer.getContainerProperty(itemId, FECHA_PROPERTY).getValue());
 
-                    if(String.valueOf(libroVentasContainer.getContainerProperty(itemId, CLIENTE_PROPERTY).getValue()).toUpperCase().equals("TOTALES")) {
+                    if(String.valueOf(libroVentasContainer.getContainerProperty(itemId, CLIENTE_PROPERTY).getValue()).equalsIgnoreCase("TOTALES")) {
                         if(String.valueOf(libroVentasContainer.getContainerProperty(itemId, FECHA_PROPERTY).getValue()).trim().isEmpty()) {
  
                             c1 = new PdfPCell(new Paragraph("", small10));

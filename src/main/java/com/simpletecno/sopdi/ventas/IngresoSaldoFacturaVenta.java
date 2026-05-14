@@ -160,7 +160,7 @@ public class IngresoSaldoFacturaVenta extends Window {
             stQuery.executeUpdate(queryString);
 
             reducirEnganche();
-            ((FacturaVentaView) (((SopdiUI) UI.getCurrent()).getNavigator().getCurrentView())).llenarTablaFacturaVenta();
+            ((FacturaVentaView) (UI.getCurrent().getNavigator().getCurrentView())).llenarTablaFacturaVenta();
             Notification.show("Autorización exitosa.");
 
             close();

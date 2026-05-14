@@ -52,13 +52,13 @@ public class ChangePassword extends Window implements Button.ClickListener
         acceptBtn    = new Button("Aceptar");
         acceptBtn.setIcon(FontAwesome.CHECK);
         acceptBtn.setWidth(120,Sizeable.UNITS_PIXELS);
-        acceptBtn.addListener((Button.ClickListener) this);
+        acceptBtn.addListener(this);
 //        acceptBtn.setClickShortcut(KeyCode.ENTER);
 
         exitBtn    = new Button("Salir");
         exitBtn.setIcon(FontAwesome.SIGN_OUT);
         exitBtn.setWidth(120,Sizeable.UNITS_PIXELS);
-        exitBtn.addListener((Button.ClickListener) this);
+        exitBtn.addListener(this);
 //        exitBtn.setClickShortcut(KeyCode.ESCAPE);
 
         txtUserName  = new TextField("Usuario");
@@ -130,11 +130,8 @@ public class ChangePassword extends Window implements Button.ClickListener
             // Password must be at least 8 characters long and contain at least
             // one number
             //
-            if (value != null
-                    && (value.length() < 8 || !value.matches(".*\\d.*"))) {
-                return false;
-            }
-            return true;
+            return value == null
+                    || (value.length() >= 8 && value.matches(".*\\d.*"));
         }
 
         @Override

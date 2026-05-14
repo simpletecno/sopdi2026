@@ -34,7 +34,6 @@ import java.io.OutputStream;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.text.DecimalFormat;
 import java.util.Locale;
 import org.vaadin.dialogs.ConfirmDialog;
 
@@ -165,8 +164,7 @@ System.out.println("\ntargetFile = " + fileName);
                 catch( java.io.IOException fIoEx) {
                     fIoEx.printStackTrace();
                     Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                    return;
-                }                
+                }
             }
         };
 
@@ -228,12 +226,10 @@ JavaScript.getCurrent().execute("document.getElementsByClassName('gwt-FileUpload
         
         integracionTable.addContainerProperty("Area", String.class, "");
                         
-        integracionTable.setColumnAlignments(new Table.Align[] { 
-                Table.Align.CENTER, Table.Align.LEFT,   Table.Align.LEFT,
-                Table.Align.RIGHT,  Table.Align.CENTER, Table.Align.RIGHT, 
+        integracionTable.setColumnAlignments(Table.Align.CENTER, Table.Align.LEFT, Table.Align.LEFT,
+                Table.Align.RIGHT, Table.Align.CENTER, Table.Align.RIGHT,
                 Table.Align.CENTER, Table.Align.CENTER, Table.Align.CENTER,
-                Table.Align.CENTER
-        });
+                Table.Align.CENTER);
         
         integracionTable.setColumnWidth("TID", 50);
         integracionTable.setColumnWidth("Descripción", 300);
@@ -316,7 +312,7 @@ JavaScript.getCurrent().execute("document.getElementsByClassName('gwt-FileUpload
 
                         stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();            
 
-                        queryString = "DELETE FROM tarea_integracion WHERE (SELECT IdTarea FROM tarea WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectName() + " AND Fase  = '" + String.valueOf(projectCbx.getValue()) + "')";
+                        queryString = "DELETE FROM tarea_integracion WHERE (SELECT IdTarea FROM tarea WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectName() + " AND Fase  = '" + projectCbx.getValue() + "')";
                         stQuery.executeUpdate(queryString);
                                                 
                         for(int linea = 0; linea < 10; linea++ ) {
@@ -327,7 +323,7 @@ JavaScript.getCurrent().execute("document.getElementsByClassName('gwt-FileUpload
                             queryString += " VALUES ( ";
                             queryString += " "  + ((SopdiUI) mainUI).sessionInformation.getStrCompanyId();                            
                             queryString += ","  + ((SopdiUI) mainUI).sessionInformation.getStrProjectName();                            
-                            queryString += ",'" + String.valueOf(projectCbx.getValue()) + "'";                            
+                            queryString += ",'" + projectCbx.getValue() + "'";
                             queryString += ",'" + ((SopdiUI) mainUI).sessionInformation.getStrUserName() + "'";
                             queryString += ",current_timestamp";
                             
@@ -351,7 +347,7 @@ System.out.println("query=" + queryString);
                         Notification.show("Error al insertar registro de integración en base de datos..Transaccion abortada..!", Notification.Type.ERROR_MESSAGE);
                         ex1.printStackTrace();
 
-                        String emailRecipients[] = {"alerta@simpletecno.com"};
+                        String[] emailRecipients = {"alerta@simpletecno.com"};
 
                         MyEmailMessanger eMail = new MyEmailMessanger();
 

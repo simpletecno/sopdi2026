@@ -30,11 +30,9 @@ import com.vaadin.ui.DateField;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.Grid;
-import com.vaadin.ui.Grid.FooterRow;
 import com.vaadin.ui.Grid.HeaderCell;
 import com.vaadin.ui.Grid.HeaderRow;
 import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Image;
 import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Layout;
@@ -335,7 +333,7 @@ public class VisitasView extends VerticalLayout implements View {
                         new SimpleStringFilter(CODIGO_VISITA_PROPERTY,
                                 change.getText(), true, false));
 //                footer.getCell(CLIENTE_PROPERTY).setText(String.valueOf(visitasContainer.size()) + " REGISTROS");
-                visitasGrid.setCaption(String.valueOf(visitasContainer.size()) + " VISITAS");
+                visitasGrid.setCaption(visitasContainer.size() + " VISITAS");
             }
         });
         cellA.setComponent(filterFieldA);
@@ -356,7 +354,7 @@ public class VisitasView extends VerticalLayout implements View {
                         new SimpleStringFilter(FECHAVISITA_PROPERTY,
                                 change.getText(), true, true));
 //                footer.getCell(CLIENTE_PROPERTY).setText(String.valueOf(visitasContainer.size()) + " REGISTROS");
-                visitasGrid.setCaption(String.valueOf(visitasContainer.size()) + " VISITAS");
+                visitasGrid.setCaption(visitasContainer.size() + " VISITAS");
             }
         });
         cell.setComponent(filterField);
@@ -376,7 +374,7 @@ public class VisitasView extends VerticalLayout implements View {
                         new SimpleStringFilter(CLIENTE_PROPERTY,
                                 change.getText(), true, false));
 //                footer.getCell(CLIENTE_PROPERTY).setText(String.valueOf(visitasContainer.size()) + " REGISTROS");
-                visitasGrid.setCaption(String.valueOf(visitasContainer.size()) + " VISITAS");
+                visitasGrid.setCaption(visitasContainer.size() + " VISITAS");
             }
         });
         cell1.setComponent(filterField1);
@@ -397,7 +395,7 @@ public class VisitasView extends VerticalLayout implements View {
                         new SimpleStringFilter(REFERENCIA_PROPERTY,
                                 change.getText(), true, false));
 //                footer.getCell(REFERENCIA_PROPERTY).setText(String.valueOf(visitasContainer.size()) + " REGISTROS");
-                visitasGrid.setCaption(String.valueOf(visitasContainer.size()) + " VISITAS");
+                visitasGrid.setCaption(visitasContainer.size() + " VISITAS");
             }
         });
         cell2.setComponent(filterField2);
@@ -418,7 +416,7 @@ public class VisitasView extends VerticalLayout implements View {
                         new SimpleStringFilter(MOTIVO_PROPERTY,
                                 change.getText(), true, false));
 //                footer.getCell(CLIENTE_PROPERTY).setText(String.valueOf(visitasContainer.size()) + " REGISTROS");
-                visitasGrid.setCaption(String.valueOf(visitasContainer.size()) + " VISITAS");
+                visitasGrid.setCaption(visitasContainer.size() + " VISITAS");
             }
         });
         cell3.setComponent(filterField3);
@@ -439,7 +437,7 @@ public class VisitasView extends VerticalLayout implements View {
                         new SimpleStringFilter(MEDIO_PROPERTY,
                                 change.getText(), true, false));
 //                footer.getCell(CLIENTE_PROPERTY).setText(String.valueOf(visitasContainer.size()) + " REGISTROS");
-                visitasGrid.setCaption(String.valueOf(visitasContainer.size()) + " VISITAS");
+                visitasGrid.setCaption(visitasContainer.size() + " VISITAS");
             }
         });
         cell4.setComponent(filterField4);
@@ -460,7 +458,7 @@ public class VisitasView extends VerticalLayout implements View {
                         new SimpleStringFilter(VISITAS_PROPERTY,
                                 change.getText(), true, false));
 //                footer.getCell(CLIENTE_PROPERTY).setText(String.valueOf(visitasContainer.size()) + " REGISTROS");
-                visitasGrid.setCaption(String.valueOf(visitasContainer.size()) + " VISITAS");
+                visitasGrid.setCaption(visitasContainer.size() + " VISITAS");
 
             }
         });
@@ -884,7 +882,7 @@ public class VisitasView extends VerticalLayout implements View {
 
                 InspectionTaskBudgetWindow inspectionTaskBudgetWindow = new InspectionTaskBudgetWindow(
                         String.valueOf(tareasContainer.getContainerProperty(e.getItemId(), CODIGO_TAREA_PROPERTY).getValue()),
-                        String.valueOf(tabSheet.getTab(0).getCaption() + tareasContainer.getContainerProperty(e.getItemId(), CORRELATIVO_PROPERTY).getValue()),
+                        tabSheet.getTab(0).getCaption() + tareasContainer.getContainerProperty(e.getItemId(), CORRELATIVO_PROPERTY).getValue(),
                         String.valueOf(tareasContainer.getContainerProperty(e.getItemId(), DESCRIPCION_PROPERTY).getValue()),
                         String.valueOf(tareasContainer.getContainerProperty(e.getItemId(), AUTORIZA_PROPERTY).getValue())
                 );
@@ -929,7 +927,7 @@ public class VisitasView extends VerticalLayout implements View {
             InspectionTaskImageWindow inspectionTaskImageWindow
                     = new InspectionTaskImageWindow(
                             String.valueOf(tareasContainer.getContainerProperty(e.getItemId(), CODIGO_TAREA_PROPERTY).getValue()),
-                            tabSheet.getTab(0).getCaption() + String.valueOf(tareasContainer.getContainerProperty(e.getItemId(), CODIGO_TAREA_PROPERTY).getValue()),
+                            tabSheet.getTab(0).getCaption() + tareasContainer.getContainerProperty(e.getItemId(), CODIGO_TAREA_PROPERTY).getValue(),
                             String.valueOf(tareasContainer.getContainerProperty(e.getItemId(), DESCRIPCION_PROPERTY).getValue()),
                             true
                     );
@@ -945,7 +943,7 @@ public class VisitasView extends VerticalLayout implements View {
             boolean tienePresupuesto = false;
 
             try {
-                rsRecords = stQuery.executeQuery("SELECT IdVisitaInspeccionTareaPresupuesto FROM visita_inspeccion_tarea_presupuesto WHERE IdVisitaInspeccionTarea = " + String.valueOf(tareasContainer.getContainerProperty(e.getItemId(), ID_PROPERTY).getValue()));
+                rsRecords = stQuery.executeQuery("SELECT IdVisitaInspeccionTareaPresupuesto FROM visita_inspeccion_tarea_presupuesto WHERE IdVisitaInspeccionTarea = " + tareasContainer.getContainerProperty(e.getItemId(), ID_PROPERTY).getValue());
 
                 tienePresupuesto = rsRecords.next();
 
@@ -954,7 +952,7 @@ public class VisitasView extends VerticalLayout implements View {
                             Notification.Type.ERROR_MESSAGE);
                 }
                 else { // eliminar tarea
-                    stQuery.executeUpdate("DELETE FROM visita_inspeccion_tarea WHERE IdVisitaInspeccionTarea = " + String.valueOf(tareasContainer.getContainerProperty(e.getItemId(), ID_PROPERTY).getValue()));
+                    stQuery.executeUpdate("DELETE FROM visita_inspeccion_tarea WHERE IdVisitaInspeccionTarea = " + tareasContainer.getContainerProperty(e.getItemId(), ID_PROPERTY).getValue());
                     tareasContainer.removeItem(e.getItemId());
                     Notification.show("Tarea eliminada.", Notification.Type.TRAY_NOTIFICATION);
                 }
@@ -1313,27 +1311,27 @@ System.out.println("\n\n"+queryString);
                 queryString += ",'" + codigoVisita + "'";
                 queryString += ",'" + Utileria.getFechaYYYYMMDDHHMMSS(fechaYHoraInicioDt.getValue()) + "'";
                 queryString += ",'" + Utileria.getFechaYYYYMMDDHHMMSS(fechaYHoraFinDt.getValue()) + "'";
-                queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-                queryString += ",'" + String.valueOf(motivoCbx.getValue()) + "'";
+                queryString += ",'" + medioCbx.getValue() + "'";
+                queryString += ",'" + motivoCbx.getValue() + "'";
 
                 if (visitasCbx.getValue().equals("<<ELIJA>>") || visitasCbx.getValue().equals("")
                         || visitasCbx.getValue() == null) {
                     queryString += ",'Gerente'";
                 } else {
-                    queryString += ",'" + String.valueOf(visitasCbx.getValue()) + "'";
+                    queryString += ",'" + visitasCbx.getValue() + "'";
                 }
 
                 if (clienteCbx.getValue() == null || clienteCbx.getValue().equals("")) {
                     queryString += ", 0";
                 } else {
-                    queryString += "," + String.valueOf(clienteCbx.getValue());
+                    queryString += "," + clienteCbx.getValue();
                 }
 
                 if (centroCostoCbx.getValue().equals("<<ELIJA>>") || centroCostoCbx.getValue().equals("")
                         || centroCostoCbx.getValue() == null) {
                     queryString += ", '0'";
                 } else {
-                    queryString += ",'" + String.valueOf(centroCostoCbx.getValue()) + "'";
+                    queryString += ",'" + centroCostoCbx.getValue() + "'";
                 }
 
                 queryString += ",'" + referenciaTxt.getValue() + "'";
@@ -1347,13 +1345,13 @@ System.out.println("\n\n"+queryString);
                     return;
                 }
                 queryString = "UPDATE visita_inspeccion SET";
-                queryString += " IdCliente = " + String.valueOf(clienteCbx.getValue());
+                queryString += " IdCliente = " + clienteCbx.getValue();
                 queryString += ",FechaYHoraInicio = '" + Utileria.getFechaYYYYMMDDHHMMSS(fechaYHoraInicioDt.getValue()) + "'";
                 queryString += ",FechaYHoraFin = '" + Utileria.getFechaYYYYMMDDHHMMSS(fechaYHoraFinDt.getValue()) + "'";
-                queryString += ",Medio = '" + String.valueOf(medioCbx.getValue()) + "'";
-                queryString += ",Motivo = '" + String.valueOf(motivoCbx.getValue()) + "'";
-                queryString += ",Visitas = '" + String.valueOf(visitasCbx.getValue()) + "'";
-                queryString += ",IdCentroCosto = '" + String.valueOf(centroCostoCbx.getValue()) + "'";
+                queryString += ",Medio = '" + medioCbx.getValue() + "'";
+                queryString += ",Motivo = '" + motivoCbx.getValue() + "'";
+                queryString += ",Visitas = '" + visitasCbx.getValue() + "'";
+                queryString += ",IdCentroCosto = '" + centroCostoCbx.getValue() + "'";
                 queryString += ",Referencia = '" + referenciaTxt.getValue() + "'";
                 queryString += ",Lugar = '" + lugarTxt.getValue() + "'";
                 queryString += ",Observaciones = '" + observacionesTxt.getValue() + "'";
@@ -1395,7 +1393,7 @@ System.out.println("\n\n"+queryString);
                 visitasContainer.getContainerProperty(itemId, ARCHIVO_PROPERTY).setValue("Cargar archivo");
 
 //                footer.getCell(CLIENTE_PROPERTY).setText(String.valueOf(visitasContainer.size()) + " REGISTROS");
-                visitasGrid.setCaption(String.valueOf(visitasContainer.size()) + " Visitas y reuniones");
+                visitasGrid.setCaption(visitasContainer.size() + " Visitas y reuniones");
 
                 if (desplegarMsg) {
                     Notification.show("Registro insertado!!!", Notification.Type.WARNING_MESSAGE);
@@ -1515,7 +1513,7 @@ System.out.println("\n\n"+queryString);
 
         queryString = "DELETE ";
         queryString += " FROM  visita_inspeccion_tarea_seguimiento ";
-        queryString += " WHERE IdVisitaInspeccionTarea In (Select A.IdVisitaInspeccionTarea From visita_inspeccion_tarea A Where A.IdVisitaInspeccion = " + String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue()) + ")";
+        queryString += " WHERE IdVisitaInspeccionTarea In (Select A.IdVisitaInspeccionTarea From visita_inspeccion_tarea A Where A.IdVisitaInspeccion = " + visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue() + ")";
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -1523,25 +1521,25 @@ System.out.println("\n\n"+queryString);
 
             queryString = "DELETE ";
             queryString += " FROM  visita_inspeccion_tarea_imagen ";
-            queryString += " WHERE IdVisitaInspeccionTarea In (Select A.IdVisitaInspeccionTarea From visita_inspeccion_tarea A Where A.IdVisitaInspeccion = " + String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue()) + ")";
+            queryString += " WHERE IdVisitaInspeccionTarea In (Select A.IdVisitaInspeccionTarea From visita_inspeccion_tarea A Where A.IdVisitaInspeccion = " + visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue() + ")";
 
             stQuery.executeUpdate(queryString);
 
             queryString = "DELETE ";
             queryString += " FROM  visita_inspeccion_tarea_presupuesto ";
-            queryString += " WHERE IdVisitaInspeccionTarea In (Select A.IdVisitaInspeccionTarea From visita_inspeccion_tarea A Where A.IdVisitaInspeccion = " + String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue()) + ")";
+            queryString += " WHERE IdVisitaInspeccionTarea In (Select A.IdVisitaInspeccionTarea From visita_inspeccion_tarea A Where A.IdVisitaInspeccion = " + visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue() + ")";
 
             stQuery.executeUpdate(queryString);
 
             queryString = "DELETE ";
             queryString += " FROM  visita_inspeccion_tarea ";
-            queryString += " WHERE IdVisitaInspeccion = " + String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue());
+            queryString += " WHERE IdVisitaInspeccion = " + visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue();
 
             stQuery.executeUpdate(queryString);
 
             queryString = "DELETE ";
             queryString += " FROM  visita_inspeccion ";
-            queryString += " WHERE IdVisitaInspeccion = " + String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue());
+            queryString += " WHERE IdVisitaInspeccion = " + visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue();
 
             stQuery.executeUpdate(queryString);
 
@@ -1567,7 +1565,7 @@ System.out.println("\n\n"+queryString);
 
             String filePath = enviromentsVars.getDtePath();
 
-            final byte docBytes[] = Files.readAllBytes(new File(filePath + archivoNombre).toPath());
+            final byte[] docBytes = Files.readAllBytes(new File(filePath + archivoNombre).toPath());
             final String fileName = filePath + archivoNombre;
 
             if (docBytes == null) {
@@ -1634,7 +1632,7 @@ System.out.println("\n\n"+queryString);
 
                         new File(filePath).mkdirs();
 
-                        fileName = codigoVisita + fileName.substring(fileName.length() - 4, fileName.length());
+                        fileName = codigoVisita + fileName.substring(fileName.length() - 4);
 
                         new File(filePath + filePath).mkdirs();
 
@@ -1670,7 +1668,6 @@ System.out.println("\n\n"+queryString);
                     } catch (java.io.IOException fIoEx) {
                         fIoEx.printStackTrace();
                         Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                        return;
                     }
                 }
             };

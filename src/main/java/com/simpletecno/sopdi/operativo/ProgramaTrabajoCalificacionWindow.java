@@ -6,20 +6,15 @@ package com.simpletecno.sopdi.operativo;
 
 import com.simpletecno.sopdi.SopdiUI;
 import com.vaadin.data.util.IndexedContainer;
-import com.vaadin.data.util.filter.SimpleStringFilter;
 import com.vaadin.event.SelectionEvent;
 import com.vaadin.event.SelectionEvent.SelectionListener;
 import com.vaadin.server.FontAwesome;
-import com.vaadin.server.StreamResource;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
-import com.vaadin.ui.Grid.HeaderCell;
-import com.vaadin.ui.Grid.HeaderRow;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.io.*;
-import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
@@ -38,15 +33,15 @@ public final class ProgramaTrabajoCalificacionWindow extends Window {
     public ResultSet rsRecords  = null;
     public ResultSet rsRecords1 = null;
 
-    protected static final String CALIDAD_M = "CALIDAD MAESTRO";
-    protected static final String CALIDAD_S = "CALIDAD SUPERVISOR";
-    protected static final String PERSONAL = "PERSONAL";
-    protected static final String JEFE = "JEFE";
-    protected static final String MAESTRO = "MAESTRO";
+    private static final String CALIDAD_M = "CALIDAD MAESTRO";
+    private static final String CALIDAD_S = "CALIDAD SUPERVISOR";
+    private static final String PERSONAL = "PERSONAL";
+    private static final String JEFE = "JEFE";
+    private static final String MAESTRO = "MAESTRO";
 
-    protected static final String NOMBRE_PROPERTY = "Nombre";
-    protected static final String CARACTERISTICA_PROPERTY = "Característica";
-    protected static final String VALOR_PROPERTY = "Valor";
+    private static final String NOMBRE_PROPERTY = "Nombre";
+    private static final String CARACTERISTICA_PROPERTY = "Característica";
+    private static final String VALOR_PROPERTY = "Valor";
 
     Button exportExcelBtn;
 
@@ -66,11 +61,11 @@ public final class ProgramaTrabajoCalificacionWindow extends Window {
     final Grid maestroGrid  = new Grid(MAESTRO,maestroContainer);
     final Grid supervisionesGrid  = new Grid("Supervisiones",supervisionesContainer);
 
-    final Grid.FooterRow calidadMFooter =  calidadMGrid.appendFooterRow();;
-    final Grid.FooterRow calidadSFooter =  calidadSGrid.appendFooterRow();;
-    final Grid.FooterRow personalFooter =  personalGrid.appendFooterRow();;
-    final Grid.FooterRow jefeFooter =  jefeGrid.appendFooterRow();;
-    final Grid.FooterRow maestroFooter  =  maestroGrid.appendFooterRow();;
+    final Grid.FooterRow calidadMFooter =  calidadMGrid.appendFooterRow();
+    final Grid.FooterRow calidadSFooter =  calidadSGrid.appendFooterRow();
+    final Grid.FooterRow personalFooter =  personalGrid.appendFooterRow();
+    final Grid.FooterRow jefeFooter =  jefeGrid.appendFooterRow();
+    final Grid.FooterRow maestroFooter  =  maestroGrid.appendFooterRow();
 
     final UI mainUI = UI.getCurrent();
 

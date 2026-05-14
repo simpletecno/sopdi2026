@@ -91,13 +91,13 @@ public class EmpleadoView extends VerticalLayout implements View {
     NumberField vacacionesDiasGozadosTxt =  new NumberField("Dias vacaciones gozados : ");
 
     public static Locale locale = new Locale("ES", "GT");
-    private static DecimalFormat numberFormat = new DecimalFormat("##,###,##0.00");
+    private static final DecimalFormat numberFormat = new DecimalFormat("##,###,##0.00");
 
     private Date egresoDateMemory = null;
     
     boolean esNuevo;
 
-    private UI mainUI;
+    private final UI mainUI;
 
     String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
@@ -594,7 +594,8 @@ public class EmpleadoView extends VerticalLayout implements View {
         excelExport.excludeCollapsedColumns();
         excelExport.setExportFileName(empresaId+"_CATALOGO_EMPLEADOS.xls");
 
-        String mainTitle = empresaNombre + " CATALOGO DE EMPLEADOS AL: " + new Utileria().getFechaYYYYMMDD_1(new Date());
+        new Utileria();
+        String mainTitle = empresaNombre + " CATALOGO DE EMPLEADOS AL: " + Utileria.getFechaYYYYMMDD_1(new Date());
 
         excelExport.setReportTitle(mainTitle);
 

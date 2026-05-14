@@ -29,6 +29,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.ui.NumberField;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -350,7 +351,7 @@ public class LibroMayorView extends VerticalLayout implements View {
         String queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
         queryString += " WHERE Estatus = 'HABILITADA'";
         if (cuentaContableCbx.getValue() != null) {
-            queryString += " AND IdNomenclatura = " + String.valueOf(cuentaContableCbx.getValue());
+            queryString += " AND IdNomenclatura = " + cuentaContableCbx.getValue();
         }
         queryString += " AND IdEmpresa = " + empresaId;
         queryString += " ORDER BY ID1";
@@ -370,7 +371,7 @@ System.out.println("query con substring " + queryString);
                                  
                 Iterator iterMes = collMes.iterator();
                 
-                if(iterMes.hasNext() == false) {
+                if(!iterMes.hasNext()) {
                     Notification.show("POR FAVOR ELIJA UNO O VARIOS MESES", Notification.Type.HUMANIZED_MESSAGE);
                     return;
                 }
@@ -382,7 +383,7 @@ System.out.println("query con substring " + queryString);
                     while(iterMes.hasNext()) {  // meses
 
                         String mesCierre = String.valueOf(iterMes.next());
-                        String anioMesCierre = String.valueOf(anioCbx.getValue()) + mesCierre;
+                        String anioMesCierre = anioCbx.getValue() + mesCierre;
 
                         Calendar c = Calendar.getInstance();
                         
@@ -402,7 +403,7 @@ System.out.println("query con substring " + queryString);
                         }
 //System.out.println("calendar 2 = " + c.get(Calendar.YEAR) + " " + c.get(Calendar.SHORT));
 
-                        BigDecimal saldoAnterior = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        BigDecimal saldoAnterior = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
                         if(Integer.valueOf(mesCierre) > 1) {  //ENERO, entonces traer el saldo inicial del año Partida Apertura
                             saldoAnterior = saldoAnterior.add(getSaldoCuentaPartidaApertura(String.valueOf(anioCbx.getValue()), rsRecords.getString("IdNomenclatura")));
                         }
@@ -414,7 +415,7 @@ System.out.println("query con substring " + queryString);
 
                         libroMayorcontainer.getContainerProperty(itemId, CUENTA_PROPERTY).setValue(rsRecords.getString("NoCuenta"));
                         libroMayorcontainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).setValue(rsRecords.getString("N5"));
-                        libroMayorcontainer.getContainerProperty(itemId, FECHA_PROPERTY).setValue(String.valueOf( mesCbx.getItemCaption(mesCierre).toUpperCase() + " " + anioCbx.getItemCaption(anioCbx.getValue())));
+                        libroMayorcontainer.getContainerProperty(itemId, FECHA_PROPERTY).setValue(mesCbx.getItemCaption(mesCierre).toUpperCase() + " " + anioCbx.getItemCaption(anioCbx.getValue()));
                         libroMayorcontainer.getContainerProperty(itemId, CODIGO_PARTIDA_PROPERTY).setValue("S. ANTERIOR : ");
                         if(   rsRecords.getString("NoCuenta").startsWith("1")
                            || rsRecords.getString("NoCuenta").startsWith("5")
@@ -450,10 +451,10 @@ System.out.println("query con substring " + queryString);
 
                         if (rsRecords1.next()) { //  encontrado el detalle contable
                             
-                            BigDecimal totalSaldoAnterior = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                            BigDecimal totalDebe = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                            BigDecimal totalHaber = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                            BigDecimal totalSaldoFinal = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP); 
+                            BigDecimal totalSaldoAnterior = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                            BigDecimal totalDebe = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                            BigDecimal totalHaber = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                            BigDecimal totalSaldoFinal = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
                             do { //por cada movimiento contable
                                 itemId = libroMayorcontainer.addItem();
@@ -482,10 +483,10 @@ System.out.println("query con substring " + queryString);
                                 if(   rsRecords.getString("NoCuenta").startsWith("1")
                                    || rsRecords.getString("NoCuenta").startsWith("5")
                                    || rsRecords.getString("NoCuenta").startsWith("6")) { //activo, egreso, costo
-                                    saldoAnterior = saldoAnterior.add(new BigDecimal(rsRecords1.getDouble("DebeQuetzales") - rsRecords1.getDouble("HaberQuetzales")).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                    saldoAnterior = saldoAnterior.add(new BigDecimal(rsRecords1.getDouble("DebeQuetzales") - rsRecords1.getDouble("HaberQuetzales")).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                 }
                                 else { //resto
-                                    saldoAnterior = saldoAnterior.subtract(new BigDecimal(rsRecords1.getDouble("HaberQuetzales") - rsRecords1.getDouble("DebeQuetzales")).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                    saldoAnterior = saldoAnterior.subtract(new BigDecimal(rsRecords1.getDouble("HaberQuetzales") - rsRecords1.getDouble("DebeQuetzales")).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                 }
                                 libroMayorcontainer.getContainerProperty(itemId, SALDO_PROPERTY).setValue(numberFormat.format(saldoAnterior));
 
@@ -555,27 +556,27 @@ System.out.println("query con substring " + queryString);
     }
 
     public BigDecimal getSaldoCuentaMesAnterior(Calendar c, String idNomenclatura) throws SQLException {
-        BigDecimal saldo = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal saldo = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
                        
         String queryString  = " SELECT IfNull(SaldoFinal, 0) SaldoMesAnterior ";
         queryString += " FROM contabilidad_balance_saldo";
         queryString += " WHERE IdNomenclatura = " + idNomenclatura;
         queryString += " AND  IdEmpresa = " + empresaId;
-        queryString += " AND  AnioMesCierre = " + String.valueOf(c.get(Calendar.YEAR)) + String.format("%02d", c.get(Calendar.MONTH)+1) ;
+        queryString += " AND  AnioMesCierre = " + c.get(Calendar.YEAR) + String.format("%02d", c.get(Calendar.MONTH)+1) ;
         
 //System.out.println("queryMesAnterior = " + queryString);
 
         rsRecords2 = stQuery2.executeQuery(queryString);
 
         if(rsRecords2.next()) {
-            saldo = rsRecords2.getBigDecimal("SaldoMesAnterior").setScale(2, BigDecimal.ROUND_HALF_UP);
+            saldo = rsRecords2.getBigDecimal("SaldoMesAnterior").setScale(2, RoundingMode.HALF_UP);
         }
 //System.out.println("saldoMesAnterior = " + saldo);        
         return saldo;
     }
 
     public BigDecimal getSaldoCuentaPartidaApertura(String anio, String idNomenclatura) throws SQLException {
-        BigDecimal saldo = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal saldo = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
         String queryString  = "SELECT DebeQuetzales, HaberQuetzales ";
         queryString += " FROM contabilidad_partida";
@@ -590,9 +591,9 @@ System.out.println("querySaldoPartidApertura = " + queryString);
 
         if(rsRecords2.next()) {
             if (rsRecords2.getDouble("DebeQuetzales") > 0) {
-                saldo = rsRecords2.getBigDecimal("DebeQuetzales").setScale(2, BigDecimal.ROUND_HALF_UP);
+                saldo = rsRecords2.getBigDecimal("DebeQuetzales").setScale(2, RoundingMode.HALF_UP);
             } else {
-                saldo = rsRecords2.getBigDecimal("HaberQuetzales").setScale(2, BigDecimal.ROUND_HALF_UP);
+                saldo = rsRecords2.getBigDecimal("HaberQuetzales").setScale(2, RoundingMode.HALF_UP);
             }
 //System.out.println("saldoMesAnterior = " + saldo);
         }

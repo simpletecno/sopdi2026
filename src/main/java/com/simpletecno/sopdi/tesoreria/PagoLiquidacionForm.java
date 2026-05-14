@@ -31,6 +31,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -303,7 +304,7 @@ public class PagoLiquidacionForm extends Window {
                     proveedorNombre = String.valueOf(liquidacionesGrid.getContainerDataSource().getItem(gridItem).getItemProperty(LIQUIDADOR_PROPERTY).getValue());
                     moneda = String.valueOf(liquidacionesGrid.getContainerDataSource().getItem(gridItem).getItemProperty(MONEDA_PROPERTY).getValue());
                     montoPagar = Double.valueOf(String.valueOf(liquidacionesGrid.getContainerDataSource().getItem(gridItem).getItemProperty(VALOR_PROPERTY).getValue()).replaceAll(",", ""));
-                    facturasPagadas = String.valueOf(liquidacionesGrid.getContainerDataSource().getItem(gridItem).getItemProperty(LIQUIDACION_PROPERTY).getValue()) + ",";
+                    facturasPagadas = liquidacionesGrid.getContainerDataSource().getItem(gridItem).getItemProperty(LIQUIDACION_PROPERTY).getValue() + ",";
                     tipoDocumentoPagado = "LIQUIDACION";
 
                     monedaCbx.setReadOnly(false);
@@ -326,7 +327,7 @@ public class PagoLiquidacionForm extends Window {
                             return;
                         }
                         montoPagar += Double.valueOf(String.valueOf(liquidacionesGrid.getContainerDataSource().getItem(gridItem).getItemProperty(VALOR_PROPERTY).getValue()).replaceAll(",", ""));
-                        facturasPagadas += String.valueOf(liquidacionesGrid.getContainerDataSource().getItem(gridItem).getItemProperty(LIQUIDACION_PROPERTY).getValue()) + ",";
+                        facturasPagadas += liquidacionesGrid.getContainerDataSource().getItem(gridItem).getItemProperty(LIQUIDACION_PROPERTY).getValue() + ",";
                     }
 
                     limpiarPartida();
@@ -1147,15 +1148,15 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
         totalDebeBD = new BigDecimal(debe1Txt.getDoubleValueDoNotThrow()
                 + debe2Txt.getDoubleValueDoNotThrow() + debe3Txt.getDoubleValueDoNotThrow()
                 + debe4Txt.getDoubleValueDoNotThrow() + debe5Txt.getDoubleValueDoNotThrow()
-                + debe6Txt.getDoubleValueDoNotThrow() + debe7Txt.getDoubleValueDoNotThrow()).setScale(2, BigDecimal.ROUND_HALF_UP);
+                + debe6Txt.getDoubleValueDoNotThrow() + debe7Txt.getDoubleValueDoNotThrow()).setScale(2, RoundingMode.HALF_UP);
 
         totalHaberBD = new BigDecimal(haber1Txt.getDoubleValueDoNotThrow()
                 + haber2Txt.getDoubleValueDoNotThrow() + haber3Txt.getDoubleValueDoNotThrow()
                 + haber4Txt.getDoubleValueDoNotThrow() + haber5Txt.getDoubleValueDoNotThrow()
-                + haber6Txt.getDoubleValueDoNotThrow() + haber7Txt.getDoubleValueDoNotThrow()).setScale(2, BigDecimal.ROUND_HALF_UP);
+                + haber6Txt.getDoubleValueDoNotThrow() + haber7Txt.getDoubleValueDoNotThrow()).setScale(2, RoundingMode.HALF_UP);
 
-        totalDebeBD.setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalHaberBD.setScale(2, BigDecimal.ROUND_HALF_UP);
+        totalDebeBD.setScale(2, RoundingMode.HALF_UP);
+        totalHaberBD.setScale(2, RoundingMode.HALF_UP);
 
  System.out.println("Monto del total Debe Normal " +  totalDebeBD + " monto Total Debe getDouble " + totalDebeBD.doubleValue());
 
@@ -1174,7 +1175,7 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
         queryString = "SELECT CodigoPartida FROM contabilidad_partida ";
         queryString += " WHERE NumeroDocumento = '" + numeroTxt.getValue() + "'";
         queryString += " AND IdEmpresa = " + empresaId;
-        queryString += " AND TipoDocumento = '" + String.valueOf(medioCbx.getValue()) + "'";
+        queryString += " AND TipoDocumento = '" + medioCbx.getValue() + "'";
         queryString += " AND MonedaDocumento = '" + monedaCbx.getValue() + "'";
 
         try {
@@ -1244,7 +1245,7 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoCCLiquidacion1Txt.getValue() + "'";
-        queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+        queryString += ",'" + medioCbx.getValue() + "'";
         queryString += ",'" + facturasPagadas + "'";//NODOCA
         queryString += ",'" + tipoDocumentoPagado + "'";//TIPODOCA
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
@@ -1252,16 +1253,16 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
         queryString += ",''"; //nit proveedor
         queryString += ",'" + proveedorNombre + "'";
         queryString += ",'" + nombreChequeTxt.getValue() + "'";
-        queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+        queryString += "," + montoTxt.getDoubleValueDoNotThrow();
         queryString += ",''"; //serie documento
         queryString += ",'" + numeroTxt.getValue() + "'";
         queryString += "," + cuentaContable1Cbx.getValue();
         queryString += ",'" + monedaCbx.getValue() + "'";
-        queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow()); //DEBe
-        queryString += "," + String.valueOf(haber1Txt.getDoubleValueDoNotThrow()); //DEBe
-        queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //DEBE Q
-        queryString += "," + String.valueOf(haber1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //HABER Q
-        queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + debe1Txt.getDoubleValueDoNotThrow(); //DEBe
+        queryString += "," + haber1Txt.getDoubleValueDoNotThrow(); //DEBe
+        queryString += "," + debe1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //DEBE Q
+        queryString += "," + haber1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //HABER Q
+        queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
         queryString += "," + liquidadorId;
         queryString += ",'" + descripcion + "'";
         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
@@ -1276,7 +1277,7 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoCCLiquidacion2Txt.getValue() + "'";
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + facturasPagadas + "'";//NODOCA
             queryString += ",'" + tipoDocumentoPagado + "'";//TIPODOCA
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
@@ -1284,16 +1285,16 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
             queryString += ",''"; // nit
             queryString += ",'" + proveedorNombre + "'";
             queryString += ",'" + nombreChequeTxt.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
             queryString += ",''"; // serie documento
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable2Cbx.getValue(); //idcuentacontable
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe2Txt.getDoubleValueDoNotThrow()); // DEBE
-            queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow()); // HABER
-            queryString += "," + String.valueOf(debe2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //DEBE Q
-            queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //HABER Q
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe2Txt.getDoubleValueDoNotThrow(); // DEBE
+            queryString += "," + haber2Txt.getDoubleValueDoNotThrow(); // HABER
+            queryString += "," + debe2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //DEBE Q
+            queryString += "," + haber2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //HABER Q
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += "," + liquidadorId;
             queryString += ",'" + descripcion + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
@@ -1310,7 +1311,7 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoCCLiquidacion3Txt.getValue() + "'";
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + facturasPagadas + "'";//NODOCA
             queryString += ",'" + tipoDocumentoPagado + "'";//TIPODOCA
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
@@ -1318,16 +1319,16 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
             queryString += ",''"; // nit
             queryString += ",'" + proveedorNombre + "'";
             queryString += ",'" + nombreChequeTxt.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
             queryString += ",''";
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable3Cbx.getValue(); //idcuentacontable
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe3Txt.getDoubleValueDoNotThrow()); // DEBE
-            queryString += "," + String.valueOf(haber3Txt.getDoubleValueDoNotThrow()); // HABER
-            queryString += "," + String.valueOf(debe3Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //DEBE Q
-            queryString += "," + String.valueOf(haber3Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //HABER Q
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe3Txt.getDoubleValueDoNotThrow(); // DEBE
+            queryString += "," + haber3Txt.getDoubleValueDoNotThrow(); // HABER
+            queryString += "," + debe3Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //DEBE Q
+            queryString += "," + haber3Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //HABER Q
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += "," + liquidadorId;
             queryString += ",'" + descripcion + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
@@ -1342,7 +1343,7 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoCCLiquidacion4Txt.getValue() + "'";
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + facturasPagadas + "'";//NODOCA
             queryString += ",'" + tipoDocumentoPagado + "'";//TIPODOCA
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
@@ -1350,16 +1351,16 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
             queryString += ",''"; // nit
             queryString += ",'" + proveedorNombre + "'";
             queryString += ",'" + nombreChequeTxt.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
             queryString += ",''";
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable4Cbx.getValue(); //idcuentacontable
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe4Txt.getDoubleValueDoNotThrow()); // DEBE
-            queryString += "," + String.valueOf(haber4Txt.getDoubleValueDoNotThrow()); // HABER
-            queryString += "," + String.valueOf(debe4Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //DEBE Q
-            queryString += "," + String.valueOf(haber4Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //HABER Q
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe4Txt.getDoubleValueDoNotThrow(); // DEBE
+            queryString += "," + haber4Txt.getDoubleValueDoNotThrow(); // HABER
+            queryString += "," + debe4Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //DEBE Q
+            queryString += "," + haber4Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //HABER Q
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += "," + liquidadorId;
             queryString += ",'" + descripcion + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
@@ -1376,7 +1377,7 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoCCLiquidacion5Txt.getValue() + "'";
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + facturasPagadas + "'";//NODOCA
             queryString += ",'" + tipoDocumentoPagado + "'";//TIPODOCA
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
@@ -1384,16 +1385,16 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
             queryString += ",''"; // nit
             queryString += ",'" + proveedorNombre + "'";
             queryString += ",'" + nombreChequeTxt.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
             queryString += ",''";
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable5Cbx.getValue(); //idcuentacontable
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe5Txt.getDoubleValueDoNotThrow()); // DEBE
-            queryString += "," + String.valueOf(haber5Txt.getDoubleValueDoNotThrow()); // HABER
-            queryString += "," + String.valueOf(debe5Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //DEBE Q
-            queryString += "," + String.valueOf(haber5Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //HABER Q
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe5Txt.getDoubleValueDoNotThrow(); // DEBE
+            queryString += "," + haber5Txt.getDoubleValueDoNotThrow(); // HABER
+            queryString += "," + debe5Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //DEBE Q
+            queryString += "," + haber5Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //HABER Q
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += "," + liquidadorId;
             queryString += ",'" + descripcion + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
@@ -1410,7 +1411,7 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoCCLiquidacion6Txt.getValue() + "'";
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + facturasPagadas + "'";//NODOCA
             queryString += ",'" + tipoDocumentoPagado + "'";//TIPODOCA
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
@@ -1418,16 +1419,16 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
             queryString += ",''"; // nit
             queryString += ",'" + proveedorNombre + "'";
             queryString += ",'" + nombreChequeTxt.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
             queryString += ",''";
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable6Cbx.getValue(); //idcuentacontable
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe6Txt.getDoubleValueDoNotThrow()); // DEBE
-            queryString += "," + String.valueOf(haber6Txt.getDoubleValueDoNotThrow()); // HABER
-            queryString += "," + String.valueOf(debe6Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //DEBE Q
-            queryString += "," + String.valueOf(haber6Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //HABER Q
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe6Txt.getDoubleValueDoNotThrow(); // DEBE
+            queryString += "," + haber6Txt.getDoubleValueDoNotThrow(); // HABER
+            queryString += "," + debe6Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //DEBE Q
+            queryString += "," + haber6Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //HABER Q
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += "," + liquidadorId;
             queryString += ",'" + descripcion + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
@@ -1441,7 +1442,7 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoCCLiquidacion7Txt.getValue() + "'";
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + facturasPagadas + "'";//NODOCA
             queryString += ",'" + tipoDocumentoPagado + "'";//TIPODOCA
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
@@ -1449,16 +1450,16 @@ System.out.println("CONSULTA DE LIQUIDACIONES POR PAGAR=" + queryString);
             queryString += ",''"; // nit
             queryString += ",'" + proveedorNombre + "'";
             queryString += ",'" + nombreChequeTxt.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
             queryString += ",''";
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable7Cbx.getValue(); //idcuentacontable
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe7Txt.getDoubleValueDoNotThrow()); // DEBE
-            queryString += "," + String.valueOf(haber7Txt.getDoubleValueDoNotThrow()); // HABER
-            queryString += "," + String.valueOf(debe7Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //DEBE Q
-            queryString += "," + String.valueOf(haber7Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //HABER Q
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe7Txt.getDoubleValueDoNotThrow(); // DEBE
+            queryString += "," + haber7Txt.getDoubleValueDoNotThrow(); // HABER
+            queryString += "," + debe7Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //DEBE Q
+            queryString += "," + haber7Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //HABER Q
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += "," + liquidadorId;
             queryString += ",'" + descripcion + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
@@ -1582,7 +1583,7 @@ Logger.getLogger(this.getClass().getName()).info("QueryUpdateLiquidacion=" + que
             }
 
             try {
-                String emailsTo[] = {"alerta@simpletecno.com"};
+                String[] emailsTo = {"alerta@simpletecno.com"};
                 MyEmailMessanger eMail = new MyEmailMessanger();
 
                 eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos :  " + this.getClass().getName() + " -->" + ex1.getMessage());

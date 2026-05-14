@@ -21,7 +21,6 @@ import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.shared.ui.label.ContentMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.renderers.ButtonRenderer;
-import com.vaadin.ui.themes.Runo;
 import com.vaadin.ui.themes.ValoTheme;
 import com.wcs.wcslib.vaadin.widget.multifileupload.ui.MultiFileUpload;
 import com.wcs.wcslib.vaadin.widget.multifileupload.ui.UploadFinishedHandler;
@@ -32,6 +31,7 @@ import org.vaadin.ui.NumberField;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -714,7 +714,6 @@ public class OrdenCompraForm extends Window {
             } catch (java.io.IOException fIoEx) {
                 fIoEx.printStackTrace();
                 Notification.show("Error al cargar el archivo Excel IDEXs!", Notification.Type.ERROR_MESSAGE);
-                return;
             }
         };
 
@@ -802,8 +801,8 @@ public class OrdenCompraForm extends Window {
 
     private void setTotal() {
 
-        BigDecimal total = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalQ = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal total = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalQ = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
 
         for (Object rid : idccGrid.getContainerDataSource()
                 .getItemIds()) {
@@ -1183,7 +1182,7 @@ public class OrdenCompraForm extends Window {
     }
 
     private void setTotal(IndexedContainer indexedContainer, Grid grid, Grid.FooterRow gridFooter) {
-        BigDecimal total = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal total = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
         for (Object rid : grid.getContainerDataSource()
                 .getItemIds()) {
             total = total.add(new BigDecimal(
@@ -1603,7 +1602,7 @@ public class OrdenCompraForm extends Window {
                                     ) {
                                         prvPlu = pt.getPrvPlu();
                                         prvPluDes = pt.getPrvPluDes();
-                                        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "SE ENCONTRO PLU TEMPORAL PARA LA CUENTA : " + cuenta + " Y AREA : " + String.valueOf(item.getItemProperty(AREA_PROPERTY).getValue())
+                                        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "SE ENCONTRO PLU TEMPORAL PARA LA CUENTA : " + cuenta + " Y AREA : " + item.getItemProperty(AREA_PROPERTY).getValue()
                                                 + " USANDO PLU : " + prvPlu + " DESCRIPCION : " + prvPluDes);
                                         break;
                                     }
@@ -1743,7 +1742,7 @@ public class OrdenCompraForm extends Window {
                 if(rsRecords2.getString("Estado").equals("CERRADA")) {
                     guardarBtn.setEnabled(false);
                 }
-                titleLbl.setValue("EDITANDO ORDEN DE COMPRA : " + rsRecords2.getString("NOC").substring(3, rsRecords2.getString("NOC").length()));
+                titleLbl.setValue("EDITANDO ORDEN DE COMPRA : " + rsRecords2.getString("NOC").substring(3));
             }
         } catch (Exception ex) {
             System.out.println("Error al listar tablea orden compra detalle:" + ex);
@@ -1767,7 +1766,7 @@ public class OrdenCompraForm extends Window {
             System.out.println("\n Total lineas en archivo=" + sheet.getLastRowNum());
             System.out.println("...INICIO...");
 
-            Object itemId; int recordCount = 0;;
+            Object itemId; int recordCount = 0;
 
             ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(false);
 

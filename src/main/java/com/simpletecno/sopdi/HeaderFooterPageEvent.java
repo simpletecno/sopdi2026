@@ -54,7 +54,7 @@ public class HeaderFooterPageEvent extends PdfPageEventHelper {
     private String leftFooterText = "";
     private String printTime = "";
     private String printBy = "";
-    private String comentarioextra = "";
+    private final String comentarioextra = "";
     private int folioInicial = 0;
 
     @Override

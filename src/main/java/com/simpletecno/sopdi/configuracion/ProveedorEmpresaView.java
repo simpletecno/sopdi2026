@@ -9,7 +9,6 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Page;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.poi.ss.formula.functions.Index;
 
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -20,8 +19,8 @@ import java.util.logging.Logger;
 
 public class ProveedorEmpresaView extends VerticalLayout implements View {
 
-    private IndexedContainer maestroContainer = new IndexedContainer();
-    private IndexedContainer misContainer = new IndexedContainer();
+    private final IndexedContainer maestroContainer = new IndexedContainer();
+    private final IndexedContainer misContainer = new IndexedContainer();
 
     private Grid gridMaestro;
     private Grid gridMis;

@@ -8,7 +8,6 @@ import com.simpletecno.sopdi.SopdiUI;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.util.filter.SimpleStringFilter;
 import com.vaadin.event.SelectionEvent;
-import com.vaadin.event.SelectionEvent.SelectionListener;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;
@@ -39,16 +38,16 @@ public final class ProgramaTrabajoEmpleadosView extends VerticalLayout implement
     public ResultSet rsRecords = null;
     public ResultSet rsRecords1 = null;
 
-    protected static final String ENGRUPO = "1";
-    protected static final String SINGRUPO = "2";
+    private static final String ENGRUPO = "1";
+    private static final String SINGRUPO = "2";
 
-    protected static final String IDEMPLEADO_PROPERTY = "IdEmpleado";
-    protected static final String NOMBRE_PROPERTY = "Nombre";
-    protected static final String CARGO_PROPERTY = "Cargo";
-    protected static final String TIPOASIGNACION_PROPERTY = "Tipo asignación";
-    protected static final String ESJEFE_PROPERTY = "ES JEFE";
-    protected static final String ESTATUS_PROPERTY = "Estatus";
-    protected static final String RAZON_PROPERTY = "Razón";
+    private static final String IDEMPLEADO_PROPERTY = "IdEmpleado";
+    private static final String NOMBRE_PROPERTY = "Nombre";
+    private static final String CARGO_PROPERTY = "Cargo";
+    private static final String TIPOASIGNACION_PROPERTY = "Tipo asignación";
+    private static final String ESJEFE_PROPERTY = "ES JEFE";
+    private static final String ESTATUS_PROPERTY = "Estatus";
+    private static final String RAZON_PROPERTY = "Razón";
 
     Button exportExcelBtn;
     Button updateBtn;
@@ -129,15 +128,15 @@ public final class ProgramaTrabajoEmpleadosView extends VerticalLayout implement
                         if (String.valueOf(enGrupoContainer.getContainerProperty(objectItem, ESJEFE_PROPERTY).getValue()).equals("SI")) {
 
                             bandera = true;
-                            if (bandera == true) {
+                            if (bandera) {
                                 queryString = " UPDATE proveedor SET ";
 //                                queryString += " GrupoTrabajo = '" + String.valueOf(enGrupoContainer.getContainerProperty(objectItem, GRUPO_PROPERTY).getValue()) + "'";
-                                queryString += " TipoAsignacion = '" + String.valueOf(enGrupoContainer.getContainerProperty(objectItem, TIPOASIGNACION_PROPERTY).getValue()) + "'";
+                                queryString += " TipoAsignacion = '" + enGrupoContainer.getContainerProperty(objectItem, TIPOASIGNACION_PROPERTY).getValue() + "'";
 //                                queryString += ",EsJefe = '" + (String.valueOf(enGrupoContainer.getContainerProperty(objectItem, ESJEFE_PROPERTY).getValue()).equals("SI") ? "1'" : "0'");
-                                queryString += ",Cargo  = '" + String.valueOf(enGrupoContainer.getContainerProperty(objectItem, CARGO_PROPERTY).getValue()) + "'";
-                                queryString += ",EstatusTrabajo = '" + String.valueOf(enGrupoContainer.getContainerProperty(objectItem, ESTATUS_PROPERTY).getValue()) + "'";
-                                queryString += ",Razon = '" + String.valueOf(enGrupoContainer.getContainerProperty(objectItem, RAZON_PROPERTY).getValue()) + "'";
-                                queryString += " WHERE IdProveedor = " + String.valueOf(enGrupoContainer.getContainerProperty(objectItem, IDEMPLEADO_PROPERTY).getValue());
+                                queryString += ",Cargo  = '" + enGrupoContainer.getContainerProperty(objectItem, CARGO_PROPERTY).getValue() + "'";
+                                queryString += ",EstatusTrabajo = '" + enGrupoContainer.getContainerProperty(objectItem, ESTATUS_PROPERTY).getValue() + "'";
+                                queryString += ",Razon = '" + enGrupoContainer.getContainerProperty(objectItem, RAZON_PROPERTY).getValue() + "'";
+                                queryString += " WHERE IdProveedor = " + enGrupoContainer.getContainerProperty(objectItem, IDEMPLEADO_PROPERTY).getValue();
 
                                 stQuery.executeUpdate(queryString);
                             } else {
@@ -146,12 +145,12 @@ public final class ProgramaTrabajoEmpleadosView extends VerticalLayout implement
                         } else {
                             queryString = " UPDATE proveedor SET ";
 //                            queryString += " GrupoTrabajo = '" + String.valueOf(enGrupoContainer.getContainerProperty(objectItem, GRUPO_PROPERTY).getValue()) + "'";
-                            queryString += " TipoAsignacion = '" + String.valueOf(enGrupoContainer.getContainerProperty(objectItem, TIPOASIGNACION_PROPERTY).getValue()) + "'";
+                            queryString += " TipoAsignacion = '" + enGrupoContainer.getContainerProperty(objectItem, TIPOASIGNACION_PROPERTY).getValue() + "'";
                             queryString += ",EsJefe = '" + (String.valueOf(enGrupoContainer.getContainerProperty(objectItem, ESJEFE_PROPERTY).getValue()).equals("SI") ? "1'" : "0'");
-                            queryString += ",Cargo = '" + String.valueOf(sinGrupoContainer.getContainerProperty(objectItem, CARGO_PROPERTY).getValue()) + "'";
-                            queryString += ",EstatusTrabajo = '" + String.valueOf(enGrupoContainer.getContainerProperty(objectItem, ESTATUS_PROPERTY).getValue()) + "'";
-                            queryString += ",Razon = '" + String.valueOf(enGrupoContainer.getContainerProperty(objectItem, RAZON_PROPERTY).getValue()) + "'";
-                            queryString += " WHERE IdProveedor = " + String.valueOf(enGrupoContainer.getContainerProperty(objectItem, IDEMPLEADO_PROPERTY).getValue());
+                            queryString += ",Cargo = '" + sinGrupoContainer.getContainerProperty(objectItem, CARGO_PROPERTY).getValue() + "'";
+                            queryString += ",EstatusTrabajo = '" + enGrupoContainer.getContainerProperty(objectItem, ESTATUS_PROPERTY).getValue() + "'";
+                            queryString += ",Razon = '" + enGrupoContainer.getContainerProperty(objectItem, RAZON_PROPERTY).getValue() + "'";
+                            queryString += " WHERE IdProveedor = " + enGrupoContainer.getContainerProperty(objectItem, IDEMPLEADO_PROPERTY).getValue();
 
                             stQuery.executeUpdate(queryString);
                         }
@@ -162,10 +161,10 @@ public final class ProgramaTrabajoEmpleadosView extends VerticalLayout implement
 //                        queryString += " GrupoTrabajo = '" + String.valueOf(sinGrupoContainer.getContainerProperty(objectItem, GRUPO_PROPERTY).getValue()) + "'";
                         queryString += " TipoAsignacion = ''";
 //                        queryString += ",EsJefe = '" + (String.valueOf(sinGrupoContainer.getContainerProperty(objectItem, ESJEFE_PROPERTY).getValue()).equals("SI") ? "1'" : "0'");
-                        queryString += ",Cargo = '" + String.valueOf(sinGrupoContainer.getContainerProperty(objectItem, CARGO_PROPERTY).getValue()) + "'";
-                        queryString += ",EstatusTrabajo = '" + String.valueOf(sinGrupoContainer.getContainerProperty(objectItem, ESTATUS_PROPERTY).getValue()) + "'";
-                        queryString += ",Razon = '" + String.valueOf(sinGrupoContainer.getContainerProperty(objectItem, RAZON_PROPERTY).getValue()) + "'";
-                        queryString += " WHERE IdProveedor = " + String.valueOf(sinGrupoContainer.getContainerProperty(objectItem, IDEMPLEADO_PROPERTY).getValue());
+                        queryString += ",Cargo = '" + sinGrupoContainer.getContainerProperty(objectItem, CARGO_PROPERTY).getValue() + "'";
+                        queryString += ",EstatusTrabajo = '" + sinGrupoContainer.getContainerProperty(objectItem, ESTATUS_PROPERTY).getValue() + "'";
+                        queryString += ",Razon = '" + sinGrupoContainer.getContainerProperty(objectItem, RAZON_PROPERTY).getValue() + "'";
+                        queryString += " WHERE IdProveedor = " + sinGrupoContainer.getContainerProperty(objectItem, IDEMPLEADO_PROPERTY).getValue();
                         stQuery.executeUpdate(queryString);
                     }
 

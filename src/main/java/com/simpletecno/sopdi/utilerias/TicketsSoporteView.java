@@ -472,7 +472,7 @@ public class TicketsSoporteView extends VerticalLayout implements View {
                 SeguimientoWindow seguimientoWindow = new SeguimientoWindow(
                         null,
                        String.valueOf(ticketsContainer.getContainerProperty(ticketsGrid.getSelectedRow(), ID_PROPERTY).getValue()),
-                        "TICKET: " + String.valueOf(ticketsContainer.getContainerProperty(ticketsGrid.getSelectedRow(), DESCRIPCION_PROPERTY).getValue()),
+                        "TICKET: " + ticketsContainer.getContainerProperty(ticketsGrid.getSelectedRow(), DESCRIPCION_PROPERTY).getValue(),
                         "EN PROCESO",
                         eMailTo);
                 mainUI.addWindow(seguimientoWindow);
@@ -505,10 +505,10 @@ System.out.println("mimeType=" + mimeType);
 //                        fileName = filePath + codigoPartidaUpdate + fileName.substring(fileName.length()-4, fileName.length());
 
                         if(fileName.endsWith(".xlsx")) {
-                            fileName = filePath + new Utileria().getReferencia() + fileName.substring(fileName.length() - 5, fileName.length());
+                            fileName = filePath + new Utileria().getReferencia() + fileName.substring(fileName.length() - 5);
                         }
                         else {
-                            fileName = filePath + new Utileria().getReferencia() + fileName.substring(fileName.length() - 4, fileName.length());
+                            fileName = filePath + new Utileria().getReferencia() + fileName.substring(fileName.length() - 4);
                         }
 
                         targetFile = new File(fileName);
@@ -543,7 +543,6 @@ System.out.println("mimeType=" + mimeType);
                             notif.setPosition(Position.MIDDLE_CENTER);
                             notif.setIcon(FontAwesome.WARNING);
                             notif.show(Page.getCurrent());
-                            return;
                         }
                         else {
                             guardarArchivoSeguimiento();
@@ -551,13 +550,11 @@ System.out.println("mimeType=" + mimeType);
 
                     } else {
                         Notification.show("El archivo no contiene un formato compatible. solo puede subir archivos con formato 'PNG','JEPG','JPG','PDF', 'XLS', 'XLSX'", Notification.Type.ERROR_MESSAGE);
-                        return;
                     }
 
                 } catch (Exception fIoEx) {
                     fIoEx.printStackTrace();
                     Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                    return;
                 }
             }
         };
@@ -607,7 +604,7 @@ System.out.println("mimeType=" + mimeType);
                             if (dialog.isConfirmed()) {
                                 String queryString;
                                 queryString =  "Update ticket_soporte Set Estatus = 'CERRADO'";
-                                queryString += " Where IdTicket = " + String.valueOf(ticketsContainer.getContainerProperty(ticketsGrid.getSelectedRow(), ID_PROPERTY).getValue());
+                                queryString += " Where IdTicket = " + ticketsContainer.getContainerProperty(ticketsGrid.getSelectedRow(), ID_PROPERTY).getValue();
 
                                 try {
 
@@ -616,7 +613,7 @@ System.out.println("mimeType=" + mimeType);
 
                                     queryString = "Insert Into ticket_soporte_seguimiento (IdTicket, Observacion, CreadoFechaYHora, CreadoUsuario)";
                                     queryString += " Values (";
-                                    queryString += " " + String.valueOf(ticketsContainer.getContainerProperty(ticketsGrid.getSelectedRow(), ID_PROPERTY).getValue());
+                                    queryString += " " + ticketsContainer.getContainerProperty(ticketsGrid.getSelectedRow(), ID_PROPERTY).getValue();
                                     queryString += ",'CERRADO POR USUARIO'";
                                     queryString += ",current_timestamp";
                                     queryString += ", " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
@@ -635,7 +632,7 @@ System.out.println("mimeType=" + mimeType);
                                         eMailTo = String.valueOf(ticketsContainer.getContainerProperty(ticketsGrid.getSelectedRow(), USUARIOID_SOLICITANTE_PROPERTY).getValue());
                                     }
                                     try {
-                                        String emailsTo[] = {eMailTo};
+                                        String[] emailsTo = {eMailTo};
                                         MyEmailMessanger eMail = new MyEmailMessanger();
 
                                         String texto  = "!!! NUEVO SEGUIMIENTO !!!\n";
@@ -645,7 +642,7 @@ System.out.println("mimeType=" + mimeType);
                                         texto += "OBSERVACION : TICKET HA SIDO CERRADO." + "\n";
                                         texto += "\n\n\n***Creado automaticamente por el sistema SOPDI.***";
 
-                                        eMail.postMail(emailsTo, "SOPDI : Ticket de soporte : " + String.valueOf(ticketsContainer.getContainerProperty(ticketsGrid.getSelectedRow(), DESCRIPCION_PROPERTY).getValue()), texto );
+                                        eMail.postMail(emailsTo, "SOPDI : Ticket de soporte : " + ticketsContainer.getContainerProperty(ticketsGrid.getSelectedRow(), DESCRIPCION_PROPERTY).getValue(), texto );
                                     } catch (MessagingException ex2) {
                                         Logger.getLogger(SopdiUI.class.getName()).log(Level.SEVERE, null, ex2);
                                     }
@@ -814,7 +811,7 @@ System.out.println("mimeType=" + mimeType);
 
             String filePath = enviromentsVars.getDtePath();
 //System.out.println("file="+filePath + archivoNombre);
-            final byte docBytes[] = Files.readAllBytes(new File(filePath + archivoNombre).toPath());
+            final byte[] docBytes = Files.readAllBytes(new File(filePath + archivoNombre).toPath());
             final String fileName = filePath + archivoNombre;
 
             if (docBytes == null) {

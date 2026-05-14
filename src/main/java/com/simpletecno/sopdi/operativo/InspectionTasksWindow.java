@@ -145,7 +145,7 @@ public class InspectionTasksWindow extends Window {
                     InspectionTaskImageWindow inspectionTaskImageWindow
                             = new InspectionTaskImageWindow(
                                     String.valueOf(tareasContainer.getContainerProperty(tareasGrid.getEditedItemId(), "CTarea").getValue()),
-                                    codigoVisita + String.valueOf(tareasContainer.getContainerProperty(tareasGrid.getEditedItemId(), "CTarea").getValue()),
+                                    codigoVisita + tareasContainer.getContainerProperty(tareasGrid.getEditedItemId(), "CTarea").getValue(),
                                     String.valueOf(tareasContainer.getContainerProperty(tareasGrid.getEditedItemId(), "Descripción").getValue()),
                                     true
                             );
@@ -302,7 +302,7 @@ public class InspectionTasksWindow extends Window {
             while (rsRecords.next()) { //  encontrado                
                 comboBox.addItem(rsRecords.getString("CodigoCentroCosto"));
             }
-            if (idCentroCostoDefault.equals("0") == false) {
+            if (!idCentroCostoDefault.equals("0")) {
                // comboBox.select(Integer.valueOf(idCentroCostoDefault));
                 comboBox.setEnabled(false);
             }

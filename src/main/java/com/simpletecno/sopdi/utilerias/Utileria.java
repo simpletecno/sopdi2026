@@ -1138,7 +1138,7 @@ public class Utileria {
                         ", fecha=" + fecha8 + ", tipo=" + tipo + ", corr=" + corr + " )");
             }
 
-            return String.valueOf(idEmpresa) + fecha8 + tipo + String.format("%03d", corr);
+            return idEmpresa + fecha8 + tipo + String.format("%03d", corr);
 
         } catch (SQLException e) {
             throw new RuntimeException("Error SQL generando codigoPartida", e);
@@ -1217,7 +1217,7 @@ public class Utileria {
                         ", fecha=" + fecha8 + ", tipo=" + tipo + ")");
             }
 
-            String prefijo = String.valueOf(idEmpresa) + fecha8 + tipo;
+            String prefijo = idEmpresa + fecha8 + tipo;
             String[] codigos = new String[cantidad];
             for (int i = 0; i < cantidad; i++) {
                 int corr = ultimo - (cantidad - 1 - i);

@@ -1,9 +1,7 @@
 package com.simpletecno.sopdi.tesoreria;
 
 import com.simpletecno.sopdi.SopdiUI;
-import com.simpletecno.sopdi.utilerias.MyEmailMessanger;
 import com.simpletecno.sopdi.utilerias.Utileria;
-import com.sun.xml.bind.v2.model.core.ID;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.util.filter.SimpleStringFilter;
@@ -22,12 +20,8 @@ import com.vaadin.ui.Grid.HeaderRow;
 import com.vaadin.ui.renderers.ButtonRenderer;
 import com.vaadin.ui.renderers.ClickableRenderer;
 import com.vaadin.ui.themes.ValoTheme;
-import org.apache.poi.poifs.eventfilesystem.POIFSReader;
-import org.openxmlformats.schemas.presentationml.x2006.main.SldLayoutDocument;
 import org.vaadin.ui.NumberField;
 
-import javax.mail.MessagingException;
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -1001,7 +995,7 @@ System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
             if (!esteProveedor.equals(String.valueOf(porPagarContainer.getContainerProperty(itemId, ID_PROVEEDOR_PROPERTY).getValue()))) {
                 esteProveedor = porPagarContainer.getContainerProperty(itemId, ID_PROVEEDOR_PROPERTY).getValue().toString();
                 if (codigoPartidaPago.isEmpty()) { // es la primera vez...
-                    codigoPartidaPago = util.nextCodigoPartida(((SopdiUI) mainUI).databaseProvider.getCurrentConnection(), empresaId, new java.util.Date(), 3);
+                    codigoPartidaPago = Utileria.nextCodigoPartida(((SopdiUI) mainUI).databaseProvider.getCurrentConnection(), empresaId, new java.util.Date(), 3);
                 } else { //ya hubo partida contable
                     //Concatenar chequeQueryString a queryString
                     queryString += chequeQueryString;
@@ -1074,7 +1068,7 @@ System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
                     totalDebeQ = 0.00; totalHaberQ = 0.00;
 
                     //Seguir con el correlativo de codigoPartidaPago, los ultimos 3 digitos en memoria (no se ha hecho commit)
-                    String ultimos3 = codigoPartidaPago.substring((codigoPartidaPago.length() - 3), codigoPartidaPago.length());
+                    String ultimos3 = codigoPartidaPago.substring((codigoPartidaPago.length() - 3));
                     codigoPartidaPago = codigoPartidaPago.substring(0, codigoPartidaPago.length() - 3) + String.format("%03d", Integer.parseInt(ultimos3) + 1);
 //                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "ultimos3: " + ultimos3);
 //                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "codigoPartidaPago: " + codigoPartidaPago);

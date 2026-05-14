@@ -25,7 +25,6 @@ import java.io.*;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -107,7 +106,7 @@ public class ReporteVisitasReunionesInternoPDF extends Window {
             buttonLayout.addStyleName("rcorners3");
             buttonLayout.setSizeUndefined();
 
-            fileName = "ReporteVisitaReunionInterno_" + String.valueOf(codigoVisitaInspeccion) + "_" + new Utileria().getFechaHoraSinFormato() + ".pdf";
+            fileName = "ReporteVisitaReunionInterno_" + codigoVisitaInspeccion + "_" + new Utileria().getFechaHoraSinFormato() + ".pdf";
 
             Pdf pdf = new Pdf(fileName);
 
@@ -181,7 +180,7 @@ public class ReporteVisitasReunionesInternoPDF extends Window {
         private final String RECEIPTFILE
                 = VaadinService.getCurrent()
                         .getBaseDirectory().getAbsolutePath() + "/pdfreceipts/";
-        private String TDLOGO = VaadinService.getCurrent()
+        private final String TDLOGO = VaadinService.getCurrent()
                 .getBaseDirectory().getAbsolutePath() + "/VAADIN/themes/tests-valo-flat/img/logo_simpletecno.png";
 
         private final Font catFont = new Font(Font.FontFamily.TIMES_ROMAN, 18, Font.BOLD);
@@ -212,7 +211,7 @@ public class ReporteVisitasReunionesInternoPDF extends Window {
 
                 new File(VaadinService.getCurrent().getBaseDirectory().getAbsolutePath() + "/pdfreceipts").mkdirs();
 
-                fileName = "ReporteVisitaReunionInterno_" + String.valueOf(codigoVisita) + "_" + new Utileria().getFechaHoraSinFormato() + ".pdf";
+                fileName = "ReporteVisitaReunionInterno_" + codigoVisita + "_" + new Utileria().getFechaHoraSinFormato() + ".pdf";
                 new File(VaadinService.getCurrent().getBaseDirectory().getAbsolutePath() + "/pdfreceipts").mkdirs();
 
                 fileName = RECEIPTFILE + fileName;
@@ -229,7 +228,7 @@ public class ReporteVisitasReunionesInternoPDF extends Window {
 
                 writer = PdfWriter.getInstance(document2, os);
                 HeaderFooterPageEvent event = new HeaderFooterPageEvent();
-                event.setFirstLineReportTitle("REPORTE DE VISITA / REUNION #. " + String.valueOf(codigoVisita) + " USO INTERNO");
+                event.setFirstLineReportTitle("REPORTE DE VISITA / REUNION #. " + codigoVisita + " USO INTERNO");
                 event.setCompanyName(((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectName());
                 event.setPrintBy(((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserName());
                 event.setPrintTime(Utileria.getFechaDDMMYYYY_HHMM_2(new java.util.Date()));
@@ -274,7 +273,7 @@ public class ReporteVisitasReunionesInternoPDF extends Window {
         // Reader
         // under File -> Properties
         private void addMetaData(Document document) {
-            document.addTitle("REPORTE DE VISITA REUNION " + String.valueOf(codigoVisita) + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectName() + " AL : " + Utileria.getFechaDDMMYYYY(new java.util.Date()) + " USO INTERNO");
+            document.addTitle("REPORTE DE VISITA REUNION " + codigoVisita + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectName() + " AL : " + Utileria.getFechaDDMMYYYY(new java.util.Date()) + " USO INTERNO");
             document.addSubject("Using iText");
             document.addKeywords("Java, PDF, iText");
             document.addAuthor("www.sopdi.com");

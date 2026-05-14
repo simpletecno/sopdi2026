@@ -109,7 +109,7 @@ public class EmpresaCuentasEquivalentesHelper {
 
 
         Map<Object, Long> index = new LinkedHashMap<>();
-        for (Object id : (Collection<Object>) opciones.getItemIds()) {
+        for (Object id : opciones.getItemIds()) {
             index.put(id, normalizeId(id));
         }
 
@@ -214,8 +214,6 @@ public class EmpresaCuentasEquivalentesHelper {
             sb.append("\n }");
         });
 
-        StringBuilder sb1 = new StringBuilder();
-
-        return sb1.toString();
+        return "";
     }
 }

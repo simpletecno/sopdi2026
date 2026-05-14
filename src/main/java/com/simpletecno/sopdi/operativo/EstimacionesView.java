@@ -40,6 +40,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
@@ -353,7 +354,7 @@ public class EstimacionesView extends VerticalLayout implements View {
                         new SimpleStringFilter(ESTIMACION_PROPERTY,
                                 change.getText(), true, false));
             }
-            footer.getCell(ESTIMACION_PROPERTY).setText(String.valueOf(container.size()) + " REGISTROS");
+            footer.getCell(ESTIMACION_PROPERTY).setText(container.size() + " REGISTROS");
             setTotal();
         });
         cell0.setComponent(filterField0);
@@ -374,7 +375,7 @@ public class EstimacionesView extends VerticalLayout implements View {
                         new SimpleStringFilter(PROVEEDOR_PROPERTY,
                                 change.getText(), true, false));
             }
-            footer.getCell(PROVEEDOR_PROPERTY).setText(String.valueOf(container.size()) + " REGISTROS");
+            footer.getCell(PROVEEDOR_PROPERTY).setText(container.size() + " REGISTROS");
             setTotal();
         });
         cellA.setComponent(filterFieldA);
@@ -395,7 +396,7 @@ public class EstimacionesView extends VerticalLayout implements View {
                         new SimpleStringFilter(ESTATUS_PROPERTY,
                                 change.getText(), true, false));
             }
-            footer.getCell(PROVEEDOR_PROPERTY).setText(String.valueOf(container.size()) + " REGISTROS");
+            footer.getCell(PROVEEDOR_PROPERTY).setText(container.size() + " REGISTROS");
             setTotal();
         });
         cell.setComponent(filterField);
@@ -416,7 +417,7 @@ public class EstimacionesView extends VerticalLayout implements View {
                         new SimpleStringFilter(MONEDA_PROPERTY,
                                 change.getText(), true, false));
             }
-            footer.getCell(PROVEEDOR_PROPERTY).setText(String.valueOf(container.size()) + " REGISTROS");
+            footer.getCell(PROVEEDOR_PROPERTY).setText(container.size() + " REGISTROS");
             setTotal();
         });
         cell2.setComponent(filterField2);
@@ -437,7 +438,7 @@ public class EstimacionesView extends VerticalLayout implements View {
                         new SimpleStringFilter(PARTIDA_PROPERTY,
                                 change.getText(), true, false));
             }
-            footer.getCell(PROVEEDOR_PROPERTY).setText(String.valueOf(container.size()) + " REGISTROS");
+            footer.getCell(PROVEEDOR_PROPERTY).setText(container.size() + " REGISTROS");
             setTotal();
         });
         cell3.setComponent(filterField3);
@@ -507,7 +508,7 @@ public class EstimacionesView extends VerticalLayout implements View {
         deleteBtn.addListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                if (((SopdiUI) mainUI).sessionInformation.getStrUserProfileName().toUpperCase().equals("ADMINISTRADOR")) {
+                if (((SopdiUI) mainUI).sessionInformation.getStrUserProfileName().equalsIgnoreCase("ADMINISTRADOR")) {
                     if (estimacionesGrid.getSelectedRow() == null) {
                         Notification.show("Por favor, seleccione el registro correspondiente.", Notification.Type.WARNING_MESSAGE);
                     } else {
@@ -581,9 +582,9 @@ System.out.println("\nQueryEstimacion="+queryString);
 
             if (rsRecords.next()) { //  encontrado
 
-                BigDecimal total = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-                BigDecimal totalProvision = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-                BigDecimal totalEst = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+                BigDecimal total = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+                BigDecimal totalProvision = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+                BigDecimal totalEst = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
                 
                 do {
                     Object itemId = container.addItem();                    
@@ -606,14 +607,14 @@ System.out.println("\nQueryEstimacion="+queryString);
                     container.getContainerProperty(itemId, MONTOSF_PROPERTY).setValue(rsRecords.getDouble("Monto"));
                     container.getContainerProperty(itemId, PROVISIONSF_PROPERTY).setValue(rsRecords.getDouble("Provision"));
                     container.getContainerProperty(itemId, TOTALSF_PROPERTY).setValue(rsRecords.getDouble("TotalEstimacion"));
-                    total = total.add(new BigDecimal(rsRecords.getDouble("Monto")).setScale(2, BigDecimal.ROUND_HALF_UP));
-                    totalProvision = totalProvision.add(new BigDecimal(rsRecords.getDouble("Provision")).setScale(2, BigDecimal.ROUND_HALF_UP));
-                    totalEst       = totalEst.add(new BigDecimal(rsRecords.getDouble("TotalEstimacion")).setScale(2, BigDecimal.ROUND_HALF_UP));
+                    total = total.add(new BigDecimal(rsRecords.getDouble("Monto")).setScale(2, RoundingMode.HALF_UP));
+                    totalProvision = totalProvision.add(new BigDecimal(rsRecords.getDouble("Provision")).setScale(2, RoundingMode.HALF_UP));
+                    totalEst       = totalEst.add(new BigDecimal(rsRecords.getDouble("TotalEstimacion")).setScale(2, RoundingMode.HALF_UP));
                     
                 } while (rsRecords.next());
 
                 rsRecords.last();
-                footer.getCell(PROVEEDOR_PROPERTY).setText(String.valueOf(rsRecords.getRow()) + " REGISTROS");
+                footer.getCell(PROVEEDOR_PROPERTY).setText(rsRecords.getRow() + " REGISTROS");
                 footer.getCell(MONTO_PROPERTY).setText(moneyFormat.format(total));
                 footer.getCell(PROVISION_PROPERTY).setText(moneyFormat.format(totalProvision));
                 footer.getCell(TOTAL_PROPERTY).setText(moneyFormat.format(totalEst));
@@ -629,7 +630,7 @@ System.out.println("\nQueryEstimacion="+queryString);
     }
 
     private void setTotal() {
-        BigDecimal total = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal total = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
         for (Object rid: estimacionesGrid.getContainerDataSource()
                      .getItemIds()) {
                      total = total.add(new BigDecimal(
@@ -653,7 +654,7 @@ System.out.println("\nQueryEstimacion="+queryString);
 
         queryString = "Delete ";
         queryString += " From  estimacion";
-        queryString += " Where IdEstimacion = " + String.valueOf(estimacionesGrid.getContainerDataSource().getItem(estimacionesGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue());
+        queryString += " Where IdEstimacion = " + estimacionesGrid.getContainerDataSource().getItem(estimacionesGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue();
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -701,7 +702,7 @@ System.out.println("\nQueryEstimacion="+queryString);
             window.setWidth("95%");
             window.setHeight("95%");
 
-            final byte docBytes[] = rsRecords.getBytes("Archivo");
+            final byte[] docBytes = rsRecords.getBytes("Archivo");
             final String fileName = rsRecords.getString("ArchivoNombre");
             StreamResource documentStreamResource = null;
 

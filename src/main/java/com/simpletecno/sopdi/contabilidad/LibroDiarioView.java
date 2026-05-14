@@ -41,6 +41,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -374,7 +375,7 @@ public class LibroDiarioView extends VerticalLayout implements View {
             queryString += "     '" + Utileria.getFechaYYYYMMDD_1(inicioDt.getValue()) + "'";
             queryString += " AND '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "'";
             if (!documentoTxt.getValue().trim().isEmpty()) {
-                String documentoSerie[] = documentoTxt.getValue().split(" ");
+                String[] documentoSerie = documentoTxt.getValue().split(" ");
 
                 if (documentoSerie.length > 1) {
                     queryString += " AND contabilidad_partida.SerieDocumento = '" + documentoSerie[0] + "'";
@@ -470,7 +471,7 @@ public class LibroDiarioView extends VerticalLayout implements View {
                         libroDiariocontainer.getContainerProperty(itemId,IDENTIFICADOR_PROPERTY).setValue(codigoPartida);
 
                         if (verDescuadresCbx.getValue()) {  // ver partidas descuadradas solamente
-                            if (new BigDecimal(debe).setScale(2, BigDecimal.ROUND_HALF_UP).equals(new BigDecimal(haber).setScale(2, BigDecimal.ROUND_HALF_UP))) { // esta cuadrada, hay que marcarla para eliminarla del listado
+                            if (new BigDecimal(debe).setScale(2, RoundingMode.HALF_UP).equals(new BigDecimal(haber).setScale(2, RoundingMode.HALF_UP))) { // esta cuadrada, hay que marcarla para eliminarla del listado
                                 for (Object lineId : libroDiariocontainer.getItemIds()) { // marcar los itemid de la partida
                                     if(codigoPartida.equals(libroDiariocontainer.getContainerProperty(lineId, IDENTIFICADOR_PROPERTY).getValue())) {
                                         libroDiariocontainer.getContainerProperty(lineId,IDENTIFICADOR_PROPERTY).setValue("CUADRADA");
@@ -652,7 +653,7 @@ public class LibroDiarioView extends VerticalLayout implements View {
                 return;
             }
 
-            final byte docBytes[] = Files.readAllBytes(new File(archivoNombre).toPath());
+            final byte[] docBytes = Files.readAllBytes(new File(archivoNombre).toPath());
             final String fileName = archivoNombre;
 
             if (docBytes == null) {

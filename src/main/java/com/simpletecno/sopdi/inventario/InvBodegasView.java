@@ -220,7 +220,7 @@ public class InvBodegasView extends VerticalLayout implements View {
                     try {
 
                         queryString = " SELECT * FROM inv_movimiento";
-                        queryString += " WHERE IdBodega = " + String.valueOf(bodegasContainer.getContainerProperty(bodegasGrid.getSelectedRow(), ID_PROPERTY).getValue());
+                        queryString += " WHERE IdBodega = " + bodegasContainer.getContainerProperty(bodegasGrid.getSelectedRow(), ID_PROPERTY).getValue();
 
                         stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                         rsRecords = stQuery.executeQuery(queryString);
@@ -234,7 +234,7 @@ public class InvBodegasView extends VerticalLayout implements View {
                         } else {
 
                             queryString = " DELETE FROM inv_bodega";
-                            queryString += " WHERE IdBodega = " + String.valueOf(bodegasContainer.getContainerProperty(bodegasGrid.getSelectedRow(), ID_PROPERTY).getValue());
+                            queryString += " WHERE IdBodega = " + bodegasContainer.getContainerProperty(bodegasGrid.getSelectedRow(), ID_PROPERTY).getValue();
 
                             stQuery.executeUpdate(queryString);
 

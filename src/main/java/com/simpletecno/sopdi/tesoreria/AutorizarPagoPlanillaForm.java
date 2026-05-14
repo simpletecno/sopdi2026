@@ -15,7 +15,6 @@ import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Field;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.Grid.HeaderCell;
@@ -562,7 +561,7 @@ public class AutorizarPagoPlanillaForm extends Window {
 
             anticiposFooter.getCell(propertyId).setText(String.valueOf(total));
 
-            utilizarAnticipos = Double.parseDouble(String.valueOf(anticiposFooter.getCell(UTILIZAR_PROPERTY).getText().replaceAll(",", "")));
+            utilizarAnticipos = Double.parseDouble(anticiposFooter.getCell(UTILIZAR_PROPERTY).getText().replaceAll(",", ""));
             totalUtilizarAnticiposTxt.setValue(utilizarAnticipos);
 
             montoCheque = (saldoPlanillaSeleccionada - Double.parseDouble(String.valueOf(totalUtilizarAnticiposTxt.getValue())));
@@ -648,7 +647,7 @@ public class AutorizarPagoPlanillaForm extends Window {
             queryString += " MontoAutorizadoPagar = " + montoAuotizadoPagar;
             queryString += ", MontoAplicarAnticipo = " + montoAplicarAnticipo;
             //           queryString += ", Saldo = " + nuevoSaldo;
-            queryString += " WHERE CodigoPartida = '" + String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
+            queryString += " WHERE CodigoPartida = '" + planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue() + "'";
             queryString += " AND IdEmpresa = " + empresaId;
 
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -662,11 +661,11 @@ public class AutorizarPagoPlanillaForm extends Window {
             queryString += "(";
             queryString += "'" + AutorizacionesPagoView.PAGO_PLANILLA + "'";
             queryString += "," + empresaId;
-            queryString += "," + String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue());
+            queryString += "," + planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue();
             queryString += ",current_date";
             queryString += ",'QUETZALES'";
             queryString += "," + montoPendienteChequeTxt.getDoubleValueDoNotThrow();
-            queryString += ",'" +  String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CODIGOCC_PROPERTY).getValue()) + "'";
+            queryString += ",'" + planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CODIGOCC_PROPERTY).getValue() + "'";
             queryString += ",''"; // codigoccrelacionado
             queryString += ",''"; // cuentacontableliquidar
             queryString += ",'" + AutorizacionesPagoView.PAGO_PLANILLA + "'";

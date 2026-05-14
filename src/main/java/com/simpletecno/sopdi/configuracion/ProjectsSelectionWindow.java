@@ -5,11 +5,9 @@
 package com.simpletecno.sopdi.configuracion;
 
 import com.simpletecno.sopdi.SopdiUI;
-import com.simpletecno.sopdi.utilerias.Utileria;
 import com.vaadin.data.Item;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.StreamResource;
-import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.CheckBox;
@@ -146,9 +144,7 @@ public class ProjectsSelectionWindow extends Window {
         projectsTable.addContainerProperty(NOMBRE_PROPERTY,    String.class, null);
         projectsTable.addContainerProperty(ELEGIR_PROPERTY,    CheckBox.class, null);
 
-        projectsTable.setColumnAlignments(new Table.Align[] { 
-               /* Table.Align.CENTER,*/ Table.Align.CENTER, Table.Align.LEFT, Table.Align.CENTER
-        });
+        projectsTable.setColumnAlignments(/* Table.Align.CENTER,*/ Table.Align.CENTER, Table.Align.LEFT, Table.Align.CENTER);
         
         return reportLayout;
     }
@@ -177,7 +173,7 @@ public class ProjectsSelectionWindow extends Window {
                 Image proyectoLogo;
                 
                 do {
-                    final byte docBytes[] = rsRecords.getBytes("Logo");
+                    final byte[] docBytes = rsRecords.getBytes("Logo");
                     StreamResource logoStreamResource = null;
 
                     if(docBytes != null ) {
@@ -259,7 +255,7 @@ System.out.println("\n\nQuery="+queryString);
                 if(checkBox.getValue()) {
 
                     queryString = "INSERT INTO proyecto_usuario (IdProyecto, IdUsuario, Rol, Estatus) Values (";
-                    queryString += " " + String.valueOf(checkBox.getData());
+                    queryString += " " + checkBox.getData();
                     queryString += "," + idUsuario;
                     queryString += ",'ASESOR'";
                     queryString += ",'ACTIVO'";

@@ -831,13 +831,13 @@ public class TransaccionesEspecialesISRForm extends Window {
                     queryString += ",''";
                     queryString += ",''";
                 }
-                queryString += ",'" + String.valueOf(monedaCbx.getValue()) + "'";
-                queryString += "," + String.valueOf(totalHaber.doubleValue());
-                queryString += ", " + String.valueOf(item.getItemProperty("DEBE").getValue()) + ""; //debe
-                queryString += ", " + String.valueOf(item.getItemProperty("HABER").getValue()) + ""; //haber
-                queryString += "," + String.valueOf(Double.valueOf(String.valueOf(item.getItemProperty("DEBE").getValue())) * tasaCambioTxt.getDoubleValueDoNotThrow());
-                queryString += "," + String.valueOf(Double.valueOf(String.valueOf(item.getItemProperty("HABER").getValue())) * tasaCambioTxt.getDoubleValueDoNotThrow());
-                queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += ",'" + monedaCbx.getValue() + "'";
+                queryString += "," + totalHaber.doubleValue();
+                queryString += ", " + item.getItemProperty("DEBE").getValue(); //debe
+                queryString += ", " + item.getItemProperty("HABER").getValue(); //haber
+                queryString += "," + Double.valueOf(String.valueOf(item.getItemProperty("DEBE").getValue())) * tasaCambioTxt.getDoubleValueDoNotThrow();
+                queryString += "," + Double.valueOf(String.valueOf(item.getItemProperty("HABER").getValue())) * tasaCambioTxt.getDoubleValueDoNotThrow();
+                queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",'INGRESADO'";
                 queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
                 queryString += ",current_timestamp";

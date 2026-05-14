@@ -215,7 +215,7 @@ public class PresupuestoForm extends Window {
         
         queryString =  "SELECT * ";
         queryString += " FROM  presupuesto ";
-        queryString += " WHERE IdPresupuesto = " + String.valueOf(presupuestoId);
+        queryString += " WHERE IdPresupuesto = " + presupuestoId;
 
 //System.out.println("\n\n"+queryString);
 
@@ -275,9 +275,9 @@ public class PresupuestoForm extends Window {
                 queryString += " '" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
                 queryString += ",'" + cuentaTxt.getValue() + "'";
                 queryString += ",'" + descripcionTxt.getValue() + "'";
-                queryString += ", " + String.valueOf(quetzalesTxt.getDoubleValueDoNotThrow());
-                queryString += ", " + String.valueOf(dolaresTxt.getDoubleValueDoNotThrow());
-                queryString += ", " + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+                queryString += ", " + quetzalesTxt.getDoubleValueDoNotThrow();
+                queryString += ", " + dolaresTxt.getDoubleValueDoNotThrow();
+                queryString += ", " + tipoCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",'" + Utileria.getFechaYYYYMMDD_1(mesDt.getValue()) + "'";
                 queryString += ", " + empresa;
                 queryString += ",'" + empresaNombre + "'";
@@ -289,13 +289,13 @@ public class PresupuestoForm extends Window {
                 queryString =  "UPDATE presupuesto SET ";
                 queryString += " Cuenta = '" + cuentaTxt.getValue()  + "'";
                 queryString += ",Descripcion = '" + descripcionTxt.getValue()  + "'";
-                queryString += ",MontoQuetzales = " + String.valueOf(quetzalesTxt.getDoubleValueDoNotThrow());
-                queryString += ",MontoDolares = " + String.valueOf(dolaresTxt.getDoubleValueDoNotThrow());
-                queryString += ",TipoCambio = " + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+                queryString += ",MontoQuetzales = " + quetzalesTxt.getDoubleValueDoNotThrow();
+                queryString += ",MontoDolares = " + dolaresTxt.getDoubleValueDoNotThrow();
+                queryString += ",TipoCambio = " + tipoCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",Mes ='" + Utileria.getFechaYYYYMMDD_1(mesDt.getValue()) + "'";
                 queryString += ",Tipo = 'MODIFICADO'";
                 queryString += ",FechaAutorizado = '" + Utileria.getFechaYYYYMMDD_1(fechaAutorizadoDt.getValue()) + "'";
-                queryString += " Where IdPresupuesto = " + String.valueOf(presupuestoId);
+                queryString += " Where IdPresupuesto = " + presupuestoId;
             }
 
 System.out.println("queryString="+queryString);

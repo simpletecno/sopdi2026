@@ -6,7 +6,6 @@
 package com.simpletecno.sopdi.seguridad;
 
 import com.simpletecno.sopdi.SopdiUI;
-import com.vaadin.data.Validator;
 import com.vaadin.data.validator.EmailValidator;
 import com.vaadin.event.ShortcutAction;
 import com.vaadin.server.FontAwesome;
@@ -246,7 +245,7 @@ public class UserForm extends Window {
         
         queryString =  "Select * ";
         queryString += " From  usuario ";
-        queryString += " Where IdUsuario = " + String.valueOf(idUsuario);
+        queryString += " Where IdUsuario = " + idUsuario;
 
 //System.out.println("\n\n"+queryString);
 
@@ -311,7 +310,7 @@ public class UserForm extends Window {
                 rsRecords = stQuery.executeQuery (queryString);
 
                 if(rsRecords.next()) { //  encontrado
-                    Notification.show("Usuario existente, por favor elija otro nombre de usuario!", Notification.TYPE_ERROR_MESSAGE.WARNING_MESSAGE);
+                    Notification.show("Usuario existente, por favor elija otro nombre de usuario!", Notification.Type.WARNING_MESSAGE);
                     usuarioTxt.focus();
                     return;
                 }
@@ -329,10 +328,10 @@ public class UserForm extends Window {
 
                 queryString += ",'" + emailTxt.getValue()    + "'";
                 queryString += ",'" + telefonoTxt.getValue() + "'";
-                queryString += ",'" + String.valueOf(perfilCbx.getValue())   + "'";
+                queryString += ",'" + perfilCbx.getValue() + "'";
                 queryString += ",'" + codigoEspecialTxt.getValue() + "'";
-                queryString += ",'" + String.valueOf(estatusCbx.getValue())  + "'";
-                queryString += ","  + String.valueOf(companyCbx.getValue());
+                queryString += ",'" + estatusCbx.getValue() + "'";
+                queryString += ","  + companyCbx.getValue();
                 queryString += ",'" + divisionTxt.getValue() + "'";
                 queryString += ")";
             }
@@ -349,12 +348,12 @@ public class UserForm extends Window {
                 }
                 queryString += ",Email = '" + emailTxt.getValue()   + "'";
                 queryString += ",Telefono = '" + telefonoTxt.getValue()    + "'";
-                queryString += ",Perfil = '" + String.valueOf(perfilCbx.getValue())    + "'";
+                queryString += ",Perfil = '" + perfilCbx.getValue() + "'";
                 queryString += ",CodigoEspecial = '" + codigoEspecialTxt.getValue() + "'";
-                queryString += ",Estatus = '" + String.valueOf(estatusCbx.getValue())    + "'";
-                queryString += ",IdEmpresa ="  + String.valueOf(companyCbx.getValue());
+                queryString += ",Estatus = '" + estatusCbx.getValue() + "'";
+                queryString += ",IdEmpresa ="  + companyCbx.getValue();
                 queryString += ",Division = '" + divisionTxt.getValue() + "'";
-                queryString += " Where IdUsuario = " + String.valueOf(idUsuario);
+                queryString += " Where IdUsuario = " + idUsuario;
             }
 
 System.out.println("queryString="+queryString);

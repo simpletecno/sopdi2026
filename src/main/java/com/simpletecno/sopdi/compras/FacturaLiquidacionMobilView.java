@@ -37,16 +37,16 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
     private Statement stQuery;
     private ResultSet rsRecords;
 
-    private ComboBox proveedorCbx = new ComboBox("Proveedor : " );
-    private ComboBox cuentaContableCbx = new ComboBox("Cuenta contable : ");
-    private ComboBox centroCostoCbx = new ComboBox("Centro de costo : ");
-    private TextField numeroTxt = new TextField("Número factura : ");
-    private NumberField montoTxt = new NumberField("Monto : ");
+    private final ComboBox proveedorCbx = new ComboBox("Proveedor : " );
+    private final ComboBox cuentaContableCbx = new ComboBox("Cuenta contable : ");
+    private final ComboBox centroCostoCbx = new ComboBox("Centro de costo : ");
+    private final TextField numeroTxt = new TextField("Número factura : ");
+    private final NumberField montoTxt = new NumberField("Monto : ");
 
-    private Button guardarBtn = new Button("Guardar");
-    private Button cerrarBtn = new Button("Cerrar Liquidación");
+    private final Button guardarBtn = new Button("Guardar");
+    private final Button cerrarBtn = new Button("Cerrar Liquidación");
 
-    private IndexedContainer documentosContainer = new IndexedContainer();
+    private final IndexedContainer documentosContainer = new IndexedContainer();
     private Grid documentosGrid;
     Grid.FooterRow footerliquidaciones;
 
@@ -339,7 +339,7 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
                         if (dialog.isConfirmed()) {
                             String queryString = " SELECT * FROM documento_liq_mobil";
                             queryString += " WHERE IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-                            queryString += " AND   IdProveedor = " + String.valueOf(proveedorCbx.getValue());
+                            queryString += " AND   IdProveedor = " + proveedorCbx.getValue();
                             queryString += " AND   Numero = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
 
                             try {

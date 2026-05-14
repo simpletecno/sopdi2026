@@ -11,7 +11,6 @@ import com.vaadin.data.Item;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.util.filter.SimpleStringFilter;
 import com.vaadin.event.SelectionEvent;
-import com.vaadin.event.SelectionEvent.SelectionListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.shared.Position;
@@ -22,7 +21,6 @@ import com.vaadin.ui.Button;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.Grid;
-import com.vaadin.ui.Grid.HeaderCell;
 import com.vaadin.ui.Grid.HeaderRow;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -747,8 +745,8 @@ public class PagoFacturaProveedorForm extends Window {
         montoPagar    = Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(MONTO_AUTORIZADO_PROPERTY).getValue()).replaceAll(",", ""));
         montoAnticipo = Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ANTICIPO_PROPERTY).getValue()).replaceAll(",", ""));
 
-        facturasPagadas     = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(DOCUMENTO_PROPERTY).getValue()) + ",";
-        partidasPagadas     = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROPERTY).getValue()) + ",";
+        facturasPagadas     = facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(DOCUMENTO_PROPERTY).getValue() + ",";
+        partidasPagadas     = facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROPERTY).getValue() + ",";
         tipoDocumentoPagado = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(TIPO_PROPERTY).getValue());
         idNomenclatura      = String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CUENTA_PROPERTY).getValue());
         codigoAnticipoList.add(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROPERTY).getValue()));
@@ -795,12 +793,12 @@ public class PagoFacturaProveedorForm extends Window {
             }
             montoPagar    += Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(MONTO_AUTORIZADO_PROPERTY).getValue()).replaceAll(",", ""));
             montoAnticipo += Double.valueOf(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ANTICIPO_PROPERTY).getValue()).replaceAll(",", ""));
-            facturasPagadas += String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(DOCUMENTO_PROPERTY).getValue()) + ",";
-            partidasPagadas += String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROPERTY).getValue()) + ",";
+            facturasPagadas += facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(DOCUMENTO_PROPERTY).getValue() + ",";
+            partidasPagadas += facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROPERTY).getValue() + ",";
             codigoAnticipoList.add(String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(ID_PROPERTY).getValue()));
         }
 
-        descripcionTxt.setValue("PAGO DE " + String.valueOf(facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(TIPO_PROPERTY).getValue())
+        descripcionTxt.setValue("PAGO DE " + facturasGrid.getContainerDataSource().getItem(gridItem).getItemProperty(TIPO_PROPERTY).getValue()
                 + " : [" + facturasPagadas + "] PROVEEDOR/INSTITUCION : [" + proveedorNombre + "]");
 
         montoTxt.setValue(montoPagar);
@@ -884,7 +882,7 @@ public class PagoFacturaProveedorForm extends Window {
                 partidaContainer.getContainerProperty(partidaObject, DESCRIPCION_PROPERTY).setValue(cuentasContables.get(idNomenclatura));
                 partidaContainer.getContainerProperty(partidaObject, DEBE_PROPERTY).setValue(String.valueOf(Utileria.numberFormatEntero.format(montoProveedores)));
                 partidaContainer.getContainerProperty(partidaObject, HABER_PROPERTY).setValue("0");
-                partidaContainer.getContainerProperty(partidaObject, DEBE_Q_PROPERTY).setValue(String.valueOf(Utileria.numberFormatEntero.format(montoQuetzales)));
+                partidaContainer.getContainerProperty(partidaObject, DEBE_Q_PROPERTY).setValue(Utileria.numberFormatEntero.format(montoQuetzales));
                 partidaContainer.getContainerProperty(partidaObject, HABER_Q_PROPERTY).setValue("0");
                 partidaContainer.getContainerProperty(partidaObject, CODIGOCC_PROPERTY).setValue(codigoCC); // del documento
 
@@ -1082,8 +1080,8 @@ public class PagoFacturaProveedorForm extends Window {
                 queryString += empresaId;
                 queryString += ",'INGRESADO'";
                 queryString += ",'" + codigoPartida + "'";
-                queryString += ",'" + String.valueOf(item.getItemProperty(CODIGOCC_PROPERTY).getValue()) + "'";
-                queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+                queryString += ",'" + item.getItemProperty(CODIGOCC_PROPERTY).getValue() + "'";
+                queryString += ",'" + medioCbx.getValue() + "'";
                 queryString += ",'" + facturasPagadas + "'";//NODOCA
                 queryString += ",'" + tipoDocumentoPagado + "'";//TIPODOCA
                 queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
@@ -1091,16 +1089,16 @@ public class PagoFacturaProveedorForm extends Window {
                 queryString += ",''"; //nit proveedor
                 queryString += ",'" + proveedorNombre + "'";
                 queryString += ",'" + nombreChequeTxt.getValue() + "'";
-                queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+                queryString += "," + montoTxt.getDoubleValueDoNotThrow();
                 queryString += ",''"; //serie documento
                 queryString += ",'" + numeroTxt.getValue() + "'";
-                queryString += "," + String.valueOf(item.getItemProperty(CUENTA_PROPERTY).getValue());
+                queryString += "," + item.getItemProperty(CUENTA_PROPERTY).getValue();
                 queryString += ",'" + monedaCbx.getValue() + "'";
-                queryString += "," + String.valueOf(item.getItemProperty(DEBE_PROPERTY).getValue());  //Debe
-                queryString += "," + String.valueOf(item.getItemProperty(HABER_PROPERTY).getValue()); //Haber
-                queryString += "," + String.valueOf(item.getItemProperty(DEBE_Q_PROPERTY).getValue()); //DEBE Q
-                queryString += "," + String.valueOf(item.getItemProperty(HABER_Q_PROPERTY).getValue()); //HABER Q
-                queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += "," + item.getItemProperty(DEBE_PROPERTY).getValue();  //Debe
+                queryString += "," + item.getItemProperty(HABER_PROPERTY).getValue(); //Haber
+                queryString += "," + item.getItemProperty(DEBE_Q_PROPERTY).getValue(); //DEBE Q
+                queryString += "," + item.getItemProperty(HABER_Q_PROPERTY).getValue(); //HABER Q
+                queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",'" + descripcion + "'";
                 queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
                 queryString += ",current_timestamp";

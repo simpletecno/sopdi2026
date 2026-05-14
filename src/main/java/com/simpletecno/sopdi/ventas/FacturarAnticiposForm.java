@@ -472,7 +472,7 @@ public class FacturarAnticiposForm extends Window {
 
         queryString = " SELECT * FROM contabilidad_partida";
         queryString += " WHERE NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " AND IdProveedor     =  " + String.valueOf(proveedorCbx.getValue());
+        queryString += " AND IdProveedor     =  " + proveedorCbx.getValue();
         queryString += " AND IdEmpresa = " + empresaId;
         queryString += " AND TipoDocumento = 'RECIBO CONTABLE'";
 
@@ -628,7 +628,7 @@ public class FacturarAnticiposForm extends Window {
             queryString2 += empresaId;
             queryString2 += ",'INGRESADO'";
             queryString2 += ",'" + codigoPartida + "'";
-            queryString2 += ",'" + String.valueOf(anticiposGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CODIGO_CC_PROPERTY).getValue()) + "'";   /// CODIGOCC
+            queryString2 += ",'" + anticiposGrid.getContainerDataSource().getItem(gridItem).getItemProperty(CODIGO_CC_PROPERTY).getValue() + "'";   /// CODIGOCC
             queryString2 += ",'PAGO DOCUMENTO VENTA'";
             queryString2 += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString2 += "," + proveedorCbx.getValue();

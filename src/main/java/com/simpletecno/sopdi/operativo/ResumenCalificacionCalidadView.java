@@ -159,7 +159,7 @@ public class ResumenCalificacionCalidadView extends VerticalLayout implements Vi
                     llenarResumenGrid((String) idexContainer.getContainerProperty(idexGrid.getSelectedRow(), IDEX_PROPERTY).getValue());
 
                 }
-            };
+            }
         });
 
         addComponent(idexGrid);

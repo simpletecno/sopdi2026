@@ -667,7 +667,7 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
         queryString += " WHERE IdNomenclatura IN (" + cuentaAnticipoXLiquidarProveedorSeleccionado + "," + cuentaAcreedoresProveedorSeleccionado + ")";
         queryString += " AND Extract(YEAR FROM fecha) >= 2021 ";
         queryString += " AND TipoDocumento <> 'PARTIDA INICIAL' ";
-        queryString += " AND IdEmpresa = '" + String.valueOf(proveedorCbx.getContainerProperty(proveedorCbx.getValue(), "IDEMPRESA").getValue()) + "'";
+        queryString += " AND IdEmpresa = '" + proveedorCbx.getContainerProperty(proveedorCbx.getValue(), "IDEMPRESA").getValue() + "'";
         queryString += " GROUP by CodigoCC, MonedaDocumento, Fecha ";
         queryString += " HAVING SaldoAnticipo > 0";
 //        System.out.println("Mostar anticipo " + queryString);
@@ -677,7 +677,7 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
 
             while (rsRecords.next()) {
                 anticiposCbx.addItem(rsRecords.getString("CodigoCC"));
-                if (rsRecords.getString("MonedaDocumento").toUpperCase().equals("QUETZALES")) {
+                if (rsRecords.getString("MonedaDocumento").equalsIgnoreCase("QUETZALES")) {
                     anticiposCbx.setItemCaption(rsRecords.getString("CodigoCC"), "Q. " + numberFormat.format(rsRecords.getDouble("SaldoAnticipo")) + " " + rsRecords.getString("Fecha"));
                 } else {
                     anticiposCbx.setItemCaption(rsRecords.getString("CodigoCC"), "$. " + numberFormat.format(rsRecords.getDouble("SaldoAnticipo")) + " " + rsRecords.getString("Fecha"));
@@ -862,7 +862,7 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'";
-        queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+        queryString += ",'" + medioCbx.getValue() + "'";
         queryString += ",'" + referenciaTxt.getValue() + "'";
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += "," + proveedorCbx.getValue();
@@ -872,11 +872,11 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
         queryString += "," + cuentaContable1Cbx.getValue();
         queryString += ",'" + monedaCbx.getValue() + "'";
         queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-        queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow()); // DEBE
+        queryString += "," + debe1Txt.getDoubleValueDoNotThrow(); // DEBE
         queryString += ",0.00"; //HABER        
-        queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + debe1Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
         queryString += ",0.00"; //HABER Q.        
-        queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
         queryString += "," + montoTxt.getDoubleValueDoNotThrow();
         queryString += ",'Ingreso por ANTICIPO DE EMPRESA RELACIONA." + descripcionTxt.getValue() + "'";
         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
@@ -891,7 +891,7 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
         //queryString += ",'" + String.valueOf(anticiposCbx.getValue()) + "'"; /// POR EL MOMENTO QUEDARA PENDIENTE EL CODIGO CC DEL ANTICIPO
         //queryString += ",'PENDIENTE'";
         queryString += ",'" + codigoPartida + "'";
-        queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+        queryString += ",'" + medioCbx.getValue() + "'";
         queryString += ",'" + referenciaTxt.getValue() + "'";
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += "," + proveedorCbx.getValue();
@@ -902,10 +902,10 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
         queryString += ",'" + monedaCbx.getValue() + "'";
         queryString += "," + montoTxt.getDoubleValueDoNotThrow();
         queryString += ",0.00"; //debe
-        queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow());  //HABER        
+        queryString += "," + haber2Txt.getDoubleValueDoNotThrow();  //HABER
         queryString += ",0.00"; // DEBE Q.
-        queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + haber2Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+        queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
         queryString += "," + montoTxt.getDoubleValueDoNotThrow();
         queryString += ",'Ingreso por ANTICIPO DE EMPRESA RELACIONA." + descripcionTxt.getValue() + "'";
         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
@@ -941,7 +941,7 @@ public class IngresoAnticipoEmpresaRelacionadaForm extends Window {
             notif.show(Page.getCurrent());
 
             try {
-                String emailsTo[] = {"alerta@simpletecno.com"};
+                String[] emailsTo = {"alerta@simpletecno.com"};
                 MyEmailMessanger eMail = new MyEmailMessanger();
 
                 eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos :  " + this.getClass().getName() + " -->" + ex1.getMessage());

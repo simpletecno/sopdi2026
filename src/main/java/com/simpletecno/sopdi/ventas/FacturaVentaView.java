@@ -30,6 +30,7 @@ import com.wcs.wcslib.vaadin.widget.multifileupload.ui.UploadStateWindow;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.ConnectException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -352,7 +353,7 @@ public class FacturaVentaView extends VerticalLayout implements View {
                 //actualizarArchivo(e);
 
                 String UUID = String.valueOf(facturasVentaContainer.getContainerProperty(e.getItemId(), UUID_PROPERTY).getValue());
-                pdfFile = infileClient.obtenerDTEPdf(UUID, ((SopdiUI) UI.getCurrent()).enviromentsVars.getDtePath() + UUID + ".pdf");
+                pdfFile = InfileClient.obtenerDTEPdf(UUID, ((SopdiUI) UI.getCurrent()).enviromentsVars.getDtePath() + UUID + ".pdf");
 
                 if (pdfFile == null) {
                     Notification.show("ERROR AL OBTENER PDF DEL DTE, NOTIFIQUE!", Notification.Type.ERROR_MESSAGE);
@@ -695,8 +696,8 @@ public class FacturaVentaView extends VerticalLayout implements View {
             } else if (facturasVentaContainer.getContainerProperty(facturasVentaGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue().equals("REVISADO")) {
 
                 queryString = "SELECT * FROM contabilidad_partida ";
-                queryString += "WHERE CodigoCC = '" + String.valueOf(facturasVentaContainer.getContainerProperty(facturasVentaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()) + "' ";
-                queryString += "AND CodigoPatida != '" + String.valueOf(facturasVentaContainer.getContainerProperty(facturasVentaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()) + "' ";
+                queryString += "WHERE CodigoCC = '" + facturasVentaContainer.getContainerProperty(facturasVentaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue() + "' ";
+                queryString += "AND CodigoPatida != '" + facturasVentaContainer.getContainerProperty(facturasVentaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue() + "' ";
                 queryString += "AND IdNomenclatura In (" + ((SopdiUI) mainUI).cuentasContablesDefault.getIsrGasto() + "," + ((SopdiUI) mainUI).cuentasContablesDefault.getIsrOpcionalMensualPorPagar() + ") ";
                 queryString += "AND IdEmpresa =" + empresaId;
 //                queryString += " AND TipoDocumento = 'CONSTANCIA ISR VENTA'";
@@ -756,7 +757,7 @@ public class FacturaVentaView extends VerticalLayout implements View {
             } else if (facturasVentaContainer.getContainerProperty(facturasVentaGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue().equals("REVISADO")) {
 
                 queryString = " SELECT * FROM contabilidad_partida ";
-                queryString += " WHERE CodigoCC = '" + String.valueOf(facturasVentaContainer.getContainerProperty(facturasVentaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()) + "'";
+                queryString += " WHERE CodigoCC = '" + facturasVentaContainer.getContainerProperty(facturasVentaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue() + "'";
                 queryString += " AND IdNomenclatura In (" + ((SopdiUI) mainUI).cuentasContablesDefault.getIvaPorPagar() + ")";
                 queryString += " AND DEBE <> 0 ";
                 queryString += " AND IdEmpresa =" + empresaId;
@@ -825,8 +826,8 @@ public class FacturaVentaView extends VerticalLayout implements View {
 
                         queryString = "UPDATE  contabilidad_partida";
                         queryString += " set Estatus = 'REVISADO'";
-                        queryString += " where NombreProveedor = '" + String.valueOf(facturasVentaContainer.getContainerProperty(facturasVentaGrid.getSelectedRow(), PROVEEDOR_PROPERTY).getValue()) + "'";
-                        queryString += " and NITProveedor = '" + String.valueOf(facturasVentaContainer.getContainerProperty(facturasVentaGrid.getSelectedRow(), NIT_PROVEEDOR_PROPERTY).getValue()) + "'";
+                        queryString += " where NombreProveedor = '" + facturasVentaContainer.getContainerProperty(facturasVentaGrid.getSelectedRow(), PROVEEDOR_PROPERTY).getValue() + "'";
+                        queryString += " and NITProveedor = '" + facturasVentaContainer.getContainerProperty(facturasVentaGrid.getSelectedRow(), NIT_PROVEEDOR_PROPERTY).getValue() + "'";
                         queryString += " and IdEmpresa = " + empresaId;
                         queryString += " and SerieDocumento  = '" + (String.valueOf(facturasVentaContainer.getContainerProperty(facturasVentaGrid.getSelectedRow(), FACTURA_PROPERTY).getValue()).split(" ")[0]) + "'";
                         queryString += " and NumeroDocumento = '" + (String.valueOf(facturasVentaContainer.getContainerProperty(facturasVentaGrid.getSelectedRow(), FACTURA_PROPERTY).getValue()).split(" ")[1]) + "'";
@@ -1290,7 +1291,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY llenarTablaCC
 
                                 new File(filePath).mkdirs();
 
-                                fileName = filePath + codigoPartida + fileName.substring(fileName.length() - 4, fileName.length());
+                                fileName = filePath + codigoPartida + fileName.substring(fileName.length() - 4);
                                 targetFile = new File(fileName);
                                 OutputStream outStream = new FileOutputStream(targetFile);
                                 outStream.write(buffer);
@@ -1326,7 +1327,6 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY llenarTablaCC
                                 notif.setPosition(Position.MIDDLE_CENTER);
                                 notif.setIcon(FontAwesome.CHECK);
                                 notif.show(Page.getCurrent());
-                                return;
                             }
                         } catch (java.io.IOException fIoEx) {
                             Notification notif = new Notification("Error al cargar el archivo adjunto, por favor intente nuevamente!",
@@ -1336,7 +1336,6 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY llenarTablaCC
                             notif.setIcon(FontAwesome.WARNING);
                             notif.show(Page.getCurrent());
                             fIoEx.printStackTrace();
-                            return;
                         }
                     }
                 };
@@ -1429,7 +1428,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY llenarTablaCC
 
                                 new File(filePath).mkdirs();
 
-                                fileName = filePath + codigoPartida + fileName.substring(fileName.length() - 4, fileName.length());
+                                fileName = filePath + codigoPartida + fileName.substring(fileName.length() - 4);
                                 targetFile = new File(fileName);
                                 OutputStream outStream = new FileOutputStream(targetFile);
                                 outStream.write(buffer);
@@ -1466,7 +1465,6 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY llenarTablaCC
                                 notif.setPosition(Position.MIDDLE_CENTER);
                                 notif.setIcon(FontAwesome.WARNING);
                                 notif.show(Page.getCurrent());
-                                return;
                             }
                         } catch (java.io.IOException fIoEx) {
                             fIoEx.printStackTrace();
@@ -1477,7 +1475,6 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY llenarTablaCC
                             notif.setIcon(FontAwesome.WARNING);
                             notif.show(Page.getCurrent());
 
-                            return;
                         }
                     }
                 };
@@ -1580,8 +1577,8 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY llenarTablaCC
 
     private void setTotal() {
 
-        BigDecimal total = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalQ = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal total = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalQ = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
 
         for (Object rid : facturasVentaGrid.getContainerDataSource()
                 .getItemIds()) {
@@ -1622,7 +1619,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY llenarTablaCC
             FileOutputStream fos1 = new FileOutputStream(pdfFile);
 
             // Contacting the URL
-            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Connecting to " + pdfFileUrl.toString() + " ... ");
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Connecting to " + pdfFileUrl + " ... ");
             URLConnection urlConn = pdfFileUrl.openConnection();
 
             // Checking whether the URL contains a PDF

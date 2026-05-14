@@ -104,7 +104,7 @@ package com.simpletecno.sopdi.utilerias;
         }
         if(_counter<100){
             //System.out.println("<100"); 
-            return doThings( (int)(_counter/10)*10 ) + " Y " + doThings(_counter%10);
+            return doThings( (_counter/10) *10 ) + " Y " + doThings(_counter%10);
         } 
         if(_counter<200){
             //System.out.println("<200"); 
@@ -112,7 +112,7 @@ package com.simpletecno.sopdi.utilerias;
         } 
         if(_counter<1000){
             //System.out.println("<1000");
-            return doThings( (int)(_counter/100)*100 ) + " " + doThings(_counter%100);
+            return doThings( (_counter/100) *100 ) + " " + doThings(_counter%100);
         } 
         if(_counter<2000){
             //System.out.println("<2000");
@@ -121,7 +121,7 @@ package com.simpletecno.sopdi.utilerias;
         if(_counter<1000000){
             String var="";
             //System.out.println("<1000000");
-            var = doThings((int)(_counter/1000)) + " MIL" ;
+            var = doThings(_counter/1000) + " MIL" ;
             if(_counter % 1000!=0){
                 //System.out.println(var);
                 var += " " + doThings(_counter % 1000);

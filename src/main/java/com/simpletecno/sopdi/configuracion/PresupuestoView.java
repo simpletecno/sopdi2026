@@ -39,6 +39,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -231,7 +232,7 @@ public class PresupuestoView extends VerticalLayout implements View {
             @Override
             public void buttonClick ( Button.ClickEvent event )
             {
-                if(presupuestoTable.isEmpty() == false) {
+                if(!presupuestoTable.isEmpty()) {
                     if(presupuestoTable.getValue() != null) {
                         PresupuestoForm presupuestoForm = new PresupuestoForm();
                         presupuestoForm.presupuestoId = Integer.valueOf(String.valueOf(presupuestoTable.getValue()));
@@ -295,7 +296,6 @@ public class PresupuestoView extends VerticalLayout implements View {
             } catch (java.io.IOException fIoEx) {
                 fIoEx.printStackTrace();
                 Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                return;
             }
         };
 
@@ -442,12 +442,10 @@ public class PresupuestoView extends VerticalLayout implements View {
         presupuestoTable.addContainerProperty(TIPO_PROPERTY,            String.class, null);
         presupuestoTable.addContainerProperty(FECHA_AUTORIZADO_PROPERTY,Date.class, null);
 
-        presupuestoTable.setColumnAlignments(new Table.Align[] { 
-                Table.Align.CENTER, Table.Align.LEFT,   Table.Align.LEFT,
-                Table.Align.LEFT,   Table.Align.RIGHT,  Table.Align.RIGHT,
-                Table.Align.CENTER, Table.Align.LEFT,   Table.Align.CENTER,
-                Table.Align.LEFT,   Table.Align.CENTER, Table.Align.LEFT
-        });
+        presupuestoTable.setColumnAlignments(Table.Align.CENTER, Table.Align.LEFT, Table.Align.LEFT,
+                Table.Align.LEFT, Table.Align.RIGHT, Table.Align.RIGHT,
+                Table.Align.CENTER, Table.Align.LEFT, Table.Align.CENTER,
+                Table.Align.LEFT, Table.Align.CENTER, Table.Align.LEFT);
         
         presupuestoTable.setColumnWidth(CODIGO_PROPERTY, 0);
 
@@ -531,12 +529,12 @@ public class PresupuestoView extends VerticalLayout implements View {
                 String cuentaActual = rsRecords.getString("Cuenta");
                 java.util.Date mesActual = rsRecords.getDate("Mes");
                 
-                BigDecimal totalCuentaQuetzales = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-                BigDecimal totalCuentaDolares   = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-                BigDecimal totalMesQuetzales = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-                BigDecimal totalMesDolares   = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-                BigDecimal granTotalQuetzales = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-                BigDecimal granTotalDolares   = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+                BigDecimal totalCuentaQuetzales = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+                BigDecimal totalCuentaDolares   = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+                BigDecimal totalMesQuetzales = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+                BigDecimal totalMesDolares   = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+                BigDecimal granTotalQuetzales = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+                BigDecimal granTotalDolares   = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
 
                 do {
 /*
@@ -593,8 +591,8 @@ public class PresupuestoView extends VerticalLayout implements View {
                         rsRecords.getDate("FechaAutorizado")
                     }, presupuestoTable.size() + 1);
 
-                    totalCuentaQuetzales = totalCuentaQuetzales.add(new BigDecimal(rsRecords.getDouble("MontoQuetzales")).setScale(2, BigDecimal.ROUND_HALF_UP));
-                    totalCuentaDolares = totalCuentaDolares.add(new BigDecimal(rsRecords.getDouble("MontoDolares")).setScale(2, BigDecimal.ROUND_HALF_UP));
+                    totalCuentaQuetzales = totalCuentaQuetzales.add(new BigDecimal(rsRecords.getDouble("MontoQuetzales")).setScale(2, RoundingMode.HALF_UP));
+                    totalCuentaDolares = totalCuentaDolares.add(new BigDecimal(rsRecords.getDouble("MontoDolares")).setScale(2, RoundingMode.HALF_UP));
 
                 }while(rsRecords.next());
 
@@ -634,8 +632,9 @@ public class PresupuestoView extends VerticalLayout implements View {
         excelExport = new ExcelExport(presupuestoTable);
         excelExport.excludeCollapsedColumns();
         excelExport.setExportFileName("SOPDI_Presupuesto_" + empresaLbl.getValue().replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é","") + "_" +  new Utileria().getFechaHoraSinFormato(new Date()) + ".xls");
-        
-        String mainTitle = "SOPDI - PRESUPUESTO DE " + empresaLbl.getCaption() + " AL: "  + new Utileria().getFechaYYYYMMDD_1(new Date());
+
+        new Utileria();
+        String mainTitle = "SOPDI - PRESUPUESTO DE " + empresaLbl.getCaption() + " AL: "  + Utileria.getFechaYYYYMMDD_1(new Date());
   
         excelExport.setReportTitle(mainTitle);
 
@@ -690,7 +689,7 @@ public class PresupuestoView extends VerticalLayout implements View {
 
             sheet = workbook.getSheetAt(0);
 
-System.out.println("\n Total lineas en archivo=" + String.valueOf(sheet.getLastRowNum()));
+System.out.println("\n Total lineas en archivo=" + sheet.getLastRowNum());
 System.out.println("...INICIO...");
             
             ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(false);
@@ -719,17 +718,17 @@ System.out.println("...INICIO...");
                 queryString += " '" + Utileria.getFechaYYYYMMDD_1(sheet.getRow(linea).getCell(0).getDateCellValue()) + "'";
                 queryString += ",'" + sheet.getRow(linea).getCell(1).getStringCellValue() + "'";
                 queryString += ",'" + sheet.getRow(linea).getCell(2).getStringCellValue() + "'";
-                queryString += ", " + String.valueOf(sheet.getRow(linea).getCell(3).getRawValue());
-                queryString += ", " + String.valueOf(sheet.getRow(linea).getCell(4).getRawValue());
-                queryString += ", " + String.valueOf(sheet.getRow(linea).getCell(5).getRawValue());
+                queryString += ", " + sheet.getRow(linea).getCell(3).getRawValue();
+                queryString += ", " + sheet.getRow(linea).getCell(4).getRawValue();
+                queryString += ", " + sheet.getRow(linea).getCell(5).getRawValue();
                 queryString += ",'" + Utileria.getFechaYYYYMMDD_1(sheet.getRow(linea).getCell(6).getDateCellValue()) + "'";
-                queryString += ", " + String.valueOf(sheet.getRow(linea).getCell(7).getRawValue());
+                queryString += ", " + sheet.getRow(linea).getCell(7).getRawValue();
                 queryString += ",'" + sheet.getRow(linea).getCell(8).getStringCellValue() + "'";
                 queryString += ",'" + sheet.getRow(linea).getCell(9).getStringCellValue() + "'";
                 queryString += ",'" + Utileria.getFechaYYYYMMDD_1(sheet.getRow(linea).getCell(10).getDateCellValue()) + "'";
                 queryString += ")";
                 
-System.out.println("(" + String.valueOf(linea) + ") " + queryString);
+System.out.println("(" + linea + ") " + queryString);
 
                 stQuery.executeUpdate(queryString);
 /**                
@@ -770,7 +769,7 @@ System.out.println("...FIN...");
             } catch (SQLException ex) {
                 Logger.getLogger(PresupuestoView.class.getName()).log(Level.SEVERE, null, ex);
             }
-            new Notification("Error al intentar cargar el archivo EXCEL. Linea = " + String.valueOf(linea),
+            new Notification("Error al intentar cargar el archivo EXCEL. Linea = " + linea,
                     ex1.getMessage(),
                     Notification.Type.ERROR_MESSAGE)
                     .show(Page.getCurrent());

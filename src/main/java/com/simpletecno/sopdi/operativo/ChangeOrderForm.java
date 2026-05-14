@@ -42,8 +42,8 @@ public class ChangeOrderForm extends Window {
     ComboBox solicitadoRolCbx;
     TextArea instruccionTxt;
     
-    private Button saveBtn;
-    private Button exitBtn;
+    private final Button saveBtn;
+    private final Button exitBtn;
     
     Statement stQuery = null;
     ResultSet rsRecords = null;
@@ -51,7 +51,7 @@ public class ChangeOrderForm extends Window {
     PreparedStatement stPreparedQuery = null;
     ResultSet rsRecords1 = null;
         
-    private UI mainUI;
+    private final UI mainUI;
     
     public ChangeOrderForm() {
     
@@ -222,7 +222,7 @@ public class ChangeOrderForm extends Window {
             queryString += "  " + ((SopdiUI)UI.getCurrent()).sessionInformation.getStrProjectId();
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += ",'" + solicitadoPorTxt.getValue()   + "'";
-            queryString += ",'" + String.valueOf(solicitadoRolCbx.getValue()) + "'";
+            queryString += ",'" + solicitadoRolCbx.getValue() + "'";
             queryString += ",'" + instruccionTxt.getValue()   + "'";
             queryString += ", " + ((SopdiUI)mainUI).sessionInformation.getStrUserId(); //creado usuario
             queryString += ",current_timestamp"; // creado fechayhora
@@ -232,7 +232,7 @@ public class ChangeOrderForm extends Window {
             queryString = "UPDATE orden_cambio SET";
             queryString += " Fecha = '" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += ",SolicitadoPor = '" + solicitadoPorTxt.getValue()   + "'";
-            queryString += ",SolicitadoRol = '" + String.valueOf(solicitadoRolCbx.getValue()) + "'";
+            queryString += ",SolicitadoRol = '" + solicitadoRolCbx.getValue() + "'";
             queryString += ",Instruccion = '" + instruccionTxt.getValue()   + "'";
             queryString += " WHERE IdOrdenCambio = " + idChangeOrderTxt.getValue();
         }

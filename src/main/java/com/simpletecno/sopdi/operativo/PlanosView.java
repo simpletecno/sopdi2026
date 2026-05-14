@@ -259,7 +259,7 @@ public class PlanosView extends VerticalLayout implements View {
 
                                 try {
                                     queryString = " DELETE FROM planos ";
-                                    queryString += " WHERE Id = " + String.valueOf(container.getContainerProperty(planosGrid.getSelectedRow(), ID_PROPERTY).getValue());
+                                    queryString += " WHERE Id = " + container.getContainerProperty(planosGrid.getSelectedRow(), ID_PROPERTY).getValue();
 
                                     stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                                     stQuery.executeUpdate(queryString);
@@ -286,7 +286,7 @@ public class PlanosView extends VerticalLayout implements View {
         viewBtn.addListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                String filePath = environmentsVars.getDtePath() + "planos/" + ((SopdiUI) mainUI).sessionInformation.getStrProjectId() + "/" + String.valueOf(container.getContainerProperty(planosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()) + ".pdf";
+                String filePath = environmentsVars.getDtePath() + "planos/" + ((SopdiUI) mainUI).sessionInformation.getStrProjectId() + "/" + container.getContainerProperty(planosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue() + ".pdf";
                 PlanoShowPDF planoShowPdf = new PlanoShowPDF(filePath);
                 mainUI.addWindow(planoShowPdf);
                 planoShowPdf.center();
@@ -361,7 +361,7 @@ public class PlanosView extends VerticalLayout implements View {
             String filePath = environmentsVars.getDtePath();
 
             String fileName = filePath + "planos/" + ((SopdiUI) mainUI).sessionInformation.getStrProjectId() + "/" + idPlano;
-            final byte docBytes[] = Files.readAllBytes(new File(fileName).toPath());
+            final byte[] docBytes = Files.readAllBytes(new File(fileName).toPath());
 
             if (docBytes == null) {
                 Notification.show("Documento PDF no disponible para visualizar!");

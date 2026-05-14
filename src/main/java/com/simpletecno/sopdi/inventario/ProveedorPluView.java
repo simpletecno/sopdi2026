@@ -238,8 +238,8 @@ public class ProveedorPluView extends Window {
 
                     queryString = " SELECT * FROM orden_compra_detalle opd";
                     queryString += " INNER JOIN orden_compra oc ON opd.IdOrdenCompra = oc.IdOrdenCompra";
-                    queryString += " WHERE opd.PluPrv = " + String.valueOf(container.getContainerProperty(plusGrid.getSelectedRow(), PLU_PROPERTY).getValue());
-                    queryString += " AND oc.IdProveedor = " + String.valueOf(container.getContainerProperty(plusGrid.getSelectedRow(), ID_PROVEEDOR_PROPERTY).getValue());
+                    queryString += " WHERE opd.PluPrv = " + container.getContainerProperty(plusGrid.getSelectedRow(), PLU_PROPERTY).getValue();
+                    queryString += " AND oc.IdProveedor = " + container.getContainerProperty(plusGrid.getSelectedRow(), ID_PROVEEDOR_PROPERTY).getValue();
 
                     try {
 
@@ -251,7 +251,7 @@ public class ProveedorPluView extends Window {
                         } else {
 
                             queryString = " DELETE FROM proveedor_plu";
-                            queryString += " WHERE Id = " + String.valueOf(container.getContainerProperty(plusGrid.getSelectedRow(), ID_PROPERTY).getValue());
+                            queryString += " WHERE Id = " + container.getContainerProperty(plusGrid.getSelectedRow(), ID_PROPERTY).getValue();
 
                             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                             stQuery.executeUpdate(queryString);

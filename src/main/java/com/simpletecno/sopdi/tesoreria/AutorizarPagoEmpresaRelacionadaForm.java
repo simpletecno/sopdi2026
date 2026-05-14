@@ -218,9 +218,9 @@ System.out.println("query AutorizarEmpresa Realacionada " + queryString);
         queryString += " INNER JOIN contabilidad_nomenclatura ON contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura";
         queryString += " WHERE trim(contabilidad_partida.CodigoCC) <> ''";
         queryString += " AND contabilidad_partida.CodigoCC <> '0'";
-        queryString += " AND contabilidad_partida.IdProveedor = " + String.valueOf(selectedItem);
+        queryString += " AND contabilidad_partida.IdProveedor = " + selectedItem;
         queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
-        queryString += " AND contabilidad_nomenclatura.NoCuenta In ('" + String.valueOf(empresaRelacionadaCbx.getContainerProperty(selectedItem, "cuentaAnticiposLiquidar").getValue()) + "','" + String.valueOf(empresaRelacionadaCbx.getContainerProperty(selectedItem, "cuentaAcreedores").getValue()) + "')";
+        queryString += " AND contabilidad_nomenclatura.NoCuenta In ('" + empresaRelacionadaCbx.getContainerProperty(selectedItem, "cuentaAnticiposLiquidar").getValue() + "','" + empresaRelacionadaCbx.getContainerProperty(selectedItem, "cuentaAcreedores").getValue() + "')";
         queryString += " HAVING TOTALSALDO > 0";
 
         anticiposPorLiquidarDolaresLbl.setValue("$.0.00");
@@ -238,7 +238,7 @@ System.out.println("query AutorizarEmpresa Realacionada " + queryString);
             if (rsRecords.next()) {
                 do {
                     if(rsRecords.getString("NoCuenta").toUpperCase().equals(String.valueOf(empresaRelacionadaCbx.getContainerProperty(selectedItem, "cuentaAnticiposLiquidar").getValue()) )) {
-                        if(rsRecords.getString("MonedaDocumento").toUpperCase().equals("DOLARES")) {
+                        if(rsRecords.getString("MonedaDocumento").equalsIgnoreCase("DOLARES")) {
                             anticiposPorLiquidarDolaresLbl.setValue("$." + numberFormat.format(rsRecords.getDouble("TOTALSALDO")));
                             anticiposPorLiquidarDolaresQLbl.setValue("Q." + numberFormat.format(rsRecords.getDouble("TOTALSALDOQ")));
                         }
@@ -248,7 +248,7 @@ System.out.println("query AutorizarEmpresa Realacionada " + queryString);
                         }
                     }
                     else {
-                        if(rsRecords.getString("MonedaDocumento").toUpperCase().equals("DOLARES")) {
+                        if(rsRecords.getString("MonedaDocumento").equalsIgnoreCase("DOLARES")) {
                             acreedoresPorLiquidarDolaresLbl.setValue("$." + numberFormat.format(rsRecords.getDouble("TOTALSALDO")));
                             acreedoresPorLiquidarDolaresQLbl.setValue("Q." + numberFormat.format(rsRecords.getDouble("TOTALSALDOQ")));
                         }
@@ -365,10 +365,10 @@ System.out.println("query AutorizarEmpresa Realacionada " + queryString);
 //        queryString += ",'" + "TEMP_" + montoAutorizarTxt.getValue() + "'";
         queryString += ",'" + "TEMP_" + new java.util.Date().getTime() + "'";
         if(tipodeAnticipoOg.getValue().equals("ANTICIPO")) {
-            queryString += ",'" + String.valueOf(empresaRelacionadaCbx.getContainerProperty(selectedItem, "cuentaAnticiposLiquidar").getValue()) + "'";
+            queryString += ",'" + empresaRelacionadaCbx.getContainerProperty(selectedItem, "cuentaAnticiposLiquidar").getValue() + "'";
         }
         else {
-            queryString += ",'" + String.valueOf(empresaRelacionadaCbx.getContainerProperty(selectedItem, "cuentaAcreedores").getValue()) + "'";
+            queryString += ",'" + empresaRelacionadaCbx.getContainerProperty(selectedItem, "cuentaAcreedores").getValue() + "'";
         }
         queryString += ",'" + tipodeAnticipoOg.getValue() + "'";
         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();

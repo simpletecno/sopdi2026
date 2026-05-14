@@ -26,7 +26,7 @@ public class InfileClient {
     public final static int EXENTOIVA_FRASE = 4;
     public final static int ESCENARIO_FUNDACION = 10;
 
-    private Emisor emisor;
+    private final Emisor emisor;
     Map<Integer, Integer> frases = null;
 
 
@@ -245,7 +245,6 @@ public class InfileClient {
                     int frase = entry.getKey();
                     int escenario = entry.getValue();
                     if(frase == EXENTOIVA_FRASE && tipoDocumento.equals("NCRE")) {
-                        xml.append(""); // No agregar la frase de exento de IVA en notas de crédito
                     }else {
                         xml.append("  <dte:Frase CodigoEscenario=\"").append(escenario).append("\" TipoFrase=\"").append(frase).append("\"/>\n");
                     }
@@ -417,7 +416,7 @@ public class InfileClient {
             System.out.println("XML generado:\n" + xml);
 
             try (OutputStream os = conn.getOutputStream()) {
-                byte[] input = xml.toString().getBytes("UTF-8");
+                byte[] input = xml.toString().getBytes(StandardCharsets.UTF_8);
                 os.write(input, 0, input.length);
             }
 

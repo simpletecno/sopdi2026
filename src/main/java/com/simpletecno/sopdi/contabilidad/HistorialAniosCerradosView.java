@@ -30,6 +30,7 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
@@ -336,11 +337,11 @@ public class HistorialAniosCerradosView extends VerticalLayout implements View {
 
     public void llenarGridBalanceSaldos() {
 
-        BigDecimal totalDebe = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal diferenciaDeSaldos = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalHaber = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalDebeInverso = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalHaberInverso = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal totalDebe = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal diferenciaDeSaldos = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalHaber = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalDebeInverso = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalHaberInverso = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
         double diferencia;
 
@@ -391,8 +392,8 @@ public class HistorialAniosCerradosView extends VerticalLayout implements View {
                         balanceSaldosContainer.getContainerProperty(itemId, HABER_PROPERTY).setValue(numberFormat.format(Double.parseDouble(String.valueOf(rsRecords1.getDouble("HaberQ")))));
                         balanceSaldosContainer.getContainerProperty(itemId, HABER_INVERSO_PROPERTY).setValue("0.00");
 
-                        totalDebe = totalDebe.add(new BigDecimal(rsRecords1.getDouble("DebeQ")).setScale(2, BigDecimal.ROUND_HALF_UP));
-                        totalDebeInverso = totalDebeInverso.add(new BigDecimal(rsRecords1.getDouble("DebeQ") - rsRecords1.getDouble("HaberQ")).setScale(2, BigDecimal.ROUND_HALF_UP));
+                        totalDebe = totalDebe.add(new BigDecimal(rsRecords1.getDouble("DebeQ")).setScale(2, RoundingMode.HALF_UP));
+                        totalDebeInverso = totalDebeInverso.add(new BigDecimal(rsRecords1.getDouble("DebeQ") - rsRecords1.getDouble("HaberQ")).setScale(2, RoundingMode.HALF_UP));
 
                     } else {
                         balanceSaldosContainer.getContainerProperty(itemId, DEBE_PROPERTY).setValue(numberFormat.format(Double.parseDouble(String.valueOf(rsRecords1.getDouble("DebeQ")))));
@@ -400,8 +401,8 @@ public class HistorialAniosCerradosView extends VerticalLayout implements View {
                         balanceSaldosContainer.getContainerProperty(itemId, HABER_PROPERTY).setValue(numberFormat.format(Double.parseDouble(String.valueOf(rsRecords1.getDouble("HaberQ")))));
                         balanceSaldosContainer.getContainerProperty(itemId, HABER_INVERSO_PROPERTY).setValue(numberFormat.format(Double.parseDouble(String.valueOf(rsRecords1.getDouble("HaberQ") - rsRecords1.getDouble("DebeQ")))));
 
-                        totalHaber = totalHaber.add(new BigDecimal(rsRecords1.getDouble("HaberQ")).setScale(2, BigDecimal.ROUND_HALF_UP));
-                        totalHaberInverso = totalHaberInverso.add(new BigDecimal(rsRecords1.getDouble("HaberQ") - rsRecords1.getDouble("DebeQ")).setScale(2, BigDecimal.ROUND_HALF_UP));
+                        totalHaber = totalHaber.add(new BigDecimal(rsRecords1.getDouble("HaberQ")).setScale(2, RoundingMode.HALF_UP));
+                        totalHaberInverso = totalHaberInverso.add(new BigDecimal(rsRecords1.getDouble("HaberQ") - rsRecords1.getDouble("DebeQ")).setScale(2, RoundingMode.HALF_UP));
                     }
 
                 } while (rsRecords.next());
@@ -412,7 +413,7 @@ public class HistorialAniosCerradosView extends VerticalLayout implements View {
                 footerRow.getCell(HABER_INVERSO_PROPERTY).setText(numberFormat.format(totalHaberInverso));
                 diferenciaSaldos.setReadOnly(false);
 
-                diferenciaDeSaldos = diferenciaDeSaldos.add(new BigDecimal(Double.parseDouble(String.valueOf(totalDebeInverso)) - Double.valueOf(String.valueOf(totalHaberInverso))).setScale(2, BigDecimal.ROUND_HALF_UP));
+                diferenciaDeSaldos = diferenciaDeSaldos.add(new BigDecimal(Double.parseDouble(String.valueOf(totalDebeInverso)) - Double.valueOf(String.valueOf(totalHaberInverso))).setScale(2, RoundingMode.HALF_UP));
 
                 diferenciaSaldos.setValue(Double.valueOf(String.valueOf(diferenciaDeSaldos)));
                 diferenciaSaldos.setReadOnly(true);

@@ -15,7 +15,6 @@ import com.vaadin.server.VaadinService;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.JavaScript;
 import com.vaadin.ui.Label;
@@ -33,6 +32,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -74,8 +74,8 @@ public class ImportarPlanillasView extends VerticalLayout implements View {
     public static Locale locale = new Locale("ES", "GT");
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
 
-    BigDecimal totalDebe = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-    BigDecimal totalHaber = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+    BigDecimal totalDebe = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+    BigDecimal totalHaber = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
     String codigoCC;
     UI mainUI;
@@ -129,7 +129,6 @@ public class ImportarPlanillasView extends VerticalLayout implements View {
             } catch (java.io.IOException fIoEx) {
                 fIoEx.printStackTrace();
                 Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                return;
             }
         };
 
@@ -181,12 +180,10 @@ public class ImportarPlanillasView extends VerticalLayout implements View {
         planillasTable.addContainerProperty("IdEmpresa", String.class, "");
         planillasTable.addContainerProperty("CodigoCC", String.class, "");
 
-        planillasTable.setColumnAlignments(new Table.Align[]{
-                Table.Align.LEFT, Table.Align.CENTER, Table.Align.CENTER,
+        planillasTable.setColumnAlignments(Table.Align.LEFT, Table.Align.CENTER, Table.Align.CENTER,
                 Table.Align.LEFT, Table.Align.LEFT, Table.Align.LEFT,
                 Table.Align.RIGHT, Table.Align.RIGHT, Table.Align.CENTER,
-                Table.Align.CENTER, Table.Align.CENTER
-        });
+                Table.Align.CENTER, Table.Align.CENTER);
 
         planillasTable.setColumnWidth("Fecha", 90);
         planillasTable.setColumnWidth("Docto", 60);
@@ -317,8 +314,8 @@ public class ImportarPlanillasView extends VerticalLayout implements View {
                 System.out.println(sheet.getRow(linea).getCell(6).getStringCellValue());
                 System.out.println(sheet.getRow(linea).getCell(7).getRawValue());
                 System.out.println(sheet.getRow(linea).getCell(8).getRawValue());
-                System.out.println(String.valueOf(sheet.getRow(linea).getCell(9).getNumericCellValue()));
-                System.out.println(String.valueOf(sheet.getRow(linea).getCell(10).getNumericCellValue()));
+                System.out.println(sheet.getRow(linea).getCell(9).getNumericCellValue());
+                System.out.println(sheet.getRow(linea).getCell(10).getNumericCellValue());
                 System.out.println(sheet.getRow(linea).getCell(11).getRawValue());
 
                 planillasTable.addItem(new Object[]{
@@ -337,8 +334,8 @@ public class ImportarPlanillasView extends VerticalLayout implements View {
                         String.valueOf(sheet.getRow(linea).getCell(11).getStringCellValue())//codigocc
                 }, planillasTable.size() + 1);
 
-                totalDebe = totalDebe.add(new BigDecimal(sheet.getRow(linea).getCell(7).getRawValue())).setScale(2, BigDecimal.ROUND_HALF_UP);
-                totalHaber = totalHaber.add(new BigDecimal(sheet.getRow(linea).getCell(8).getRawValue())).setScale(2, BigDecimal.ROUND_HALF_UP);
+                totalDebe = totalDebe.add(new BigDecimal(sheet.getRow(linea).getCell(7).getRawValue())).setScale(2, RoundingMode.HALF_UP);
+                totalHaber = totalHaber.add(new BigDecimal(sheet.getRow(linea).getCell(8).getRawValue())).setScale(2, RoundingMode.HALF_UP);
 
 //System.out.println("IDEX="+String.valueOf(Double.valueOf(sheet.getRow(linea).getCell(1).getNumericCellValue()).intValue()));
             } //endfor
@@ -548,7 +545,7 @@ public class ImportarPlanillasView extends VerticalLayout implements View {
                                     if (rsRecords1.next()) {
                                         ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().rollback();
                                         ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(true);
-                                        Notification.show("Error, ya existe una planilla previamente resistrada para : " + String.valueOf(sheet.getRow(linea).getCell(6).getRawValue()), Notification.Type.ERROR_MESSAGE);
+                                        Notification.show("Error, ya existe una planilla previamente resistrada para : " + sheet.getRow(linea).getCell(6).getRawValue(), Notification.Type.ERROR_MESSAGE);
                                         return;
                                     }
 
@@ -592,7 +589,7 @@ public class ImportarPlanillasView extends VerticalLayout implements View {
                                     }
                                     queryString += ",1.00"; //tasa cambio
 
-                                    queryString += ",'PLANILLA : " + String.valueOf(sheet.getRow(linea).getCell(3).getNumericCellValue()) + " " + String.valueOf(sheet.getRow(linea).getCell(5).getStringCellValue()) + "'";
+                                    queryString += ",'PLANILLA : " + sheet.getRow(linea).getCell(3).getNumericCellValue() + " " + sheet.getRow(linea).getCell(5).getStringCellValue() + "'";
                                     queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
                                     queryString += ",current_timestamp";
 

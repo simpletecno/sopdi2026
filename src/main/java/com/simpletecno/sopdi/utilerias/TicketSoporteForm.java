@@ -178,10 +178,10 @@ public class TicketSoporteForm extends Window {
 
 //                        fileName = filePath + codigoPartidaUpdate + fileName.substring(fileName.length()-4, fileName.length());
                         if(fileName.endsWith(".xlsx")) {
-                            fileName = filePath + new Utileria().getReferencia() + fileName.substring(fileName.length() - 5, fileName.length());
+                            fileName = filePath + new Utileria().getReferencia() + fileName.substring(fileName.length() - 5);
                         }
                         else {
-                            fileName = filePath + new Utileria().getReferencia() + fileName.substring(fileName.length() - 4, fileName.length());
+                            fileName = filePath + new Utileria().getReferencia() + fileName.substring(fileName.length() - 4);
                         }
 
                         targetFile = new File(fileName);
@@ -211,13 +211,11 @@ public class TicketSoporteForm extends Window {
 
                     } else {
                         Notification.show("El archivo no contiene un formato compatible. solo puede subir archivos con formato 'PNG','JEPG','JPG','PDF', 'XLS', 'XLSX'", Notification.Type.ERROR_MESSAGE);
-                        return;
                     }
 
                 } catch (Exception fIoEx) {
                     fIoEx.printStackTrace();
                     Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                    return;
                 }
             }
         };
@@ -324,7 +322,7 @@ public class TicketSoporteForm extends Window {
             close();
 
             try {
-                String emailsTo[] = {String.valueOf(asignadoCbx.getContainerProperty(asignadoCbx.getValue(), "email").getValue())};
+                String[] emailsTo = {String.valueOf(asignadoCbx.getContainerProperty(asignadoCbx.getValue(), "email").getValue())};
                 MyEmailMessanger eMail = new MyEmailMessanger();
 
                 String texto  = "DESCRIPCION : " + descripcionTxt.getValue() + "\n";

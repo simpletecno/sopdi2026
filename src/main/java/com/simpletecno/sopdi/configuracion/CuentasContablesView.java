@@ -316,7 +316,7 @@ public class CuentasContablesView extends VerticalLayout implements View {
                 } else {
 
                     queryString = " SELECT * FROM contabilidad_partida";
-                    queryString += " WHERE IdNomenclatura = " + String.valueOf(container.getContainerProperty(cuentasContablesGrid.getSelectedRow(), ID_NOMENCLATURA_PROPERTY).getValue());
+                    queryString += " WHERE IdNomenclatura = " + container.getContainerProperty(cuentasContablesGrid.getSelectedRow(), ID_NOMENCLATURA_PROPERTY).getValue();
 
                     try {
 
@@ -328,8 +328,7 @@ public class CuentasContablesView extends VerticalLayout implements View {
                         } else {
 
                             queryString = " DELETE FROM contabilidad_nomenclatura";
-                            queryString += " WHERE IdNomenclatura = " + String.valueOf(container.getContainerProperty(cuentasContablesGrid.getSelectedRow(), ID_NOMENCLATURA_PROPERTY).getValue());
-                            ;
+                            queryString += " WHERE IdNomenclatura = " + container.getContainerProperty(cuentasContablesGrid.getSelectedRow(), ID_NOMENCLATURA_PROPERTY).getValue();
 
                             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                             stQuery.executeUpdate(queryString);
@@ -369,7 +368,7 @@ public class CuentasContablesView extends VerticalLayout implements View {
                         inhabilitarBtn.setIcon(FontAwesome.HAND_O_UP);
                     }
 
-                    queryString += " WHERE IdNomenclatura = " + String.valueOf(container.getContainerProperty(cuentasContablesGrid.getSelectedRow(), ID_NOMENCLATURA_PROPERTY).getValue());
+                    queryString += " WHERE IdNomenclatura = " + container.getContainerProperty(cuentasContablesGrid.getSelectedRow(), ID_NOMENCLATURA_PROPERTY).getValue();
 
                     try {
                         stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

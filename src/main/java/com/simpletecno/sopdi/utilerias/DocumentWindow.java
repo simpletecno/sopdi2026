@@ -56,7 +56,7 @@ public class DocumentWindow  {
             window.setWidth("95%");
             window.setHeight("95%");
             
-            final byte docBytes[] = rsRecords.getBytes("Archivo");
+            final byte[] docBytes = rsRecords.getBytes("Archivo");
             StreamResource documentStreamResource = null;
 
             if(docBytes != null ) {

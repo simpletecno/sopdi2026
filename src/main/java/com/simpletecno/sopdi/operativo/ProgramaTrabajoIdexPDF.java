@@ -20,7 +20,6 @@ import java.io.*;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -126,7 +125,7 @@ public class ProgramaTrabajoIdexPDF extends Window {
         private final String RECEIPTFILE
                 = VaadinService.getCurrent()
                         .getBaseDirectory().getAbsolutePath() + "/pdfreceipts/";
-        private String TDLOGO = VaadinService.getCurrent()
+        private final String TDLOGO = VaadinService.getCurrent()
                 .getBaseDirectory().getAbsolutePath() + "/VAADIN/themes/tests-valo-flat/img/logo_simpletecno.png";
 
         private final Font catFont = new Font(Font.FontFamily.TIMES_ROMAN, 18, Font.BOLD);
@@ -177,9 +176,9 @@ public class ProgramaTrabajoIdexPDF extends Window {
                 event.setCompanyName(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName() + "\n" + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectName());
                 event.setPrintBy(((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserFullName());
                 event.setPrintTime(Utileria.getFechaDDMMYYYY_HHMM_2(new java.util.Date()));
-                String secondLine = "IDCC=" + String.valueOf(idexContainer.getContainerProperty(selectedIdex, ProgramaTrabajoView.IDCC_PROPERTY).getValue());
-                secondLine += " IDEX=" + String.valueOf(idexContainer.getContainerProperty(selectedIdex, ProgramaTrabajoView.IDEX_PROPERTY).getValue());
-                secondLine += " " + String.valueOf(idexContainer.getContainerProperty(selectedIdex, ProgramaTrabajoView.DESCRIPCION_PROPERTY).getValue());
+                String secondLine = "IDCC=" + idexContainer.getContainerProperty(selectedIdex, ProgramaTrabajoView.IDCC_PROPERTY).getValue();
+                secondLine += " IDEX=" + idexContainer.getContainerProperty(selectedIdex, ProgramaTrabajoView.IDEX_PROPERTY).getValue();
+                secondLine += " " + idexContainer.getContainerProperty(selectedIdex, ProgramaTrabajoView.DESCRIPCION_PROPERTY).getValue();
                 event.setSecondLineReportTitle(secondLine);
                 
                 writer.setPageEvent(event);

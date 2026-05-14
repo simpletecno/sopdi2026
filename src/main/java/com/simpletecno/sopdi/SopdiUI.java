@@ -90,17 +90,17 @@ public class SopdiUI extends UI implements Button.ClickListener {
     public EnvironmentVars enviromentsVars = new EnvironmentVars();
     InfoVariable result;
 
-    private MenuLayout appLayout = new MenuLayout();
+    private final MenuLayout appLayout = new MenuLayout();
 
     ComponentContainer viewDisplay = appLayout.getContentContainer();
     CssLayout mainMenuLayout = new CssLayout();
-    private CssLayout menuItemsLayout = new CssLayout();
+    private final CssLayout menuItemsLayout = new CssLayout();
     {
         mainMenuLayout.setId("testMenu");
     }
     private Navigator navigator;
-    private LinkedHashMap<String, String> menuItems = new LinkedHashMap<String, String>();
-    private LinkedHashMap<String, String> orderMenuItems = new LinkedHashMap<String, String>();
+    private final LinkedHashMap<String, String> menuItems = new LinkedHashMap<String, String>();
+    private final LinkedHashMap<String, String> orderMenuItems = new LinkedHashMap<String, String>();
     private final LinkedHashMap<String, FontAwesome> iconItems = new LinkedHashMap<String, FontAwesome>();
 
     public ThemeResource projectLogo = new ThemeResource("img/logo_nisa.png");
@@ -334,7 +334,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
             ex1.printStackTrace();
 
             try {
-                String emailsTo[] = {"alerta@simpletecno.com"};
+                String[] emailsTo = {"alerta@simpletecno.com"};
                 MyEmailMessanger eMail = new MyEmailMessanger();
 
                 eMail.postMail(emailsTo, "Error en SOPDI", "Error al consultar base de datos (login)..! " + ex1.getMessage());
@@ -439,7 +439,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
 
                 Notification.show("PROBLEMA AL CONECTARSE A BASE DE DATOS, POR FAVOR CONTACTE A TECNOLOGIA DE INFORMACION!!!", Notification.Type.ERROR_MESSAGE);
 
-                String emailRecipients[] = {"alerta@simpletecno.com"};
+                String[] emailRecipients = {"alerta@simpletecno.com"};
 
                 MyEmailMessanger eMail = new MyEmailMessanger();
 

@@ -75,9 +75,9 @@ public class ProveedorView extends VerticalLayout implements View {
 
     Label saldoLbl;
     public static Locale locale = new Locale("ES", "GT");
-    private static DecimalFormat numberFormat = new DecimalFormat("##,###,##0.00");
+    private static final DecimalFormat numberFormat = new DecimalFormat("##,###,##0.00");
 
-    private UI mainUI;
+    private final UI mainUI;
 
     public ProveedorView() {
 
@@ -356,7 +356,8 @@ public class ProveedorView extends VerticalLayout implements View {
         excelExport.excludeCollapsedColumns();
         excelExport.setExportFileName("CATALOGO_MASTER_PROVEEDORES.xls");
 
-        String mainTitle = "CATALOGO MASTER DE PROVEEDORES AL: " + new Utileria().getFechaYYYYMMDD_1(new Date());
+        new Utileria();
+        String mainTitle = "CATALOGO MASTER DE PROVEEDORES AL: " + Utileria.getFechaYYYYMMDD_1(new Date());
 
         excelExport.setReportTitle(mainTitle);
 
@@ -405,7 +406,7 @@ public class ProveedorView extends VerticalLayout implements View {
 
         try {
             String queryString = "DELETE FROM proveedor ";
-            queryString += " WHERE Id = " + String.valueOf(containerProveedor.getContainerProperty(proveedorGrid.getSelectedRow(), ID_PROPERTY).getValue());
+            queryString += " WHERE Id = " + containerProveedor.getContainerProperty(proveedorGrid.getSelectedRow(), ID_PROPERTY).getValue();
 
             stQuery.executeUpdate(queryString);
 

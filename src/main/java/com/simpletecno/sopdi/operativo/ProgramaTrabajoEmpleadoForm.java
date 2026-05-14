@@ -135,7 +135,7 @@ System.out.println("query RH=" + queryString);
 
                     rsRecords1 = stQuery1.executeQuery(queryString);
 
-                    if (rsRecords1.next() == false) { // si esta libre
+                    if (!rsRecords1.next()) { // si esta libre
 System.out.println("query RHRH=" + queryString);
                         empleadoCbx.addItem(rsRecords.getString("IdProveedor"));
                         empleadoCbx.setItemCaption(rsRecords.getString("IdProveedor"), rsRecords.getString("IdProveedor") + " " + rsRecords.getString("Nombre"));

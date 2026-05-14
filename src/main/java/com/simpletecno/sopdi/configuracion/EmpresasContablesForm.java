@@ -219,7 +219,6 @@ public class EmpresasContablesForm extends Window {
                 catch( java.io.IOException fIoEx) {
                     fIoEx.printStackTrace();
                     Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                    return;
                 }
             }
         };
@@ -321,7 +320,7 @@ public class EmpresasContablesForm extends Window {
                 regimenCbx.select(rsRecords.getString("Regimen"));
                 codigoProductoExcelFELTxt.setValue(rsRecords.getString("CodigoProductoExentoFel"));
 
-                final byte docBytes[] = rsRecords.getBytes("Logo");
+                final byte[] docBytes = rsRecords.getBytes("Logo");
                 StreamResource logoStreamResource = null;
 
                 if(docBytes != null ) {

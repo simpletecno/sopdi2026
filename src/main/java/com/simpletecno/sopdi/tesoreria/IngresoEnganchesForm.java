@@ -774,9 +774,9 @@ public class IngresoEnganchesForm extends Window {
 
         queryString = "SELECT * FROM contabilidad_partida";
         queryString += " Where NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " And IdProveedor     =  " + String.valueOf(proveedorCbx.getValue());
+        queryString += " And IdProveedor     =  " + proveedorCbx.getValue();
         queryString += " And IdEmpresa = " + empresaId;
-        queryString += " And TipoDocumento = '" + String.valueOf(medioCbx.getValue())  + "'";
+        queryString += " And TipoDocumento = '" + medioCbx.getValue() + "'";
         queryString += " And MonedaDocumento = '" + monedaCbx.getValue() + "'";
 
         try {
@@ -836,8 +836,8 @@ public class IngresoEnganchesForm extends Window {
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",''";
-        queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-        queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+        queryString += ",'" + medioCbx.getValue() + "'";
+        queryString += ",'" + tipoEngancheCbx.getValue() + "'";
         queryString += ",'" + referenciaTxt.getValue() + "'";
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += "," + proveedorCbx.getValue();
@@ -847,13 +847,13 @@ public class IngresoEnganchesForm extends Window {
         queryString += "," + montoTxt.getDoubleValueDoNotThrow();
         queryString += "," + cuentaContable1Cbx.getValue();
         queryString += ",'" + monedaCbx.getValue() + "'";
-        queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(haber1Txt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(debe1QTxt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(haber1QTxt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + debe1Txt.getDoubleValueDoNotThrow();
+        queryString += "," + haber1Txt.getDoubleValueDoNotThrow();
+        queryString += "," + debe1QTxt.getDoubleValueDoNotThrow();
+        queryString += "," + haber1QTxt.getDoubleValueDoNotThrow();
+        queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
         queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-        queryString += ",'Ingreso por ENGANCHE CLIENTE " + String.valueOf(tipoEngancheCbx.getValue()) + " " + descripcionTxt.getValue() + "'";
+        queryString += ",'Ingreso por ENGANCHE CLIENTE " + tipoEngancheCbx.getValue() + " " + descripcionTxt.getValue() + "'";
         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
         queryString += ",current_timestamp";
         queryString += ")";
@@ -864,8 +864,8 @@ public class IngresoEnganchesForm extends Window {
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'";
-        queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-        queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+        queryString += ",'" + medioCbx.getValue() + "'";
+        queryString += ",'" + tipoEngancheCbx.getValue() + "'";
         queryString += ",'" + referenciaTxt.getValue() + "'";
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += "," + proveedorCbx.getValue();
@@ -875,11 +875,11 @@ public class IngresoEnganchesForm extends Window {
         queryString += "," + montoTxt.getDoubleValueDoNotThrow();
         queryString += "," + cuentaContable2Cbx.getValue();
         queryString += ",'" + monedaCbx.getValue() + "'";
-        queryString += "," + String.valueOf(debe2Txt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(debe2QTxt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(haber2QTxt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + debe2Txt.getDoubleValueDoNotThrow();
+        queryString += "," + haber2Txt.getDoubleValueDoNotThrow();
+        queryString += "," + debe2QTxt.getDoubleValueDoNotThrow();
+        queryString += "," + haber2QTxt.getDoubleValueDoNotThrow();
+        queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
         queryString += "," + montoTxt.getDoubleValueDoNotThrow();
         queryString += ",'Ingreso por ENGANCHE CLIENTE " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + " " + descripcionTxt.getValue() + "'";
         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
@@ -892,8 +892,8 @@ public class IngresoEnganchesForm extends Window {
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'";
-        queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-        queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+        queryString += ",'" + medioCbx.getValue() + "'";
+        queryString += ",'" + tipoEngancheCbx.getValue() + "'";
         queryString += ",'" + referenciaTxt.getValue() + "'";
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += "," + proveedorCbx.getValue();
@@ -903,13 +903,13 @@ public class IngresoEnganchesForm extends Window {
         queryString += "," + montoTxt.getDoubleValueDoNotThrow();
         queryString += "," + cuentaContable3Cbx.getValue();
         queryString += ",'" + monedaCbx.getValue() + "'";
-        queryString += "," + String.valueOf(debe3Txt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(haber3Txt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(debe3QTxt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(haber3QTxt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + debe3Txt.getDoubleValueDoNotThrow();
+        queryString += "," + haber3Txt.getDoubleValueDoNotThrow();
+        queryString += "," + debe3QTxt.getDoubleValueDoNotThrow();
+        queryString += "," + haber3QTxt.getDoubleValueDoNotThrow();
+        queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
         queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-        queryString += ",'Ingreso por ENGANCHE CLIENTE " + String.valueOf(tipoEngancheCbx.getValue()) + " " + descripcionTxt.getValue() + "'";
+        queryString += ",'Ingreso por ENGANCHE CLIENTE " + tipoEngancheCbx.getValue() + " " + descripcionTxt.getValue() + "'";
         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
         queryString += ",current_timestamp";
         queryString += ")";
@@ -943,7 +943,7 @@ public class IngresoEnganchesForm extends Window {
             notif.show(Page.getCurrent());
 
             try {
-                String emailsTo[] = {"alerta@simpletecno.com"};
+                String[] emailsTo = {"alerta@simpletecno.com"};
                 MyEmailMessanger eMail = new MyEmailMessanger();
 
                 eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos :  " + this.getClass().getName() + " -->" + ex1.getMessage());

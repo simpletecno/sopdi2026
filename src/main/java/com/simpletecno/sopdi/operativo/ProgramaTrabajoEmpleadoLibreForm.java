@@ -167,7 +167,7 @@ public class ProgramaTrabajoEmpleadoLibreForm extends Window {
 //}
                         rsRecords1 = stQuery1.executeQuery(queryString);
 
-                        if (rsRecords1.next() == false) { // si esta libre
+                        if (!rsRecords1.next()) { // si esta libre
                             itemId = rhContainer.addItem();
 
                             rhContainer.getContainerProperty(itemId, "fecha").setValue(Utileria.getFechaYYYYMMDD_1(java.util.Date.from(esteDia)));

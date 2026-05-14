@@ -4,7 +4,6 @@ import com.simpletecno.sopdi.utilerias.MyEmailMessanger;
 import com.simpletecno.sopdi.SopdiUI;
 import com.simpletecno.sopdi.utilerias.Utileria;
 import com.simpletecno.sopdi.utilerias.ValidarTokenForm;
-import com.simpletecno.sopdi.extras.custom.SegmentedField;
 import com.simpletecno.sopdi.extras.custom.ToggleSwitch;
 import com.simpletecno.sopdi.extras.infile.InfileClient;
 import com.simpletecno.sopdi.extras.infile.Producto;
@@ -436,7 +435,7 @@ public class NotaCreditoVentaInfileForm extends Window {
             if (i == numeroProductos) razonTxt.setCaption(" ");
             razonTxt.setWidth("20em");
             if (i == numeroProductos) razonTxt.setEnabled(false);
-            razonTxt.addValueChangeListener(event -> {;
+            razonTxt.addValueChangeListener(event -> {
                 productoNota.getProducto().setComentario(razonTxt.getValue());
             });
 
@@ -1071,7 +1070,7 @@ public class NotaCreditoVentaInfileForm extends Window {
                     queryString +=  ",0.00";
                     queryString += "," + Utileria.format(notaMontotxtList.get(i).getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //HABER Q.
                 }
-                queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow()); //SALDO
+                queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow(); //SALDO
                 queryString += ",0.00"; //SALDO
                 queryString += ",'INGRESADO'";
                 queryString += ", 0";
@@ -1180,7 +1179,7 @@ public class NotaCreditoVentaInfileForm extends Window {
             notif.show(Page.getCurrent());
 
             try {
-                String emailsTo[] = {"alerta@simpletecno.com"};
+                String[] emailsTo = {"alerta@simpletecno.com"};
                 MyEmailMessanger eMail = new MyEmailMessanger();
 
                 eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos :  " + this.getClass().getName() + " -->" + ex1.getMessage());
@@ -1213,15 +1212,15 @@ public class NotaCreditoVentaInfileForm extends Window {
     }
 
     class ProductoNota {
-        private String IdProducto;
-        private String IdNomenclatura;
-        private String ExentoIva;
-        private String tipo;
-        private String nombre;
-        private Double monto;
+        private final String IdProducto;
+        private final String IdNomenclatura;
+        private final String ExentoIva;
+        private final String tipo;
+        private final String nombre;
+        private final Double monto;
         private String neto;
         private String iva;
-        private Integer CentroCosto;
+        private final Integer CentroCosto;
         private Producto p;
 
         ProductoNota(

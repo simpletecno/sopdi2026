@@ -240,7 +240,7 @@ public class   EmpleadoAusenciasForm extends Window {
             @Override
             public void valueChange(Property.ValueChangeEvent valueChangeEvent) {
                 diasTxt.setReadOnly(false);
-                diasTxt.setValue((double)dias());
+                diasTxt.setValue(dias());
                 diasTxt.setReadOnly(true);
             }
         });
@@ -253,7 +253,7 @@ public class   EmpleadoAusenciasForm extends Window {
             @Override
             public void valueChange(Property.ValueChangeEvent valueChangeEvent) {
                 diasTxt.setReadOnly(false);
-                diasTxt.setValue((double)dias());
+                diasTxt.setValue(dias());
                 diasTxt.setReadOnly(true);
             }
         });

@@ -153,7 +153,7 @@ public class TokenView extends VerticalLayout implements View {
                             codigoPartida,
                             "",
                             "",
-                            "" + " " + ""
+                    " "
                     );
             mainUI.addWindow(mostrarPartidaContable);
             mostrarPartidaContable.center();
@@ -250,7 +250,7 @@ public class TokenView extends VerticalLayout implements View {
                     tokenContainer.getContainerProperty(itemId, ID_PROPERTY).setValue(rsRecords.getString("IdToken"));
                     tokenContainer.getContainerProperty(itemId, CODIGO_PROPERTY).setValue(rsRecords.getString("Codigo"));
                     tokenContainer.getContainerProperty(itemId, FECHA_CREADO_PROPERTY).setValue(Utileria.getFechaDDMMYYYY(rsRecords.getDate("FechaCreado")));
-                    String horaCreado = rsRecords.getString("FechaCreado").substring(11, rsRecords.getString("FechaCreado").length());
+                    String horaCreado = rsRecords.getString("FechaCreado").substring(11);
                     tokenContainer.getContainerProperty(itemId, HORA_CREADO_PROPERTY).setValue(horaCreado);
 
                     if (rsRecords.getString("Estatus").equals("DISPONIBLE")) {

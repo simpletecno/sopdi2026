@@ -689,9 +689,9 @@ public class ProveedorForm_old extends Window {
             queryString += "," + anticipoUnidadTxt.getValue();
             queryString += ", " + diaProvisionTxt.getValue();
             queryString += ",'" + emailTxt.getValue() + "'";
-            queryString += ", " + String.valueOf(empresaRelacionadaCbx.getValue());
-            queryString += ",'" + String.valueOf(cuentaAnticiposLiquidarCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(cuentaAcreedoresCbx.getValue()) + "'";
+            queryString += ", " + empresaRelacionadaCbx.getValue();
+            queryString += ",'" + cuentaAnticiposLiquidarCbx.getValue() + "'";
+            queryString += ",'" + cuentaAcreedoresCbx.getValue() + "'";
 
             queryString += ", " + (!esInabilitadoCheck.getValue() ? "1" : "0");
             queryString += ", " + (esProveedorCheck.getValue() ? "1" : "0");
@@ -739,9 +739,9 @@ public class ProveedorForm_old extends Window {
             queryString += ",AnticipoUnidad = " + anticipoUnidadTxt.getValue();
             queryString += ",DiaProvision = " + diaProvisionTxt.getValue();
             queryString += ",Email = '" + emailTxt.getValue() + "'";
-            queryString += ",IdEmpresa = " + String.valueOf(empresaRelacionadaCbx.getValue());
-            queryString += ",CuentaAnticiposLiquidar = '" + String.valueOf(cuentaAnticiposLiquidarCbx.getValue()) + "'";
-            queryString += ",CuentaAcreedores = '" + String.valueOf(cuentaAcreedoresCbx.getValue()) + "'";
+            queryString += ",IdEmpresa = " + empresaRelacionadaCbx.getValue();
+            queryString += ",CuentaAnticiposLiquidar = '" + cuentaAnticiposLiquidarCbx.getValue() + "'";
+            queryString += ",CuentaAcreedores = '" + cuentaAcreedoresCbx.getValue() + "'";
 
             queryString += ",Inhabilitado = " + (!esInabilitadoCheck.getValue() ? "1" : "0");
             queryString += ",EsProveedor = " + (esProveedorCheck.getValue() ? "1" : "0");

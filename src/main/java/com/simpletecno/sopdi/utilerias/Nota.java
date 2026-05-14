@@ -39,7 +39,7 @@ public class Nota extends Window
     
     UI mainUI;
     
-    private VerticalLayout mainLayout = new VerticalLayout();
+    private final VerticalLayout mainLayout = new VerticalLayout();
     
     Statement stQuery = null;
     PreparedStatement stPreparedQuery = null;    

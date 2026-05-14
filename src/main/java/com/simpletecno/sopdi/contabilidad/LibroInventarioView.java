@@ -29,6 +29,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.ui.NumberField;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -354,7 +355,7 @@ public class LibroInventarioView extends VerticalLayout implements View {
         queryString += " AND N3 = 'Inventario'";
         if (cuentaContableCbx.getValue() != null) {
             queryString += " AND N5 = '" + cuentaContableCbx.getItemCaption(cuentaContableCbx.getValue())
-                    .substring(9, cuentaContableCbx.getItemCaption(cuentaContableCbx.getValue()).length()) + "'";
+                    .substring(9) + "'";
         }
         queryString += " AND IdEmpresa = " + empresaId;
         queryString += " ORDER BY ID1";
@@ -373,7 +374,7 @@ public class LibroInventarioView extends VerticalLayout implements View {
                 Collection collMes = (Collection)mesCbx.getValue();
                 Iterator iterMes = collMes.iterator();
                 
-                if(iterMes.hasNext() == false) {
+                if(!iterMes.hasNext()) {
                     Notification.show("POR FAVOR ELIJA UNO O VARIOS MESES", Notification.Type.HUMANIZED_MESSAGE);
                     return;
                 }
@@ -385,7 +386,7 @@ public class LibroInventarioView extends VerticalLayout implements View {
                     while(iterMes.hasNext()) {  // meses
 
                         String mesCierre = String.valueOf(iterMes.next());
-                        String anioMesCierre = String.valueOf(anioCbx.getValue()) + mesCierre;
+                        String anioMesCierre = anioCbx.getValue() + mesCierre;
 
                         Calendar c = Calendar.getInstance();
                         
@@ -405,7 +406,7 @@ public class LibroInventarioView extends VerticalLayout implements View {
                         }
 //System.out.println("calendar 2 = " + c.get(Calendar.YEAR) + " " + c.get(Calendar.SHORT));
 
-                        BigDecimal saldoAnterior = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        BigDecimal saldoAnterior = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
                         if(Integer.valueOf(mesCierre) > 1) {
                             saldoAnterior = saldoAnterior.add(getSaldoCuentaMesAnterior(c, rsRecords.getString("IdNomenclatura")));
                         }
@@ -414,7 +415,7 @@ public class LibroInventarioView extends VerticalLayout implements View {
 
                         libroInventarioContainer.getContainerProperty(itemId, CUENTA_PROPERTY).setValue(rsRecords.getString("NoCuenta"));
                         libroInventarioContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).setValue(rsRecords.getString("N5"));
-                        libroInventarioContainer.getContainerProperty(itemId, FECHA_PROPERTY).setValue(String.valueOf( mesCbx.getItemCaption(mesCierre).toUpperCase() + " " + anioCbx.getItemCaption(anioCbx.getValue())));
+                        libroInventarioContainer.getContainerProperty(itemId, FECHA_PROPERTY).setValue(mesCbx.getItemCaption(mesCierre).toUpperCase() + " " + anioCbx.getItemCaption(anioCbx.getValue()));
                         libroInventarioContainer.getContainerProperty(itemId, CODIGO_PARTIDA_PROPERTY).setValue("S. ANTERIOR : ");
                         if(   rsRecords.getString("NoCuenta").startsWith("1")
                            || rsRecords.getString("NoCuenta").startsWith("5")
@@ -447,10 +448,10 @@ public class LibroInventarioView extends VerticalLayout implements View {
 
                         if (rsRecords1.next()) { //  encontrado el detalle contable
                             
-                            BigDecimal totalSaldoAnterior = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                            BigDecimal totalDebe = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                            BigDecimal totalHaber = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                            BigDecimal totalSaldoFinal = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP); 
+                            BigDecimal totalSaldoAnterior = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                            BigDecimal totalDebe = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                            BigDecimal totalHaber = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                            BigDecimal totalSaldoFinal = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
                             do { //por cada movimiento contable
                                 itemId = libroInventarioContainer.addItem();
@@ -470,10 +471,10 @@ public class LibroInventarioView extends VerticalLayout implements View {
                                 if(   rsRecords.getString("NoCuenta").startsWith("1")
                                    || rsRecords.getString("NoCuenta").startsWith("5")
                                    || rsRecords.getString("NoCuenta").startsWith("6")) {
-                                    saldoAnterior = saldoAnterior.add(new BigDecimal(rsRecords1.getDouble("DebeQuetzales") - rsRecords1.getDouble("HaberQuetzales")).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                    saldoAnterior = saldoAnterior.add(new BigDecimal(rsRecords1.getDouble("DebeQuetzales") - rsRecords1.getDouble("HaberQuetzales")).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                 }
                                 else {
-                                    saldoAnterior = saldoAnterior.subtract(new BigDecimal(rsRecords1.getDouble("DebeQuetzales") - rsRecords1.getDouble("HaberQuetzales")).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                    saldoAnterior = saldoAnterior.subtract(new BigDecimal(rsRecords1.getDouble("DebeQuetzales") - rsRecords1.getDouble("HaberQuetzales")).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                 }
                                 libroInventarioContainer.getContainerProperty(itemId, SALDO_PROPERTY).setValue(numberFormat.format(saldoAnterior));
 
@@ -563,20 +564,20 @@ public class LibroInventarioView extends VerticalLayout implements View {
     }
 
     public BigDecimal getSaldoCuentaMesAnterior(Calendar c, String idNomenclatura) throws SQLException {
-        BigDecimal saldo = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal saldo = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
                        
         String queryString  = " Select IfNull(SaldoFinal, 0) SaldoMesAnterior ";
         queryString += " From contabilidad_balance_saldo";
         queryString += " Where IdNomenclatura = " + idNomenclatura;
         queryString += " And  IdEmpresa = " + empresaId;
-        queryString += " And  AnioMesCierre = " + String.valueOf(c.get(Calendar.YEAR)) + String.format("%02d", c.get(Calendar.MONTH)+1) ;
+        queryString += " And  AnioMesCierre = " + c.get(Calendar.YEAR) + String.format("%02d", c.get(Calendar.MONTH)+1) ;
         
 //System.out.println("queryMesAnterior = " + queryString);
 
         rsRecords2 = stQuery2.executeQuery(queryString);
 
         if(rsRecords2.next()) {
-            saldo = rsRecords2.getBigDecimal("SaldoMesAnterior").setScale(2, BigDecimal.ROUND_HALF_UP);
+            saldo = rsRecords2.getBigDecimal("SaldoMesAnterior").setScale(2, RoundingMode.HALF_UP);
         }
 //System.out.println("saldoMesAnterior = " + saldo);        
         return saldo;

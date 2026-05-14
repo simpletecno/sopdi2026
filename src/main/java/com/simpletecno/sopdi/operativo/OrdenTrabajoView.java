@@ -15,7 +15,6 @@ import com.vaadin.ui.themes.ValoTheme;
 
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.text.DecimalFormat;
 import java.util.Date;
 
 /**
@@ -201,7 +200,7 @@ public class OrdenTrabajoView extends VerticalLayout implements View {
 
         try {
 
-            if (inicioDt.getValue().before(finDt.getValue()) == true) {
+            if (inicioDt.getValue().before(finDt.getValue())) {
 
                 queryString = " SELECT OT.*, EMP.Empresa as EmpresaNombre, ";
                 queryString += " PTA.Descripcion, usuario.Nombre as NombreUsuario ";

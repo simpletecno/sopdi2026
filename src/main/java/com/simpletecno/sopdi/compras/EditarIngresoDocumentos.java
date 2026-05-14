@@ -15,6 +15,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -1099,7 +1100,7 @@ public class EditarIngresoDocumentos extends Window {
             window.setWidth("95%");
             window.setHeight("95%");
 
-            final byte docBytes[] = rsRecords.getBytes("Archivo");
+            final byte[] docBytes = rsRecords.getBytes("Archivo");
             final String fileName = rsRecords.getString("ArchivoNombre");
             documentStreamResource = null;
 
@@ -1254,7 +1255,7 @@ public class EditarIngresoDocumentos extends Window {
                 + debe3Txt.getDoubleValueDoNotThrow() + debe4Txt.getDoubleValueDoNotThrow()
                 + debe5Txt.getDoubleValueDoNotThrow() + debe6Txt.getDoubleValueDoNotThrow()
                 + debe7Txt.getDoubleValueDoNotThrow() + debe8Txt.getDoubleValueDoNotThrow()
-                + debe9Txt.getDoubleValueDoNotThrow() + debe10Txt.getDoubleValueDoNotThrow()).setScale(2, BigDecimal.ROUND_HALF_UP);
+                + debe9Txt.getDoubleValueDoNotThrow() + debe10Txt.getDoubleValueDoNotThrow()).setScale(2, RoundingMode.HALF_UP);
 
         /////pregunta en la suma del total haber por que se suma habertxt, luego haber1 y asi sucedibamente
         totalHaber = new BigDecimal(haberTxt.getDoubleValueDoNotThrow()
@@ -1262,10 +1263,10 @@ public class EditarIngresoDocumentos extends Window {
                 + haber3Txt.getDoubleValueDoNotThrow() + haber4Txt.getDoubleValueDoNotThrow()
                 + haber5Txt.getDoubleValueDoNotThrow() + haber6Txt.getDoubleValueDoNotThrow()
                 + haber7Txt.getDoubleValueDoNotThrow() + haber8Txt.getDoubleValueDoNotThrow()
-                + haber9Txt.getDoubleValueDoNotThrow() + haber10Txt.getDoubleValueDoNotThrow()).setScale(2, BigDecimal.ROUND_HALF_UP);
+                + haber9Txt.getDoubleValueDoNotThrow() + haber10Txt.getDoubleValueDoNotThrow()).setScale(2, RoundingMode.HALF_UP);
 
-        totalDebe.setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalHaber.setScale(2, BigDecimal.ROUND_HALF_UP);
+        totalDebe.setScale(2, RoundingMode.HALF_UP);
+        totalHaber.setScale(2, RoundingMode.HALF_UP);
 
         if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresaId, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
             Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
@@ -1452,18 +1453,18 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContableCbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
             queryString += ",0.00"; //DEBE
-            queryString += "," + String.valueOf(haberTxt.getDoubleValueDoNotThrow()); // Haber
+            queryString += "," + haberTxt.getDoubleValueDoNotThrow(); // Haber
             queryString += ",0.00"; //DEBEQ.
-            queryString += "," + String.valueOf(haberTxt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + haberTxt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
 
 //            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
             if (String.valueOf(cuentaContableCbx.getValue()).equals("310")) {
                 queryString += ",0.00"; //SALDO ABASTOS
             } else {
-                queryString += "," + String.valueOf(haberTxt.getDoubleValueDoNotThrow()); // Haber (SALDO)
+                queryString += "," + haberTxt.getDoubleValueDoNotThrow(); // Haber (SALDO)
             }
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1510,21 +1511,21 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable1Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
             if (debe1Txt.getDoubleValueDoNotThrow() > 0 && haber1Txt.getDoubleValueDoNotThrow() == 0.00) {
-                queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow()); // DEBE
+                queryString += "," + debe1Txt.getDoubleValueDoNotThrow(); // DEBE
                 queryString += ",0.00"; //HABER
-                queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += "," + debe1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",0.00"; //HABER Q.
             } else {
                 if (haber1Txt.getDoubleValueDoNotThrow() > 0 && debe1Txt.getDoubleValueDoNotThrow() == 0.00) {
                     queryString += ",0.00"; //DEBE
-                    queryString += "," + String.valueOf(haber1Txt.getDoubleValueDoNotThrow()); // Haber
+                    queryString += "," + haber1Txt.getDoubleValueDoNotThrow(); // Haber
                     queryString += ",0.00"; //DEBEQ.
-                    queryString += "," + String.valueOf(haber1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                    queryString += "," + haber1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 }
             }
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1563,21 +1564,21 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable2Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
             if (debe2Txt.getDoubleValueDoNotThrow() > 0 && haber2Txt.getDoubleValueDoNotThrow() == 0.00) {
-                queryString += "," + String.valueOf(debe2Txt.getDoubleValueDoNotThrow()); // DEBE
+                queryString += "," + debe2Txt.getDoubleValueDoNotThrow(); // DEBE
                 queryString += ",0.00"; //HABER
-                queryString += "," + String.valueOf(debe2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += "," + debe2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",0.00"; //HABER Q.
             } else {
                 if (haber2Txt.getDoubleValueDoNotThrow() > 0 && debe2Txt.getDoubleValueDoNotThrow() == 0.00) {
                     queryString += ",0.00"; //DEBE
-                    queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow()); // Haber
+                    queryString += "," + haber2Txt.getDoubleValueDoNotThrow(); // Haber
                     queryString += ",0.00"; //DEBEQ.
-                    queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                    queryString += "," + haber2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 }
             }
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1616,21 +1617,21 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable3Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
             if (debe3Txt.getDoubleValueDoNotThrow() > 0 && haber3Txt.getDoubleValueDoNotThrow() == 0.00) {
-                queryString += "," + String.valueOf(debe3Txt.getDoubleValueDoNotThrow()); // DEBE
+                queryString += "," + debe3Txt.getDoubleValueDoNotThrow(); // DEBE
                 queryString += ",0.00"; //HABER
-                queryString += "," + String.valueOf(debe3Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += "," + debe3Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",0.00"; //HABER Q.
             } else {
                 if (haber3Txt.getDoubleValueDoNotThrow() > 0 && debe3Txt.getDoubleValueDoNotThrow() == 0.00) {
                     queryString += ",0.00"; //DEBE
-                    queryString += "," + String.valueOf(haber3Txt.getDoubleValueDoNotThrow()); // Haber
+                    queryString += "," + haber3Txt.getDoubleValueDoNotThrow(); // Haber
                     queryString += ",0.00"; //DEBEQ.
-                    queryString += "," + String.valueOf(haber3Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                    queryString += "," + haber3Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 }
             }
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1669,21 +1670,21 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable4Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
             if (debe4Txt.getDoubleValueDoNotThrow() > 0 && haber4Txt.getDoubleValueDoNotThrow() == 0.00) {
-                queryString += "," + String.valueOf(debe4Txt.getDoubleValueDoNotThrow()); // DEBE
+                queryString += "," + debe4Txt.getDoubleValueDoNotThrow(); // DEBE
                 queryString += ",0.00"; //HABER
-                queryString += "," + String.valueOf(debe4Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += "," + debe4Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",0.00"; //HABER Q.
             } else {
                 if (haber4Txt.getDoubleValueDoNotThrow() > 0 && debe4Txt.getDoubleValueDoNotThrow() == 0.00) {
                     queryString += ",0.00"; //DEBE
-                    queryString += "," + String.valueOf(haber4Txt.getDoubleValueDoNotThrow()); // Haber
+                    queryString += "," + haber4Txt.getDoubleValueDoNotThrow(); // Haber
                     queryString += ",0.00"; //DEBEQ.
-                    queryString += "," + String.valueOf(haber4Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                    queryString += "," + haber4Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 }
             }
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1721,21 +1722,21 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable5Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
             if (debe5Txt.getDoubleValueDoNotThrow() > 0 && haber5Txt.getDoubleValueDoNotThrow() == 0.00) {
-                queryString += "," + String.valueOf(debe5Txt.getDoubleValueDoNotThrow()); // DEBE
+                queryString += "," + debe5Txt.getDoubleValueDoNotThrow(); // DEBE
                 queryString += ",0.00"; //HABER
-                queryString += "," + String.valueOf(debe5Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += "," + debe5Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",0.00"; //HABER Q.
             } else {
                 if (haber5Txt.getDoubleValueDoNotThrow() > 0 && debe5Txt.getDoubleValueDoNotThrow() == 0.00) {
                     queryString += ",0.00"; //DEBE
-                    queryString += "," + String.valueOf(haber5Txt.getDoubleValueDoNotThrow()); // Haber
+                    queryString += "," + haber5Txt.getDoubleValueDoNotThrow(); // Haber
                     queryString += ",0.00"; //DEBEQ.
-                    queryString += "," + String.valueOf(haber5Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                    queryString += "," + haber5Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 }
             }
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1773,21 +1774,21 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable6Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
             if (debe6Txt.getDoubleValueDoNotThrow() > 0 && haber6Txt.getDoubleValueDoNotThrow() == 0.00) {
-                queryString += "," + String.valueOf(debe6Txt.getDoubleValueDoNotThrow()); // DEBE
+                queryString += "," + debe6Txt.getDoubleValueDoNotThrow(); // DEBE
                 queryString += ",0.00"; //HABER
-                queryString += "," + String.valueOf(debe6Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += "," + debe6Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",0.00"; //HABER Q.
             } else {
                 if (haber6Txt.getDoubleValueDoNotThrow() > 0 && debe6Txt.getDoubleValueDoNotThrow() == 0.00) {
                     queryString += ",0.00"; //DEBE
-                    queryString += "," + String.valueOf(haber6Txt.getDoubleValueDoNotThrow()); // Haber
+                    queryString += "," + haber6Txt.getDoubleValueDoNotThrow(); // Haber
                     queryString += ",0.00"; //DEBEQ.
-                    queryString += "," + String.valueOf(haber6Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                    queryString += "," + haber6Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 }
             }
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1826,21 +1827,21 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable7Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
             if (debe7Txt.getDoubleValueDoNotThrow() > 0 && haber7Txt.getDoubleValueDoNotThrow() == 0.00) {
-                queryString += "," + String.valueOf(debe7Txt.getDoubleValueDoNotThrow()); // DEBE
+                queryString += "," + debe7Txt.getDoubleValueDoNotThrow(); // DEBE
                 queryString += ",0.00"; //HABER
-                queryString += "," + String.valueOf(debe7Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += "," + debe7Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",0.00"; //HABER Q.
             } else {
                 if (haber7Txt.getDoubleValueDoNotThrow() > 0 && debe7Txt.getDoubleValueDoNotThrow() == 0.00) {
                     queryString += ",0.00"; //DEBE
-                    queryString += "," + String.valueOf(haber7Txt.getDoubleValueDoNotThrow()); // Haber
+                    queryString += "," + haber7Txt.getDoubleValueDoNotThrow(); // Haber
                     queryString += ",0.00"; //DEBEQ.
-                    queryString += "," + String.valueOf(haber7Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                    queryString += "," + haber7Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 }
             }
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1879,21 +1880,21 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable8Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
             if (debe8Txt.getDoubleValueDoNotThrow() > 0 && haber8Txt.getDoubleValueDoNotThrow() == 0.00) {
-                queryString += "," + String.valueOf(debe8Txt.getDoubleValueDoNotThrow()); // DEBE
+                queryString += "," + debe8Txt.getDoubleValueDoNotThrow(); // DEBE
                 queryString += ",0.00"; //HABER
-                queryString += "," + String.valueOf(debe8Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += "," + debe8Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",0.00"; //HABER Q.
             } else {
                 if (haber8Txt.getDoubleValueDoNotThrow() > 0 && debe8Txt.getDoubleValueDoNotThrow() == 0.00) {
                     queryString += ",0.00"; //DEBE
-                    queryString += "," + String.valueOf(haber8Txt.getDoubleValueDoNotThrow()); // Haber
+                    queryString += "," + haber8Txt.getDoubleValueDoNotThrow(); // Haber
                     queryString += ",0.00"; //DEBEQ.
-                    queryString += "," + String.valueOf(haber8Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                    queryString += "," + haber8Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 }
             }
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1932,21 +1933,21 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable9Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
             if (debe9Txt.getDoubleValueDoNotThrow() > 0 && haber9Txt.getDoubleValueDoNotThrow() == 0.00) {
-                queryString += "," + String.valueOf(debe9Txt.getDoubleValueDoNotThrow()); // DEBE
+                queryString += "," + debe9Txt.getDoubleValueDoNotThrow(); // DEBE
                 queryString += ",0.00"; //HABER
-                queryString += "," + String.valueOf(debe9Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += "," + debe9Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",0.00"; //HABER Q.
             } else {
                 if (haber9Txt.getDoubleValueDoNotThrow() > 0 && debe9Txt.getDoubleValueDoNotThrow() == 0.00) {
                     queryString += ",0.00"; //DEBE
-                    queryString += "," + String.valueOf(haber9Txt.getDoubleValueDoNotThrow()); // Haber
+                    queryString += "," + haber9Txt.getDoubleValueDoNotThrow(); // Haber
                     queryString += ",0.00"; //DEBEQ.
-                    queryString += "," + String.valueOf(haber9Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                    queryString += "," + haber9Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 }
             }
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1985,21 +1986,21 @@ public class EditarIngresoDocumentos extends Window {
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable10Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
             if (debe10Txt.getDoubleValueDoNotThrow() > 0 && haber10Txt.getDoubleValueDoNotThrow() == 0.00) {
-                queryString += "," + String.valueOf(debe10Txt.getDoubleValueDoNotThrow()); // DEBE
+                queryString += "," + debe10Txt.getDoubleValueDoNotThrow(); // DEBE
                 queryString += ",0.00"; //HABER
-                queryString += "," + String.valueOf(debe10Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += "," + debe10Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",0.00"; //HABER Q.
             } else {
                 if (haber10Txt.getDoubleValueDoNotThrow() > 0 && debe10Txt.getDoubleValueDoNotThrow() == 0.00) {
                     queryString += ",0.00"; //DEBE
-                    queryString += "," + String.valueOf(haber10Txt.getDoubleValueDoNotThrow()); // Haber
+                    queryString += "," + haber10Txt.getDoubleValueDoNotThrow(); // Haber
                     queryString += ",0.00"; //DEBEQ.
-                    queryString += "," + String.valueOf(haber10Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                    queryString += "," + haber10Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
                 }
             }
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + tipoDocumentoCbx.getValue() + " " + serieTxt.getValue().trim() + " " + numeroTxt.getValue() + " " + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -2017,7 +2018,7 @@ public class EditarIngresoDocumentos extends Window {
         
 System.out.println(queryString);
 
-        if (queryString.contains(",current_timestamp") == false) {
+        if (!queryString.contains(",current_timestamp")) {
             Notification notif = new Notification("POR FAVOR COMPLETAR LOS DATOS DE LA PARTIDA.", Notification.Type.HUMANIZED_MESSAGE);
             notif.setDelayMsec(1500);
             notif.setPosition(Position.MIDDLE_CENTER);
@@ -2073,7 +2074,7 @@ System.out.println(queryString);
             ex1.printStackTrace();
 
             try {
-                String emailsTo[] = {"alerta@simpletecno.com"};
+                String[] emailsTo = {"alerta@simpletecno.com"};
                 MyEmailMessanger eMail = new MyEmailMessanger();
 
                 eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos :  " + this.getClass().getName() + " -->" + ex1.getMessage());
@@ -2088,7 +2089,7 @@ System.out.println(queryString);
     public void llenarComboOrdenCompra() {
         queryString = " SELECT * FROM orden_compra ";
         queryString += " Where IdEmpresa = " + empresaId;
-        queryString += " AND IdProyecto = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectId();;
+        queryString += " AND IdProyecto = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectId();
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();

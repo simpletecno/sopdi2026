@@ -794,9 +794,9 @@ public class IngresoAnticipoClientesForm extends Window {
 
         queryString = "SELECT * FROM contabilidad_partida";
         queryString += " WHERE NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " AND IdProveedor     =  " + String.valueOf(proveedorCbx.getValue());
+        queryString += " AND IdProveedor     =  " + proveedorCbx.getValue();
         queryString += " AND IdEmpresa = " + empresaId;
-        queryString += " AND TipoDocumento = '" + String.valueOf(medioCbx.getValue())  + "'";
+        queryString += " AND TipoDocumento = '" + medioCbx.getValue() + "'";
         queryString += " AND MonedaDocumento = '" + monedaCbx.getValue() + "'";
 
 //        System.out.println("\n\nQuery=" + queryString + "\n\n");
@@ -858,8 +858,8 @@ public class IngresoAnticipoClientesForm extends Window {
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",''";
-        queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-        queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+        queryString += ",'" + medioCbx.getValue() + "'";
+        queryString += ",'" + tipoEngancheCbx.getValue() + "'";
         queryString += ",'" + referenciaTxt.getValue() + "'";
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += "," + proveedorCbx.getValue();
@@ -869,13 +869,13 @@ public class IngresoAnticipoClientesForm extends Window {
         queryString += "," + cuentaContable1Cbx.getValue();
         queryString += ",'" + monedaCbx.getValue() + "'";
         queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-        queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(haber1Txt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(debe1QTxt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(haber1QTxt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + debe1Txt.getDoubleValueDoNotThrow();
+        queryString += "," + haber1Txt.getDoubleValueDoNotThrow();
+        queryString += "," + debe1QTxt.getDoubleValueDoNotThrow();
+        queryString += "," + haber1QTxt.getDoubleValueDoNotThrow();
+        queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
         queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-        queryString += ",'Ingreso por ANTICIPO CLIENTE " + String.valueOf(tipoEngancheCbx.getValue()) + " " + descripcionTxt.getValue() + "'";
+        queryString += ",'Ingreso por ANTICIPO CLIENTE " + tipoEngancheCbx.getValue() + " " + descripcionTxt.getValue() + "'";
         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
         queryString += ",current_timestamp";
         queryString += ")";
@@ -886,8 +886,8 @@ public class IngresoAnticipoClientesForm extends Window {
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'";
-        queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-        queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+        queryString += ",'" + medioCbx.getValue() + "'";
+        queryString += ",'" + tipoEngancheCbx.getValue() + "'";
         queryString += ",'" + referenciaTxt.getValue() + "'";
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += "," + proveedorCbx.getValue();
@@ -897,13 +897,13 @@ public class IngresoAnticipoClientesForm extends Window {
         queryString += "," + cuentaContable2Cbx.getValue();
         queryString += ",'" + monedaCbx.getValue() + "'";
         queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-        queryString += "," + String.valueOf(debe2Txt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(debe2QTxt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(haber2QTxt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + debe2Txt.getDoubleValueDoNotThrow();
+        queryString += "," + haber2Txt.getDoubleValueDoNotThrow();
+        queryString += "," + debe2QTxt.getDoubleValueDoNotThrow();
+        queryString += "," + haber2QTxt.getDoubleValueDoNotThrow();
+        queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
         queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-        queryString += ",'Ingreso por ANTICIPO CLIENTE " + String.valueOf(tipoEngancheCbx.getValue()) + " " + descripcionTxt.getValue() + "'";
+        queryString += ",'Ingreso por ANTICIPO CLIENTE " + tipoEngancheCbx.getValue() + " " + descripcionTxt.getValue() + "'";
         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
         queryString += ",current_timestamp";
         queryString += ")";
@@ -937,7 +937,7 @@ public class IngresoAnticipoClientesForm extends Window {
             notif.show(Page.getCurrent());
 
             try {
-                String emailsTo[] = {"alerta@simpletecno.com"};
+                String[] emailsTo = {"alerta@simpletecno.com"};
                 MyEmailMessanger eMail = new MyEmailMessanger();
 
                 eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos :  " + this.getClass().getName() + " -->" + ex1.getMessage());

@@ -152,7 +152,7 @@ public class EmpresasContablesView extends VerticalLayout implements View {
                 } else {
 
                     queryString = " SELECT * FROM contabilidad_partida";
-                    queryString += " WHERE IdEmpresa = " + String.valueOf(container.getContainerProperty(empresasGrid.getSelectedRow(), ID_EMPRESA_PROPERTY).getValue());
+                    queryString += " WHERE IdEmpresa = " + container.getContainerProperty(empresasGrid.getSelectedRow(), ID_EMPRESA_PROPERTY).getValue();
 
                     try {
 
@@ -164,8 +164,7 @@ public class EmpresasContablesView extends VerticalLayout implements View {
                         } else {
 
                             queryString = " DELETE FROM contabilidad_empresa";
-                            queryString += " WHERE IdEmpresa = " + String.valueOf(container.getContainerProperty(empresasGrid.getSelectedRow(), ID_EMPRESA_PROPERTY).getValue());
-                            ;
+                            queryString += " WHERE IdEmpresa = " + container.getContainerProperty(empresasGrid.getSelectedRow(), ID_EMPRESA_PROPERTY).getValue();
 
                             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                             stQuery.executeUpdate(queryString);

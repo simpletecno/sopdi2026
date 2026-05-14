@@ -296,21 +296,21 @@ public class CostCenterAccountForm extends Window {
             queryString += " Values (";
             queryString += "  " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
             queryString += ",'" + codigoTxt.getValue() + "'";
-            queryString += ",'" + String.valueOf(grupoCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(clasificacionCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(tipoCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(unidadMedidaCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(estatusCbx.getValue()) + "'";
+            queryString += ",'" + grupoCbx.getValue() + "'";
+            queryString += ",'" + clasificacionCbx.getValue() + "'";
+            queryString += ",'" + tipoCbx.getValue() + "'";
+            queryString += ",'" + unidadMedidaCbx.getValue() + "'";
+            queryString += ",'" + estatusCbx.getValue() + "'";
             queryString += ")";
         }
         else {
             queryString =  "Update centro_costo_cuenta Set ";
             queryString += " CodigoCuentaCentroCosto = '" + codigoTxt.getValue()      + "'";
-            queryString += ",Grupo = '" + String.valueOf(grupoCbx.getValue()) + "'";
-            queryString += ",Clasificacion = '" + String.valueOf(clasificacionCbx.getValue()) + "'";
-            queryString += ",Tipo = '" + String.valueOf(tipoCbx.getValue()) + "'";
-            queryString += ",UnidadMedida = '" + String.valueOf(unidadMedidaCbx.getValue()) + "'";
-            queryString += ",Estatus = '" + String.valueOf(estatusCbx.getValue()) + "'";
+            queryString += ",Grupo = '" + grupoCbx.getValue() + "'";
+            queryString += ",Clasificacion = '" + clasificacionCbx.getValue() + "'";
+            queryString += ",Tipo = '" + tipoCbx.getValue() + "'";
+            queryString += ",UnidadMedida = '" + unidadMedidaCbx.getValue() + "'";
+            queryString += ",Estatus = '" + estatusCbx.getValue() + "'";
             queryString += " Where IdCuentaCentroCosto = " + idCentroCostoTxt.getValue();
         }
 //System.out.println("queryString="+queryString);

@@ -262,7 +262,7 @@ public class InvProductoView extends VerticalLayout implements View {
 
                                 try {
                                     queryString = " DELETE FROM inv_producto ";
-                                    queryString += " WHERE IdProducto = " + String.valueOf(container.getContainerProperty(productoGrid.getSelectedRow(), ID_PROPERTY).getValue());
+                                    queryString += " WHERE IdProducto = " + container.getContainerProperty(productoGrid.getSelectedRow(), ID_PROPERTY).getValue();
 
                                     stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                                     stQuery.executeUpdate(queryString);

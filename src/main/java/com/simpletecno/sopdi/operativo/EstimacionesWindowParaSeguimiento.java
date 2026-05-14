@@ -29,6 +29,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
@@ -579,7 +580,7 @@ public class EstimacionesWindowParaSeguimiento extends Window {
         queryString =  "Select Max(CorrelativoEstimacion) UltimaEstimacion ";
         queryString += " From  estimacion ";
         queryString += " Where IdEmpresa = " + this.empresa;
-        queryString += " And   IdProveedor = " + String.valueOf(proveedorCbx.getValue());
+        queryString += " And   IdProveedor = " + proveedorCbx.getValue();
         
 //System.out.println("\n\n"+queryString);
 
@@ -630,7 +631,7 @@ public class EstimacionesWindowParaSeguimiento extends Window {
             queryString =  "Select IdCC, IDEX, IdProject, Moneda, SUM(Total) TotalEstimacion ";
             queryString += " From  DetalleItemsCostos";
             queryString += " Where IdEmpresa = " + this.empresa;
-            queryString += " And   IdProveedor = " + String.valueOf(proveedorCbx.getValue());
+            queryString += " And   IdProveedor = " + proveedorCbx.getValue();
             queryString += " And   Tipo In ('INTINI', 'DOCA')";
             queryString += " Group By IdCC, IDEX, IdProject, Moneda"; 
         }
@@ -638,7 +639,7 @@ public class EstimacionesWindowParaSeguimiento extends Window {
             queryString =  "Select *  ";
             queryString += " From  estimacion";
             queryString += " Where IdEmpresa = " + this.empresa;
-            queryString += " And IdProveedor = " + String.valueOf(proveedorCbx.getValue());
+            queryString += " And IdProveedor = " + proveedorCbx.getValue();
             queryString += " And Estimacion  = " + this.estimacionId;
         }
 
@@ -714,9 +715,9 @@ System.out.println("\nQueryEstimacionDetalle="+queryString);
         if(fromContainer.size() == 0) {
             return;
         }
-        BigDecimal total = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal provision = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalest = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal total = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal provision = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalest = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
 /****
         if(!estatus.equals("PAGADA") && !estatus.equals("APROBADA")) {  //estimacion pendiente de CONFIRMAR, APROBAR Y PAGAR, se pueden seleccionar IDEX
             for (Object itemId: selection.getSelectedRows()) {
@@ -764,7 +765,7 @@ System.out.println("\nQueryEstimacionDetalle="+queryString);
 //            fromGridFooter.getCell(PRECIO_PROPERTY).setText(String.valueOf(selection.getSelectedRows().size()) + " IDEXs");
         }
         else {
-            fromGridFooter.getCell(PRECIO_PROPERTY).setText(String.valueOf(fromContainer.size()) + " IDEXs");
+            fromGridFooter.getCell(PRECIO_PROPERTY).setText(fromContainer.size() + " IDEXs");
         }
     }
     
@@ -778,7 +779,7 @@ System.out.println("\nQueryEstimacionDetalle="+queryString);
                 queryString += " DocumentosContablesAplicados";
                 queryString += " Where Estimacion  = " + estimacionId;
                 queryString += " And   IdEmpresa = " + this.empresa;
-                queryString += " And   IdProveedor = " + String.valueOf(proveedorCbx.getValue());
+                queryString += " And   IdProveedor = " + proveedorCbx.getValue();
 
                 stQuery.executeUpdate(queryString);
             }
@@ -794,20 +795,20 @@ System.out.println("\nQueryEstimacionDetalle="+queryString);
                 queryString += ",''"; //serie
                 queryString += ",''";// nodocumento
                 queryString += ",null"; // fecha de la factura
-                queryString += ",'" + String.valueOf(proveedorCbx.getValue()) + "'";
+                queryString += ",'" + proveedorCbx.getValue() + "'";
                 queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
-                queryString += ",'" + String.valueOf(fromContainer.getContainerProperty(itemId, CUENTA_PROPERTY).getValue()) + "'"; //nocuenta
-                queryString += ",'" + String.valueOf(fromContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).getValue()) + "'"; //nocuenta
-                queryString += ","  + String.valueOf(fromContainer.getContainerProperty(itemId, PROJECT_PROPERTY).getValue());
-                queryString += ","  + String.valueOf(fromContainer.getContainerProperty(itemId, CCOSTO_PROPERTY).getValue());
+                queryString += ",'" + fromContainer.getContainerProperty(itemId, CUENTA_PROPERTY).getValue() + "'"; //nocuenta
+                queryString += ",'" + fromContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).getValue() + "'"; //nocuenta
+                queryString += ","  + fromContainer.getContainerProperty(itemId, PROJECT_PROPERTY).getValue();
+                queryString += ","  + fromContainer.getContainerProperty(itemId, CCOSTO_PROPERTY).getValue();
                 queryString += ",'" + empresaNombre + "'";
                 queryString += ","  + empresa;
-                queryString += ","  + String.valueOf(fromContainer.getContainerProperty(itemId, TOTALSF_PROPERTY).getValue()); //total
-                queryString += ",'" + String.valueOf(fromContainer.getContainerProperty(itemId, MONEDA_PROPERTY).getValue()) + "'"; //moneda
+                queryString += ","  + fromContainer.getContainerProperty(itemId, TOTALSF_PROPERTY).getValue(); //total
+                queryString += ",'" + fromContainer.getContainerProperty(itemId, MONEDA_PROPERTY).getValue() + "'"; //moneda
                 queryString += ","  + String.valueOf(fromContainer.getContainerProperty(itemId, CANTIDAD_PROPERTY).getValue()).replaceAll(",","");
                 queryString += ","  + String.valueOf(fromContainer.getContainerProperty(itemId, PRECIO_PROPERTY).getValue()).replaceAll(",","");
                 queryString += ","  + String.valueOf(fromContainer.getContainerProperty(itemId, PRECIO_PROPERTY).getValue()).replaceAll(",","");//provesion
-                queryString += ","  +  String.valueOf(fromContainer.getContainerProperty(itemId, TOTALSF_PROPERTY).getValue()); //totest
+                queryString += ","  + fromContainer.getContainerProperty(itemId, TOTALSF_PROPERTY).getValue(); //totest
                 queryString += ","  + estimacionIdLbl.getValue();
                 queryString += ",'ABIERTA'"; //estimacionestatus
                 queryString += ",current_date"; //estimacionfecha
@@ -815,11 +816,11 @@ System.out.println("\nQueryEstimacionDetalle="+queryString);
                 queryString += ",0.00"; //totalq
                 queryString += ",current_date"; //fechaingreso
                 queryString += ",0"; // noc
-                queryString += "," + String.valueOf(fromContainer.getContainerProperty(itemId, LOTE_PROPERTY).getValue()); //lote
+                queryString += "," + fromContainer.getContainerProperty(itemId, LOTE_PROPERTY).getValue(); //lote
                 queryString += ",0"; //idexanterior
                 queryString += ",null";// rebajado
                 queryString += ",null";//norefci
-                queryString += "," +  String.valueOf(fromContainer.getContainerProperty(itemId, IDEX_PROPERTY).getValue()); //idex
+                queryString += "," + fromContainer.getContainerProperty(itemId, IDEX_PROPERTY).getValue(); //idex
                 queryString += ",0)"; //idpartida
 
                 stQuery.executeUpdate(queryString);
@@ -860,7 +861,7 @@ System.out.println("\nQueryEstimacionDetalle="+queryString);
                         queryString += " Set EstimacionEstatus = '" + estatus.toUpperCase() + "'";
                         queryString += " Where Estimacion  = " + estimacionId;
                         queryString += " And   IdEmpresa = " + empresa;
-                        queryString += " And   IdProveedor = " + String.valueOf(proveedorCbx.getValue());
+                        queryString += " And   IdProveedor = " + proveedorCbx.getValue();
 
                         stQuery.executeUpdate(queryString);
 

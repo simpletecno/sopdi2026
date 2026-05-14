@@ -139,7 +139,7 @@ public class IngresoDocumentosVisitaInspeccion extends Window {
 
 //                        fileName = filePath + codigoPartidaUpdate + fileName.substring(fileName.length()-4, fileName.length());
                         int correlativo = (documentsContainer.size()+1);
-                        fileName = filePath + codigoVisita + correlativo + fileName.substring(fileName.length() - 4, fileName.length());
+                        fileName = filePath + codigoVisita + correlativo + fileName.substring(fileName.length() - 4);
                         System.out.println("fileName" + fileName);
 
                         targetFile = new File(fileName);
@@ -173,13 +173,11 @@ public class IngresoDocumentosVisitaInspeccion extends Window {
 
                     } else {
                         Notification.show("El archivo no contiene un formato compatible. solo puede subir archivos con formato 'PNG','JEPG','JPG','PDF'", Notification.Type.ERROR_MESSAGE);
-                        return;
                     }
 
                 } catch (Exception fIoEx) {
                     fIoEx.printStackTrace();
                     Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                    return;
                 }
             }
         };
@@ -254,7 +252,7 @@ public class IngresoDocumentosVisitaInspeccion extends Window {
 
             System.out.println("archivo nombre" +archivoNombre.trim());
             
-            final byte docBytes[] = Files.readAllBytes(new File(archivoNombre.trim()).toPath());
+            final byte[] docBytes = Files.readAllBytes(new File(archivoNombre.trim()).toPath());
             final String fileName = archivoNombre;
             
             System.out.println("FIle name" + fileName);
@@ -322,7 +320,7 @@ public class IngresoDocumentosVisitaInspeccion extends Window {
 
                                 new File(filePath).mkdirs();
 
-                                fileName = filePath + codigoVis + fileName.substring(fileName.length() - 4, fileName.length());
+                                fileName = filePath + codigoVis + fileName.substring(fileName.length() - 4);
 
                                 new File(filePath).mkdirs();
 
@@ -357,12 +355,10 @@ public class IngresoDocumentosVisitaInspeccion extends Window {
                                 window.close();
                             } else {
                                 Notification.show("El archivo no contiene un formato compatible. solo puede subir archivos con formato 'PNG','JEPG','JPG','PDF'", Notification.Type.ERROR_MESSAGE);
-                                return;
                             }
                         } catch (java.io.IOException fIoEx) {
                             fIoEx.printStackTrace();
                             Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                            return;
                         }
                     }
                 };
@@ -424,7 +420,7 @@ public class IngresoDocumentosVisitaInspeccion extends Window {
 
                                 new File(filePath).mkdirs();
 
-                                fileName = filePath + codigoVis + fileName.substring(fileName.length() - 4, fileName.length());
+                                fileName = filePath + codigoVis + fileName.substring(fileName.length() - 4);
                                 targetFile = new File(fileName);
                                 OutputStream outStream = new FileOutputStream(targetFile);
                                 outStream.write(buffer);
@@ -456,12 +452,10 @@ public class IngresoDocumentosVisitaInspeccion extends Window {
                                 window.close();
                             } else {
                                 Notification.show("El archivo no contiene un formato compatible. solo puede subir archivos con formato 'PNG','JEPG','JPG','PDF'", Notification.Type.ERROR_MESSAGE);
-                                return;
                             }
                         } catch (java.io.IOException fIoEx) {
                             fIoEx.printStackTrace();
                             Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                            return;
                         }
                     }
                 };
@@ -510,7 +504,7 @@ public class IngresoDocumentosVisitaInspeccion extends Window {
                     if (dialog.isConfirmed()) {
 
                         queryString = "DELETE FROM visita_inspeccion_documento";
-                        queryString += " WHERE IdVisitaDocumento = " + String.valueOf(documentsContainer.getContainerProperty(e.getItemId(), ID_PROPERTY).getValue());
+                        queryString += " WHERE IdVisitaDocumento = " + documentsContainer.getContainerProperty(e.getItemId(), ID_PROPERTY).getValue();
                         ///queryString += " and IdEmpresa = " + empresa;
 
                         try {

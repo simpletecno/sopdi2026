@@ -137,7 +137,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
         mainLayout = new VerticalLayout();
         mainLayout.setResponsive(true);
 
-        infileClient = new InfileClient(((SopdiUI)mainUI).sessionInformation.getInfileEmisor());;
+        infileClient = new InfileClient(((SopdiUI)mainUI).sessionInformation.getInfileEmisor());
 
         addComponent(mainLayout);
         setComponentAlignment(mainLayout, Alignment.TOP_CENTER);
@@ -430,7 +430,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
             if(datosValidos(cuentaCbx)){
                 generarDatosDePago();
 
-                String codigosPartida[] = Utileria.nextCodigosPartida(
+                String[] codigosPartida = Utileria.nextCodigosPartida(
                         ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection(),
                         ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId(),
                         fechaDt.getValue(),
@@ -1018,9 +1018,9 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
         queryString += ",'" + infileClient.getNumero() + "'";
         //queryString += ",'" + monedaCbx.getValue() + "'";
         queryString += ", 'QUETZALES'";
-        queryString += ", " + String.valueOf(montoTotal);
+        queryString += ", " + montoTotal;
         //queryString += "," + String.valueOf(montoTotal * tasaCambioTxt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(montoTotal * 1);
+        queryString += "," + montoTotal * 1;
         queryString += ", " + 1;
         queryString += ", " + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(new Date()) + "'";
@@ -1085,7 +1085,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
         queryString += "," + Utileria.format(Double.valueOf(montoBoletaTxt.getDoubleValueDoNotThrow())); // HABER Q.
         queryString += "," + 1;  //TipoCambio
         queryString += "," + Utileria.format(saldo); //Saldo
-        queryString += ",'ANTICIPO CUOTA " + String.valueOf(proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NOMBRE_PROVEEDOR).getValue()) + " - " + fechasPagadas + "'";  //Descripcion
+        queryString += ",'ANTICIPO CUOTA " + proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NOMBRE_PROVEEDOR).getValue() + " - " + fechasPagadas + "'";  //Descripcion
         queryString += ",'NO'";  //referencia
         queryString += "," + 0;  //IdCentroCosto
         queryString += ",''";  //CodigoCentroCosto
@@ -1125,7 +1125,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
         queryString += ",0.00";  //HABER Q.
         queryString += "," + 1;  // TipoCambio
         queryString += "," + Utileria.format(saldo); //Saldo
-        queryString += ",'ANTICIPO CUOTA " + String.valueOf(proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NOMBRE_PROVEEDOR).getValue()) + " - " + fechasPagadas + "'";  //Descripcion
+        queryString += ",'ANTICIPO CUOTA " + proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NOMBRE_PROVEEDOR).getValue() + " - " + fechasPagadas + "'";  //Descripcion
         queryString += ",'NO'";  //referencia
         queryString += "," + 0;  //IdCentroCosto
         queryString += ",''";  //CodigoCentroCosto
@@ -1156,7 +1156,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
                 queryString += ",'" + codigoPartidaCuota + "'";  //CodigoPartida
                 queryString += ",'" + codigoPartidaAnticipo + "'";  //CodigoCC
                 queryString += ",'" + tipoDocumento + "'";
-                queryString += ",'" + ((String)cuotasPendientesContainer.getContainerProperty(itemId, TIPO_PRODUCTO).getValue()) + "'";  //TipoVenta
+                queryString += ",'" + cuotasPendientesContainer.getContainerProperty(itemId, TIPO_PRODUCTO).getValue() + "'";  //TipoVenta
                 queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDocumentoVenta) + "'";  //Fecha
                 queryString += "," + proveedorCbx.getContainerProperty(proveedorCbx.getValue(), ID_PROVEEDOR).getValue();  //IdProveedor
                 queryString += ",'" + proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NIT_PROVEEDOR).getValue() + "'";  //NitProveedor
@@ -1178,9 +1178,9 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
                 } else {
                     queryString += "," + Utileria.format(monto);  //HaberQuetzales
                 }
-                queryString += "," + String.valueOf(1);  //TipoCambio
+                queryString += "," + 1;  //TipoCambio
                 queryString += "," + (saldoSobrante); //Saldo
-                queryString += ",'" + tipoDocumento + " CUOTA " + String.valueOf(proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NOMBRE_PROVEEDOR).getValue()) + " - " + fechasPagadas + "'";  //Descripcion
+                queryString += ",'" + tipoDocumento + " CUOTA " + proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NOMBRE_PROVEEDOR).getValue() + " - " + fechasPagadas + "'";  //Descripcion
                 queryString += ",'NO'";  //referencia
                 queryString += "," + 0;  //IdCentroCosto
                 queryString += ",''";  //CodigoCentroCosto
@@ -1205,7 +1205,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
         queryString += ",'INGRESADO'";  //Estatus
         queryString += ",'" + codigoPartidaCuota + "'";  //CodigoPartida
         queryString += ",'" + codigoPartidaAnticipo + "'";  //CodigoCC
-        queryString += ",'" + tipoDocumento + "'";; // TipoDocumento
+        queryString += ",'" + tipoDocumento + "'";// TipoDocumento
         queryString += ",'" + tiposEnFactura + "'";  //TipoVenta
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDocumentoVenta) + "'";  //Fecha
         queryString += "," + proveedorCbx.getContainerProperty(proveedorCbx.getValue(), ID_PROVEEDOR).getValue();  //IdProveedor
@@ -1222,7 +1222,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
         queryString += ",0.00"; //HABER
         queryString += "," + 1;
         queryString += "," + (saldoSobrante); //Saldo
-        queryString += ",'FACTURA VENTA CUOTA " + String.valueOf(proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NOMBRE_PROVEEDOR).getValue()) + " - " + fechasPagadas + "'";  //Descripcion
+        queryString += ",'FACTURA VENTA CUOTA " + proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NOMBRE_PROVEEDOR).getValue() + " - " + fechasPagadas + "'";  //Descripcion
         queryString += ",'NO'";  //referencia
         queryString += "," + 0;  //IdCentroCosto
         queryString += ",''";  //CodigoCentroCosto
@@ -1263,9 +1263,9 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
             queryString += "," + Utileria.format(ivaMontoTotal);  //Haber
             queryString += ",0.00";  //DebeQuetzales
             queryString += "," + Utileria.format(ivaMontoTotal);  //HaberQuetzales
-            queryString += "," + String.valueOf(1);  //TipoCambio
+            queryString += "," + 1;  //TipoCambio
             queryString += "," + (saldoSobrante); //Saldo
-            queryString += ",'FACTURA VENTA CUOTA " + String.valueOf(proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NOMBRE_PROVEEDOR).getValue()) + " - " + fechasPagadas + "'";  //Descripcion
+            queryString += ",'FACTURA VENTA CUOTA " + proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NOMBRE_PROVEEDOR).getValue() + " - " + fechasPagadas + "'";  //Descripcion
             queryString += ",'NO'";  //referencia
             queryString += "," + 0;  //IdCentroCosto
             queryString += ",''";  //CodigoCentroCosto
@@ -1311,7 +1311,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
                 queryString += ",0.00"; //HABER Q.
                 queryString += "," + 1;
                 queryString += "," + (saldoSobrante); //Saldo
-                queryString += ",'FACTURA VENTA CUOTA " + String.valueOf(proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NOMBRE_PROVEEDOR).getValue()) + " - " + fechasPagadas + "'";  //Descripcion
+                queryString += ",'FACTURA VENTA CUOTA " + proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NOMBRE_PROVEEDOR).getValue() + " - " + fechasPagadas + "'";  //Descripcion
                 queryString += ",'NO'";  //referencia
                 queryString += "," + 0;  //IdCentroCosto
                 queryString += ",''";  //CodigoCentroCosto
@@ -1351,7 +1351,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
                 queryString += "," + Utileria.format(isrMotno); // HABER Q.
                 queryString += "," + 1;
                 queryString += "," + (saldoSobrante); //Saldo
-                queryString += ",'FACTURA VENTA CUOTA " + String.valueOf(proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NOMBRE_PROVEEDOR).getValue()) + " - " + fechasPagadas + "'";  //Descripcion
+                queryString += ",'FACTURA VENTA CUOTA " + proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NOMBRE_PROVEEDOR).getValue() + " - " + fechasPagadas + "'";  //Descripcion
                 queryString += ",'NO'";  //referencia
                 queryString += "," + 0;  //IdCentroCosto
                 queryString += ",''";  //CodigoCentroCosto

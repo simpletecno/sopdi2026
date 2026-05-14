@@ -30,6 +30,7 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
@@ -575,7 +576,7 @@ public class EstimacionesWindow extends Window {
         queryString =  "Select Max(CorrelativoEstimacion) UltimaEstimacion ";
         queryString += " From  estimacion ";
         queryString += " Where IdEmpresa = " + this.empresa;
-        queryString += " And   IdProveedor = " + String.valueOf(proveedorCbx.getValue());
+        queryString += " And   IdProveedor = " + proveedorCbx.getValue();
         
 //System.out.println("\n\n"+queryString);
 
@@ -630,7 +631,7 @@ public class EstimacionesWindow extends Window {
         queryString += " From  DetalleItemsCostos ";
         queryString += " Inner Join project On project.Numero = DetalleItemsCostos.IdProject And project.Estatus = 'ACTIVO'";
         queryString += " Where DetalleItemsCostos.IdEmpresa = " + this.empresa;
-        queryString += " And   DetalleItemsCostos.IdProveedor = " + String.valueOf(proveedorCbx.getValue());
+        queryString += " And   DetalleItemsCostos.IdProveedor = " + proveedorCbx.getValue();
         queryString += " And   DetalleItemsCostos.Tipo In ('1', '2')";
         queryString += " Group By DetalleItemsCostos.IdCC, DetalleItemsCostos.IDEX, DetalleItemsCostos.IdProject, DetalleItemsCostos.Moneda";
 
@@ -656,7 +657,7 @@ System.out.println("\nQueryEstimacionDetalle="+queryString);
                     queryString += " IfNull(Sum(Det.Provision),0) TotalProvision, (IfNull(Sum(Det.Monto + Det.Provision),0)) Total ";
                     queryString += " From estimacion_detalle Det";
                     queryString += " Inner Join estimacion Est On Est.EstimacionId = Det.EstimacionId";
-                    queryString += " Where Est.IdProveedor = " + String.valueOf(proveedorCbx.getValue());
+                    queryString += " Where Est.IdProveedor = " + proveedorCbx.getValue();
                     queryString += " And   Est.IdEmpresa   = " + empresa;
                     queryString += " And   Det.IdCentroCosto = " + rsRecords.getString("IdCC");
                     queryString += " And   Det.IDEX        = " + rsRecords.getString("IDEX");
@@ -709,9 +710,9 @@ System.out.println("\nQuerySaldoEstimacion="+queryString);
         if(fromContainer.size() == 0) {
             return;
         }
-        BigDecimal total = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal provision = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalest = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal total = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal provision = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalest = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
 
         for (Object itemId: fromContainer.getItemIds()) {
             total = total.add(new BigDecimal(
@@ -721,7 +722,7 @@ System.out.println("\nQuerySaldoEstimacion="+queryString);
             ));
         }
         fromGridFooter.getCell(TOTALEST_PROPERTY).setText(moneyFormat.format(total));
-        fromGridFooter.getCell(CCOSTO_PROPERTY).setText(String.valueOf(fromContainer.size()) + " IDEXs");
+        fromGridFooter.getCell(CCOSTO_PROPERTY).setText(fromContainer.size() + " IDEXs");
     }
     
     private void setTotalTo() {
@@ -731,9 +732,9 @@ System.out.println("\nQuerySaldoEstimacion="+queryString);
         if(toContainer.size() == 0) {
             return;
         }
-        BigDecimal total = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal provision = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalest = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal total = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal provision = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalest = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
 
         for (Object itemId: toContainer.getItemIds()) {
             total = total.add(new BigDecimal(
@@ -743,7 +744,7 @@ System.out.println("\nQuerySaldoEstimacion="+queryString);
             ));
         }
         toGridFooter.getCell(TOTALEST_PROPERTY).setText(moneyFormat.format(total));
-        toGridFooter.getCell(CCOSTO_PROPERTY).setText(String.valueOf(fromContainer.size()) + " IDEXs");
+        toGridFooter.getCell(CCOSTO_PROPERTY).setText(fromContainer.size() + " IDEXs");
     }
 
     private void saveRecords(boolean displayOkMessage) {
@@ -855,7 +856,7 @@ System.out.println("\nQuerySaldoEstimacion="+queryString);
                         queryString += " Set EstimacionEstatus = '" + estatus.toUpperCase() + "'";
                         queryString += " Where Estimacion  = " + estimacionId;
                         queryString += " And   IdEmpresa = " + empresa;
-                        queryString += " And   IdProveedor = " + String.valueOf(proveedorCbx.getValue());
+                        queryString += " And   IdProveedor = " + proveedorCbx.getValue();
 
                         stQuery.executeUpdate(queryString);
 

@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
@@ -44,28 +45,28 @@ public final class IntegracionItemCostos extends Window {
     public ResultSet rsRecords  = null;
     public ResultSet rsRecords1 = null;
 
-    protected static final String INICIAL = "INTINI";
-    protected static final String CAMBIOS = "DOCA";
-    protected static final String PROYECCION = "0";
-    protected static final String ACTUAL = "ACTUAL";
-    protected static final String SALDO = "SALDO";
+    private static final String INICIAL = "INTINI";
+    private static final String CAMBIOS = "DOCA";
+    private static final String PROYECCION = "0";
+    private static final String ACTUAL = "ACTUAL";
+    private static final String SALDO = "SALDO";
 
-    protected static final String EMPRESA_PROPERTY = "EMPRESA";
-    protected static final String CODIGO_PROPERTY = "Id";
-    protected static final String CUENTA_PROPERTY = "Cuenta";
-    protected static final String CCOSTO_PROPERTY = "CCosto";
-    protected static final String DESCRIPCION_PROPERTY = "Descripción";
-    protected static final String CANTIDAD_PROPERTY = "Cantidad";
-    protected static final String PRECIO_PROPERTY = "Precio";
-    protected static final String TOTAL_PROPERTY = "Total";
-    protected static final String SALDO_PROPERTY = "Saldo";
-    protected static final String MONEDA_PROPERTY = "Moneda";
-    protected static final String PROJECT_PROPERTY = "Project";
-    protected static final String LOTE_PROPERTY = "Lote";
-    protected static final String PROVEEDOR_PROPERTY = "Proveedor";
-    protected static final String IDVISITA_PROPERTY = "Visita";
-    protected static final String IDTAREA_PROPERTY = "Tarea";
-    protected static final String IDEX_PROPERTY = "IDEX";
+    private static final String EMPRESA_PROPERTY = "EMPRESA";
+    private static final String CODIGO_PROPERTY = "Id";
+    private static final String CUENTA_PROPERTY = "Cuenta";
+    private static final String CCOSTO_PROPERTY = "CCosto";
+    private static final String DESCRIPCION_PROPERTY = "Descripción";
+    private static final String CANTIDAD_PROPERTY = "Cantidad";
+    private static final String PRECIO_PROPERTY = "Precio";
+    private static final String TOTAL_PROPERTY = "Total";
+    private static final String SALDO_PROPERTY = "Saldo";
+    private static final String MONEDA_PROPERTY = "Moneda";
+    private static final String PROJECT_PROPERTY = "Project";
+    private static final String LOTE_PROPERTY = "Lote";
+    private static final String PROVEEDOR_PROPERTY = "Proveedor";
+    private static final String IDVISITA_PROPERTY = "Visita";
+    private static final String IDTAREA_PROPERTY = "Tarea";
+    private static final String IDEX_PROPERTY = "IDEX";
 
     Button exportExcelBtn;
 
@@ -88,11 +89,11 @@ public final class IntegracionItemCostos extends Window {
     final Grid integracionActualGrid  = new Grid(ACTUAL,integracionActualContainer);
     final Grid integracionSaldoGrid  = new Grid(ACTUAL,integracionSaldoContainer);
 
-    final Grid.FooterRow integracionInicialFooter =  integracionInicialGrid.appendFooterRow();;
-    final Grid.FooterRow integracionCambiosFooter =  integracionCambiosGrid.appendFooterRow();;
-    final Grid.FooterRow integracionProyeccionFooter =  integracionProyeccionGrid.appendFooterRow();;
-    final Grid.FooterRow integracionActualFooter  =  integracionActualGrid.appendFooterRow();;
-    final Grid.FooterRow integracionSaldoFooter  =  integracionSaldoGrid.appendFooterRow();;
+    final Grid.FooterRow integracionInicialFooter =  integracionInicialGrid.appendFooterRow();
+    final Grid.FooterRow integracionCambiosFooter =  integracionCambiosGrid.appendFooterRow();
+    final Grid.FooterRow integracionProyeccionFooter =  integracionProyeccionGrid.appendFooterRow();
+    final Grid.FooterRow integracionActualFooter  =  integracionActualGrid.appendFooterRow();
+    final Grid.FooterRow integracionSaldoFooter  =  integracionSaldoGrid.appendFooterRow();
 
     final UI mainUI = UI.getCurrent();
 
@@ -499,8 +500,8 @@ public final class IntegracionItemCostos extends Window {
 
             if (rsRecords.next()) { //  encontrado
 
-                BigDecimal totalCuentaQuetzales = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-                BigDecimal totalCuentaDolares = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+                BigDecimal totalCuentaQuetzales = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+                BigDecimal totalCuentaDolares = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
 
                 do {
 
@@ -550,12 +551,12 @@ public final class IntegracionItemCostos extends Window {
                     }
 
                     if(tipo.equals(ACTUAL) || tipo.equals(SALDO)) {
-                        totalCuentaQuetzales = totalCuentaQuetzales.add(new BigDecimal(rsRecords.getDouble("TotalTotal")).setScale(2, BigDecimal.ROUND_HALF_UP));
-                        totalCuentaDolares = totalCuentaDolares.add(new BigDecimal(rsRecords.getDouble("TotalTotal")).setScale(2, BigDecimal.ROUND_HALF_UP));
+                        totalCuentaQuetzales = totalCuentaQuetzales.add(new BigDecimal(rsRecords.getDouble("TotalTotal")).setScale(2, RoundingMode.HALF_UP));
+                        totalCuentaDolares = totalCuentaDolares.add(new BigDecimal(rsRecords.getDouble("TotalTotal")).setScale(2, RoundingMode.HALF_UP));
                     }
                     else {
-                        totalCuentaQuetzales = totalCuentaQuetzales.add(new BigDecimal(rsRecords.getDouble("Total")).setScale(2, BigDecimal.ROUND_HALF_UP));
-                        totalCuentaDolares = totalCuentaDolares.add(new BigDecimal(rsRecords.getDouble("Total")).setScale(2, BigDecimal.ROUND_HALF_UP));
+                        totalCuentaQuetzales = totalCuentaQuetzales.add(new BigDecimal(rsRecords.getDouble("Total")).setScale(2, RoundingMode.HALF_UP));
+                        totalCuentaDolares = totalCuentaDolares.add(new BigDecimal(rsRecords.getDouble("Total")).setScale(2, RoundingMode.HALF_UP));
                     }
 
                 } while (rsRecords.next());
@@ -572,7 +573,7 @@ public final class IntegracionItemCostos extends Window {
     }
 
     private void setTotal(IndexedContainer indexedContainer, Grid grid, Grid.FooterRow gridFooter) {
-        BigDecimal total = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal total = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
         for (Object rid : grid.getContainerDataSource()
                 .getItemIds()) {
             total = total.add(new BigDecimal(

@@ -154,7 +154,7 @@ public class InspectionsBudgetReportView extends VerticalLayout implements View 
                 container.addContainerFilter(
                         new SimpleStringFilter(CODIGO_VISITA_PROPERTY,
                                 change.getText(), true, false));
-                footer.getCell(CLIENTE_PROPERTY).setText(String.valueOf(container.size()) + " REGISTROS");
+                footer.getCell(CLIENTE_PROPERTY).setText(container.size() + " REGISTROS");
             }
         });
         cellA.setComponent(filterFieldA);
@@ -174,7 +174,7 @@ public class InspectionsBudgetReportView extends VerticalLayout implements View 
                 container.addContainerFilter(
                         new SimpleStringFilter(FECHA_PROPERTY,
                                 change.getText(), true, false));
-                footer.getCell(CLIENTE_PROPERTY).setText(String.valueOf(container.size()) + " REGISTROS");
+                footer.getCell(CLIENTE_PROPERTY).setText(container.size() + " REGISTROS");
             }
         });
         cell.setComponent(filterField);
@@ -194,7 +194,7 @@ public class InspectionsBudgetReportView extends VerticalLayout implements View 
                 container.addContainerFilter(
                         new SimpleStringFilter(CLIENTE_PROPERTY,
                                 change.getText(), true, false));
-                footer.getCell(CLIENTE_PROPERTY).setText(String.valueOf(container.size()) + " REGISTROS");
+                footer.getCell(CLIENTE_PROPERTY).setText(container.size() + " REGISTROS");
             }
         });
         cell1.setComponent(filterField1);
@@ -214,7 +214,7 @@ public class InspectionsBudgetReportView extends VerticalLayout implements View 
                 container.addContainerFilter(
                         new SimpleStringFilter(SUPERVISOR_PROPERTY,
                                 change.getText(), true, false));
-                footer.getCell(CLIENTE_PROPERTY).setText(String.valueOf(container.size()) + " REGISTROS");
+                footer.getCell(CLIENTE_PROPERTY).setText(container.size() + " REGISTROS");
             }
         });
         cell2.setComponent(filterField2);
@@ -234,7 +234,7 @@ public class InspectionsBudgetReportView extends VerticalLayout implements View 
                 container.addContainerFilter(
                         new SimpleStringFilter(MOTIVO_PROPERTY,
                                 change.getText(), true, false));
-                footer.getCell(CLIENTE_PROPERTY).setText(String.valueOf(container.size()) + " REGISTROS");
+                footer.getCell(CLIENTE_PROPERTY).setText(container.size() + " REGISTROS");
             }
         });
         cell3.setComponent(filterField3);

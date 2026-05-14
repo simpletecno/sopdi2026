@@ -230,7 +230,7 @@ public class CostCenterAccountView extends VerticalLayout implements View {
                     try {
 
                         queryString = "SELECT * FROM contabilidad_partida";
-                        queryString += " WHERE IdCentroCosto = " + String.valueOf(container.getContainerProperty(costCenterAccountTrackGrid.getSelectedRow(), ID_PROPERTY).getValue());
+                        queryString += " WHERE IdCentroCosto = " + container.getContainerProperty(costCenterAccountTrackGrid.getSelectedRow(), ID_PROPERTY).getValue();
                         queryString += " AND IdEmpresa = " + empresaId;
 
                         stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
@@ -287,7 +287,7 @@ public class CostCenterAccountView extends VerticalLayout implements View {
                 } else {
                     try {
                         queryString = "SELECT * FROM contabilidad_partida";
-                        queryString += " WHERE IdCentroCosto = " + String.valueOf(container.getContainerProperty(costCenterAccountTrackGrid.getSelectedRow(), ID_PROPERTY).getValue());
+                        queryString += " WHERE IdCentroCosto = " + container.getContainerProperty(costCenterAccountTrackGrid.getSelectedRow(), ID_PROPERTY).getValue();
                         queryString += " AND IdEmpresa = " + empresaId;
 
                         stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);

@@ -33,6 +33,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -400,13 +401,13 @@ public class PagoChequesPDF extends Window {
                     firstTable1.addCell(c1);
 
                     if (monedaDocumento.equals("QUETZALES")) {
-                        c1 = new PdfPCell(new Paragraph("** Q." + String.valueOf(numberFormat.format(Double.valueOf(montoCheque))) + "**            ", small10));
+                        c1 = new PdfPCell(new Paragraph("** Q." + numberFormat.format(Double.valueOf(montoCheque)) + "**            ", small10));
                         c1.setHorizontalAlignment(Element.ALIGN_LEFT);
                         c1.setVerticalAlignment(Element.ALIGN_LEFT);
                         c1.setBorderWidth(0);
                         firstTable1.addCell(c1);
                     } else {
-                        c1 = new PdfPCell(new Paragraph("** $." + String.valueOf(numberFormat.format(Double.valueOf(montoCheque))) + "**            ", small10));
+                        c1 = new PdfPCell(new Paragraph("** $." + numberFormat.format(Double.valueOf(montoCheque)) + "**            ", small10));
                         c1.setHorizontalAlignment(Element.ALIGN_LEFT);
                         c1.setVerticalAlignment(Element.ALIGN_LEFT  );
                         c1.setBorderWidth(0);
@@ -434,7 +435,7 @@ public class PagoChequesPDF extends Window {
                     firstTable1.addCell(c1);
 
                     BigDecimal montoBigDecimal =  new BigDecimal(Double.valueOf(montoCheque));
-                    montoBigDecimal.setScale(2, BigDecimal.ROUND_HALF_UP);
+                    montoBigDecimal.setScale(2, RoundingMode.HALF_UP);
 
                     c1 = new PdfPCell(new Paragraph("", small10));
                     c1.setHorizontalAlignment(Element.ALIGN_LEFT);
@@ -673,14 +674,14 @@ public class PagoChequesPDF extends Window {
                     firstTable2.addCell(c2);
         //System.out.println("PagoChequesPDF->montoCheque = " + montoCheque);
                     if (monedaDocumento.equals("QUETZALES")) {
-                        c2 = new PdfPCell(new Paragraph("** Q." + String.valueOf(numberFormat.format(Double.valueOf(montoCheque))) + "**", small10));
+                        c2 = new PdfPCell(new Paragraph("** Q." + numberFormat.format(Double.valueOf(montoCheque)) + "**", small10));
                         c2.setHorizontalAlignment(Element.ALIGN_LEFT);
                         c2.setVerticalAlignment(Element.ALIGN_LEFT);
                         c2.setBorderWidth(0);
                         c2.setBorderWidthRight(1);
                         firstTable2.addCell(c2);
                     } else {
-                        c2 = new PdfPCell(new Paragraph("** $." + String.valueOf(numberFormat.format(Double.valueOf(montoCheque))) + "**", small10));
+                        c2 = new PdfPCell(new Paragraph("** $." + numberFormat.format(Double.valueOf(montoCheque)) + "**", small10));
                         c2.setHorizontalAlignment(Element.ALIGN_LEFT);
                         c2.setVerticalAlignment(Element.ALIGN_LEFT);
                         c2.setBorderWidth(0);
@@ -907,14 +908,14 @@ public class PagoChequesPDF extends Window {
             c3.setBorderWidth(0);
             secondTable.addCell(c3);
 
-            c3 = new PdfPCell(new Paragraph("Q." + String.valueOf(numberFormat.format(totalDebe)), small12));
+            c3 = new PdfPCell(new Paragraph("Q." + numberFormat.format(totalDebe), small12));
             c3.setHorizontalAlignment(Element.ALIGN_RIGHT);
             c3.setVerticalAlignment(Element.ALIGN_RIGHT);
             c3.setBorderWidth(0);
             c3.setBorderWidthBottom(2);
             secondTable.addCell(c3);
 
-            c3 = new PdfPCell(new Paragraph("Q." + String.valueOf(numberFormat.format(totalHaber)), small12));
+            c3 = new PdfPCell(new Paragraph("Q." + numberFormat.format(totalHaber), small12));
             c3.setHorizontalAlignment(Element.ALIGN_RIGHT);
             c3.setVerticalAlignment(Element.ALIGN_RIGHT);
             c3.setBorderWidth(0);

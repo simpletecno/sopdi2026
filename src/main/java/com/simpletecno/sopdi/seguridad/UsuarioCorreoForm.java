@@ -151,7 +151,7 @@ public class UsuarioCorreoForm extends Window {
         try {
             
             try {
-                    String emailsTo[] = {correo};
+                    String[] emailsTo = {correo};
                     MyEmailMessanger eMail = new MyEmailMessanger();
 
                     String texto  = "DESCRIPCION : " + "Token de autorización para ingreso de documento" + "\n";

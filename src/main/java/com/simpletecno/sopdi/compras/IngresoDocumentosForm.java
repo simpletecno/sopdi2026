@@ -15,6 +15,7 @@ import com.vaadin.ui.themes.ValoTheme;
 
 import java.io.*;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -169,7 +170,6 @@ public class IngresoDocumentosForm extends Window {
             } catch (java.io.IOException fIoEx) {
                 fIoEx.printStackTrace();
                 Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                return;
             }
         };
 
@@ -1253,7 +1253,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
             return;
         }
 
-        if(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyRegimen().toUpperCase().equals("EXENTA")) {
+        if(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyRegimen().equalsIgnoreCase("EXENTA")) {
             exentoTxt.setReadOnly(false);
             exentoTxt.setValue(montoTxt.getDoubleValueDoNotThrow());
             exentoTxt.setReadOnly(true);
@@ -1283,7 +1283,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
     public void llenarComboOrdenCompra() {
         queryString = " SELECT * FROM orden_compra ";
         queryString += " WHERE IdEmpresa = " + empresaId;
-        queryString += " AND IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();;
+        queryString += " AND IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1362,7 +1362,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
         queryString = " SELECT * FROM centro_costo";
         queryString += " WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
         queryString += " AND Inhabilitado = 0";
-        queryString += " AND IdEmpresa = " + empresaId;;
+        queryString += " AND IdEmpresa = " + empresaId;
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1521,17 +1521,17 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
         }
 /// Validando montos antes de ingresarlos 
         totalDebe = new BigDecimal(0);
-        totalDebe.setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalDebe = totalDebe.add(new BigDecimal(debe1Txt.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalDebe = totalDebe.add(new BigDecimal(debe2Txt.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalDebe = totalDebe.add(new BigDecimal(debe3Txt.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalDebe = totalDebe.add(new BigDecimal(debe4Txt.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalDebe = totalDebe.add(new BigDecimal(debe5Txt.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalDebe = totalDebe.add(new BigDecimal(debe6Txt.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalDebe = totalDebe.add(new BigDecimal(debe7Txt.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalDebe = totalDebe.add(new BigDecimal(debe8Txt.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalDebe = totalDebe.add(new BigDecimal(debe9Txt.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalDebe = totalDebe.add(new BigDecimal(debe10Txt.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
+        totalDebe.setScale(2, RoundingMode.HALF_UP);
+        totalDebe = totalDebe.add(new BigDecimal(debe1Txt.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
+        totalDebe = totalDebe.add(new BigDecimal(debe2Txt.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
+        totalDebe = totalDebe.add(new BigDecimal(debe3Txt.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
+        totalDebe = totalDebe.add(new BigDecimal(debe4Txt.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
+        totalDebe = totalDebe.add(new BigDecimal(debe5Txt.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
+        totalDebe = totalDebe.add(new BigDecimal(debe6Txt.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
+        totalDebe = totalDebe.add(new BigDecimal(debe7Txt.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
+        totalDebe = totalDebe.add(new BigDecimal(debe8Txt.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
+        totalDebe = totalDebe.add(new BigDecimal(debe9Txt.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
+        totalDebe = totalDebe.add(new BigDecimal(debe10Txt.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
 
         if (totalDebe.doubleValue() != montoTxt.getDoubleValueDoNotThrow()) {
             Notification notif = new Notification("EL MONTO DEL DEBE Y EL HABER NO COINCIDEN!. MONTO DEL DEBE : " + totalDebe.doubleValue() + " MONTO DEL HABER : " + montoTxt.getDoubleValueDoNotThrow(),
@@ -1577,9 +1577,9 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
         queryString = " SELECT * FROM contabilidad_partida";
         queryString += " WHERE SerieDocumento  = '" + serieTxt.getValue().toUpperCase().trim() + "'";
         queryString += " AND NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " AND IdProveedor     =  " + String.valueOf(proveedorCbx.getValue());
+        queryString += " AND IdProveedor     =  " + proveedorCbx.getValue();
         queryString += " AND IdEmpresa = " + empresaId;
-        queryString += " AND TipoDocumento = '" + String.valueOf(tipoDocumentoCbx.getValue()) + "'";
+        queryString += " AND TipoDocumento = '" + tipoDocumentoCbx.getValue() + "'";
         queryString += " AND MonedaDocumento = '" + monedaCbx.getValue() + "'";
 
 //        System.out.println("\n\nQuery=" + queryString + "\n\n");
@@ -1603,14 +1603,14 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
         queryString += " IdUsuarioAutorizoPago,CreadoFechayHora,CreadoUsuario)";
         queryString += " VALUES (";
         queryString += empresaId;
-        queryString += "," + String.valueOf(proveedorCbx.getValue());
+        queryString += "," + proveedorCbx.getValue();
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += ",'" + tipoDocumentoCbx.getValue() + "'";
         queryString += ",'" + serieTxt.getValue().toUpperCase().trim() + "'";
         queryString += ",'" + numeroTxt.getValue().trim() + "'";
         queryString += ",'" + monedaCbx.getValue() + "'";
-        queryString += ", " + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+        queryString += ", " + montoTxt.getDoubleValueDoNotThrow();
+        queryString += "," + montoTxt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
         queryString += ", " + tasaCambioTxt.getValue();
 //        System.out.println("obtener el get value " + tasaCambioTxt.getValue());
 //        System.out.println("obtener el get double" + tasaCambioTxt.getDoubleValueDoNotThrow());
@@ -1654,14 +1654,14 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
         queryString += ",'" + numeroTxt.getValue().trim() + "'";
         queryString += "," + cuentaContableHaberCbx.getValue();
         queryString += ",'" + monedaCbx.getValue() + "'";
-        queryString += "," + String.valueOf(haber1Txt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
+        queryString += "," + haber1Txt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
         queryString += ",0.00"; //DEBE
-        queryString += "," + String.valueOf(haber1Txt.getDoubleValueDoNotThrow()); //HABER
+        queryString += "," + haber1Txt.getDoubleValueDoNotThrow(); //HABER
         queryString += ",0.00"; //DEBE Q.
-        queryString += "," + String.valueOf(haber1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow()); //SALDO
+        queryString += "," + haber1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
+        queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow(); //SALDO
         if (String.valueOf(tipoCbx.getContainerProperty(tipoCbx.getValue(), "CODIGOCC").getValue()).trim().isEmpty()) {
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
             queryString += ",'INGRESADO'";
         } else { //ABASTOS
             queryString += ",0.00";
@@ -1700,12 +1700,12 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable1Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
-            queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow()); // DEBE
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
+            queryString += "," + debe1Txt.getDoubleValueDoNotThrow(); // DEBE
             queryString += ",0.00"; //HABER
-            queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //HABER Q.
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //SALDO
             if (String.valueOf(tipoCbx.getContainerProperty(tipoCbx.getValue(), "CODIGOCC").getValue()).trim().isEmpty()) {
                 queryString += ",'INGRESADO'";
@@ -1746,12 +1746,12 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable2Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
-            queryString += "," + String.valueOf(debe2Txt.getDoubleValueDoNotThrow()); // DEBE
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
+            queryString += "," + debe2Txt.getDoubleValueDoNotThrow(); // DEBE
             queryString += ",0.00"; //HABER
-            queryString += "," + String.valueOf(debe2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //HABER Q.
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //SALDO
             if (String.valueOf(tipoCbx.getContainerProperty(tipoCbx.getValue(), "CODIGOCC").getValue()).trim().isEmpty()) {
                 queryString += ",'INGRESADO'";
@@ -1792,12 +1792,12 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable3Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
-            queryString += "," + String.valueOf(debe3Txt.getDoubleValueDoNotThrow()); // DEBE
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
+            queryString += "," + debe3Txt.getDoubleValueDoNotThrow(); // DEBE
             queryString += ",0.00"; //HABER
-            queryString += "," + String.valueOf(debe3Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe3Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //HABER Q.
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //SALDO
             if (String.valueOf(tipoCbx.getContainerProperty(tipoCbx.getValue(), "CODIGOCC").getValue()).trim().isEmpty()) {
                 queryString += ",'INGRESADO'";
@@ -1837,12 +1837,12 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable4Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
-            queryString += "," + String.valueOf(debe4Txt.getDoubleValueDoNotThrow()); // DEBE
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
+            queryString += "," + debe4Txt.getDoubleValueDoNotThrow(); // DEBE
             queryString += ",0.00"; //HABER
-            queryString += "," + String.valueOf(debe4Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe4Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //HABER Q.
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //SALDO
             if (String.valueOf(tipoCbx.getContainerProperty(tipoCbx.getValue(), "CODIGOCC").getValue()).trim().isEmpty()) {
                 queryString += ",'INGRESADO'";
@@ -1883,12 +1883,12 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable5Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
-            queryString += "," + String.valueOf(debe5Txt.getDoubleValueDoNotThrow()); // DEBE
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
+            queryString += "," + debe5Txt.getDoubleValueDoNotThrow(); // DEBE
             queryString += ",0.00"; //HABER
-            queryString += "," + String.valueOf(debe5Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe5Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //HABER Q.
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //SALDO
             if (String.valueOf(tipoCbx.getContainerProperty(tipoCbx.getValue(), "CODIGOCC").getValue()).trim().isEmpty()) {
                 queryString += ",'INGRESADO'";
@@ -1929,12 +1929,12 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable6Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
-            queryString += "," + String.valueOf(debe6Txt.getDoubleValueDoNotThrow()); // DEBE
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
+            queryString += "," + debe6Txt.getDoubleValueDoNotThrow(); // DEBE
             queryString += ",0.00"; //HABER
-            queryString += "," + String.valueOf(debe6Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe6Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //HABER Q.
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //SALDO
             if (String.valueOf(tipoCbx.getContainerProperty(tipoCbx.getValue(), "CODIGOCC").getValue()).trim().isEmpty()) {
                 queryString += ",'INGRESADO'";
@@ -1975,12 +1975,12 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable7Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
-            queryString += "," + String.valueOf(debe7Txt.getDoubleValueDoNotThrow()); // DEBE
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
+            queryString += "," + debe7Txt.getDoubleValueDoNotThrow(); // DEBE
             queryString += ",0.00"; //HABER
-            queryString += "," + String.valueOf(debe7Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe7Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //HABER Q.
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //SALDO
             if (String.valueOf(tipoCbx.getContainerProperty(tipoCbx.getValue(), "CODIGOCC").getValue()).trim().isEmpty()) {
                 queryString += ",'INGRESADO'";
@@ -2021,12 +2021,12 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable8Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
-            queryString += "," + String.valueOf(debe8Txt.getDoubleValueDoNotThrow()); // DEBE
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
+            queryString += "," + debe8Txt.getDoubleValueDoNotThrow(); // DEBE
             queryString += ",0.00"; //HABER
-            queryString += "," + String.valueOf(debe8Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe8Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //HABER Q.
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //SALDO
             if (String.valueOf(tipoCbx.getContainerProperty(tipoCbx.getValue(), "CODIGOCC").getValue()).trim().isEmpty()) {
                 queryString += ",'INGRESADO'";
@@ -2067,12 +2067,12 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable9Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
-            queryString += "," + String.valueOf(debe9Txt.getDoubleValueDoNotThrow()); // DEBE
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
+            queryString += "," + debe9Txt.getDoubleValueDoNotThrow(); // DEBE
             queryString += ",0.00"; //HABER
-            queryString += "," + String.valueOf(debe9Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe9Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //HABER Q.
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //SALDO
             if (String.valueOf(tipoCbx.getContainerProperty(tipoCbx.getValue(), "CODIGOCC").getValue()).trim().isEmpty()) {
                 queryString += ",'INGRESADO'";
@@ -2113,12 +2113,12 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + cuentaContable10Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
-            queryString += "," + String.valueOf(debe10Txt.getDoubleValueDoNotThrow()); // DEBE
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
+            queryString += "," + debe10Txt.getDoubleValueDoNotThrow(); // DEBE
             queryString += ",0.00"; //HABER
-            queryString += "," + String.valueOf(debe10Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe10Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //HABER Q.
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00"; //SALDO
             if (String.valueOf(tipoCbx.getContainerProperty(tipoCbx.getValue(), "CODIGOCC").getValue()).trim().isEmpty()) {
                 queryString += ",'INGRESADO'";
@@ -2280,7 +2280,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
             notif.show(Page.getCurrent());
 
             try {
-                String emailsTo[] = {"alerta@simpletecno.com"};
+                String[] emailsTo = {"alerta@simpletecno.com"};
                 MyEmailMessanger eMail = new MyEmailMessanger();
 
                 eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos :  " + this.getClass().getName() + " -->" + ex1.getMessage());
@@ -2317,13 +2317,13 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
     private void generarTotalDebe() {
 
         totalDebe = new BigDecimal(0);
-        totalDebe.setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalDebe = totalDebe.add(new BigDecimal(debe1Txt.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalDebe = totalDebe.add(new BigDecimal(debe2Txt.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalDebe = totalDebe.add(new BigDecimal(debe3Txt.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalDebe = totalDebe.add(new BigDecimal(debe4Txt.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalDebe = totalDebe.add(new BigDecimal(debe5Txt.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalDebe = totalDebe.add(new BigDecimal(debe6Txt.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
+        totalDebe.setScale(2, RoundingMode.HALF_UP);
+        totalDebe = totalDebe.add(new BigDecimal(debe1Txt.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
+        totalDebe = totalDebe.add(new BigDecimal(debe2Txt.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
+        totalDebe = totalDebe.add(new BigDecimal(debe3Txt.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
+        totalDebe = totalDebe.add(new BigDecimal(debe4Txt.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
+        totalDebe = totalDebe.add(new BigDecimal(debe5Txt.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
+        totalDebe = totalDebe.add(new BigDecimal(debe6Txt.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
 
         debe1Txt.setCaption("DEBE : " + totalDebe);
 

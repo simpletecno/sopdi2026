@@ -186,7 +186,6 @@ public class EmpleadoSalarioForm extends Window {
                                 }
                                 else {
                                     Notification.show("NO HA SELECCIONADO UN REGISTRO.", Notification.Type.ERROR_MESSAGE);
-                                    return;
                                 }
                             }
                             else {

@@ -1,7 +1,6 @@
 package com.simpletecno.sopdi.extras;
 
 import com.simpletecno.sopdi.SopdiUI;
-import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.combobox.FilteringMode;
 import com.vaadin.ui.*;
 

@@ -175,11 +175,9 @@ public class UsersView extends VerticalLayout implements View {
         usersTable.addContainerProperty(ESTATUS_PROPERTY,   String.class, null);
         usersTable.addContainerProperty(OPTIONS_PROPERTY,   MenuBar.class, null);
 
-        usersTable.setColumnAlignments(new Table.Align[] { 
-                Table.Align.CENTER, Table.Align.LEFT,  Table.Align.LEFT, Table.Align.LEFT,
+        usersTable.setColumnAlignments(Table.Align.CENTER, Table.Align.LEFT, Table.Align.LEFT, Table.Align.LEFT,
                 Table.Align.LEFT,   /*Table.Align.LEFT,*/  Table.Align.LEFT,
-                Table.Align.CENTER, Table.Align.CENTER
-        });
+                Table.Align.CENTER, Table.Align.CENTER);
 
         addComponent(reportLayout);        
         setComponentAlignment(reportLayout, Alignment.MIDDLE_CENTER);
@@ -222,7 +220,7 @@ public class UsersView extends VerticalLayout implements View {
                         if(usersTable.getValue() != null) {
                             MenuBar menuBar = (MenuBar)usersTable.getContainerProperty(usersTable.getValue(), OPTIONS_PROPERTY).getValue();
                             if(menuBar.getItems().get(0).getChildren().contains(selectedItem)) {
-                                String msg = String.valueOf(selectedItem.getId()) + "  ";
+                                String msg = selectedItem.getId() + "  ";
                                 msg += usersTable.getContainerProperty(usersTable.getValue(), NOMBRE_PROPERTY).getValue();
                                 Notification.show(msg, Notification.Type.TRAY_NOTIFICATION);
 
@@ -343,8 +341,9 @@ public class UsersView extends VerticalLayout implements View {
         excelExport = new ExcelExport(usersTable);
         excelExport.excludeCollapsedColumns();
         excelExport.setExportFileName("SOPDI_Usuarios.xls");
-        
-        String mainTitle = "SOPDI - USUARIOS AL: "  + new Utileria().getFechaYYYYMMDD_1(new Date());
+
+        new Utileria();
+        String mainTitle = "SOPDI - USUARIOS AL: "  + Utileria.getFechaYYYYMMDD_1(new Date());
   
         excelExport.setReportTitle(mainTitle);
 

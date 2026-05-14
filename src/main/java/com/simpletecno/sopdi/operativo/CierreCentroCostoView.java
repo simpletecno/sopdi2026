@@ -273,9 +273,9 @@ public class CierreCentroCostoView extends VerticalLayout implements View {
         queryString += " AND contabilidad_partida.IdEmpresa = " + empresaCbx.getValue();
         queryString += " AND contabilidad_partida.IdNomenclatura = " +  ((SopdiUI) mainUI).cuentasContablesDefault.getClientes();
         queryString += " AND contabilidad_partida.IdCentroCosto <> '0'";
-        String cuentasAccion = ((SopdiUI) mainUI).cuentasContablesDefault.getTituloAccion().trim().isEmpty()==false ? ((SopdiUI) mainUI).cuentasContablesDefault.getTituloAccion() : "0";
+        String cuentasAccion = !((SopdiUI) mainUI).cuentasContablesDefault.getTituloAccion().trim().isEmpty() ? ((SopdiUI) mainUI).cuentasContablesDefault.getTituloAccion() : "0";
         cuentasAccion += ",";
-        cuentasAccion += ((SopdiUI) mainUI).cuentasContablesDefault.getTituloAccion().trim().isEmpty()==false ? ((SopdiUI) mainUI).cuentasContablesDefault.getTituloAccion2() : "0";
+        cuentasAccion += !((SopdiUI) mainUI).cuentasContablesDefault.getTituloAccion().trim().isEmpty() ? ((SopdiUI) mainUI).cuentasContablesDefault.getTituloAccion2() : "0";
         queryString += " AND contabilidad_partida.CodigoPartida NOT IN (SELECT CP.CodigoPartida FROM contabilidad_partida CP WHERE CP.CodigoPartida = contabilidad_partida.CodigoPartida AND CP.IdNomenclatura IN (" + cuentasAccion + ")";
         queryString += " AND contabilidad_partida.Estatus <> 'ANULADA'";
         queryString += " GROUP BY contabilidad_partida.CodigoPartida ";
@@ -787,7 +787,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY IDEX PENDIENT
 
             fileName = filePath + fileName;
             com.sun.istack.logging.Logger.getLogger(this.getClass()).log(Level.INFO, fileName);
-            final byte docBytes[] = Files.readAllBytes(new File(fileName).toPath());
+            final byte[] docBytes = Files.readAllBytes(new File(fileName).toPath());
 
             if (docBytes == null) {
                 Notification.show("Documento PDF no disponible para visualizar!");

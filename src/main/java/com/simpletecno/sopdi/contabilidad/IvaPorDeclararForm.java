@@ -17,6 +17,7 @@ import org.vaadin.ui.NumberField;
 
 import javax.mail.MessagingException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
@@ -561,11 +562,11 @@ public class IvaPorDeclararForm extends Window {
         if (incluirResumenChk.getValue()) {
             try {
 
-                BigDecimal totalPeqCont = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                BigDecimal totalNoAfecto = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                BigDecimal totalCompra = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                BigDecimal totalServicio = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                BigDecimal totalIva = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+                BigDecimal totalPeqCont = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                BigDecimal totalNoAfecto = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                BigDecimal totalCompra = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                BigDecimal totalServicio = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                BigDecimal totalIva = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
                 stQuery2 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
@@ -598,25 +599,25 @@ public class IvaPorDeclararForm extends Window {
 
                                 switch (rsRecords2.getString("Tipo").toUpperCase()) {
                                     case "NO AFECTO":
-                                        totalNoAfecto = totalNoAfecto.add(new BigDecimal((rsRecords2.getDouble("DebeQuetzales") - rsRecords2.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                        totalNoAfecto = totalNoAfecto.add(new BigDecimal((rsRecords2.getDouble("DebeQuetzales") - rsRecords2.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                         break;
                                     case "COMPRA":
                                     case "VENTA":
                                         if (regimen.equals("PEQUEÑO CONTRIBUYENTE")) {
-                                            totalPeqCont = totalPeqCont.add(new BigDecimal((rsRecords2.getDouble("DebeQuetzales") - rsRecords2.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                            totalPeqCont = totalPeqCont.add(new BigDecimal((rsRecords2.getDouble("DebeQuetzales") - rsRecords2.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                         } else {
-                                            totalCompra = totalCompra.add(new BigDecimal((rsRecords2.getDouble("DebeQuetzales") - rsRecords2.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                            totalCompra = totalCompra.add(new BigDecimal((rsRecords2.getDouble("DebeQuetzales") - rsRecords2.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                         }
                                         break;
                                     case "SERVICIO":
                                         if (regimen.equals("PEQUEÑO CONTRIBUYENTE")) {
-                                            totalPeqCont = totalPeqCont.add(new BigDecimal((rsRecords2.getDouble("DebeQuetzales") - rsRecords2.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                            totalPeqCont = totalPeqCont.add(new BigDecimal((rsRecords2.getDouble("DebeQuetzales") - rsRecords2.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                         } else {
-                                            totalServicio = totalServicio.add(new BigDecimal((rsRecords2.getDouble("DebeQuetzales") - rsRecords2.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                            totalServicio = totalServicio.add(new BigDecimal((rsRecords2.getDouble("DebeQuetzales") - rsRecords2.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                         }
                                         break;
                                     case "IVA":
-                                        totalIva = totalIva.add(new BigDecimal((rsRecords2.getDouble("DebeQuetzales") - rsRecords2.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                        totalIva = totalIva.add(new BigDecimal((rsRecords2.getDouble("DebeQuetzales") - rsRecords2.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                         break;
                                     default:
                                         break;
@@ -648,10 +649,10 @@ public class IvaPorDeclararForm extends Window {
                 if (ivaVentasContainer.size() > 0) {
 
                     //TODO :QUERY Y CICLO
-                    totalPeqCont = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                    totalNoAfecto = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                    totalCompra = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                    totalServicio = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+                    totalPeqCont = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                    totalNoAfecto = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                    totalCompra = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                    totalServicio = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
                     itemId = ivaHeaderContainer.addItem();
                     ivaHeaderContainer.getContainerProperty(itemId, TIPOIVA_PROPERTY).setValue("---------------");
@@ -1219,7 +1220,7 @@ public class IvaPorDeclararForm extends Window {
             notif.show(Page.getCurrent());
 
             try {
-                String emailsTo[] = {"alerta@simpletecno.com"};
+                String[] emailsTo = {"alerta@simpletecno.com"};
                 MyEmailMessanger eMail = new MyEmailMessanger();
 
                 eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos :  " + this.getClass().getName() + " -->" + ex1.getMessage());

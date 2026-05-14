@@ -679,13 +679,13 @@ public class ProgramaTrabajoView extends VerticalLayout implements View {
 
                                             queryString = " UPDATE plan_trabajo_idex_rh SET";
                                             queryString += " EsJefe = 'SI'";
-                                            queryString += " WHERE Id = " + String.valueOf(rhContainer.getContainerProperty(rhGrid.getSelectedRow(), ID_PROPERTY).getValue());
+                                            queryString += " WHERE Id = " + rhContainer.getContainerProperty(rhGrid.getSelectedRow(), ID_PROPERTY).getValue();
 
                                             stQuery.executeUpdate(queryString);
 
                                             queryString = " UPDATE proveedor SET";
                                             queryString += " EsJefe = 1";
-                                            queryString += " WHERE IdProveedor = " + String.valueOf(rhContainer.getContainerProperty(rhGrid.getSelectedRow(), IDEMPLEADO_PROPERTY).getValue());
+                                            queryString += " WHERE IdProveedor = " + rhContainer.getContainerProperty(rhGrid.getSelectedRow(), IDEMPLEADO_PROPERTY).getValue();
 
                                             stQuery.executeUpdate(queryString);
 
@@ -742,13 +742,13 @@ public class ProgramaTrabajoView extends VerticalLayout implements View {
 
                                             queryString = " UPDATE plan_trabajo_idex_rh SET";
                                             queryString += " EsJefe = 'NO'";
-                                            queryString += " WHERE Id = " + String.valueOf(rhContainer.getContainerProperty(rhGrid.getSelectedRow(), ID_PROPERTY).getValue());
+                                            queryString += " WHERE Id = " + rhContainer.getContainerProperty(rhGrid.getSelectedRow(), ID_PROPERTY).getValue();
 
                                             stQuery.executeUpdate(queryString);
 
                                             queryString = " UPDATE proveedor SET";
                                             queryString += " EsJefe = 0";
-                                            queryString += " WHERE IdProveedor = " + String.valueOf(rhContainer.getContainerProperty(rhGrid.getSelectedRow(), IDEMPLEADO_PROPERTY).getValue());
+                                            queryString += " WHERE IdProveedor = " + rhContainer.getContainerProperty(rhGrid.getSelectedRow(), IDEMPLEADO_PROPERTY).getValue();
 
                                             stQuery.executeUpdate(queryString);
 
@@ -873,7 +873,7 @@ public class ProgramaTrabajoView extends VerticalLayout implements View {
 
             rsRecords = stQuery.executeQuery(queryString);
 
-            if(rsRecords.next() == false) {
+            if(!rsRecords.next()) {
                 Notification.show("NO HAY IDEX EN EL RANGO DE FECHAS.", Notification.Type.WARNING_MESSAGE);
                 return;
             }
@@ -928,8 +928,8 @@ public class ProgramaTrabajoView extends VerticalLayout implements View {
                     idexContainer.getContainerProperty(itemId, ID_PROPERTY).setValue(rsRecords1.getString("Id"));
                     idexContainer.getContainerProperty(itemId, FECHAINICIOREAL_PROPERTY).setValue(rsRecords1.getString("FechaInicioReal"));
                     idexContainer.getContainerProperty(itemId, FECHAFINAREAL_PROPERTY).setValue(rsRecords1.getString("FechaFinReal"));
-                    if (rsRecords1.getString("FechaInicioReal").equals("NO INICIADA") == false) {
-                        if (rsRecords1.getString("FechaFinReal").equals("NO FINALIZADA") == false) {
+                    if (!rsRecords1.getString("FechaInicioReal").equals("NO INICIADA")) {
+                        if (!rsRecords1.getString("FechaFinReal").equals("NO FINALIZADA")) {
                             diasReal = Integer.valueOf(String.valueOf((rsRecords1.getDate("FechaFinReal").getTime() - rsRecords1.getDate("FechaInicioReal").getTime()) / milisecondsByDay) + 1);
                         }
                     }
@@ -999,7 +999,7 @@ public class ProgramaTrabajoView extends VerticalLayout implements View {
 
                                 for(Object idexObject : idexContainer.getItemIds()) {
                                     //VALIDAR LA FECHA DE INICIO DE EJECUCION, SI TIENE FECHA ENTONCES OMITIR
-                                    if(String.valueOf(idexContainer.getContainerProperty(idexObject, FECHAINICIOREAL_PROPERTY).getValue()).trim().isEmpty() == false) {
+                                    if(!String.valueOf(idexContainer.getContainerProperty(idexObject, FECHAINICIOREAL_PROPERTY).getValue()).trim().isEmpty()) {
                                         continue;
                                     }
                                     queryString =  "INSERT INTO plan_trabajo_idex (Idex, IdProject, FechaInicioPlaneada, FechaFinPlaneada)";
@@ -1134,7 +1134,7 @@ public class ProgramaTrabajoView extends VerticalLayout implements View {
                     queryString += " FROM plan_trabajo_idex_rh";
                     queryString += " INNER JOIN plan_trabajo_idex ON plan_trabajo_idex.Id = plan_trabajo_idex_rh.IdPlanTrabajoIdex";
                     queryString += " WHERE plan_trabajo_idex_rh.IdEmpleado = " + rsRecords.getString("IdProveedor");
-                    queryString += " AND '" + String.valueOf(idexContainer.getContainerProperty(selectedItem, FECHAINICIO_PROPERTY).getValue()) +  "'";
+                    queryString += " AND '" + idexContainer.getContainerProperty(selectedItem, FECHAINICIO_PROPERTY).getValue() +  "'";
                     queryString += "     BETWEEN plan_trabajo_idex.FechaInicioPlaneada AND plan_trabajo_idex.FechaFinPlaneada";
 
                     rsRecords1 = stQuery1.executeQuery(queryString);
@@ -1165,7 +1165,7 @@ public class ProgramaTrabajoView extends VerticalLayout implements View {
                         }
                         else {
                             rhContainer.getContainerProperty(itemId, ESJEFE_PROPERTY).setValue("NO");
-                        };
+                        }
                     }
 
                 } while (rsRecords.next());
@@ -1185,7 +1185,7 @@ public class ProgramaTrabajoView extends VerticalLayout implements View {
             queryString = "SELECT cce.*";
             queryString += " FROM centro_costo_encargado cce";
             queryString += " INNER JOIN centro_costo cc ON cce.CodigoCentroCosto = cc.CodigoCentroCosto";
-            queryString += " WHERE cc.CodigoCentroCosto = " + String.valueOf(idexContainer.getContainerProperty(selectedItem, IDCC_PROPERTY).getValue());
+            queryString += " WHERE cc.CodigoCentroCosto = " + idexContainer.getContainerProperty(selectedItem, IDCC_PROPERTY).getValue();
             queryString += " AND cce.Eliminado = 0";
 
            rsRecords = stQuery.executeQuery(queryString);

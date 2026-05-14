@@ -328,7 +328,7 @@ public class LibroComprasPDF extends Window {
 
 //System.out.println(libroComprasContainer.getContainerProperty(itemId, FECHA_PROPERTY).getValue());
 
-                    if(String.valueOf(libroComprasContainer.getContainerProperty(itemId, PROVEEDOR_PROPERTY).getValue()).toUpperCase().equals("TOTALES")) {
+                    if(String.valueOf(libroComprasContainer.getContainerProperty(itemId, PROVEEDOR_PROPERTY).getValue()).equalsIgnoreCase("TOTALES")) {
                         if(String.valueOf(libroComprasContainer.getContainerProperty(itemId, FECHA_PROPERTY).getValue()).trim().isEmpty()) {
                             c1 = new PdfPCell(new Paragraph("", small10));
                             c1.setHorizontalAlignment(Element.ALIGN_LEFT);

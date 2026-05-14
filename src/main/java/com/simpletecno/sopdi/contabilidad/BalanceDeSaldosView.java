@@ -24,6 +24,7 @@ import com.vaadin.ui.Grid.FooterRow;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
@@ -352,7 +353,7 @@ public class BalanceDeSaldosView extends VerticalLayout implements View {
                     for(int numeroMes = 1; numeroMes <= 12; numeroMes++) {
 
                         if (numeroMes < 10) {
-                            stringMes = "0" + String.valueOf(numeroMes);
+                            stringMes = "0" + numeroMes;
                         }
                         else {
                             stringMes = String.valueOf(numeroMes);
@@ -382,10 +383,10 @@ public class BalanceDeSaldosView extends VerticalLayout implements View {
 
             } // end if nomenclatura
 
-            BigDecimal totalSaldoAnterior = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-            BigDecimal totalDebe = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-            BigDecimal totalHaber = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-            BigDecimal totalSaldoFinal = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+            BigDecimal totalSaldoAnterior = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+            BigDecimal totalDebe = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+            BigDecimal totalHaber = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+            BigDecimal totalSaldoFinal = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
             for(String mes : NOMBREMES.values()) {
                 for(Object item : balanceSaldosContainer.getItemIds()) {
@@ -400,10 +401,10 @@ public class BalanceDeSaldosView extends VerticalLayout implements View {
                 footerRow.getCell(HABER_PROPERTY + "_" + mes).setText(numberFormat.format(totalHaber));
                 footerRow.getCell(SALDO_FINAL_PROPERTY + "_" + mes).setText(numberFormat.format(totalSaldoFinal));
 
-                totalSaldoAnterior = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                totalDebe = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                totalHaber = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                totalSaldoFinal = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+                totalSaldoAnterior = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                totalDebe = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                totalHaber = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                totalSaldoFinal = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
             }
 
         } catch (Exception ex1) {

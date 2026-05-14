@@ -363,12 +363,10 @@ public class PlanoForm extends Window {
                     notif.setPosition(Position.MIDDLE_CENTER);
                     notif.setIcon(FontAwesome.WARNING);
                     notif.show(Page.getCurrent());
-                    return;
                 }
             } catch (IOException fIoEx) {
                 fIoEx.printStackTrace();
                 Notification.show("Error al cargar el archivo PDF!", Notification.Type.ERROR_MESSAGE);
-                return;
             }
         };
 
@@ -612,7 +610,7 @@ public class PlanoForm extends Window {
                 tipoCbx.focus();
                 return;
             }
-            if(archivoCargado == false) {
+            if(!archivoCargado) {
                 Notification.show("Por favor cargue el archivo!.", Notification.Type.WARNING_MESSAGE);
                 return;
             }

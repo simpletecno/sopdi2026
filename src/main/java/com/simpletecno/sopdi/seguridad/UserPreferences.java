@@ -69,12 +69,12 @@ public class UserPreferences extends Window implements Button.ClickListener
         acceptBtn    = new Button("Aceptar");
         acceptBtn.setIcon(FontAwesome.CHECK);
         acceptBtn.setWidth(120,Sizeable.UNITS_PIXELS);
-        acceptBtn.addListener((Button.ClickListener) this);
+        acceptBtn.addListener(this);
         acceptBtn.setClickShortcut(KeyCode.ENTER);
         exitBtn    = new Button("Salir");
         exitBtn.setIcon(FontAwesome.EJECT);
         exitBtn.setWidth(120,Sizeable.UNITS_PIXELS);
-        exitBtn.addListener((Button.ClickListener) this);
+        exitBtn.addListener(this);
         exitBtn.setClickShortcut(KeyCode.ESCAPE);
 
         ThemeResource resource = new ThemeResource("img/profile-pic-300px.jpg");
@@ -314,5 +314,5 @@ System.out.println("\nfile="+file.getAbsolutePath());
                 Logger.getLogger(UserPreferences.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-    };       
+    }
 }

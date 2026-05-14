@@ -430,7 +430,7 @@ public class ConsultaDocumentosView extends VerticalLayout implements View {
             queryString += " LEFT JOIN orden_compra ON orden_compra.Id = contabilidad_partida.IdOrdenCompra";
             queryString += " WHERE contabilidad_partida.NumeroDocumento Like '%" + documentTxt.getValue().trim() + "%'";
             if (!String.valueOf(tipoTransaccionCbx.getValue()).equals("<<TODAS>>")) {
-                queryString += " And contabilidad_partida.TipoDocumento = '" + String.valueOf(tipoTransaccionCbx.getValue()) + "'";
+                queryString += " And contabilidad_partida.TipoDocumento = '" + tipoTransaccionCbx.getValue() + "'";
             }
             queryString += " AND proveedor_empresa.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
             queryString += " GROUP by contabilidad_partida.CodigoPartida ";
@@ -513,7 +513,7 @@ public class ConsultaDocumentosView extends VerticalLayout implements View {
 
         try {
             
-            final byte docBytes[] = Files.readAllBytes(new File(archivoNombre).toPath());
+            final byte[] docBytes = Files.readAllBytes(new File(archivoNombre).toPath());
             final String fileName = archivoNombre;
 
             if (docBytes == null) {
@@ -574,7 +574,7 @@ public class ConsultaDocumentosView extends VerticalLayout implements View {
 
                                 new File(filePath).mkdirs();
 
-                                fileName = filePath + codigoPartida + fileName.substring(fileName.length() - 4, fileName.length());
+                                fileName = filePath + codigoPartida + fileName.substring(fileName.length() - 4);
 
                                 new File(filePath).mkdirs();
 
@@ -609,12 +609,10 @@ public class ConsultaDocumentosView extends VerticalLayout implements View {
                                 window.close();
                             } else {
                                 Notification.show("El archivo no contiene un formato compatible. solo puede subir archivos con formato 'PNG','JEPG','JPG','PDF'", Notification.Type.ERROR_MESSAGE);
-                                return;
                             }
                         } catch (java.io.IOException fIoEx) {
                             fIoEx.printStackTrace();
                             Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                            return;
                         }
                     }
                 };
@@ -674,7 +672,7 @@ public class ConsultaDocumentosView extends VerticalLayout implements View {
 
                                 new File(filePath).mkdirs();
 
-                                fileName = filePath + codigoPartida + fileName.substring(fileName.length() - 4, fileName.length());
+                                fileName = filePath + codigoPartida + fileName.substring(fileName.length() - 4);
                                 targetFile = new File(fileName);
                                 OutputStream outStream = new FileOutputStream(targetFile);
                                 outStream.write(buffer);
@@ -706,12 +704,10 @@ public class ConsultaDocumentosView extends VerticalLayout implements View {
                                 window.close();
                             } else {
                                 Notification.show("El archivo no contiene un formato compatible. solo puede subir archivos con formato 'PNG','JEPG','JPG','PDF'", Notification.Type.ERROR_MESSAGE);
-                                return;
                             }
                         } catch (java.io.IOException fIoEx) {
                             fIoEx.printStackTrace();
                             Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                            return;
                         }
                     }
                 };

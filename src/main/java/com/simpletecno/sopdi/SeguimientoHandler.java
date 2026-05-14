@@ -22,7 +22,6 @@ import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
@@ -43,7 +42,7 @@ public class SeguimientoHandler extends Window implements Button.ClickListener {
     private Button newTrackBtn;
     private Button exitBtn;
     
-    private UI mainUI;
+    private final UI mainUI;
     
     private String recordId, nombre;
     
@@ -226,7 +225,7 @@ System.out.println("fillTrackTable Query... " +  queryString);
     // The listener method implementation
     public void buttonClick(ClickEvent event) {
         if(event.getButton().equals(newTrackBtn)) {
-            SeguimientoWindow seguimientoWindow = new SeguimientoWindow((SeguimientoHandler)this,
+            SeguimientoWindow seguimientoWindow = new SeguimientoWindow(this,
                             recordId, nombre, "", "");
             mainUI.addWindow(seguimientoWindow);
             seguimientoWindow.center();

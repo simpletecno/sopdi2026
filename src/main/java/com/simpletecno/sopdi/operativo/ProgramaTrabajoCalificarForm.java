@@ -516,7 +516,7 @@ public class ProgramaTrabajoCalificarForm extends Window {
             @Override
             public void buttonClick(Button.ClickEvent event)
             {
-                if(tipo.equals("SUPERVISAR") == false) { //CALIDAD Y PERSONAL
+                if(!tipo.equals("SUPERVISAR")) { //CALIDAD Y PERSONAL
                     for (Object idexObject : caracteristicasContainer.getItemIds()) {
                         if (caracteristicasContainer.getContainerProperty(idexObject, "valor").getValue().toString().trim().isEmpty()) {
                             Notification.show("Todas las lineas deben tener valor de calificación. Revise!", Notification.Type.WARNING_MESSAGE);
@@ -684,7 +684,7 @@ public class ProgramaTrabajoCalificarForm extends Window {
 
     static class StarRating extends HorizontalLayout {
 
-        private int maxStars;
+        private final int maxStars;
         private int selectedStars = 0;
         Button[] estrellas = new Button[5];
 

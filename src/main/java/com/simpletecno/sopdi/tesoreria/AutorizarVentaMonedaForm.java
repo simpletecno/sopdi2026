@@ -130,7 +130,6 @@ public class AutorizarVentaMonedaForm extends Window {
         proveedorCbx.setNullSelectionAllowed(false);
         proveedorCbx.addValueChangeListener(event -> {
             if (event.getProperty() == null) {
-                return;
             }
 //            verificarProveedor();
         });

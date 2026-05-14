@@ -18,7 +18,6 @@ import com.vaadin.shared.ui.grid.ColumnResizeMode;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.Grid.HeaderCell;
 import com.vaadin.ui.Grid.HeaderRow;
@@ -33,6 +32,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.ui.NumberField;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
@@ -400,21 +400,21 @@ public class LibroComprasView extends VerticalLayout implements View {
             return;
         }
 
-        BigDecimal peqCont = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal noAfecto = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal compra = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal servicio = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal combustibles = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal iva = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal monto = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal peqCont = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal noAfecto = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal compra = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal servicio = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal combustibles = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal iva = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal monto = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
-        BigDecimal totalPeqCont = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalNoAfecto = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalCompra = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalServicio = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalCombustibles = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalIva = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalMonto = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal totalPeqCont = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalNoAfecto = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalCompra = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalServicio = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalCombustibles = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalIva = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalMonto = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
         double ivaRemanente = 0.00;
 
@@ -548,13 +548,13 @@ public class LibroComprasView extends VerticalLayout implements View {
                         libroComprasContainer.getContainerProperty(itemId, IVA_PROPERTY).setValue("");
                         libroComprasContainer.getContainerProperty(itemId, MONTO_PROPERTY).setValue("");
 
-                        peqCont = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                        noAfecto = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                        compra = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                        servicio = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                        combustibles = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                        iva = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
-                        monto = new BigDecimal(0.00).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        peqCont = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                        noAfecto = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                        compra = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                        servicio = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                        combustibles = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                        iva = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
+                        monto = new BigDecimal("0.00").setScale(2, RoundingMode.HALF_UP);
 
                         regimen = rsRecords.getString("PROV_REGIMEN");
                         tipoDocumento = rsRecords.getString("TipoDocumento");
@@ -566,77 +566,77 @@ public class LibroComprasView extends VerticalLayout implements View {
 //}
                     switch (rsRecords.getString("Tipo").toUpperCase()) {
                         case "NO AFECTO":
-                            noAfecto = noAfecto.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                            noAfecto = noAfecto.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                             libroComprasContainer.getContainerProperty(itemId, NO_AFECTO_PROPERTY).setValue(numberFormat.format(noAfecto));
-                            totalNoAfecto = totalNoAfecto.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                            totalNoAfecto = totalNoAfecto.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                             break;
                         case "COMPRA":
                             if (rsRecords.getString("TipoDocumento").equals("RECIBO CONTABLE")) {
-                                noAfecto = noAfecto.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                noAfecto = noAfecto.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                 libroComprasContainer.getContainerProperty(itemId, NO_AFECTO_PROPERTY).setValue(numberFormat.format(noAfecto));
                                 totalNoAfecto = totalNoAfecto.add(noAfecto);
                                 monto = monto.add(noAfecto);
                                 libroComprasContainer.getContainerProperty(itemId, MONTO_PROPERTY).setValue(numberFormat.format(monto));
                                 totalMonto = totalMonto.add(noAfecto);
                             } else if (rsRecords.getString("TipoDocumento").contains("NOTA DE CREDITO")) {
-                                compra = compra.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                compra = compra.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                 libroComprasContainer.getContainerProperty(itemId, COMPRA_PROPERTY).setValue(numberFormat.format(compra));
-                                totalCompra = totalCompra.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                totalCompra = totalCompra.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                             } else {
-                                compra = compra.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                compra = compra.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                 libroComprasContainer.getContainerProperty(itemId, COMPRA_PROPERTY).setValue(numberFormat.format(compra));
-                                totalCompra = totalCompra.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                totalCompra = totalCompra.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                             }
                             break;
                         case "SERVICIO":
                             if (rsRecords.getString("TipoDocumento").equals("RECIBO CONTABLE")) {
-                                noAfecto = noAfecto.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                noAfecto = noAfecto.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                 libroComprasContainer.getContainerProperty(itemId, NO_AFECTO_PROPERTY).setValue(numberFormat.format(noAfecto));
                                 totalNoAfecto = totalNoAfecto.add(noAfecto);
                                 monto = monto.add(noAfecto);
                                 libroComprasContainer.getContainerProperty(itemId, MONTO_PROPERTY).setValue(numberFormat.format(monto));
                                 totalMonto = totalMonto.add(noAfecto);
                             } else if (rsRecords.getString("TipoDocumento").contains("NOTA DE CREDITO")) {
-                                servicio = servicio.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                servicio = servicio.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                 libroComprasContainer.getContainerProperty(itemId, SERVICIO_PROPERTY).setValue(numberFormat.format(servicio));
-                                totalServicio = totalServicio.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                totalServicio = totalServicio.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                             } else {
-                                servicio = servicio.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                servicio = servicio.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                 libroComprasContainer.getContainerProperty(itemId, SERVICIO_PROPERTY).setValue(numberFormat.format(servicio));
-                                totalServicio = totalServicio.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                totalServicio = totalServicio.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                             }
                             break;
                         case "COMBUSTIBLES":
                             if (rsRecords.getString("TipoDocumento").contains("NOTA DE CREDITO")) {
-                                combustibles = combustibles.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                combustibles = combustibles.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                 libroComprasContainer.getContainerProperty(itemId, COMBUSTIBLES_PROPERTY).setValue(numberFormat.format(combustibles));
-                                totalCombustibles = totalCombustibles.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                totalCombustibles = totalCombustibles.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                             } else {
-                                combustibles = combustibles.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                combustibles = combustibles.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                 libroComprasContainer.getContainerProperty(itemId, COMBUSTIBLES_PROPERTY).setValue(numberFormat.format(combustibles));
-                                totalCombustibles = totalCombustibles.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                totalCombustibles = totalCombustibles.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                             }
                             break;
                         case "IVA":
                             if (rsRecords.getString("TipoDocumento").contains("NOTA DE CREDITO")) {
-                                iva = iva.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                iva = iva.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                 libroComprasContainer.getContainerProperty(itemId, IVA_PROPERTY).setValue(numberFormat.format(iva));
-                                totalIva = totalIva.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                totalIva = totalIva.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                             } else {
-                                iva = iva.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                iva = iva.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                 libroComprasContainer.getContainerProperty(itemId, IVA_PROPERTY).setValue(numberFormat.format(iva));
-                                totalIva = totalIva.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                totalIva = totalIva.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales") - rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                             }
                             break;
                         default:
                             if (rsRecords.getString("TipoDocumento").contains("NOTA DE CREDITO")) {
-                                monto = monto.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                monto = monto.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                 libroComprasContainer.getContainerProperty(itemId, MONTO_PROPERTY).setValue(numberFormat.format(monto));
-                                totalMonto = totalMonto.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                totalMonto = totalMonto.add(new BigDecimal((rsRecords.getDouble("DebeQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                             } else if (!rsRecords.getString("TipoDocumento").equals("RECIBO CONTABLE")) {
-                                monto = monto.add(new BigDecimal((rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                monto = monto.add(new BigDecimal((rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                                 libroComprasContainer.getContainerProperty(itemId, MONTO_PROPERTY).setValue(numberFormat.format(monto));
-                                totalMonto = totalMonto.add(new BigDecimal((rsRecords.getDouble("HaberQuetzales"))).setScale(2, BigDecimal.ROUND_HALF_UP)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                                totalMonto = totalMonto.add(new BigDecimal((rsRecords.getDouble("HaberQuetzales"))).setScale(2, RoundingMode.HALF_UP)).setScale(2, RoundingMode.HALF_UP);
                             }
                             break;
                     }
@@ -677,16 +677,16 @@ public class LibroComprasView extends VerticalLayout implements View {
                 itemId = libroComprasContainer.addItem();
                 libroComprasContainer.getContainerProperty(itemId, PROVEEDOR_PROPERTY).setValue("Totales : ");
                 libroComprasContainer.getContainerProperty(itemId, IVAREM_PROPERTY).setValue(String.valueOf(numberFormat.format(ivaRemanente)));
-                libroComprasContainer.getContainerProperty(itemId, PEQCONT_PROPERTY).setValue(String.valueOf(numberFormat.format(totalPeqCont)));
-                libroComprasContainer.getContainerProperty(itemId, NO_AFECTO_PROPERTY).setValue(String.valueOf(numberFormat.format(totalNoAfecto)));
-                libroComprasContainer.getContainerProperty(itemId, COMBUSTIBLES_PROPERTY).setValue(String.valueOf(numberFormat.format(totalCombustibles)));
-                libroComprasContainer.getContainerProperty(itemId, COMPRA_PROPERTY).setValue(String.valueOf(numberFormat.format(totalCompra)));
-                libroComprasContainer.getContainerProperty(itemId, SERVICIO_PROPERTY).setValue(String.valueOf(numberFormat.format(totalServicio)));
-                libroComprasContainer.getContainerProperty(itemId, IVA_PROPERTY).setValue(String.valueOf(numberFormat.format(totalIva)));
-                libroComprasContainer.getContainerProperty(itemId, MONTO_PROPERTY).setValue(String.valueOf(numberFormat.format(totalMonto)));
+                libroComprasContainer.getContainerProperty(itemId, PEQCONT_PROPERTY).setValue(numberFormat.format(totalPeqCont));
+                libroComprasContainer.getContainerProperty(itemId, NO_AFECTO_PROPERTY).setValue(numberFormat.format(totalNoAfecto));
+                libroComprasContainer.getContainerProperty(itemId, COMBUSTIBLES_PROPERTY).setValue(numberFormat.format(totalCombustibles));
+                libroComprasContainer.getContainerProperty(itemId, COMPRA_PROPERTY).setValue(numberFormat.format(totalCompra));
+                libroComprasContainer.getContainerProperty(itemId, SERVICIO_PROPERTY).setValue(numberFormat.format(totalServicio));
+                libroComprasContainer.getContainerProperty(itemId, IVA_PROPERTY).setValue(numberFormat.format(totalIva));
+                libroComprasContainer.getContainerProperty(itemId, MONTO_PROPERTY).setValue(numberFormat.format(totalMonto));
 
                 itemId = libroComprasContainer.addItem();
-                libroComprasContainer.getContainerProperty(itemId, PROVEEDOR_PROPERTY).setValue("Total Facturas :" + String.valueOf(totalFacturas));
+                libroComprasContainer.getContainerProperty(itemId, PROVEEDOR_PROPERTY).setValue("Total Facturas :" + totalFacturas);
                 libroComprasContainer.getContainerProperty(itemId, PEQCONT_PROPERTY).setValue(String.valueOf(cantidadFacturasPeqCont));
                 libroComprasContainer.getContainerProperty(itemId, NO_AFECTO_PROPERTY).setValue(String.valueOf(cantidadFacturasNoAfecto));
                 libroComprasContainer.getContainerProperty(itemId, COMBUSTIBLES_PROPERTY).setValue(String.valueOf(cantidadFacturasCombustible));
@@ -694,7 +694,7 @@ public class LibroComprasView extends VerticalLayout implements View {
                 libroComprasContainer.getContainerProperty(itemId, SERVICIO_PROPERTY).setValue(String.valueOf(cantidadFacturasServicio));
 
                 itemId = libroComprasContainer.addItem();
-                libroComprasContainer.getContainerProperty(itemId, PROVEEDOR_PROPERTY).setValue("Total Notas de credito: " + String.valueOf(totalNotasCredito));
+                libroComprasContainer.getContainerProperty(itemId, PROVEEDOR_PROPERTY).setValue("Total Notas de credito: " + totalNotasCredito);
                 libroComprasContainer.getContainerProperty(itemId, PEQCONT_PROPERTY).setValue(String.valueOf(cantidadNotasPeqCont));
                 libroComprasContainer.getContainerProperty(itemId, NO_AFECTO_PROPERTY).setValue(String.valueOf(cantidadNotasNoAfecto));
                 libroComprasContainer.getContainerProperty(itemId, COMBUSTIBLES_PROPERTY).setValue(String.valueOf(cantidadNotasCombustible));

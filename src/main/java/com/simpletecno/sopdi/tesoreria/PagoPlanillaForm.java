@@ -239,7 +239,7 @@ public class PagoPlanillaForm extends Window {
                     haber2Txt.setValue(montoTxt.getValue());
 
                     nombreChequeTxt.setValue(String.valueOf(anticiposContainer.getContainerProperty(anticiposGrind.getSelectedRow(), PROVEEDOR_PROPERTY).getValue()));
-                    descripcionTxt.setValue(titleLbl.getValue() + " A " + String.valueOf(anticiposContainer.getContainerProperty(anticiposGrind.getSelectedRow(), PROVEEDOR_PROPERTY).getValue()));
+                    descripcionTxt.setValue(titleLbl.getValue() + " A " + anticiposContainer.getContainerProperty(anticiposGrind.getSelectedRow(), PROVEEDOR_PROPERTY).getValue());
                 }
             }
         });
@@ -909,7 +909,6 @@ public class PagoPlanillaForm extends Window {
         if (haber2Txt.getDoubleValueDoNotThrow() == 0.00) {
             Notification.show("Monto del HABER no es correcto. ", Notification.Type.ERROR_MESSAGE);
             haber2Txt.focus();
-            ;
             return;
         }
         if (cuentaContable1Cbx.getValue() == null || cuentaContable2Cbx.getValue() == null) {
@@ -921,7 +920,7 @@ public class PagoPlanillaForm extends Window {
         queryString = " SELECT CodigoPartida FROM contabilidad_partida ";
         queryString += " WHERE NumeroDocumento = '" + numeroTxt.getValue() + "'";
         queryString += " AND IdEmpresa = " + empresaId;
-        queryString += " AND TipoDocumento = '" + String.valueOf(medioCbx.getValue()) + "'";
+        queryString += " AND TipoDocumento = '" + medioCbx.getValue() + "'";
         queryString += " AND MonedaDocumento = '" + monedaCbx.getValue() + "'";
 
         try {
@@ -985,25 +984,25 @@ public class PagoPlanillaForm extends Window {
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoCC + "'";
-        queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+        queryString += ",'" + medioCbx.getValue() + "'";
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
-        queryString += "," + String.valueOf(anticiposContainer.getContainerProperty(anticiposGrind.getSelectedRow(), ID_PROVEEDOR_PROPERTY).getValue());
+        queryString += "," + anticiposContainer.getContainerProperty(anticiposGrind.getSelectedRow(), ID_PROVEEDOR_PROPERTY).getValue();
         queryString += ",''";//nitproveedor
-        queryString += ",'" + String.valueOf(anticiposContainer.getContainerProperty(anticiposGrind.getSelectedRow(), PROVEEDOR_PROPERTY).getValue()) + "'";
+        queryString += ",'" + anticiposContainer.getContainerProperty(anticiposGrind.getSelectedRow(), PROVEEDOR_PROPERTY).getValue() + "'";
         queryString += ",'" + nombreChequeTxt.getValue() + "'";
-        queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+        queryString += "," + montoTxt.getDoubleValueDoNotThrow();
         queryString += ",''";  //serie documento
         queryString += ",'" + numeroTxt.getValue() + "'";
         queryString += ",''"; //tipodoca
         queryString += ",''"; //doca
-        queryString += "," + String.valueOf(cuentaContable1Cbx.getValue()); //idcuentacontable
+        queryString += "," + cuentaContable1Cbx.getValue(); //idcuentacontable
         queryString += ",'" + monedaCbx.getValue() + "'";
-        queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow()); //DEBE
+        queryString += "," + debe1Txt.getDoubleValueDoNotThrow(); //DEBE
         queryString += ",0.00"; //HABER
-        queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //DEBE Q
+        queryString += "," + debe1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //DEBE Q
         queryString += ",0.00"; //HABER Q.
-        queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+        queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
+        queryString += "," + montoTxt.getDoubleValueDoNotThrow();
         queryString += ",'" + descripcionTxt.getValue() + "'";
         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
         queryString += ",current_timestamp";
@@ -1020,13 +1019,13 @@ public class PagoPlanillaForm extends Window {
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoCC + "'";
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
-            queryString += "," + String.valueOf(anticiposContainer.getContainerProperty(anticiposGrind.getSelectedRow(), ID_PROVEEDOR_PROPERTY).getValue());
+            queryString += "," + anticiposContainer.getContainerProperty(anticiposGrind.getSelectedRow(), ID_PROVEEDOR_PROPERTY).getValue();
             queryString += ",''"; //nitproveedor
-            queryString += ",'" + String.valueOf(anticiposContainer.getContainerProperty(anticiposGrind.getSelectedRow(), PROVEEDOR_PROPERTY).getValue()) + "'";
+            queryString += ",'" + anticiposContainer.getContainerProperty(anticiposGrind.getSelectedRow(), PROVEEDOR_PROPERTY).getValue() + "'";
             queryString += ",'" + nombreChequeTxt.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
             queryString += ",''"; //serie documento
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += ",''"; //tipodoca
@@ -1034,11 +1033,11 @@ public class PagoPlanillaForm extends Window {
             queryString += "," + cuentaContable2Cbx.getValue(); //idcuentacontable
             queryString += ",'" + monedaCbx.getValue() + "'";
             queryString += ",0.00"; // DEBE
-            queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow()); // HABER
+            queryString += "," + haber2Txt.getDoubleValueDoNotThrow(); // HABER
             queryString += ",0.00"; //DEBE Q.
-            queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //HABER Q
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+            queryString += "," + haber2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //HABER Q
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
             queryString += ",'" + descripcionTxt.getValue() + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
@@ -1057,13 +1056,13 @@ public class PagoPlanillaForm extends Window {
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoCC + "'";
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
-            queryString += "," + String.valueOf(anticiposContainer.getContainerProperty(anticiposGrind.getSelectedRow(), ID_PROVEEDOR_PROPERTY).getValue());
+            queryString += "," + anticiposContainer.getContainerProperty(anticiposGrind.getSelectedRow(), ID_PROVEEDOR_PROPERTY).getValue();
             queryString += ",''";
-            queryString += ",'" + String.valueOf(anticiposContainer.getContainerProperty(anticiposGrind.getSelectedRow(), PROVEEDOR_PROPERTY).getValue()) + "'";
+            queryString += ",'" + anticiposContainer.getContainerProperty(anticiposGrind.getSelectedRow(), PROVEEDOR_PROPERTY).getValue() + "'";
             queryString += ",'" + nombreChequeTxt.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
             queryString += ",''"; //serie documento
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += ",''"; //tipodoca
@@ -1071,11 +1070,11 @@ public class PagoPlanillaForm extends Window {
             queryString += "," + cuentaContable3Cbx.getValue(); //idcuentacontable
             queryString += ",'" + monedaCbx.getValue() + "'";
             queryString += ",0.00"; // DEBE
-            queryString += "," + String.valueOf(haber3Txt.getDoubleValueDoNotThrow()); // HABER
+            queryString += "," + haber3Txt.getDoubleValueDoNotThrow(); // HABER
             queryString += ",0.00"; //DEBE Q.
-            queryString += "," + String.valueOf(haber3Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //HABER Q
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+            queryString += "," + haber3Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //HABER Q
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
             queryString += ",'" + descripcionTxt.getValue() + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
@@ -1164,7 +1163,7 @@ public class PagoPlanillaForm extends Window {
         try {
 
             queryString = "DELETE FROM autorizacion_pago";
-            queryString += " WHERE IdAutorizacion = " + String.valueOf(anticiposContainer.getContainerProperty(anticiposGrind.getSelectedRow(), NO_PROPERTY).getValue());
+            queryString += " WHERE IdAutorizacion = " + anticiposContainer.getContainerProperty(anticiposGrind.getSelectedRow(), NO_PROPERTY).getValue();
 
             stQuery2 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             stQuery2.executeUpdate(queryString);

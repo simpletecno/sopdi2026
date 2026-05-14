@@ -15,7 +15,6 @@ import com.vaadin.shared.ui.datefield.Resolution;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
@@ -389,7 +388,7 @@ public class ConciliacionBancariaView extends VerticalLayout implements View {
         queryString += " WHERE CB.IdEmpresa = " + empresaId;
         queryString += " AND proveedor_empresa.IdEmpresa = " + empresaId;
         queryString += " AND CB.AnioMes = '" + Utileria.getFechaYYYYMM(mesDt.getValue()).replaceAll("/", "") + "'";
-        queryString += " AND CB.IdConciliacionBancaria = " + String.valueOf(container.getContainerProperty(conciliacionGrid.getSelectedRow(), ID_CONCILIACION_PROPERTY).getValue());
+        queryString += " AND CB.IdConciliacionBancaria = " + container.getContainerProperty(conciliacionGrid.getSelectedRow(), ID_CONCILIACION_PROPERTY).getValue();
 
         try {
             stQuery2 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();

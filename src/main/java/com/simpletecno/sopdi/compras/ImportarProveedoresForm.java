@@ -120,8 +120,7 @@ public class ImportarProveedoresForm extends Window {
         proveedorTable.addContainerProperty("EsPlanilla", String.class, "");
         proveedorTable.addContainerProperty("EsRelacionada", String.class, "");
 
-        proveedorTable.setColumnAlignments(new Table.Align[]{
-                Table.Align.LEFT, Table.Align.CENTER, Table.Align.CENTER,
+        proveedorTable.setColumnAlignments(Table.Align.LEFT, Table.Align.CENTER, Table.Align.CENTER,
                 Table.Align.LEFT, Table.Align.LEFT, Table.Align.LEFT,
                 Table.Align.RIGHT, Table.Align.RIGHT, Table.Align.CENTER,
                 Table.Align.CENTER, Table.Align.CENTER, Table.Align.CENTER,
@@ -129,8 +128,7 @@ public class ImportarProveedoresForm extends Window {
                 Table.Align.CENTER, Table.Align.CENTER, Table.Align.CENTER,
                 Table.Align.CENTER, Table.Align.CENTER, Table.Align.CENTER,
                 Table.Align.CENTER, Table.Align.CENTER, Table.Align.CENTER,
-                Table.Align.CENTER, Table.Align.CENTER
-        });
+                Table.Align.CENTER, Table.Align.CENTER);
 
         proveedorTable.setColumnWidth("N0", 50);
         proveedorTable.setColumnWidth("Grupo0", 100);
@@ -207,7 +205,6 @@ public class ImportarProveedoresForm extends Window {
             } catch (java.io.IOException fIoEx) {
                 fIoEx.printStackTrace();
                 Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                return;
             }
         };
 
@@ -453,44 +450,44 @@ System.out.println(sheet.getRow(linea).getCell(25).getRawValue());
                                     if (rsRecords.next()){ /// si existe un proveedor con ese Id ACTUALIZAR
 
                                         queryString = "Update proveedor Set ";
-                                        queryString += " N0 = " + String.valueOf(sheet.getRow(linea).getCell(1).getStringCellValue());
-                                        queryString += ",Grupo0 = '" + String.valueOf(sheet.getRow(linea).getCell(2).getStringCellValue()) + "'";
-                                        queryString += ",N1 = " + String.valueOf(sheet.getRow(linea).getCell(3).getStringCellValue());
-                                        queryString += ",Grupo = '" + String.valueOf(sheet.getRow(linea).getCell(4).getStringCellValue()) + "'";
-                                        queryString += ",N2 = " + String.valueOf(sheet.getRow(linea).getCell(5).getStringCellValue());
-                                        queryString += ",Tipo = '" + String.valueOf(sheet.getRow(linea).getCell(6).getStringCellValue()) + "'";
-                                        queryString += ",N3 = " + String.valueOf(sheet.getRow(linea).getCell(7).getStringCellValue());
+                                        queryString += " N0 = " + sheet.getRow(linea).getCell(1).getStringCellValue();
+                                        queryString += ",Grupo0 = '" + sheet.getRow(linea).getCell(2).getStringCellValue() + "'";
+                                        queryString += ",N1 = " + sheet.getRow(linea).getCell(3).getStringCellValue();
+                                        queryString += ",Grupo = '" + sheet.getRow(linea).getCell(4).getStringCellValue() + "'";
+                                        queryString += ",N2 = " + sheet.getRow(linea).getCell(5).getStringCellValue();
+                                        queryString += ",Tipo = '" + sheet.getRow(linea).getCell(6).getStringCellValue() + "'";
+                                        queryString += ",N3 = " + sheet.getRow(linea).getCell(7).getStringCellValue();
                                         queryString += ",IDProveedor = " + String.valueOf(sheet.getRow(linea).getCell(8).getNumericCellValue()).split("\\.")[0];
-                                        queryString += ",Nombre = '" + String.valueOf(sheet.getRow(linea).getCell(9).getStringCellValue()) + "'";
-                                        queryString += ",ProductoNota = '" + String.valueOf(sheet.getRow(linea).getCell(10).getStringCellValue()) + "'";
-                                        queryString += ",NIT = '" + String.valueOf(sheet.getRow(linea).getCell(11).getStringCellValue()) + "'";
-                                        queryString += ",Inhabilitado = '" + String.valueOf(sheet.getRow(linea).getCell(12).getStringCellValue()) + "'";
-                                        queryString += ",AnticipoLote = " + String.valueOf(sheet.getRow(linea).getCell(13).getStringCellValue());
-                                        queryString += ",Provision = " + String.valueOf(sheet.getRow(linea).getCell(14).getStringCellValue());
+                                        queryString += ",Nombre = '" + sheet.getRow(linea).getCell(9).getStringCellValue() + "'";
+                                        queryString += ",ProductoNota = '" + sheet.getRow(linea).getCell(10).getStringCellValue() + "'";
+                                        queryString += ",NIT = '" + sheet.getRow(linea).getCell(11).getStringCellValue() + "'";
+                                        queryString += ",Inhabilitado = '" + sheet.getRow(linea).getCell(12).getStringCellValue() + "'";
+                                        queryString += ",AnticipoLote = " + sheet.getRow(linea).getCell(13).getStringCellValue();
+                                        queryString += ",Provision = " + sheet.getRow(linea).getCell(14).getStringCellValue();
                                         if (String.valueOf(sheet.getRow(linea).getCell(15).getStringCellValue()).equals("") ||
                                                 String.valueOf(sheet.getRow(linea).getCell(15).getStringCellValue())==null) {
                                             queryString += ",DiasAnticipo = 0";
                                         }else{
-                                            queryString += ",DiasAnticipo = " + String.valueOf(sheet.getRow(linea).getCell(15).getStringCellValue());
+                                            queryString += ",DiasAnticipo = " + sheet.getRow(linea).getCell(15).getStringCellValue();
                                         }
 
                                         if (String.valueOf(sheet.getRow(linea).getCell(16).getStringCellValue()).equals("") ||
                                                 String.valueOf(sheet.getRow(linea).getCell(16).getStringCellValue())==null) {
                                             queryString += ",DiasCredito = 0";
                                         }else{
-                                            queryString += ",DiasCredito = " + String.valueOf(sheet.getRow(linea).getCell(16).getStringCellValue());
+                                            queryString += ",DiasCredito = " + sheet.getRow(linea).getCell(16).getStringCellValue();
 
                                         }
-                                        queryString += ",AnticipoUnidad = " + String.valueOf(sheet.getRow(linea).getCell(17).getStringCellValue());
-                                        queryString += ",DiaProvision = " + String.valueOf(sheet.getRow(linea).getCell(18).getStringCellValue());
-                                        queryString += ",Email = '" + String.valueOf(sheet.getRow(linea).getCell(19).getStringCellValue()) + "'";
+                                        queryString += ",AnticipoUnidad = " + sheet.getRow(linea).getCell(17).getStringCellValue();
+                                        queryString += ",DiaProvision = " + sheet.getRow(linea).getCell(18).getStringCellValue();
+                                        queryString += ",Email = '" + sheet.getRow(linea).getCell(19).getStringCellValue() + "'";
                                         queryString += ",DPI = '" + String.valueOf(sheet.getRow(linea).getCell(20).getStringCellValue()).split("\\.")[0] + "'";
-                                        queryString += ",EsProveedor = " + String.valueOf(sheet.getRow(linea).getCell(21).getStringCellValue());
-                                        queryString += ",EsCliente = " + String.valueOf(sheet.getRow(linea).getCell(22).getStringCellValue());
-                                        queryString += ",EsLiquidador = " + String.valueOf(sheet.getRow(linea).getCell(23).getStringCellValue());
-                                        queryString += ",EsComite    = " + String.valueOf(sheet.getRow(linea).getCell(24).getStringCellValue());
-                                        queryString += ",EsPlanilla = " + String.valueOf(sheet.getRow(linea).getCell(25).getStringCellValue());
-                                        queryString += ",EsRelacionada = " + String.valueOf(sheet.getRow(linea).getCell(26).getStringCellValue());
+                                        queryString += ",EsProveedor = " + sheet.getRow(linea).getCell(21).getStringCellValue();
+                                        queryString += ",EsCliente = " + sheet.getRow(linea).getCell(22).getStringCellValue();
+                                        queryString += ",EsLiquidador = " + sheet.getRow(linea).getCell(23).getStringCellValue();
+                                        queryString += ",EsComite    = " + sheet.getRow(linea).getCell(24).getStringCellValue();
+                                        queryString += ",EsPlanilla = " + sheet.getRow(linea).getCell(25).getStringCellValue();
+                                        queryString += ",EsRelacionada = " + sheet.getRow(linea).getCell(26).getStringCellValue();
                                         queryString += " Where IDProveedor = " + String.valueOf(sheet.getRow(linea).getCell(8).getNumericCellValue()).split("\\.")[0];
 
                                     }else{
@@ -500,42 +497,42 @@ System.out.println(sheet.getRow(linea).getCell(25).getRawValue());
                                         queryString += " EsProveedor, EsCliente,";
                                         queryString += " EsLiquidador, EsComite, EsPlanilla, EsRelacionada)";
                                         queryString += " Values (";
-                                        queryString += "" + String.valueOf(sheet.getRow(linea).getCell(1).getStringCellValue());
-                                        queryString += ",'" + String.valueOf(sheet.getRow(linea).getCell(2).getStringCellValue()) + "'";
-                                        queryString += "," + String.valueOf(sheet.getRow(linea).getCell(3).getStringCellValue());
-                                        queryString += ",'" + String.valueOf(sheet.getRow(linea).getCell(4).getStringCellValue()) + "'";
-                                        queryString += "," + String.valueOf(sheet.getRow(linea).getCell(5).getStringCellValue());
-                                        queryString += ",'" + String.valueOf(sheet.getRow(linea).getCell(6).getStringCellValue()) + "'";
-                                        queryString += "," + String.valueOf(sheet.getRow(linea).getCell(7).getStringCellValue());
+                                        queryString += sheet.getRow(linea).getCell(1).getStringCellValue();
+                                        queryString += ",'" + sheet.getRow(linea).getCell(2).getStringCellValue() + "'";
+                                        queryString += "," + sheet.getRow(linea).getCell(3).getStringCellValue();
+                                        queryString += ",'" + sheet.getRow(linea).getCell(4).getStringCellValue() + "'";
+                                        queryString += "," + sheet.getRow(linea).getCell(5).getStringCellValue();
+                                        queryString += ",'" + sheet.getRow(linea).getCell(6).getStringCellValue() + "'";
+                                        queryString += "," + sheet.getRow(linea).getCell(7).getStringCellValue();
                                         queryString += "," + String.valueOf(sheet.getRow(linea).getCell(8).getNumericCellValue()).split("\\.")[0];
-                                        queryString += ",'" + String.valueOf(sheet.getRow(linea).getCell(9).getStringCellValue()) + "'";
-                                        queryString += ",'" + String.valueOf(sheet.getRow(linea).getCell(10).getStringCellValue()) + "'";
-                                        queryString += ",'" + String.valueOf(sheet.getRow(linea).getCell(11).getStringCellValue()) + "'";
-                                        queryString += "," + String.valueOf(sheet.getRow(linea).getCell(12).getStringCellValue());
-                                        queryString += "," + String.valueOf(sheet.getRow(linea).getCell(13).getStringCellValue());
-                                        queryString += "," + String.valueOf(sheet.getRow(linea).getCell(14).getStringCellValue());
+                                        queryString += ",'" + sheet.getRow(linea).getCell(9).getStringCellValue() + "'";
+                                        queryString += ",'" + sheet.getRow(linea).getCell(10).getStringCellValue() + "'";
+                                        queryString += ",'" + sheet.getRow(linea).getCell(11).getStringCellValue() + "'";
+                                        queryString += "," + sheet.getRow(linea).getCell(12).getStringCellValue();
+                                        queryString += "," + sheet.getRow(linea).getCell(13).getStringCellValue();
+                                        queryString += "," + sheet.getRow(linea).getCell(14).getStringCellValue();
                                         if (String.valueOf(sheet.getRow(linea).getCell(15).getStringCellValue()).equals("") ||
                                                 String.valueOf(sheet.getRow(linea).getCell(15).getStringCellValue())==null) {
                                             queryString += ",0";
                                         }else{
-                                            queryString += ", " + String.valueOf(sheet.getRow(linea).getCell(15).getStringCellValue());
+                                            queryString += ", " + sheet.getRow(linea).getCell(15).getStringCellValue();
                                         }
                                         if (String.valueOf(sheet.getRow(linea).getCell(16).getStringCellValue()).equals("") ||
                                                 String.valueOf(sheet.getRow(linea).getCell(16).getStringCellValue())==null) {
                                             queryString += ",0";
                                         }else{
-                                            queryString += ", " + String.valueOf(sheet.getRow(linea).getCell(16).getStringCellValue());
+                                            queryString += ", " + sheet.getRow(linea).getCell(16).getStringCellValue();
                                         }
-                                        queryString += "," + String.valueOf(sheet.getRow(linea).getCell(17).getStringCellValue());
-                                        queryString += "," + String.valueOf(sheet.getRow(linea).getCell(18).getStringCellValue());
-                                        queryString += ",'" + String.valueOf(sheet.getRow(linea).getCell(19).getStringCellValue()) + "'";
+                                        queryString += "," + sheet.getRow(linea).getCell(17).getStringCellValue();
+                                        queryString += "," + sheet.getRow(linea).getCell(18).getStringCellValue();
+                                        queryString += ",'" + sheet.getRow(linea).getCell(19).getStringCellValue() + "'";
                                         queryString += ",'" + String.valueOf(sheet.getRow(linea).getCell(20).getStringCellValue()).split("\\.")[0] + "'";
-                                        queryString += "," + String.valueOf(sheet.getRow(linea).getCell(21).getStringCellValue());
-                                        queryString += "," + String.valueOf(sheet.getRow(linea).getCell(22).getStringCellValue());
-                                        queryString += "," + String.valueOf(sheet.getRow(linea).getCell(23).getStringCellValue());
-                                        queryString += "," + String.valueOf(sheet.getRow(linea).getCell(24).getStringCellValue());
-                                        queryString += "," + String.valueOf(sheet.getRow(linea).getCell(25).getStringCellValue());
-                                        queryString += "," + String.valueOf(sheet.getRow(linea).getCell(26).getStringCellValue());
+                                        queryString += "," + sheet.getRow(linea).getCell(21).getStringCellValue();
+                                        queryString += "," + sheet.getRow(linea).getCell(22).getStringCellValue();
+                                        queryString += "," + sheet.getRow(linea).getCell(23).getStringCellValue();
+                                        queryString += "," + sheet.getRow(linea).getCell(24).getStringCellValue();
+                                        queryString += "," + sheet.getRow(linea).getCell(25).getStringCellValue();
+                                        queryString += "," + sheet.getRow(linea).getCell(26).getStringCellValue();
                                         queryString += ")";
                                     }
 

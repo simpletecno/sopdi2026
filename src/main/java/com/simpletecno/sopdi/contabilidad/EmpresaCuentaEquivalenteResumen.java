@@ -2,10 +2,8 @@ package com.simpletecno.sopdi.contabilidad;
 
 import com.simpletecno.sopdi.SopdiUI;
 import com.vaadin.ui.*;
-import com.vaadin.data.util.BeanItemContainer;
 
 import java.math.BigDecimal;
-import java.sql.ResultSet;
 import java.sql.Statement;
 
 
@@ -31,7 +29,7 @@ public class EmpresaCuentaEquivalenteResumen extends Window {
     String nomenclaturaNombre;
     int idEmpresa_1;
     int idProveedor_1;
-    int idNomenclatura_1;;
+    int idNomenclatura_1;
     String nomenclaturaNombre_1;
 
     BigDecimal[] totales = new BigDecimal[4]; // Debe, Haber, Debe Qtz, Haber Qtz

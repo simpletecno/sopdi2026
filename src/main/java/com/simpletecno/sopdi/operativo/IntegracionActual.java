@@ -33,6 +33,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
@@ -351,7 +352,7 @@ System.out.println("\n\n"+queryString);
 
             if(rsRecords.next()) { //  encontrado
 
-                BigDecimal granTotal = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+                BigDecimal granTotal = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
 
                 do {
                     
@@ -370,7 +371,7 @@ System.out.println("\n\n"+queryString);
                     integracionContainer.getContainerProperty(itemId, PROVEEDOR_PROPERTY).setValue(rsRecords.getString("IdProveedor") + " " + rsRecords.getString("ProveedorNombre"));
                     integracionContainer.getContainerProperty(itemId, IDEX_PROPERTY).setValue(rsRecords.getString("Idex"));
 
-                    granTotal = granTotal.add(new BigDecimal(rsRecords.getDouble("TotalTotal"))).setScale(2, BigDecimal.ROUND_HALF_UP);
+                    granTotal = granTotal.add(new BigDecimal(rsRecords.getDouble("TotalTotal"))).setScale(2, RoundingMode.HALF_UP);
 
                 }while(rsRecords.next());
 
@@ -386,7 +387,7 @@ System.out.println("\n\n"+queryString);
     } 
     
     private void setTotal() {
-        BigDecimal total = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal total = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
         for (Object rid: integracionGrid.getContainerDataSource()
                      .getItemIds()) {
                      total = total.add(new BigDecimal(
@@ -404,7 +405,7 @@ System.out.println("\n\n"+queryString);
             excelExport.excludeCollapsedColumns();
             excelExport.setDisplayTotals(false);
             String fileexport;
-            fileexport = (empresa+"_" + empresaNombre.substring(5, empresaNombre.length()).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é","") + "_INTEGRACION_CAMBIOS.xlsx").replaceAll(" ", "").replaceAll(",", "");
+            fileexport = (empresa+"_" + empresaNombre.substring(5).replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é","") + "_INTEGRACION_CAMBIOS.xlsx").replaceAll(" ", "").replaceAll(",", "");
             excelExport.setExportFileName(fileexport);
             excelExport.export();
         }

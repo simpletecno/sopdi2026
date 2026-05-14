@@ -89,7 +89,7 @@ public class CargarDocumentoVisita extends Window {
 
                     new File(filePath).mkdirs();
 
-                    fileName = codigoVisitaUpdate + fileName.substring(fileName.length()-4, fileName.length());
+                    fileName = codigoVisitaUpdate + fileName.substring(fileName.length()-4);
 
                     targetFile = new File(filePath + fileName);
                     OutputStream outStream = new FileOutputStream(targetFile);
@@ -121,7 +121,6 @@ public class CargarDocumentoVisita extends Window {
                 } catch (Exception fIoEx) {
                     fIoEx.printStackTrace();
                     Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                    return;
                 }
             }
         };

@@ -20,8 +20,6 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.themes.ValoTheme;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -162,7 +160,7 @@ public class Unities extends VerticalLayout {
                         if(unitiesTable.getValue() != null) {
                             MenuBar menuBar = (MenuBar)unitiesTable.getContainerProperty(unitiesTable.getValue(), OPTIONS_PROPERTY).getValue();
                             if(menuBar.getItems().get(0).getChildren().contains(selectedItem)) {
-                                String msg = String.valueOf(selectedItem.getId()) + "  ";
+                                String msg = selectedItem.getId() + "  ";
                                 msg += unitiesTable.getContainerProperty(unitiesTable.getValue(), DESCRIPCION_PROPERTY).getValue();
                                 Notification.show(msg, Notification.Type.TRAY_NOTIFICATION);
                                 
@@ -262,8 +260,9 @@ public class Unities extends VerticalLayout {
         excelExport = new ExcelExport(tableToExport);
         excelExport.excludeCollapsedColumns();
         excelExport.setExportFileName(tableToExport.getCaption() + ".xls");
-        
-        String mainTitle = "CIAN - " + tableToExport.getCaption() + " AL: "  + new Utileria().getFechaYYYYMMDD_1(new Date());
+
+        new Utileria();
+        String mainTitle = "CIAN - " + tableToExport.getCaption() + " AL: "  + Utileria.getFechaYYYYMMDD_1(new Date());
   
         excelExport.setReportTitle(mainTitle);
 

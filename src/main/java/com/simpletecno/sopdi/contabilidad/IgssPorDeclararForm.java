@@ -18,6 +18,7 @@ import org.vaadin.ui.NumberField;
 
 import javax.mail.MessagingException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
@@ -535,10 +536,10 @@ public class IgssPorDeclararForm extends Window {
         }
 
         BigDecimal totalIgss = new BigDecimal(0);
-        totalIgss.setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalIgss = totalIgss.add(new BigDecimal(laboralSegunIgss.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalIgss = totalIgss.add(new BigDecimal(patronoalSegunIgss.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalIgss = totalIgss.add(new BigDecimal(multaTxt.getDoubleValueDoNotThrow())).setScale(2, BigDecimal.ROUND_HALF_UP);
+        totalIgss.setScale(2, RoundingMode.HALF_UP);
+        totalIgss = totalIgss.add(new BigDecimal(laboralSegunIgss.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
+        totalIgss = totalIgss.add(new BigDecimal(patronoalSegunIgss.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
+        totalIgss = totalIgss.add(new BigDecimal(multaTxt.getDoubleValueDoNotThrow())).setScale(2, RoundingMode.HALF_UP);
 
         if (totalIgss.doubleValue() != montoTxt.getDoubleValueDoNotThrow()) {
             Notification notif = new Notification("EL MONTO DEL FORMULARIO NO CUADRA CON LA SUMAS DE LAS CUOTAS + LA MULTA : ",
@@ -994,7 +995,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "5...");
             notif.show(Page.getCurrent());
 
             try {
-                String emailsTo[] = {"alerta@simpletecno.com"};
+                String[] emailsTo = {"alerta@simpletecno.com"};
                 MyEmailMessanger eMail = new MyEmailMessanger();
 
                 eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos :  " + this.getClass().getName() + " -->" + ex1.getMessage());

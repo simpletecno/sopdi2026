@@ -338,7 +338,7 @@ System.out.println("--> DOCUMENTOS POR LIQUIDAR = " + queryString);
                     documentosContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).setValue(rsRecords.getString("N5"));
                     documentosContainer.getContainerProperty(itemId, MONEDA_PROPERTY).setValue(rsRecords.getString("MonedaDocumento"));
 
-                    if (rsRecords.getString("MonedaDocumento").toUpperCase().equals("QUETZALES")) {
+                    if (rsRecords.getString("MonedaDocumento").equalsIgnoreCase("QUETZALES")) {
                         monedaSimbolo = "Q.";
                     } else {
                         monedaSimbolo = "$.";
@@ -440,7 +440,7 @@ System.out.println("--> DOCUMENTOS POR LIQUIDAR = " + queryString);
                     partidasContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).setValue(rsRecords1.getString("Descripcion"));
                     partidasContainer.getContainerProperty(itemId, MONEDA_PROPERTY).setValue(rsRecords1.getString("MonedaDocumento"));
 
-                    if (rsRecords1.getString("MonedaDocumento").toUpperCase().equals("QUETZALES")) {
+                    if (rsRecords1.getString("MonedaDocumento").equalsIgnoreCase("QUETZALES")) {
                         monedaSimbolo = "Q.";
                     } else {
                         monedaSimbolo = "$.";

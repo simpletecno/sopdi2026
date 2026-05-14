@@ -761,7 +761,7 @@ public class AutorizarPagoFacturaForm extends Window {
             queryString  = "UPDATE contabilidad_partida SET ";
             queryString += " MontoAutorizadoPagar = " + montoAuotizadoPagar;
             queryString += ", MontoAplicarAnticipo = " + montoAplicarAnticipo;
-            queryString += " WHERE CodigoPartida = '" + String.valueOf(facturasContainer.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue()) + "'";
+            queryString += " WHERE CodigoPartida = '" + facturasContainer.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_PARTIDA_PROPERTY).getValue() + "'";
             queryString += " AND IdEmpresa = " + empresaId;
 
             Logger.getLogger(this.getClass().getName()).log(Level.INFO,
@@ -777,11 +777,11 @@ public class AutorizarPagoFacturaForm extends Window {
             queryString += "(";
             queryString += "'" + AutorizacionesPagoView.PAGO_DOCUMENTO + "'";
             queryString += "," + empresaId;
-            queryString += "," + String.valueOf(facturasContainer.getContainerProperty(facturasGrid.getSelectedRow(), ID_PROVEEDOR_PROPERTY).getValue());
+            queryString += "," + facturasContainer.getContainerProperty(facturasGrid.getSelectedRow(), ID_PROVEEDOR_PROPERTY).getValue();
             queryString += ",current_date";
-            queryString += ",'" + String.valueOf(facturasContainer.getContainerProperty(facturasGrid.getSelectedRow(), MONEDA_PROPERTY).getValue()) + "'";
+            queryString += ",'" + facturasContainer.getContainerProperty(facturasGrid.getSelectedRow(), MONEDA_PROPERTY).getValue() + "'";
             queryString += "," + montoAuotizadoPagar;
-            queryString += ",'" + String.valueOf(facturasContainer.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_CC_PROPERTY).getValue()) + "'";
+            queryString += ",'" + facturasContainer.getContainerProperty(facturasGrid.getSelectedRow(), CODIGO_CC_PROPERTY).getValue() + "'";
             queryString += ",''";
             queryString += ",''";
             queryString += ",'" + AutorizacionesPagoView.PAGO_DOCUMENTO + "'";

@@ -152,7 +152,7 @@ public class ProjectTaskView extends VerticalLayout implements View {
                         try {
                             File downloadFile = new File(String.valueOf(projectsContainer.getContainerProperty(projectsGrid.getSelectedRow(),"archivo").getValue()));
 
-                            final byte docBytes[] = Files.readAllBytes(downloadFile.toPath());
+                            final byte[] docBytes = Files.readAllBytes(downloadFile.toPath());
 
                             final StreamResource resource = new StreamResource(() -> {
                                 return new ByteArrayInputStream(docBytes);
@@ -183,7 +183,7 @@ public class ProjectTaskView extends VerticalLayout implements View {
                                     downLayout.removeAllComponents();
                                     downloadW.setContent(null);
                                     downloadW.detach();
-                                    ((SopdiUI) mainUI).removeWindow(downloadW);
+                                    mainUI.removeWindow(downloadW);
                                 }
                             });
 
@@ -334,7 +334,7 @@ public class ProjectTaskView extends VerticalLayout implements View {
         codigoTareaTxt.setWidth("80%");
 //        codigoTareaTxt.addValueChangeListener((Property.ValueChangeEvent event) -> {
         codigoTareaTxt.addTextChangeListener(new FieldEvents.TextChangeListener() {
-                SimpleStringFilter filter = null;
+                final SimpleStringFilter filter = null;
 
                 public void textChange(FieldEvents.TextChangeEvent event) {
                     fillTasks();
@@ -514,11 +514,11 @@ public class ProjectTaskView extends VerticalLayout implements View {
 
         queryString = "SELECT *";
         queryString += " FROM  project_tarea";
-        queryString += " WHERE IdProject = " + String.valueOf(projectsContainer.getContainerProperty(projectsGrid.getSelectedRow(), "idProject").getValue());
-        if (codigoTareaTxt.getValue().trim().isEmpty() == false) {
+        queryString += " WHERE IdProject = " + projectsContainer.getContainerProperty(projectsGrid.getSelectedRow(), "idProject").getValue();
+        if (!codigoTareaTxt.getValue().trim().isEmpty()) {
             queryString += " AND IDEX = '" + codigoTareaTxt.getValue().trim() + "'";
         }
-        if (descripcionTxt.getValue().trim().isEmpty() == false) {
+        if (!descripcionTxt.getValue().trim().isEmpty()) {
             queryString += " AND Descripcion Like '%" + descripcionTxt.getValue().trim() + "%'";
         }
 
@@ -562,10 +562,10 @@ public class ProjectTaskView extends VerticalLayout implements View {
                             rsRecords.getDouble("DuracionLineaBase1"),
                             rsRecords.getString("EDT"),
                             rsRecords.getDouble("NivelEsquema"),
-                            (rsRecords.getString("Hito").equals("SI") ? true : false),
+                            (rsRecords.getString("Hito").equals("SI")),
                             rsRecords.getDate("Resumen"),
-                            (rsRecords.getString("TareasCriticas").equals("SI") ? true : false),
-                            (rsRecords.getString("Activo").equals("SI") ? true : false),
+                            (rsRecords.getString("TareasCriticas").equals("SI")),
+                            (rsRecords.getString("Activo").equals("SI")),
                             rsRecords.getDouble("ModoTarea"),
                             rsRecords.getDouble("TipoRestriccion"),
                             rsRecords.getDate("FechaRestriccion"), //30
@@ -579,9 +579,9 @@ public class ProjectTaskView extends VerticalLayout implements View {
                             rsRecords.getDouble("CostoRealManoObra"),
                             rsRecords.getDouble("CostoRealMateriales"),
                             rsRecords.getDouble("CostoRealNacsa"),
-                            (rsRecords.getString("Estimacion").equals("SI") ? true : false), //40
-                            (rsRecords.getString("Ejecutada").equals("SI") ? true : false),
-                            (rsRecords.getString("Critica").equals("SI") ? true : false),
+                            (rsRecords.getString("Estimacion").equals("SI")), //40
+                            (rsRecords.getString("Ejecutada").equals("SI")),
+                            (rsRecords.getString("Critica").equals("SI")),
                             rsRecords.getDouble("DLI"),
                             rsRecords.getDouble("NoEst"),
                             rsRecords.getDouble("NoPrograma"),
@@ -623,7 +623,7 @@ public class ProjectTaskView extends VerticalLayout implements View {
 
         queryString =  "SELECT Moneda, Idex, SUM(Total) TotalTotal ";
         queryString += " FROM  DetalleItemsCostos ";
-        queryString += " WHERE IdProject = " + String.valueOf(projectsContainer.getContainerProperty(projectsGrid.getSelectedRow(), "numero").getValue());;
+        queryString += " WHERE IdProject = " + projectsContainer.getContainerProperty(projectsGrid.getSelectedRow(), "numero").getValue();
 //        queryString += " And CAST(Idex AS SIGNED)= " + String.valueOf(projectsContainer.getContainerProperty(projectsGrid.getSelectedRow(), NUMERO_PROPERTY).getValue()) + IDEX;
         queryString += " AND Idex = '" + IDEX + "'";
         queryString += " AND Tipo IN ('INTINI', 'DOCA')";

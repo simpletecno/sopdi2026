@@ -23,6 +23,7 @@ import org.vaadin.ui.NumberField;
 
 import javax.mail.MessagingException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Iterator;
@@ -861,15 +862,15 @@ public class IngresoReembolsoSueldo extends Window {
         totalDebe = new BigDecimal(debe1Txt.getDoubleValueDoNotThrow()
                 + debe2Txt.getDoubleValueDoNotThrow() + debe3Txt.getDoubleValueDoNotThrow()
                 + debe4Txt.getDoubleValueDoNotThrow() + debe5Txt.getDoubleValueDoNotThrow()
-        ).setScale(2, BigDecimal.ROUND_HALF_UP);
+        ).setScale(2, RoundingMode.HALF_UP);
 
         totalHaber = new BigDecimal(haber1Txt.getDoubleValueDoNotThrow()
                 + haber2Txt.getDoubleValueDoNotThrow() + haber3Txt.getDoubleValueDoNotThrow()
                 + haber4Txt.getDoubleValueDoNotThrow() + haber5Txt.getDoubleValueDoNotThrow()
-        ).setScale(2, BigDecimal.ROUND_HALF_UP);
+        ).setScale(2, RoundingMode.HALF_UP);
 
-        totalDebe.setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalHaber.setScale(2, BigDecimal.ROUND_HALF_UP);
+        totalDebe.setScale(2, RoundingMode.HALF_UP);
+        totalHaber.setScale(2, RoundingMode.HALF_UP);
 
         if (totalDebe.doubleValue() != totalHaber.doubleValue()) {
             System.out.println("Debe =" + totalDebe.doubleValue() + "  haber=" + totalHaber);
@@ -943,7 +944,7 @@ public class IngresoReembolsoSueldo extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        codigoPartida = String.valueOf(empresaCbx.getValue()) + año + mes + dia + "5";
+        codigoPartida = empresaCbx.getValue() + año + mes + dia + "5";
 
         queryString = " select codigoPartida from contabilidad_partida ";
         queryString += " where codigoPartida like '" + codigoPartida + "%'";
@@ -981,7 +982,7 @@ public class IngresoReembolsoSueldo extends Window {
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'";
-        queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+        queryString += ",'" + medioCbx.getValue() + "'";
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += "," + proveedorCbx.getValue();
         queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -990,13 +991,13 @@ public class IngresoReembolsoSueldo extends Window {
         queryString += "," + cuentaContable1Cbx.getValue();
         queryString += ",'" + monedaCbx.getValue() + "'";
         queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-        queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow()); // DEBE
+        queryString += "," + debe1Txt.getDoubleValueDoNotThrow(); // DEBE
         queryString += ",0.00"; // HABER
-        queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + debe1Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
         queryString += ",0.00"; ///HABER Q.        
-        queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
         queryString += ",0.00";
-        queryString += ",'Ingreso por " + String.valueOf(tipoIngresoCbx.getValue()) + " " + descripcionTxt.getValue() + "'";
+        queryString += ",'Ingreso por " + tipoIngresoCbx.getValue() + " " + descripcionTxt.getValue() + "'";
         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
         queryString += ",current_timestamp";
         queryString += ")";
@@ -1007,7 +1008,7 @@ public class IngresoReembolsoSueldo extends Window {
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigo2Txt.getValue() + "'";
-        queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+        queryString += ",'" + medioCbx.getValue() + "'";
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += "," + proveedorCbx.getValue();
         queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1017,12 +1018,12 @@ public class IngresoReembolsoSueldo extends Window {
         queryString += ",'" + monedaCbx.getValue() + "'";
         queryString += "," + montoTxt.getDoubleValueDoNotThrow();
         queryString += ",0.00";// DEBE
-        queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow()); // HABER
+        queryString += "," + haber2Txt.getDoubleValueDoNotThrow(); // HABER
         queryString += ",0.00"; //DEBE Q.
-        queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-        queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + haber2Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+        queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
         queryString += ",0.00";
-        queryString += ",'Ingreso por " + String.valueOf(tipoIngresoCbx.getValue()) + " " + descripcionTxt.getValue() + "'";
+        queryString += ",'Ingreso por " + tipoIngresoCbx.getValue() + " " + descripcionTxt.getValue() + "'";
         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
         queryString += ",current_timestamp";
         queryString += ")";
@@ -1034,7 +1035,7 @@ public class IngresoReembolsoSueldo extends Window {
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigo3Txt.getValue() + "'";
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
@@ -1044,12 +1045,12 @@ public class IngresoReembolsoSueldo extends Window {
             queryString += ",'" + monedaCbx.getValue() + "'";
             queryString += "," + montoTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";// DEBE
-            queryString += "," + String.valueOf(haber3Txt.getDoubleValueDoNotThrow()); // HABER
+            queryString += "," + haber3Txt.getDoubleValueDoNotThrow(); // HABER
             queryString += ",0.00"; //DEBE Q.
-            queryString += "," + String.valueOf(haber3Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + haber3Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
-            queryString += ",'Ingreso por " + String.valueOf(tipoIngresoCbx.getValue()) + " " + descripcionTxt.getValue() + "'";
+            queryString += ",'Ingreso por " + tipoIngresoCbx.getValue() + " " + descripcionTxt.getValue() + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
             queryString += ")";
@@ -1082,7 +1083,7 @@ public class IngresoReembolsoSueldo extends Window {
             notif.show(Page.getCurrent());
 
             try {
-                String emailsTo[] = {"alerta@simpletecno.com"};
+                String[] emailsTo = {"alerta@simpletecno.com"};
                 MyEmailMessanger eMail = new MyEmailMessanger();
 
                 eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos :  " + this.getClass().getName() + " -->" + ex1.getMessage());

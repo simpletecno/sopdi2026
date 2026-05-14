@@ -506,7 +506,7 @@ public class InspectionTaskOCForm extends Window {
 
 //System.out.println("0 " + this.idVisitaInspeccionTareaOcDetalle.trim().equals("0"));
 
-            if(this.idVisitaInspeccionTareaOcDetalle.trim().equals("0") == false) { // para actualizar oc detalle
+            if(!this.idVisitaInspeccionTareaOcDetalle.trim().equals("0")) { // para actualizar oc detalle
                 queryString = "SELECT OCD.*, CCC.Descripcion, CC.Lote LoteCC ";
                 queryString += " FROM visita_inspeccion_tarea_oc_detalle OCD";
                 queryString += " INNER JOIN centro_costo_cuenta CCC ON CCC.CodigoCuentaCentroCosto = OCD.NoCuenta";

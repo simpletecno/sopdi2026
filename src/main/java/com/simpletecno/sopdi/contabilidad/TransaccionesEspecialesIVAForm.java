@@ -19,6 +19,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.ui.NumberField;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -694,15 +695,15 @@ public class TransaccionesEspecialesIVAForm extends Window {
 
         if(!validar()) return;
 
-        totalDebe = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalHaber = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+        totalDebe = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+        totalHaber = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
 
         for (Object itemId : container.getItemIds()) {
             Item item = container.getItem(itemId);
             Object debeValue = item.getItemProperty("DEBE").getValue();
             Object haberValue = item.getItemProperty("HABER").getValue();
-            totalDebe = totalDebe.add(new BigDecimal(Double.valueOf(String.valueOf(debeValue))).setScale(2, BigDecimal.ROUND_HALF_UP));
-            totalHaber = totalHaber.add(new BigDecimal(Double.valueOf(String.valueOf(haberValue))).setScale(2, BigDecimal.ROUND_HALF_UP));
+            totalDebe = totalDebe.add(new BigDecimal(Double.valueOf(String.valueOf(debeValue))).setScale(2, RoundingMode.HALF_UP));
+            totalHaber = totalHaber.add(new BigDecimal(Double.valueOf(String.valueOf(haberValue))).setScale(2, RoundingMode.HALF_UP));
 
         }
 
@@ -821,13 +822,13 @@ public class TransaccionesEspecialesIVAForm extends Window {
                     queryString += ",''";
                     queryString += ",''";
                 }
-                queryString += ",'" + String.valueOf(monedaCbx.getValue()) + "'";
-                queryString += "," + String.valueOf(totalHaber.doubleValue());
-                queryString += ", " + String.valueOf(item.getItemProperty("DEBE").getValue()) + ""; //debe
-                queryString += ", " + String.valueOf(item.getItemProperty("HABER").getValue()) + ""; //haber
-                queryString += "," + String.valueOf(Double.valueOf(String.valueOf(item.getItemProperty("DEBE").getValue())) * tasaCambioTxt.getDoubleValueDoNotThrow());
-                queryString += "," + String.valueOf(Double.valueOf(String.valueOf(item.getItemProperty("HABER").getValue())) * tasaCambioTxt.getDoubleValueDoNotThrow());
-                queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += ",'" + monedaCbx.getValue() + "'";
+                queryString += "," + totalHaber.doubleValue();
+                queryString += ", " + item.getItemProperty("DEBE").getValue(); //debe
+                queryString += ", " + item.getItemProperty("HABER").getValue(); //haber
+                queryString += "," + Double.valueOf(String.valueOf(item.getItemProperty("DEBE").getValue())) * tasaCambioTxt.getDoubleValueDoNotThrow();
+                queryString += "," + Double.valueOf(String.valueOf(item.getItemProperty("HABER").getValue())) * tasaCambioTxt.getDoubleValueDoNotThrow();
+                queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
                 queryString += ",'INGRESADO'";
                 queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
                 queryString += ",current_timestamp";

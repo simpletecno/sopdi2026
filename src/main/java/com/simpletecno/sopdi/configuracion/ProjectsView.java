@@ -138,11 +138,9 @@ public class ProjectsView extends VerticalLayout implements View {
         projectsTable.addContainerProperty(FECHA_FIN_PROPERTY,  String.class, null);
         projectsTable.addContainerProperty(OPTIONS_PROPERTY,    MenuBar.class, null);
         
-        projectsTable.setColumnAlignments(new Table.Align[] { 
-                Table.Align.CENTER, Table.Align.CENTER,Table.Align.CENTER, Table.Align.LEFT,
-                Table.Align.LEFT,   Table.Align.LEFT,  Table.Align.LEFT,   Table.Align.LEFT, 
-                Table.Align.LEFT,   Table.Align.CENTER
-        });
+        projectsTable.setColumnAlignments(Table.Align.CENTER, Table.Align.CENTER,Table.Align.CENTER, Table.Align.LEFT,
+                Table.Align.LEFT, Table.Align.LEFT, Table.Align.LEFT, Table.Align.LEFT,
+                Table.Align.LEFT, Table.Align.CENTER);
 
         projectsTable.setFooterVisible(true);
         projectsTable.setColumnFooter(ESTATUS_PROPERTY, "Total");
@@ -232,7 +230,7 @@ public class ProjectsView extends VerticalLayout implements View {
                         fechaFin = utileria.getFecha(rsRecords.getDate("FechaFin"));
                     }
 
-                    final byte docBytes[] = rsRecords.getBytes("Logo");
+                    final byte[] docBytes = rsRecords.getBytes("Logo");
                     StreamResource logoStreamResource = null;
 
                     if(docBytes != null ) {
@@ -298,8 +296,9 @@ public class ProjectsView extends VerticalLayout implements View {
         excelExport = new ExcelExport(tableToExport);
         excelExport.excludeCollapsedColumns();
         excelExport.setExportFileName(tableToExport.getCaption() + ".xls");
-        
-        String mainTitle = "Sopdi - " + tableToExport.getCaption() + " AL: "  + new Utileria().getFechaYYYYMMDD_1(new Date());
+
+        new Utileria();
+        String mainTitle = "Sopdi - " + tableToExport.getCaption() + " AL: "  + Utileria.getFechaYYYYMMDD_1(new Date());
   
         excelExport.setReportTitle(mainTitle);
 
@@ -353,7 +352,7 @@ public class ProjectsView extends VerticalLayout implements View {
 
         queryString =  "DELETE ";
         queryString += " FROM  cliente_nota ";
-        queryString += " WHERE IdCliente = " + String.valueOf(projectsTable.getValue());
+        queryString += " WHERE IdCliente = " + projectsTable.getValue();
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();            
@@ -361,7 +360,7 @@ public class ProjectsView extends VerticalLayout implements View {
 
             queryString =  "DELETE ";
             queryString += " FROM  proyecto ";
-            queryString += " WHERE IdProyecto = " + String.valueOf(projectsTable.getValue());
+            queryString += " WHERE IdProyecto = " + projectsTable.getValue();
 
             stQuery.executeUpdate(queryString);
 

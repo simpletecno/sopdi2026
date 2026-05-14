@@ -144,7 +144,7 @@ public class AutorizarDevolucionPrestamoTerceroForm extends Window {
                         for(Object itemId : clienteGrid.getSelectedRows()) {
                             granTotal+= Double.valueOf(String.valueOf(container.getContainerProperty(itemId, MONTO_DEVOLVER).getValue()));
                         }
-                        totalDevolver.setValue("Total a devolver : " + String.valueOf(granTotal));
+                        totalDevolver.setValue("Total a devolver : " + granTotal);
                     }
                 }
         );
@@ -302,7 +302,7 @@ public class AutorizarDevolucionPrestamoTerceroForm extends Window {
                             for(Object itemId : clienteGrid.getSelectedRows()) {
                                 granTotal+= Double.valueOf(String.valueOf(container.getContainerProperty(itemId, MONTO_DEVOLVER).getValue()));
                             }
-                            totalDevolver.setValue("Total a devolver : " + String.valueOf(granTotal));
+                            totalDevolver.setValue("Total a devolver : " + granTotal);
                         }
                     }
                 }

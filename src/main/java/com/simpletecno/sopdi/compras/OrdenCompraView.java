@@ -359,7 +359,7 @@ public class OrdenCompraView extends VerticalLayout implements View {
                 queryString += " FROM orden_compra";
                 queryString += " INNER JOIN tipo_orden_compra ON orden_compra.IdTipoOrdenCompra = tipo_orden_compra.Id";
                 queryString += " INNER JOIN proveedor_empresa ON orden_compra.IdProveedor = proveedor_empresa.IdProveedor";
-                queryString += " WHERE orden_compra.Id = " + String.valueOf(ordenCompraContainer.getContainerProperty(ordenCompraGrid.getSelectedRow(), ID_PROPERTY).getValue());
+                queryString += " WHERE orden_compra.Id = " + ordenCompraContainer.getContainerProperty(ordenCompraGrid.getSelectedRow(), ID_PROPERTY).getValue();
                 queryString += " AND proveedor_empresa.IdEmpresa = " + empresaId;
 
                 try {
@@ -412,7 +412,7 @@ public class OrdenCompraView extends VerticalLayout implements View {
             }
             queryString = " SELECT * ";
             queryString += " FROM contabilidad_partida";
-            queryString += " WHERE CodigoCC = '" + String.valueOf(ordenCompraContainer.getContainerProperty(ordenCompraGrid.getSelectedRow(), CODIGOCC_DOCUMENTO_PROPERTY).getValue()) + "'";
+            queryString += " WHERE CodigoCC = '" + ordenCompraContainer.getContainerProperty(ordenCompraGrid.getSelectedRow(), CODIGOCC_DOCUMENTO_PROPERTY).getValue() + "'";
             queryString += " AND IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
 
             try {
@@ -457,7 +457,7 @@ public class OrdenCompraView extends VerticalLayout implements View {
 
         try {
 
-            if (inicioDt.getValue().before(finDt.getValue()) == true) {
+            if (inicioDt.getValue().before(finDt.getValue())) {
 
                 queryString = " SELECT *, empresa.Nombre as EmpresaNombre, project.Etiqueta AS ProjectNom, ";
                 queryString += " proveedor_empresa.Nombre AS ProveedorNombre, tipo_orden_compra.Descripcion As TipoOrdenCompra ";
@@ -506,7 +506,7 @@ Logger.getLogger(this.getClass().getName()).info(queryString);
                         //01234567890123456
                         //NOC210_6761240001
                         //12345678901234567
-                        ordenCompraContainer.getContainerProperty(itemId, NOC_PROPERTY).setValue(rsRecords.getString("NOC").substring(7, rsRecords.getString("NOC").length()));
+                        ordenCompraContainer.getContainerProperty(itemId, NOC_PROPERTY).setValue(rsRecords.getString("NOC").substring(7));
 //                        ordenCompraContainer.getContainerProperty(itemId, TIPO_PROPERTY).setValue(rsRecords.getString("TipoOrdenCompra"));
                         ordenCompraContainer.getContainerProperty(itemId, EMPRESA_PROPERTY).setValue(rsRecords.getString("EmpresaNombre"));
                         ordenCompraContainer.getContainerProperty(itemId, PROYECTO_PROPERTY).setValue(rsRecords.getString("ProjectNom"));

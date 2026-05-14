@@ -122,7 +122,7 @@ public class InspectionTaskImageWindow extends Window {
 
                     contentLayout = new VerticalLayout();
 
-                    final byte docBytes[] = rsRecords.getBytes("Archivo");
+                    final byte[] docBytes = rsRecords.getBytes("Archivo");
                     StreamResource logoStreamResource = null;
 
                     if(docBytes != null ) {
@@ -233,8 +233,7 @@ public class InspectionTaskImageWindow extends Window {
                         catch( java.io.IOException fIoEx) {
                             fIoEx.printStackTrace();
                             Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                            return;
-                        }                
+                        }
                     }
                 };
 
@@ -320,8 +319,7 @@ public class InspectionTaskImageWindow extends Window {
                         catch( java.io.IOException fIoEx) {
                             fIoEx.printStackTrace();
                             Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                            return;
-                        }                
+                        }
                     }
                 };
 
@@ -391,7 +389,7 @@ public class InspectionTaskImageWindow extends Window {
             
             Notification.show("OPERACION EXITOSA!", Notification.Type.HUMANIZED_MESSAGE);
             
-            for (Window subWindow : ((SopdiUI) UI.getCurrent()).getWindows()) {
+            for (Window subWindow : UI.getCurrent().getWindows()) {
 //System.out.println("windows caption = " + subWindow.getCaption());
                 if(subWindow.getCaption().equals("Tareas de visita o reunion")) {
 //System.out.println("encontrado = " + subWindow.getCaption() + " selectedItemId = " + ((InspectionTasksWindow)subWindow).tareasGrid.getEditedItemId());
@@ -427,8 +425,7 @@ public class InspectionTaskImageWindow extends Window {
         catch(Exception excep1) {
             Notification.show("Error al elininar imagen o foto de visita por inspección : " + excep1.getMessage(), Notification.Type.ERROR_MESSAGE);
             excep1.printStackTrace();
-            return;
-        }        
+        }
     }
     
 }

@@ -799,7 +799,7 @@ public class PagoCompraMonedaForm extends Window {
         }
         if (haber2Txt.getDoubleValueDoNotThrow() == 0.00) {
             Notification.show("Monto del HABER no es correcto. ", Notification.Type.ERROR_MESSAGE);
-            haber2Txt.focus();;
+            haber2Txt.focus();
             return;
         }
         if (cuentaContable1Cbx.getValue() == null || cuentaContable2Cbx.getValue() == null) {
@@ -808,13 +808,13 @@ public class PagoCompraMonedaForm extends Window {
             return;
         }
 
-        if (String.valueOf(cuentaContable2Cbx.getValue()).equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal()) == false
-                && String.valueOf(cuentaContable2Cbx.getValue()).equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaExtranjera()) == false) {
+        if (!String.valueOf(cuentaContable2Cbx.getValue()).equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal())
+                && !String.valueOf(cuentaContable2Cbx.getValue()).equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaExtranjera())) {
             Notification.show("Por favor elija la cuenta contable BANCOS que corresponda. ", Notification.Type.ERROR_MESSAGE);
             cuentaContable2Cbx.focus();
             return;
         }
-        if (String.valueOf(cuentaContable1Cbx.getValue()).equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getEfectivoEnTransito()) == false) {
+        if (!String.valueOf(cuentaContable1Cbx.getValue()).equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getEfectivoEnTransito())) {
             Notification.show("Por favor elija la cuenta contable EFECTIVO EN TRANSITO que corresponda. ", Notification.Type.ERROR_MESSAGE);
             cuentaContable1Cbx.focus();
             return;
@@ -823,7 +823,7 @@ public class PagoCompraMonedaForm extends Window {
         queryString = "SELECT CodigoPartida FROM contabilidad_partida ";
         queryString += " WHERE NumeroDocumento = '" + numeroTxt.getValue() + "'";
         queryString += " AND IdEmpresa = " + empresaId;
-        queryString += " AND TipoDocumento = '" + String.valueOf(medioCbx.getValue()) + "'";
+        queryString += " AND TipoDocumento = '" + medioCbx.getValue() + "'";
         queryString += " AND MonedaDocumento = '" + monedaCbx.getValue() + "'";
 
         try {
@@ -889,27 +889,27 @@ public class PagoCompraMonedaForm extends Window {
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'";
-        queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+        queryString += ",'" + medioCbx.getValue() + "'";
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += "," + proveedorCbx.getValue();
         queryString += ",''";//nitproveedor
         queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
         queryString += ",'" + nombreChequeTxt.getValue() + "'";
-        queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+        queryString += "," + montoTxt.getDoubleValueDoNotThrow();
         queryString += ",''";  //serie documento
         queryString += ",'" + numeroTxt.getValue() + "'";
         queryString += ",''"; //tipodoca
         queryString += ",''"; //doca
-        queryString += "," + String.valueOf(cuentaContable1Cbx.getValue()); //idcuentacontable
+        queryString += "," + cuentaContable1Cbx.getValue(); //idcuentacontable
 
         descripcion = "VENTA DE MONEDA " + descripcionTxt.getValue().trim();
 
         queryString += ",'" + monedaCbx.getValue() + "'";
-        queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow()); //DEBE
+        queryString += "," + debe1Txt.getDoubleValueDoNotThrow(); //DEBE
         queryString += ",0.00"; //HABER
-        queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //DEBE Q
+        queryString += "," + debe1Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //DEBE Q
         queryString += ",0.00"; //HABER Q.
-        queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
         queryString += ",'" + descripcion + "'";
         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
         queryString += ",current_timestamp";
@@ -921,13 +921,13 @@ public class PagoCompraMonedaForm extends Window {
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoPartida + "'";
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",''";//nitproveedor
             queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
             queryString += ",'" + nombreChequeTxt.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
             queryString += ",''"; //serie documento
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += ",''"; //tipodoca
@@ -935,10 +935,10 @@ public class PagoCompraMonedaForm extends Window {
             queryString += "," + cuentaContable2Cbx.getValue(); //idcuentacontable
             queryString += ",'" + monedaCbx.getValue() + "'";
             queryString += ",0.00"; // DEBE
-            queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow()); // HABER
+            queryString += "," + haber2Txt.getDoubleValueDoNotThrow(); // HABER
             queryString += ",0.00"; //DEBE Q.
-            queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //HABER Q
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + haber2Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //HABER Q
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",'" + descripcion + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
@@ -952,13 +952,13 @@ public class PagoCompraMonedaForm extends Window {
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoPartida + "'";
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
             queryString += ",''";//nitproveedor
             queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
             queryString += ",'" + nombreChequeTxt.getValue() + "'";
-            queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow());
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
             queryString += ",''"; //serie documento
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += ",''"; //tipodoca
@@ -966,10 +966,10 @@ public class PagoCompraMonedaForm extends Window {
             queryString += "," + cuentaContable3Cbx.getValue(); //idcuentacontable
             queryString += ",'" + monedaCbx.getValue() + "'";
             queryString += ",0.00"; // DEBE
-            queryString += "," + String.valueOf(haber3Txt.getDoubleValueDoNotThrow()); // HABER
+            queryString += "," + haber3Txt.getDoubleValueDoNotThrow(); // HABER
             queryString += ",0.00"; //DEBE Q.
-            queryString += "," + String.valueOf(haber3Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow()); //HABER Q
-            queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + haber3Txt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow(); //HABER Q
+            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",'" + descripcion + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
@@ -1014,7 +1014,7 @@ public class PagoCompraMonedaForm extends Window {
             ex1.printStackTrace();
 
             try {
-                String emailsTo[] = {"alerta@simpletecno.com"};
+                String[] emailsTo = {"alerta@simpletecno.com"};
                 MyEmailMessanger eMail = new MyEmailMessanger();
 
                 eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos :  " + this.getClass().getName() + " -->" + ex1.getMessage());
@@ -1035,7 +1035,7 @@ public class PagoCompraMonedaForm extends Window {
         try {
 
             queryString = " DELETE FROM autorizacion_pago";
-            queryString += " WHERE IdAutorizacion = " + String.valueOf(monedaContainer.getContainerProperty(monedaGrid.getSelectedRow(), NO).getValue());
+            queryString += " WHERE IdAutorizacion = " + monedaContainer.getContainerProperty(monedaGrid.getSelectedRow(), NO).getValue();
 
 //System.out.println("queryString=" + queryString);
 
@@ -1074,7 +1074,7 @@ public class PagoCompraMonedaForm extends Window {
             }
 
             try {
-                String emailsTo[] = {"alerta@simpletecno.com"};
+                String[] emailsTo = {"alerta@simpletecno.com"};
                 MyEmailMessanger eMail = new MyEmailMessanger();
 
                 eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos :  " + this.getClass().getName() + " -->" + ex.getMessage());

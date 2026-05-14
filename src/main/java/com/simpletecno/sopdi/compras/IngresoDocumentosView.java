@@ -22,7 +22,6 @@ import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.BrowserFrame;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.Grid.HeaderCell;
@@ -50,6 +49,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.file.Files;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -737,7 +737,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
                 try {
                     queryString = "UPDATE  contabilidad_partida";
                     queryString += " SET Estatus = 'INGRESADO'";
-                    queryString += " WHERE CodigoPartida = '" + String.valueOf(documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()) + "'";
+                    queryString += " WHERE CodigoPartida = '" + documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue() + "'";
 
                     stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                     stQuery.executeUpdate(queryString);
@@ -806,7 +806,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
                 if (String.valueOf(documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), TIPODOCUMENTO_PROPERTY).getValue()).equals("FACTURA")) {
 
                     queryString = " SELECT * FROM contabilidad_partida ";
-                    queryString += " WHERE CodigoCC = '" + String.valueOf(documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()) + "'";
+                    queryString += " WHERE CodigoCC = '" + documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue() + "'";
                     queryString += " AND IdNomenclatura IN (" + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getProveedores() + "," + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAbastos() + ")";
                     queryString += " AND IdEmpresa =" + empresaId;
                     queryString += " AND TipoDocumento = 'EXENCIÓN IVA'";
@@ -865,7 +865,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
                 if (String.valueOf(documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), TIPODOCUMENTO_PROPERTY).getValue()).equals("FACTURA")) {
 
                     queryString = " SELECT * FROM contabilidad_partida ";
-                    queryString += " WHERE CodigoCC = '" + String.valueOf(documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()) + "'";
+                    queryString += " WHERE CodigoCC = '" + documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue() + "'";
                     queryString += " AND IdNomenclatura IN (" + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getProveedores() + "," + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAbastos() + ")";
                     queryString += " AND IdEmpresa =" + empresaId;
                     queryString += " AND TipoDocumento = 'CONSTANCIA ISR COMPRA'";
@@ -968,7 +968,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
 
                                         queryString = "UPDATE  contabilidad_partida";
                                         queryString += " SET Estatus = 'REVISADO'";
-                                        queryString += " WHERE CodigoPartida = '" + String.valueOf(documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()) + "'";
+                                        queryString += " WHERE CodigoPartida = '" + documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue() + "'";
 
                                         stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                                         stQuery.executeUpdate(queryString);
@@ -1009,7 +1009,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
 
                                         queryString = "UPDATE  contabilidad_partida";
                                         queryString += " SET Estatus = 'ANULADO'";
-                                        queryString += " WHERE CodigoPartida = '" + String.valueOf(documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue()) + "'";
+                                        queryString += " WHERE CodigoPartida = '" + documentsContainer.getContainerProperty(documentosGrid.getSelectedRow(), CODIGO_PROPERTY).getValue() + "'";
 
                                         stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                                         stQuery.executeUpdate(queryString);
@@ -1353,7 +1353,7 @@ System.out.println("Query busqueda FACTURAS/DOCUMENTO COMPRA/GASTO : " + querySt
 
         try {
 
-            final byte docBytes[] = Files.readAllBytes(new File(archivoNombre).toPath());
+            final byte[] docBytes = Files.readAllBytes(new File(archivoNombre).toPath());
             final String fileName = archivoNombre;
 
             if (docBytes == null) {
@@ -1422,7 +1422,7 @@ System.out.println("Query busqueda FACTURAS/DOCUMENTO COMPRA/GASTO : " + querySt
 
                                 new File(filePath).mkdirs();
 
-                                fileName = filePath + codigoPartida + fileName.substring(fileName.length() - 4, fileName.length());
+                                fileName = filePath + codigoPartida + fileName.substring(fileName.length() - 4);
 
                                 new File(filePath).mkdirs();
 
@@ -1462,12 +1462,10 @@ System.out.println("Query busqueda FACTURAS/DOCUMENTO COMPRA/GASTO : " + querySt
                                 notif.setPosition(Position.MIDDLE_CENTER);
                                 notif.setIcon(FontAwesome.WARNING);
                                 notif.show(Page.getCurrent());
-                                return;
                             }
                         } catch (java.io.IOException fIoEx) {
                             fIoEx.printStackTrace();
                             Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                            return;
                         }
                     }
                 };
@@ -1529,7 +1527,7 @@ System.out.println("Query busqueda FACTURAS/DOCUMENTO COMPRA/GASTO : " + querySt
 
                                 new File(filePath).mkdirs();
 
-                                fileName = filePath + codigoPartida + fileName.substring(fileName.length() - 4, fileName.length());
+                                fileName = filePath + codigoPartida + fileName.substring(fileName.length() - 4);
                                 targetFile = new File(fileName);
                                 OutputStream outStream = new FileOutputStream(targetFile);
                                 outStream.write(buffer);
@@ -1567,12 +1565,10 @@ System.out.println("Query busqueda FACTURAS/DOCUMENTO COMPRA/GASTO : " + querySt
                                 notif1.setPosition(Position.MIDDLE_CENTER);
                                 notif1.setIcon(FontAwesome.WARNING);
                                 notif1.show(Page.getCurrent());
-                                return;
                             }
                         } catch (java.io.IOException fIoEx) {
                             fIoEx.printStackTrace();
                             Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                            return;
                         }
                     }
                 };
@@ -1735,8 +1731,8 @@ System.out.println("Query busqueda FACTURAS/DOCUMENTO COMPRA/GASTO : " + querySt
 
     private void setTotal() {
 
-        BigDecimal total = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalQ = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal total = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalQ = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
 
         for (Object rid : documentosGrid.getContainerDataSource()
                 .getItemIds()) {

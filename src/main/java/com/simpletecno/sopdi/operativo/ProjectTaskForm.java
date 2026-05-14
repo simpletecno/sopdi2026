@@ -345,27 +345,31 @@ public class ProjectTaskForm extends Window {
             queryString += " VALUES (";
             queryString += "  " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
             queryString += ",'"  + descripcionTxt.getValue()      + "'";
-            queryString += ",'" + new Utileria().getFechaYYYYMMDD_1(startDt.getValue()) + "'";
-            queryString += ",'" + new Utileria().getFechaYYYYMMDD_1(endDt.getValue()) + "'";
-            queryString += ",'" + String.valueOf(proveedorCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(prioridadCbx.getValue()) + "'";
+            new Utileria();
+            queryString += ",'" + Utileria.getFechaYYYYMMDD_1(startDt.getValue()) + "'";
+            new Utileria();
+            queryString += ",'" + Utileria.getFechaYYYYMMDD_1(endDt.getValue()) + "'";
+            queryString += ",'" + proveedorCbx.getValue() + "'";
+            queryString += ",'" + prioridadCbx.getValue() + "'";
             queryString += ", " + ((SopdiUI) mainUI).sessionInformation.getStrCompanyId();
             queryString += ",'" + predecesoresTxt.getValue() + "'";
             queryString += ",'" + sucesoresTxt.getValue() + "'";
-            queryString += ","  + String.valueOf(nivelCbx.getValue());
+            queryString += ","  + nivelCbx.getValue();
             queryString += ",'" + nivelCodigoTxt.getValue() + "'";
             queryString += ")";
         }
         else {
             queryString =  "UPDATE tarea SET ";
             queryString += " Descripcion = '" + descripcionTxt.getValue()         + "'";
-            queryString += ",FechaInicio = '" + new Utileria().getFechaYYYYMMDD_1(startDt.getValue()) + "'";
-            queryString += ",FechaFin    = '" + new Utileria().getFechaYYYYMMDD_1(endDt.getValue()) + "'";
+            new Utileria();
+            queryString += ",FechaInicio = '" + Utileria.getFechaYYYYMMDD_1(startDt.getValue()) + "'";
+            new Utileria();
+            queryString += ",FechaFin    = '" + Utileria.getFechaYYYYMMDD_1(endDt.getValue()) + "'";
             queryString += ",DiasDuracion=  " + diasDuracionTxt.getValue() + "'";
-            queryString += ",IdProveedor = '" + String.valueOf(proveedorCbx.getValue()) + "'";
+            queryString += ",IdProveedor = '" + proveedorCbx.getValue() + "'";
             queryString += ",IdPredecesores = '" + predecesoresTxt.getValue() + "'";
             queryString += ",IdSucesores    = '" + sucesoresTxt.getValue() + "'";
-            queryString += ",Nivel = "  + String.valueOf(nivelCbx.getValue());
+            queryString += ",Nivel = "  + nivelCbx.getValue();
             queryString += ",NivelCodigo = '" + nivelCodigoTxt.getValue() + "'";
             queryString += " WHERE IdTarea  = " + idTareaTxt.getValue();
         }

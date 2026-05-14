@@ -26,7 +26,6 @@ import com.vaadin.ui.Grid.FooterRow;
 import com.vaadin.ui.Grid.HeaderCell;
 import com.vaadin.ui.Grid.HeaderRow;
 import com.vaadin.ui.themes.ValoTheme;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
@@ -314,7 +313,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
                 taskContainer.addContainerFilter(
                         new SimpleStringFilter(CODIGO_TAREA_PROPERTY,
                                 change.getText(), true, false));
-                footer.getCell(INSTRUCCION_PROPERTY).setText(String.valueOf(taskContainer.size()) + " TAREAS");
+                footer.getCell(INSTRUCCION_PROPERTY).setText(taskContainer.size() + " TAREAS");
             }
         });
         cellA.setComponent(filterFieldA);
@@ -330,7 +329,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
                 taskContainer.addContainerFilter(
                         new SimpleStringFilter(FECHA_PROPERTY,
                                 change.getText(), true, false));
-                footer.getCell(INSTRUCCION_PROPERTY).setText(String.valueOf(taskContainer.size()) + " TAREAS");
+                footer.getCell(INSTRUCCION_PROPERTY).setText(taskContainer.size() + " TAREAS");
             }
         });
         cell.setComponent(filterField);
@@ -346,7 +345,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
                 taskContainer.addContainerFilter(
                         new SimpleStringFilter(INSTRUCCION_PROPERTY,
                                 change.getText(), true, false));
-                footer.getCell(INSTRUCCION_PROPERTY).setText(String.valueOf(taskContainer.size()) + " TAREAS");
+                footer.getCell(INSTRUCCION_PROPERTY).setText(taskContainer.size() + " TAREAS");
             }
         });
         cell1.setComponent(filterField1);
@@ -362,7 +361,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
                 taskContainer.addContainerFilter(
                         new SimpleStringFilter(RESPONSABLE_PROPERTY,
                                 change.getText(), true, false));
-                footer.getCell(INSTRUCCION_PROPERTY).setText(String.valueOf(taskContainer.size()) + " TAREAS");
+                footer.getCell(INSTRUCCION_PROPERTY).setText(taskContainer.size() + " TAREAS");
             }
         });
         cellRes.setComponent(filterRes);
@@ -378,7 +377,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
                 taskContainer.addContainerFilter(
                         new SimpleStringFilter(EJECUTOR_PROPERTY,
                                 change.getText(), true, false));
-                footer.getCell(INSTRUCCION_PROPERTY).setText(String.valueOf(taskContainer.size()) + " TAREAS");
+                footer.getCell(INSTRUCCION_PROPERTY).setText(taskContainer.size() + " TAREAS");
             }
         });
         cellEjecutor.setComponent(filterEjecutor);
@@ -394,7 +393,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
                 taskContainer.addContainerFilter(
                         new SimpleStringFilter(GARANTIA_PROPERTY,
                                 change.getText(), true, false));
-                footer.getCell(INSTRUCCION_PROPERTY).setText(String.valueOf(taskContainer.size()) + " TAREAS");
+                footer.getCell(INSTRUCCION_PROPERTY).setText(taskContainer.size() + " TAREAS");
             }
         });
         cellG.setComponent(filterFieldG);
@@ -410,7 +409,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
                 taskContainer.addContainerFilter(
                         new SimpleStringFilter(PRESUPUESTO_PROPERTY,
                                 change.getText(), true, false));
-                footer.getCell(INSTRUCCION_PROPERTY).setText(String.valueOf(taskContainer.size()) + " TAREAS");
+                footer.getCell(INSTRUCCION_PROPERTY).setText(taskContainer.size() + " TAREAS");
             }
         });
         cell3.setComponent(filterField3);
@@ -426,7 +425,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
                 taskContainer.addContainerFilter(
                         new SimpleStringFilter(AUTORIZADO_TIPO_PROPERTY,
                                 change.getText(), true, false));
-                footer.getCell(INSTRUCCION_PROPERTY).setText(String.valueOf(taskContainer.size()) + " TAREAS");
+                footer.getCell(INSTRUCCION_PROPERTY).setText(taskContainer.size() + " TAREAS");
             }
         });
         cell4.setComponent(filterField4);
@@ -442,7 +441,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
                 taskContainer.addContainerFilter(
                         new SimpleStringFilter(LOTE_PROPERTY,
                                 change.getText(), true, false));
-                footer.getCell(INSTRUCCION_PROPERTY).setText(String.valueOf(taskContainer.size()) + " TAREAS");
+                footer.getCell(INSTRUCCION_PROPERTY).setText(taskContainer.size() + " TAREAS");
             }
         });
         cellLote.setComponent(filterFieldLote);
@@ -458,7 +457,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
                 taskContainer.addContainerFilter(
                         new SimpleStringFilter(IDCC_PROPERTY,
                                 change.getText(), true, false));
-                footer.getCell(INSTRUCCION_PROPERTY).setText(String.valueOf(taskContainer.size()) + " TAREAS");
+                footer.getCell(INSTRUCCION_PROPERTY).setText(taskContainer.size() + " TAREAS");
             }
         });
         cell5.setComponent(filterField5);
@@ -474,7 +473,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
                 taskContainer.addContainerFilter(
                         new SimpleStringFilter(CLIENTE_PROPERTY,
                                 change.getText(), true, false));
-                footer.getCell(INSTRUCCION_PROPERTY).setText(String.valueOf(taskContainer.size()) + " TAREAS");
+                footer.getCell(INSTRUCCION_PROPERTY).setText(taskContainer.size() + " TAREAS");
             }
         });
         cell6.setComponent(filterField6);
@@ -490,7 +489,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
                 taskContainer.addContainerFilter(
                         new SimpleStringFilter(ESTATUS_PROPERTY,
                                 change.getText(), true, false));
-                footer.getCell(INSTRUCCION_PROPERTY).setText(String.valueOf(taskContainer.size()) + " TAREAS");
+                footer.getCell(INSTRUCCION_PROPERTY).setText(taskContainer.size() + " TAREAS");
             }
         });
         cell7.setComponent(filterField7);
@@ -733,8 +732,8 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
                     SeguimientoHandler seguimientoHandler = new SeguimientoHandler();
                     seguimientoHandler.fillTrackTable(
                             String.valueOf(taskContainer.getContainerProperty(inspectionsTaskTrackGrid.getSelectedRow(), ID_PROPERTY).getValue()),
-                            String.valueOf(taskContainer.getContainerProperty(inspectionsTaskTrackGrid.getSelectedRow(), CODIGO_TAREA_PROPERTY).getValue()) + " "
-                            + String.valueOf(taskContainer.getContainerProperty(inspectionsTaskTrackGrid.getSelectedRow(), INSTRUCCION_PROPERTY).getValue()));
+                            taskContainer.getContainerProperty(inspectionsTaskTrackGrid.getSelectedRow(), CODIGO_TAREA_PROPERTY).getValue() + " "
+                            + taskContainer.getContainerProperty(inspectionsTaskTrackGrid.getSelectedRow(), INSTRUCCION_PROPERTY).getValue());
                     UI.getCurrent().addWindow(seguimientoHandler);
                 }
             }

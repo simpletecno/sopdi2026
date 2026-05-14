@@ -11,7 +11,6 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.ExternalResource;
 import com.vaadin.server.Page;
 import com.vaadin.server.StreamResource;
-import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.datefield.Resolution;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.ComboBox;
@@ -24,7 +23,6 @@ import com.vaadin.ui.Link;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.PopupDateField;
 import com.vaadin.ui.RichTextArea;
-import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
@@ -34,7 +32,6 @@ import org.vaadin.ui.NumberField;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.logging.Level;
@@ -343,7 +340,7 @@ public class ProjectInfoView extends VerticalLayout implements View {
                 
                 caracteristicasTxt.setValue(rsRecords.getString("Caracteristica"));
                 
-                final byte docBytes[] = rsRecords.getBytes("Logo");
+                final byte[] docBytes = rsRecords.getBytes("Logo");
                 StreamResource logoStreamResource = null;
 
                 if(docBytes != null ) {

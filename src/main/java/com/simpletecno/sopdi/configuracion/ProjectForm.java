@@ -306,8 +306,7 @@ System.out.println("\ntargetFile = " + fileName);
                 catch( java.io.IOException fIoEx) {
                     fIoEx.printStackTrace();
                     Notification.show("Error al cargar el archivo adjunto!", Notification.Type.ERROR_MESSAGE);
-                    return;
-                }                
+                }
             }
         };
 
@@ -413,7 +412,7 @@ System.out.println("\ntargetFile = " + fileName);
                 diasDespuesHoyFechaTareaProgramadaTxt.setValue(rsRecords.getString("DiasDespuesHoyFechaTareaProgramada"));
                 estatusCbx.select(rsRecords.getString("Estatus"));
                 
-                final byte docBytes[] = rsRecords.getBytes("Logo");
+                final byte[] docBytes = rsRecords.getBytes("Logo");
                 StreamResource logoStreamResource = null;
 
                 if(docBytes != null ) {
@@ -479,13 +478,15 @@ System.out.println("\ntargetFile = " + fileName);
             queryString += "'"  + nombreTxt.getValue()      + "'";
             queryString += ",'" + ubicacionTxt.getValue()   + "'";
             queryString += ", " + ((SopdiUI) mainUI).sessionInformation.getStrCompanyId();
-            queryString += ", '" + String.valueOf(paisCbx.getValue()) + "'";
+            queryString += ", '" + paisCbx.getValue() + "'";
             queryString += ",'" + responsableTxt.getValue()    + "'";
             queryString += ",'" + telefonoTxt.getValue()    + "'";
             queryString += ",'" + sitioWebTxt.getValue()    + "'";
-            queryString += ",'" + new Utileria().getFechaYYYYMMDD_1(fechaInicioDt.getValue()) + "'";
+            new Utileria();
+            queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaInicioDt.getValue()) + "'";
             if(fechaFinDt.getValue() != null) {
-                queryString += ",'" + new Utileria().getFechaYYYYMMDD_1(fechaFinDt.getValue()) + "'";
+                new Utileria();
+                queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaFinDt.getValue()) + "'";
             }
             else {
                 queryString += ",null";
@@ -501,13 +502,15 @@ System.out.println("\ntargetFile = " + fileName);
             queryString =  "UPDATE proyecto SET ";
             queryString += " Nombre       = '" + nombreTxt.getValue()         + "'";
             queryString += ",Ubicacion    = '" + ubicacionTxt.getValue()      + "'";
-            queryString += ",IdPais       = '" + String.valueOf(paisCbx.getValue()) + "'";
+            queryString += ",IdPais       = '" + paisCbx.getValue() + "'";
             queryString += ",Responsable  = '" + responsableTxt.getValue()       + "'";
             queryString += ",TelefonoResponsable = '" + telefonoTxt.getValue()       + "'";
             queryString += ",SitioWeb     = '" + sitioWebTxt.getValue()       + "'";
-            queryString += ",FechaInicio = '" + new Utileria().getFechaYYYYMMDD_1(fechaInicioDt.getValue()) + "'";
+            new Utileria();
+            queryString += ",FechaInicio = '" + Utileria.getFechaYYYYMMDD_1(fechaInicioDt.getValue()) + "'";
             if(fechaFinDt.getValue() != null) {
-                queryString += ",FechaFin    = '" + new Utileria().getFechaYYYYMMDD_1(fechaFinDt.getValue()) + "'";
+                new Utileria();
+                queryString += ",FechaFin    = '" + Utileria.getFechaYYYYMMDD_1(fechaFinDt.getValue()) + "'";
             }
             queryString += ",DiasAntesHoyFechaTareaProgramada = " + diasAntesHoyFechaTareaProgramadaTxt.getValue();
             queryString += ",DiasDespuesHoyFechaTareaProgramada = " + diasDespuesHoyFechaTareaProgramadaTxt.getValue();
@@ -587,5 +590,5 @@ System.out.println("\nfile="+file.getAbsolutePath());
             }
             //resize form
         }
-    };
+    }
 }

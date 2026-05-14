@@ -26,10 +26,10 @@ public class DashboardView extends VerticalLayout implements View {
     public ResultSet rsRecords = null;
     public ResultSet rsRecords1 = null;
 
-    private HorizontalLayout topLayout = new HorizontalLayout();
-    private HorizontalLayout bottomLayout = new HorizontalLayout();
+    private final HorizontalLayout topLayout = new HorizontalLayout();
+    private final HorizontalLayout bottomLayout = new HorizontalLayout();
 
-    private Button refrescarBtn = new Button("Refrescar");
+    private final Button refrescarBtn = new Button("Refrescar");
 
     String queryString = "";
 
@@ -394,7 +394,7 @@ public class DashboardView extends VerticalLayout implements View {
                 + "\"series\":[{"
                 + "  \"type\":\"pie\","
                 + "  \"radius\":\"50%\","
-                + "  \"data\":" + sb.toString()
+                + "  \"data\":" + sb
                 + "}]"
                 + "}";
     }

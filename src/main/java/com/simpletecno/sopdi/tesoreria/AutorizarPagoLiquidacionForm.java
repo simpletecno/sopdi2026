@@ -17,7 +17,6 @@ import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.Grid.HeaderCell;
 import com.vaadin.ui.Grid.HeaderRow;
@@ -32,6 +31,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.ui.NumberField;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -368,8 +368,8 @@ public class AutorizarPagoLiquidacionForm extends Window {
 
     private void setTotal() {
 
-        BigDecimal total = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalQ = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal total = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalQ = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
 
         for (Object rid : liquidacionGrid.getContainerDataSource().getItemIds()) {
             if (rid == null) {
@@ -404,8 +404,8 @@ public class AutorizarPagoLiquidacionForm extends Window {
 
             queryString = "UPDATE contabilidad_partida SET ";
             queryString += " MontoAutorizadoPagar = " + montoPendienteChequeTxt.getDoubleValueDoNotThrow();
-            queryString += " WHERE IdLiquidacion = " + String.valueOf(liquidacionContainer.getContainerProperty(liquidacionGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue());
-            queryString += " AND IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getLiquidacionesCajaChicha();;
+            queryString += " WHERE IdLiquidacion = " + liquidacionContainer.getContainerProperty(liquidacionGrid.getSelectedRow(), ID_LIQUIDACION_PROPERTY).getValue();
+            queryString += " AND IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getLiquidacionesCajaChicha();
             queryString += " And IdEmpresa = " + empresaId;
 
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -418,11 +418,11 @@ public class AutorizarPagoLiquidacionForm extends Window {
             queryString += "(";
             queryString += "'" + AutorizacionesPagoView.PAGO_LIQUIDACION + "'";
             queryString += "," + empresaId;
-            queryString += "," + String.valueOf(liquidacionContainer.getContainerProperty(liquidacionGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue());
+            queryString += "," + liquidacionContainer.getContainerProperty(liquidacionGrid.getSelectedRow(), ID_LIQUIDADOR_PROPERTY).getValue();
             queryString += ",current_date";
             queryString += ",'QUETZALES'";
             queryString += "," + montoPendienteChequeTxt.getDoubleValueDoNotThrow();
-            queryString += ",'" +  String.valueOf(liquidacionContainer.getContainerProperty(liquidacionGrid.getSelectedRow(), CODIGO_CC_PROPERTY).getValue()) + "'";
+            queryString += ",'" + liquidacionContainer.getContainerProperty(liquidacionGrid.getSelectedRow(), CODIGO_CC_PROPERTY).getValue() + "'";
             queryString += ",''"; // codigoccrelacionado
             queryString += ",''"; // cuentacontableliquidar
             queryString += ",'" + AutorizacionesPagoView.PAGO_LIQUIDACION + "'";

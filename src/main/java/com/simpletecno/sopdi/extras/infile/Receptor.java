@@ -16,7 +16,7 @@ public class Receptor extends Individuo {
     public Receptor(String nit, String nombre, String correo, String direccion) {
         this.nit = nit;
         this.nombre = nombre;
-        this. correo = (correo == null || correo.isEmpty() || correo.toUpperCase().equals("NULL")) ? "" : correo;
+        this. correo = (correo == null || correo.isEmpty() || correo.equalsIgnoreCase("NULL")) ? "" : correo;
         this.direccion = new Direccion(
                 direccion,
                 Utileria.obtenerCodigoPostal(direccion),

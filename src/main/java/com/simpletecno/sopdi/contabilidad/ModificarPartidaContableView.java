@@ -248,55 +248,55 @@ public class ModificarPartidaContableView extends VerticalLayout implements View
                         queryString += " VALUES ";
                         queryString += " (";
                         queryString += String.valueOf(item.getItemProperty(ID_EMPRESA_PROPERTY).getValue());
-                        queryString += ",'" + String.valueOf(item.getItemProperty(ESTATUS_PROPERTY).getValue()) + "'";
-                        queryString += ",'" + String.valueOf(item.getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue()) + "'"; //codigoCC                        
-                        queryString += ",'" + String.valueOf(item.getItemProperty(CODIGO_CC_PROPERTY).getValue()) + "'";
-                        queryString += ",'" + String.valueOf(item.getItemProperty(FECHA_PROPERTY).getValue()) + "'";
-                        queryString += ",'" + String.valueOf(item.getItemProperty(DESCRIPCION_PROPERTY).getValue()) + "'";
+                        queryString += ",'" + item.getItemProperty(ESTATUS_PROPERTY).getValue() + "'";
+                        queryString += ",'" + item.getItemProperty(CODIGO_PARTIDA_PROPERTY).getValue() + "'"; //codigoCC
+                        queryString += ",'" + item.getItemProperty(CODIGO_CC_PROPERTY).getValue() + "'";
+                        queryString += ",'" + item.getItemProperty(FECHA_PROPERTY).getValue() + "'";
+                        queryString += ",'" + item.getItemProperty(DESCRIPCION_PROPERTY).getValue() + "'";
 
                         if (String.valueOf(item.getItemProperty(ORDEN_COMPRA_PROPERTY).getValue()) == null
                                 || String.valueOf(item.getItemProperty(ORDEN_COMPRA_PROPERTY).getValue()).equals("")) {
                             queryString += ",0";
                         } else {
-                            queryString += "," + String.valueOf(item.getItemProperty(ORDEN_COMPRA_PROPERTY).getValue());
+                            queryString += "," + item.getItemProperty(ORDEN_COMPRA_PROPERTY).getValue();
                         }
 
-                        queryString += "," + String.valueOf(item.getItemProperty(ID_PROVEEDOR_PROPERTY).getValue());
-                        queryString += ",'" + String.valueOf(item.getItemProperty(NIT_PROVEEDOR_PROPERTY).getValue()) + "'";
-                        queryString += ",'" + String.valueOf(item.getItemProperty(NOMBRE_PROVEEDOR_PROPERTY).getValue()) + "'";
-                        queryString += ",'" + String.valueOf(item.getItemProperty(NOMBRE_CHEQUE_PROPERTY).getValue()) + "'";
-                        queryString += ",'" + String.valueOf(item.getItemProperty(NUMERO_DOCTO_PROPERTY).getValue()) + "'";
-                        queryString += ",'" + String.valueOf(item.getItemProperty(SERIE_PROPERTY).getValue()) + "'";
-                        queryString += ",'" + String.valueOf(item.getItemProperty(TIPO_DOC_PROPERTY).getValue()) + "'";
-                        queryString += "," + String.valueOf(item.getItemProperty(ID_CONTABLE_PROPERTY).getValue());
-                        queryString += ",'" + String.valueOf(item.getItemProperty(MONEDA_PROPERTY).getValue()) + "'";
-                        queryString += "," + String.valueOf(item.getItemProperty(MONTO_PROPERTY).getValue());
+                        queryString += "," + item.getItemProperty(ID_PROVEEDOR_PROPERTY).getValue();
+                        queryString += ",'" + item.getItemProperty(NIT_PROVEEDOR_PROPERTY).getValue() + "'";
+                        queryString += ",'" + item.getItemProperty(NOMBRE_PROVEEDOR_PROPERTY).getValue() + "'";
+                        queryString += ",'" + item.getItemProperty(NOMBRE_CHEQUE_PROPERTY).getValue() + "'";
+                        queryString += ",'" + item.getItemProperty(NUMERO_DOCTO_PROPERTY).getValue() + "'";
+                        queryString += ",'" + item.getItemProperty(SERIE_PROPERTY).getValue() + "'";
+                        queryString += ",'" + item.getItemProperty(TIPO_DOC_PROPERTY).getValue() + "'";
+                        queryString += "," + item.getItemProperty(ID_CONTABLE_PROPERTY).getValue();
+                        queryString += ",'" + item.getItemProperty(MONEDA_PROPERTY).getValue() + "'";
+                        queryString += "," + item.getItemProperty(MONTO_PROPERTY).getValue();
 
                         if (String.valueOf(item.getItemProperty(DEBE_PROPERTY).getValue()).equals("0.00")
                                 && String.valueOf(item.getItemProperty(HABER_PROPERTY).getValue()).equals("0.00")) {
                             Notification.show("Por favor verifique los montos de esta partida..", Notification.Type.WARNING_MESSAGE);
                             return;
                         }
-                        queryString += "," + String.valueOf(item.getItemProperty(DEBE_PROPERTY).getValue());
-                        queryString += "," + String.valueOf(item.getItemProperty(HABER_PROPERTY).getValue());
-                        queryString += "," + String.valueOf(item.getItemProperty(TIPO_CAMBIO_PROPERTY).getValue());
-                        queryString += "," + String.valueOf(item.getItemProperty(DEBEQ_PROPERTY).getValue());
-                        queryString += "," + String.valueOf(item.getItemProperty(HABERQ_PROPERTY).getValue());
-                        queryString += "," + String.valueOf(item.getItemProperty(SALDO_PROPERTY).getValue());
-                        queryString += "," + String.valueOf(item.getItemProperty(MONTO_AUTORIZADO_PROPERTY).getValue());
-                        queryString += "," + String.valueOf(item.getItemProperty(MONTO_APLICAR_PROPERTY).getValue());
-                        queryString += "," + String.valueOf(item.getItemProperty(ID_LIQUIDACION_PROPERTY).getValue());
-                        queryString += "," + String.valueOf(item.getItemProperty(ID_LIQUIDADOR_PROPERTY).getValue());
-                        queryString += ",'" + String.valueOf(item.getItemProperty(TIPO_ENGANCHE_PROPERTY).getValue()) + "'";
-                        queryString += ",'" + String.valueOf(item.getItemProperty(TIPO_VENTA_PROPERTY).getValue()) + "'";
-                        queryString += ",'" + String.valueOf(item.getItemProperty(TIPO_DOCA_PROPERTY).getValue()) + "'";
-                        queryString += ",'" + String.valueOf(item.getItemProperty(NODOCA_PROPERTY).getValue()) + "'";
-                        queryString += ",'" + String.valueOf(item.getItemProperty(REFERENCIA_PROPERTY).getValue()) + "'";
+                        queryString += "," + item.getItemProperty(DEBE_PROPERTY).getValue();
+                        queryString += "," + item.getItemProperty(HABER_PROPERTY).getValue();
+                        queryString += "," + item.getItemProperty(TIPO_CAMBIO_PROPERTY).getValue();
+                        queryString += "," + item.getItemProperty(DEBEQ_PROPERTY).getValue();
+                        queryString += "," + item.getItemProperty(HABERQ_PROPERTY).getValue();
+                        queryString += "," + item.getItemProperty(SALDO_PROPERTY).getValue();
+                        queryString += "," + item.getItemProperty(MONTO_AUTORIZADO_PROPERTY).getValue();
+                        queryString += "," + item.getItemProperty(MONTO_APLICAR_PROPERTY).getValue();
+                        queryString += "," + item.getItemProperty(ID_LIQUIDACION_PROPERTY).getValue();
+                        queryString += "," + item.getItemProperty(ID_LIQUIDADOR_PROPERTY).getValue();
+                        queryString += ",'" + item.getItemProperty(TIPO_ENGANCHE_PROPERTY).getValue() + "'";
+                        queryString += ",'" + item.getItemProperty(TIPO_VENTA_PROPERTY).getValue() + "'";
+                        queryString += ",'" + item.getItemProperty(TIPO_DOCA_PROPERTY).getValue() + "'";
+                        queryString += ",'" + item.getItemProperty(NODOCA_PROPERTY).getValue() + "'";
+                        queryString += ",'" + item.getItemProperty(REFERENCIA_PROPERTY).getValue() + "'";
                         queryString += ",current_timestamp";
                         queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
-                        queryString += "," + String.valueOf(item.getItemProperty(ANIO_PROPERTY).getValue());
-                        queryString += ",'" + String.valueOf(item.getItemProperty(PAGADO_IVA_PROPERTY).getValue()) + "'";
-                        queryString += "," + String.valueOf(item.getItemProperty(ID_COINCILIACION_PROPERTY).getValue());
+                        queryString += "," + item.getItemProperty(ANIO_PROPERTY).getValue();
+                        queryString += ",'" + item.getItemProperty(PAGADO_IVA_PROPERTY).getValue() + "'";
+                        queryString += "," + item.getItemProperty(ID_COINCILIACION_PROPERTY).getValue();
                         queryString += ",0";
                         queryString += ")";
                         

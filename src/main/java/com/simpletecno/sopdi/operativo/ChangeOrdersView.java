@@ -305,7 +305,7 @@ public class ChangeOrdersView extends VerticalLayout implements View {
                 container.addContainerFilter(
                     new SimpleStringFilter(POR_PROPERTY,
                         change.getText(), true, false));
-                footer.getCell(POR_PROPERTY).setText(String.valueOf(container.size()) + " REGISTROS");                
+                footer.getCell(POR_PROPERTY).setText(container.size() + " REGISTROS");
             }
         });
         cell.setComponent(filterField);      
@@ -325,7 +325,7 @@ public class ChangeOrdersView extends VerticalLayout implements View {
                 container.addContainerFilter(
                     new SimpleStringFilter(POR_PROPERTY,
                         change.getText(), true, false));
-                footer.getCell(ROL_PROPERTY).setText(String.valueOf(container.size()) + " REGISTROS");                
+                footer.getCell(ROL_PROPERTY).setText(container.size() + " REGISTROS");
             }
         });
         cell.setComponent(filterField1);
@@ -384,7 +384,7 @@ System.out.println("\n\n"+queryString);
                 }while(rsRecords.next());
                 
 //                rsRecords.last();
-                footer.getCell(POR_PROPERTY).setText(String.valueOf(rsRecords.getRow()) + " REGISTROS");
+                footer.getCell(POR_PROPERTY).setText(rsRecords.getRow() + " REGISTROS");
                 changeOrdersGrid.select(container.firstItemId());
 
             }
@@ -435,7 +435,7 @@ System.out.println("\n\n"+queryString);
 
         queryString =  "DELETE ";
         queryString += " FROM  orden_cambio_seguimiento ";
-        queryString += " WHERE IdOrdenCambio = " + String.valueOf(changeOrdersGrid.getContainerDataSource().getItem(changeOrdersGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue());
+        queryString += " WHERE IdOrdenCambio = " + changeOrdersGrid.getContainerDataSource().getItem(changeOrdersGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue();
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();            
@@ -443,7 +443,7 @@ System.out.println("\n\n"+queryString);
 
             queryString =  "DELETE ";
             queryString += " FROM  orden_cambio ";
-            queryString += " WHERE IdOrdenCambio = " + String.valueOf(changeOrdersGrid.getContainerDataSource().getItem(changeOrdersGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue());
+            queryString += " WHERE IdOrdenCambio = " + changeOrdersGrid.getContainerDataSource().getItem(changeOrdersGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue();
 
             stQuery.executeUpdate(queryString);
 

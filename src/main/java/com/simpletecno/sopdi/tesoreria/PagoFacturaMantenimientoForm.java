@@ -25,10 +25,10 @@ import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.Window;
 import com.vaadin.ui.themes.ValoTheme;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.vaadin.ui.NumberField;
@@ -1017,7 +1017,7 @@ public class PagoFacturaMantenimientoForm extends Window {
 
                     if (rsRecords2.next()) {
                         facturasPorPagarCbx.addItem(rsRecords2.getString("CodigoPartida"));
-                        facturasPorPagarCbx.setItemCaption(rsRecords2.getString("CodigoPartida"), rsRecords2.getString("SerieDocumento") + "" + rsRecords2.getString("NumeroDocumento") + " " + rsRecords2.getDouble("Saldo"));
+                        facturasPorPagarCbx.setItemCaption(rsRecords2.getString("CodigoPartida"), rsRecords2.getString("SerieDocumento") + rsRecords2.getString("NumeroDocumento") + " " + rsRecords2.getDouble("Saldo"));
                     }
                 } while (rsRecords.next());
             }
@@ -1357,7 +1357,7 @@ public class PagoFacturaMantenimientoForm extends Window {
                 + debe8Txt.getDoubleValueDoNotThrow() + debe9Txt.getDoubleValueDoNotThrow()
                 + debe10Txt.getDoubleValueDoNotThrow() + debe11Txt.getDoubleValueDoNotThrow()
                 + debe12Txt.getDoubleValueDoNotThrow() + debe13Txt.getDoubleValueDoNotThrow()
-                + debe14Txt.getDoubleValueDoNotThrow()).setScale(2, BigDecimal.ROUND_HALF_UP);
+                + debe14Txt.getDoubleValueDoNotThrow()).setScale(2, RoundingMode.HALF_UP);
 
         totalHaber = new BigDecimal(haber1Txt.getDoubleValueDoNotThrow()
                 + haber2Txt.getDoubleValueDoNotThrow() + haber3Txt.getDoubleValueDoNotThrow()
@@ -1366,10 +1366,10 @@ public class PagoFacturaMantenimientoForm extends Window {
                 + haber8Txt.getDoubleValueDoNotThrow() + haber9Txt.getDoubleValueDoNotThrow()
                 + haber10Txt.getDoubleValueDoNotThrow() + haber11Txt.getDoubleValueDoNotThrow()
                 + haber12Txt.getDoubleValueDoNotThrow() + haber13Txt.getDoubleValueDoNotThrow()
-                + haber14Txt.getDoubleValueDoNotThrow()).setScale(2, BigDecimal.ROUND_HALF_UP);
+                + haber14Txt.getDoubleValueDoNotThrow()).setScale(2, RoundingMode.HALF_UP);
 
-        totalDebe.setScale(2, BigDecimal.ROUND_HALF_UP);
-        totalHaber.setScale(2, BigDecimal.ROUND_HALF_UP);
+        totalDebe.setScale(2, RoundingMode.HALF_UP);
+        totalHaber.setScale(2, RoundingMode.HALF_UP);
 
         if (proveedorCbx.getValue() == null) {
             Notification.show("Por favor, seleccione un cliente..", Notification.Type.ERROR_MESSAGE);
@@ -1456,8 +1456,8 @@ public class PagoFacturaMantenimientoForm extends Window {
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
         queryString += ",'" + codigoPartida + "'";
-        queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-        queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+        queryString += ",'" + medioCbx.getValue() + "'";
+        queryString += ",'" + tipoEngancheCbx.getValue() + "'";
         queryString += ",'" + referenciaTxt.getValue() + "'";
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += "," + proveedorCbx.getValue();
@@ -1466,11 +1466,11 @@ public class PagoFacturaMantenimientoForm extends Window {
         queryString += ",'" + numeroTxt.getValue() + "'";
         queryString += "," + cuentaContable1Cbx.getValue();
         queryString += ",'" + monedaCbx.getValue() + "'";
-        queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow()); // DEBE
+        queryString += "," + debe1Txt.getDoubleValueDoNotThrow(); // DEBE
         queryString += ",0.00"; //HABER        
-        queryString += "," + String.valueOf(debe1Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + debe1Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
         queryString += ",0.00"; //HABER Q.        
-        queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
         queryString += ",0.00";
         queryString += ",'Ingreso por pago de mantenimiento de factura " + descripcionTxt.getValue() + "'";
         queryString += ",''";
@@ -1493,8 +1493,8 @@ public class PagoFacturaMantenimientoForm extends Window {
                 queryString += ",'" + facturasPorPagarCbx.getValue() + "'";
             }
 
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
+            queryString += ",'" + tipoEngancheCbx.getValue() + "'";
             queryString += ",'" + referenciaTxt.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
@@ -1503,11 +1503,11 @@ public class PagoFacturaMantenimientoForm extends Window {
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable2Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe2Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow());  //HABER        
-            queryString += "," + String.valueOf(debe2Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber2Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe2Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber2Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe2Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber2Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += ",'Ingreso por pago de mantenimiento de factura " + descripcionTxt.getValue() + "'";
 
@@ -1540,8 +1540,8 @@ public class PagoFacturaMantenimientoForm extends Window {
                 queryString += ",'" + facturasPorPagarCbx.getValue() + "'";
             }
 
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
+            queryString += ",'" + tipoEngancheCbx.getValue() + "'";
             queryString += ",'" + referenciaTxt.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
@@ -1550,11 +1550,11 @@ public class PagoFacturaMantenimientoForm extends Window {
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable3Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe3Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber3Txt.getDoubleValueDoNotThrow());  //HABER        
-            queryString += "," + String.valueOf(debe3Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber3Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe3Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber3Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe3Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber3Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += ",'Ingreso por pago de mantenimiento de factura " + descripcionTxt.getValue() + "'";
             if (tipoDocaList.size() > 1) {
@@ -1585,8 +1585,8 @@ public class PagoFacturaMantenimientoForm extends Window {
                 queryString += ",'" + facturasPorPagarCbx.getValue() + "'";
             }
 
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
+            queryString += ",'" + tipoEngancheCbx.getValue() + "'";
             queryString += ",'" + referenciaTxt.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
@@ -1595,11 +1595,11 @@ public class PagoFacturaMantenimientoForm extends Window {
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable4Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe4Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber4Txt.getDoubleValueDoNotThrow());  //HABER        
-            queryString += "," + String.valueOf(debe4Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber4Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe4Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber4Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe4Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber4Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += ",'Ingreso por pago de mantenimiento de factura " + descripcionTxt.getValue() + "'";
             if (tipoDocaList.size() > 2) {
@@ -1630,8 +1630,8 @@ public class PagoFacturaMantenimientoForm extends Window {
             } else {
                 queryString += ",'" + facturasPorPagarCbx.getValue() + "'";
             }
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
+            queryString += ",'" + tipoEngancheCbx.getValue() + "'";
             queryString += ",'" + referenciaTxt.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
@@ -1640,11 +1640,11 @@ public class PagoFacturaMantenimientoForm extends Window {
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable5Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe5Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber5Txt.getDoubleValueDoNotThrow());  //HABER        
-            queryString += "," + String.valueOf(debe5Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber5Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe5Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber5Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe5Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber5Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += ",'Ingreso por pago de mantenimineto de factura " + descripcionTxt.getValue() + "'";
             if (tipoDocaList.size() > 3) {
@@ -1676,8 +1676,8 @@ public class PagoFacturaMantenimientoForm extends Window {
                 queryString += ",'" + facturasPorPagarCbx.getValue() + "'";
             }
 
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
+            queryString += ",'" + tipoEngancheCbx.getValue() + "'";
             queryString += ",'" + referenciaTxt.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
@@ -1686,11 +1686,11 @@ public class PagoFacturaMantenimientoForm extends Window {
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable6Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe6Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber6Txt.getDoubleValueDoNotThrow());  //HABER        
-            queryString += "," + String.valueOf(debe6Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber6Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe6Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber6Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe6Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber6Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += ",'Ingreso por pago de mantenimineto de factura " + descripcionTxt.getValue() + "'";
             if (tipoDocaList.size() > 4) {
@@ -1719,8 +1719,8 @@ public class PagoFacturaMantenimientoForm extends Window {
             } else {
                 queryString += ",'" + facturasPorPagarCbx.getValue() + "'";
             }
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
+            queryString += ",'" + tipoEngancheCbx.getValue() + "'";
             queryString += ",'" + referenciaTxt.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
@@ -1729,11 +1729,11 @@ public class PagoFacturaMantenimientoForm extends Window {
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable7Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe7Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber7Txt.getDoubleValueDoNotThrow());  //HABER        
-            queryString += "," + String.valueOf(debe7Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber7Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe7Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber7Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe7Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber7Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += ",'Ingreso por pago de mantenimineto de factura " + descripcionTxt.getValue() + "'";
             if (tipoDocaList.size() > 5) {
@@ -1765,8 +1765,8 @@ public class PagoFacturaMantenimientoForm extends Window {
                 queryString += ",'" + facturasPorPagarCbx.getValue() + "'";
             }
 
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
+            queryString += ",'" + tipoEngancheCbx.getValue() + "'";
             queryString += ",'" + referenciaTxt.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
@@ -1775,11 +1775,11 @@ public class PagoFacturaMantenimientoForm extends Window {
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable8Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe8Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber8Txt.getDoubleValueDoNotThrow());  //HABER        
-            queryString += "," + String.valueOf(debe8Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber8Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe8Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber8Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe8Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber8Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += ",'Ingreso por pago de mantenimineto de factura " + descripcionTxt.getValue() + "'";
             if (tipoDocaList.size() > 6) {
@@ -1811,8 +1811,8 @@ public class PagoFacturaMantenimientoForm extends Window {
                 queryString += ",'" + facturasPorPagarCbx.getValue() + "'";
             }
 
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
+            queryString += ",'" + tipoEngancheCbx.getValue() + "'";
             queryString += ",'" + referenciaTxt.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
@@ -1821,11 +1821,11 @@ public class PagoFacturaMantenimientoForm extends Window {
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable9Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe9Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber9Txt.getDoubleValueDoNotThrow());  //HABER        
-            queryString += "," + String.valueOf(debe9Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber9Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe9Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber9Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe9Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber9Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += ",'Ingreso por pago de mantenimineto de factura " + descripcionTxt.getValue() + "'";
             if (tipoDocaList.size() > 7) {
@@ -1856,8 +1856,8 @@ public class PagoFacturaMantenimientoForm extends Window {
                 queryString += ",'" + facturasPorPagarCbx.getValue() + "'";
             }
 
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
+            queryString += ",'" + tipoEngancheCbx.getValue() + "'";
             queryString += ",'" + referenciaTxt.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
@@ -1866,11 +1866,11 @@ public class PagoFacturaMantenimientoForm extends Window {
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable10Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe10Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber10Txt.getDoubleValueDoNotThrow());  //HABER        
-            queryString += "," + String.valueOf(debe10Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber10Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe10Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber10Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe10Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber10Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += ",'Ingreso por pago de mantenimineto de factura " + descripcionTxt.getValue() + "'";
             if (tipoDocaList.size() > 8) {
@@ -1900,8 +1900,8 @@ public class PagoFacturaMantenimientoForm extends Window {
                 queryString += ",'" + facturasPorPagarCbx.getValue() + "'";
             }
 
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
+            queryString += ",'" + tipoEngancheCbx.getValue() + "'";
             queryString += ",'" + referenciaTxt.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
@@ -1910,11 +1910,11 @@ public class PagoFacturaMantenimientoForm extends Window {
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable11Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe11Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber11Txt.getDoubleValueDoNotThrow());  //HABER        
-            queryString += "," + String.valueOf(debe11Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber11Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe11Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber11Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe11Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber11Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += ",'Ingreso por pago de mantenimineto de factura " + descripcionTxt.getValue() + "'";
             if (tipoDocaList.size() > 9) {
@@ -1946,8 +1946,8 @@ public class PagoFacturaMantenimientoForm extends Window {
                 queryString += ",'" + facturasPorPagarCbx.getValue() + "'";
             }
 
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
+            queryString += ",'" + tipoEngancheCbx.getValue() + "'";
             queryString += ",'" + referenciaTxt.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
@@ -1956,11 +1956,11 @@ public class PagoFacturaMantenimientoForm extends Window {
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable12Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe12Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber12Txt.getDoubleValueDoNotThrow());  //HABER        
-            queryString += "," + String.valueOf(debe12Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber12Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe12Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber12Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe12Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber12Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += ",'Ingreso por pago de mantenimineto de factura " + descripcionTxt.getValue() + "'";
             if (tipoDocaList.size() > 10) {
@@ -1991,8 +1991,8 @@ public class PagoFacturaMantenimientoForm extends Window {
                 queryString += ",'" + facturasPorPagarCbx.getValue() + "'";
             }
 
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
+            queryString += ",'" + tipoEngancheCbx.getValue() + "'";
             queryString += ",'" + referenciaTxt.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
@@ -2001,11 +2001,11 @@ public class PagoFacturaMantenimientoForm extends Window {
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable13Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe13Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber13Txt.getDoubleValueDoNotThrow());  //HABER        
-            queryString += "," + String.valueOf(debe13Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber13Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe13Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber13Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe13Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber13Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += ",'Ingreso por pago de mantenimineto de factura " + descripcionTxt.getValue() + "'";
             if (tipoDocaList.size() > 11) {
@@ -2036,8 +2036,8 @@ public class PagoFacturaMantenimientoForm extends Window {
                 queryString += ",'" + facturasPorPagarCbx.getValue() + "'";
             }
 
-            queryString += ",'" + String.valueOf(medioCbx.getValue()) + "'";
-            queryString += ",'" + String.valueOf(tipoEngancheCbx.getValue()) + "'";
+            queryString += ",'" + medioCbx.getValue() + "'";
+            queryString += ",'" + tipoEngancheCbx.getValue() + "'";
             queryString += ",'" + referenciaTxt.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
@@ -2046,11 +2046,11 @@ public class PagoFacturaMantenimientoForm extends Window {
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable14Cbx.getValue();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + String.valueOf(debe14Txt.getDoubleValueDoNotThrow());  //debe
-            queryString += "," + String.valueOf(haber14Txt.getDoubleValueDoNotThrow());  //HABER        
-            queryString += "," + String.valueOf(debe14Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());  // DEBE Q.
-            queryString += "," + String.valueOf(haber14Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + String.valueOf(tipoCambioTxt.getDoubleValueDoNotThrow());
+            queryString += "," + debe14Txt.getDoubleValueDoNotThrow();  //debe
+            queryString += "," + haber14Txt.getDoubleValueDoNotThrow();  //HABER
+            queryString += "," + debe14Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();  // DEBE Q.
+            queryString += "," + haber14Txt.getDoubleValueDoNotThrow() * tipoCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + tipoCambioTxt.getDoubleValueDoNotThrow();
             queryString += ",0.00";
             queryString += ",'Ingreso por pago de mantenimineto de factura " + descripcionTxt.getValue() + "'";
             if (tipoDocaList.size() > 12) {
@@ -2090,7 +2090,7 @@ public class PagoFacturaMantenimientoForm extends Window {
             notif.show(Page.getCurrent());
 
             try {
-                String emailsTo[] = {"alerta@simpletecno.com"};
+                String[] emailsTo = {"alerta@simpletecno.com"};
                 MyEmailMessanger eMail = new MyEmailMessanger();
 
                 eMail.postMail(emailsTo, "Error en SOPDI", "Error en base de datos :  " + this.getClass().getName() + " -->" + ex1.getMessage());

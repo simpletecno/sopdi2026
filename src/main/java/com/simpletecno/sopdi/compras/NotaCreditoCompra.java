@@ -245,7 +245,7 @@ public class NotaCreditoCompra extends Window {
             rsRecords = stQuery.executeQuery(queryString);
 
             if (rsRecords.next()) { //  encontrado
-                if (rsRecords.getString("MonedaDocumento").toUpperCase().equals("DOLARES")) {
+                if (rsRecords.getString("MonedaDocumento").equalsIgnoreCase("DOLARES")) {
                     tasaCambioTxt.setReadOnly(false);
                     tasaCambioTxt.setValue((Float.toString(((SopdiUI) UI.getCurrent()).sessionInformation.getFltExchangeRate())));
                 } else {
@@ -302,7 +302,7 @@ public class NotaCreditoCompra extends Window {
         String mes = fecha.substring(5, 7);
         String año = fecha.substring(0, 4);
 
-        String codigoPartidaNC = String.valueOf(empresa) + año + mes + dia + "6";
+        String codigoPartidaNC = empresa + año + mes + dia + "6";
 
         queryString = " SELECT codigoPartida FROM contabilidad_partida ";
         queryString += " WHERE codigoPartida LIKE '" + codigoPartidaNC + "%'";
@@ -393,7 +393,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "montoDocumento=" + 
                     queryString += ",'" + numeroTxt.getValue().trim() + "'";
                     queryString += "," + rsRecords.getString("IdNomenclatura");
                     queryString += ",'" + rsRecords.getString("MonedaDocumento") + "'";
-                    queryString += "," + String.valueOf(montoTxt.getDoubleValueDoNotThrow()); //MONTO DOCUMENTO
+                    queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTO DOCUMENTO
                     if(rsRecords.getDouble("Debe") > 0) { //reversar debe
                         queryString += ",0.00"; //DEBE
                         queryString += "," + ((rsRecords.getDouble("Debe") / montoDocumento) * montoTxt.getDoubleValueDoNotThrow()); //HABER
@@ -429,7 +429,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "montoDocumento=" + 
                         queryString += "," + String.valueOf((montoTxt.getDoubleValueDoNotThrow() / 1.12) * tasaCambioTxt.getDoubleValueDoNotThrow()); //HABER Q
                     }
 ***/
-                    queryString += "," + String.valueOf(tasaCambioTxt.getDoubleValueDoNotThrow()); //SALDO
+                    queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow(); //SALDO
                     queryString += ",0.00"; //SALDO
                     queryString += ",'INGRESADO'";
                     queryString += "," + rsRecords.getString("IdLiquidacion");

@@ -97,7 +97,7 @@ public class ImpuestosYOtros extends VerticalLayout implements View {
         unitTable.addContainerProperty("DEBE",   String.class, "");
         unitTable.addContainerProperty("HABER",  String.class, "");
 
-        unitTable.setColumnAlignments(new Table.Align[]{Table.Align.RIGHT, Table.Align.RIGHT, Table.Align.RIGHT});
+        unitTable.setColumnAlignments(Table.Align.RIGHT, Table.Align.RIGHT, Table.Align.RIGHT);
         
         Panel panel = new Panel();
         panel.setContent(unitTable);

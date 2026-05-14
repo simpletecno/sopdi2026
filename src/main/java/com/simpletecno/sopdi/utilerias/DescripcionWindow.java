@@ -17,11 +17,11 @@ import com.vaadin.ui.themes.ValoTheme;
 // para que usuario ingrese una descripción para cualquier tabla.
 public class DescripcionWindow extends Window
 {      
-    private com.vaadin.ui.Label descripcionLbl;
+    private final com.vaadin.ui.Label descripcionLbl;
         
-    private VerticalLayout mainLayout = new VerticalLayout();
+    private final VerticalLayout mainLayout = new VerticalLayout();
     
-    private Button exitBtn;
+    private final Button exitBtn;
 
     public DescripcionWindow(String descripcion) {
 

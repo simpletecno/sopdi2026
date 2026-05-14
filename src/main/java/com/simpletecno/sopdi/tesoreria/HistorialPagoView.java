@@ -20,7 +20,6 @@ import com.vaadin.shared.Position;
 import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.DateField;
 import com.vaadin.ui.Grid;
 import com.vaadin.ui.Grid.HeaderCell;
@@ -38,6 +37,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
@@ -304,7 +304,7 @@ public class HistorialPagoView extends VerticalLayout implements View {
         }));
 
         historialPagosGrid.getColumn(DOCUMENTO_PROPERTY).setRenderer(new ButtonRenderer(e -> {
-            if (String.valueOf(historialPagosContainer.getContainerProperty(e.getItemId(), TIPO_PROPERTY).getValue()).toUpperCase().equals("CHEQUE") || String.valueOf(historialPagosContainer.getContainerProperty(e.getItemId(), TIPO_PROPERTY).getValue()).toUpperCase().equals("NOTA DE DEBITO")) {
+            if (String.valueOf(historialPagosContainer.getContainerProperty(e.getItemId(), TIPO_PROPERTY).getValue()).equalsIgnoreCase("CHEQUE") || String.valueOf(historialPagosContainer.getContainerProperty(e.getItemId(), TIPO_PROPERTY).getValue()).equalsIgnoreCase("NOTA DE DEBITO")) {
                 String codigoPartida = String.valueOf(historialPagosContainer.getContainerProperty(e.getItemId(), CODIGOPARTIDA_PROPERTY).getValue());
                 String descripcion = String.valueOf(historialPagosContainer.getContainerProperty(e.getItemId(), DESCRIPCION_PROPERTY).getValue());
                 String nombre = String.valueOf(historialPagosContainer.getContainerProperty(e.getItemId(), NOMBRECHEQUE_PROPERTY).getValue());
@@ -576,8 +576,8 @@ public class HistorialPagoView extends VerticalLayout implements View {
     }
 
     private void setTotal() {
-        BigDecimal total = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-        BigDecimal totalQ = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal total = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal totalQ = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
 
         for (Object rid : historialPagosGrid.getContainerDataSource()
                 .getItemIds()) {
@@ -629,7 +629,7 @@ public class HistorialPagoView extends VerticalLayout implements View {
                 if (String.valueOf(item.getItemProperty(TIPO_PROPERTY).getValue()).equals("CHEQUE")) {
 
                     queryString = "SELECT * FROM proveedor_empresa";
-                    queryString += " WHERE IdProveedor = " + String.valueOf(item.getItemProperty(ID_PROVEEDOR_PROPERTY).getValue());
+                    queryString += " WHERE IdProveedor = " + item.getItemProperty(ID_PROVEEDOR_PROPERTY).getValue();
                     queryString += " AND IdEmpresa = " + empresaId;
                     //queryString += " And EsPlanilla = 1 ";
 
@@ -640,8 +640,8 @@ public class HistorialPagoView extends VerticalLayout implements View {
 
                         queryString = "SELECT * FROM contabilidad_cuentas_bancos";
                         queryString += " WHERE IdEmpresa = " +empresaId;
-                        queryString += " AND IdNomenclatura = " + String.valueOf(item.getItemProperty(ID_NOMENCLATURA_PROPERTY).getValue());
-                        queryString += " AND Moneda = '" + String.valueOf(item.getItemProperty(MONEDA_PROPERTY).getValue() + "'");
+                        queryString += " AND IdNomenclatura = " + item.getItemProperty(ID_NOMENCLATURA_PROPERTY).getValue();
+                        queryString += " AND Moneda = '" + item.getItemProperty(MONEDA_PROPERTY).getValue() + "'";
 
                         stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                         rsRecords2 = stQuery1.executeQuery(queryString);

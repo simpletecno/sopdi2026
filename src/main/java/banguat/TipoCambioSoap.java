@@ -33,7 +33,7 @@ public interface TipoCambioSoap {
     @WebResult(name = "VariablesDisponiblesResult", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
     @RequestWrapper(localName = "VariablesDisponibles", targetNamespace = "http://www.banguat.gob.gt/variables/ws/", className = "gt.gob.banguat.variables.ws.VariablesDisponibles")
     @ResponseWrapper(localName = "VariablesDisponiblesResponse", targetNamespace = "http://www.banguat.gob.gt/variables/ws/", className = "gt.gob.banguat.variables.ws.VariablesDisponiblesResponse")
-    public InfoVariable variablesDisponibles();
+    InfoVariable variablesDisponibles();
 
     /**
      * Despliega el tipo de cambio correspondiente a una variable (moneda) dada. (Formato: moneda=2) 
@@ -46,9 +46,9 @@ public interface TipoCambioSoap {
     @WebResult(name = "VariablesResult", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
     @RequestWrapper(localName = "Variables", targetNamespace = "http://www.banguat.gob.gt/variables/ws/", className = "gt.gob.banguat.variables.ws.Variables")
     @ResponseWrapper(localName = "VariablesResponse", targetNamespace = "http://www.banguat.gob.gt/variables/ws/", className = "gt.gob.banguat.variables.ws.VariablesResponse")
-    public InfoVariable variables(
-        @WebParam(name = "variable", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
-        int variable);
+    InfoVariable variables(
+            @WebParam(name = "variable", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
+            int variable);
 
     /**
      * Despliega la información del tipo de cambio, en dólares, desde una fecha dada hasta el día corriente. (Formato: fecha_ini=dd/mm/aaaa).
@@ -61,9 +61,9 @@ public interface TipoCambioSoap {
     @WebResult(name = "TipoCambioFechaInicialResult", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
     @RequestWrapper(localName = "TipoCambioFechaInicial", targetNamespace = "http://www.banguat.gob.gt/variables/ws/", className = "gt.gob.banguat.variables.ws.TipoCambioFechaInicial")
     @ResponseWrapper(localName = "TipoCambioFechaInicialResponse", targetNamespace = "http://www.banguat.gob.gt/variables/ws/", className = "gt.gob.banguat.variables.ws.TipoCambioFechaInicialResponse")
-    public DataVariable tipoCambioFechaInicial(
-        @WebParam(name = "fechainit", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
-        String fechainit);
+    DataVariable tipoCambioFechaInicial(
+            @WebParam(name = "fechainit", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
+            String fechainit);
 
     /**
      * Despliega la información para dólares en el período de tiempo dado. (Formato: fecha_ini=dd/mm/aaaa fecha_fin=dd/mm/aaaa)
@@ -77,11 +77,11 @@ public interface TipoCambioSoap {
     @WebResult(name = "TipoCambioRangoResult", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
     @RequestWrapper(localName = "TipoCambioRango", targetNamespace = "http://www.banguat.gob.gt/variables/ws/", className = "gt.gob.banguat.variables.ws.TipoCambioRango")
     @ResponseWrapper(localName = "TipoCambioRangoResponse", targetNamespace = "http://www.banguat.gob.gt/variables/ws/", className = "gt.gob.banguat.variables.ws.TipoCambioRangoResponse")
-    public DataVariable tipoCambioRango(
-        @WebParam(name = "fechainit", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
-        String fechainit,
-        @WebParam(name = "fechafin", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
-        String fechafin);
+    DataVariable tipoCambioRango(
+            @WebParam(name = "fechainit", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
+            String fechainit,
+            @WebParam(name = "fechafin", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
+            String fechafin);
 
     /**
      * Despliega la información para la variable indicada a partir de una fecha y moneda indicada. (Formato: fecha_ini=dd/mm/aaaa moneda=02).
@@ -95,11 +95,11 @@ public interface TipoCambioSoap {
     @WebResult(name = "TipoCambioFechaInicialMonedaResult", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
     @RequestWrapper(localName = "TipoCambioFechaInicialMoneda", targetNamespace = "http://www.banguat.gob.gt/variables/ws/", className = "gt.gob.banguat.variables.ws.TipoCambioFechaInicialMoneda")
     @ResponseWrapper(localName = "TipoCambioFechaInicialMonedaResponse", targetNamespace = "http://www.banguat.gob.gt/variables/ws/", className = "gt.gob.banguat.variables.ws.TipoCambioFechaInicialMonedaResponse")
-    public DataVariable tipoCambioFechaInicialMoneda(
-        @WebParam(name = "fechainit", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
-        String fechainit,
-        @WebParam(name = "moneda", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
-        int moneda);
+    DataVariable tipoCambioFechaInicialMoneda(
+            @WebParam(name = "fechainit", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
+            String fechainit,
+            @WebParam(name = "moneda", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
+            int moneda);
 
     /**
      * Despliega la información para la variable indicada en el período de tiempo y la moneda dada. (Formato: fecha_ini=dd/mm/aaaa fecha_fin=dd/mm/aaaa moneda=02)
@@ -114,13 +114,13 @@ public interface TipoCambioSoap {
     @WebResult(name = "TipoCambioRangoMonedaResult", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
     @RequestWrapper(localName = "TipoCambioRangoMoneda", targetNamespace = "http://www.banguat.gob.gt/variables/ws/", className = "gt.gob.banguat.variables.ws.TipoCambioRangoMoneda")
     @ResponseWrapper(localName = "TipoCambioRangoMonedaResponse", targetNamespace = "http://www.banguat.gob.gt/variables/ws/", className = "gt.gob.banguat.variables.ws.TipoCambioRangoMonedaResponse")
-    public DataVariable tipoCambioRangoMoneda(
-        @WebParam(name = "fechainit", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
-        String fechainit,
-        @WebParam(name = "fechafin", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
-        String fechafin,
-        @WebParam(name = "moneda", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
-        int moneda);
+    DataVariable tipoCambioRangoMoneda(
+            @WebParam(name = "fechainit", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
+            String fechainit,
+            @WebParam(name = "fechafin", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
+            String fechafin,
+            @WebParam(name = "moneda", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
+            int moneda);
 
     /**
      * Devuelve el cambio del día en dólares
@@ -132,7 +132,7 @@ public interface TipoCambioSoap {
     @WebResult(name = "TipoCambioDiaResult", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
     @RequestWrapper(localName = "TipoCambioDia", targetNamespace = "http://www.banguat.gob.gt/variables/ws/", className = "gt.gob.banguat.variables.ws.TipoCambioDia")
     @ResponseWrapper(localName = "TipoCambioDiaResponse", targetNamespace = "http://www.banguat.gob.gt/variables/ws/", className = "gt.gob.banguat.variables.ws.TipoCambioDiaResponse")
-    public InfoVariable tipoCambioDia();
+    InfoVariable tipoCambioDia();
 
     /**
      * Devuelve el cambio del día en dólares
@@ -144,6 +144,6 @@ public interface TipoCambioSoap {
     @WebResult(name = "TipoCambioDiaStringResult", targetNamespace = "http://www.banguat.gob.gt/variables/ws/")
     @RequestWrapper(localName = "TipoCambioDiaString", targetNamespace = "http://www.banguat.gob.gt/variables/ws/", className = "gt.gob.banguat.variables.ws.TipoCambioDiaString")
     @ResponseWrapper(localName = "TipoCambioDiaStringResponse", targetNamespace = "http://www.banguat.gob.gt/variables/ws/", className = "gt.gob.banguat.variables.ws.TipoCambioDiaStringResponse")
-    public String tipoCambioDiaString();
+    String tipoCambioDiaString();
 
 }

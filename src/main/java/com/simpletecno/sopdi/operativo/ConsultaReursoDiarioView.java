@@ -100,7 +100,6 @@ public class ConsultaReursoDiarioView extends VerticalLayout implements View {
         inicioDt.addValueChangeListener(event -> {
             if (inicioDt.getValue().after(finDt.getValue())) {
                 Notification.show("Fecha inicial es mayor que fecha final, revise!!", Notification.Type.WARNING_MESSAGE);
-                return;
             }
 //            fillIdexGrid();
         });
@@ -115,7 +114,6 @@ public class ConsultaReursoDiarioView extends VerticalLayout implements View {
         finDt.addValueChangeListener(event -> {
             if (finDt.getValue().before(inicioDt.getValue())) {
                 Notification.show("Fecha final es menor que fecha inicial, revise!!", Notification.Type.WARNING_MESSAGE);
-                return;
             }
 //            fillIdexGrid();
         });

@@ -261,7 +261,7 @@ public class EmpresaCuentaEquivalenteView extends VerticalLayout implements View
                 } else {
 
                     queryString = " select * from contabilidad_partida";
-                    queryString += " where IdNomenclatura = " + String.valueOf(container.getContainerProperty(cuentasEquivalentesGrid.getSelectedRow(), Col.ID_EMPRESA.id()).getValue());
+                    queryString += " where IdNomenclatura = " + container.getContainerProperty(cuentasEquivalentesGrid.getSelectedRow(), Col.ID_EMPRESA.id()).getValue();
 
                     try {
 
@@ -273,8 +273,7 @@ public class EmpresaCuentaEquivalenteView extends VerticalLayout implements View
                         } else {
 
                             queryString = " delete from contabilidad_nomenclatura";
-                            queryString += " where IdNomenclatura = " + String.valueOf(container.getContainerProperty(cuentasEquivalentesGrid.getSelectedRow(), Col.ID_EMPRESA.id()).getValue());
-                            ;
+                            queryString += " where IdNomenclatura = " + container.getContainerProperty(cuentasEquivalentesGrid.getSelectedRow(), Col.ID_EMPRESA.id()).getValue();
 
                             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                             stQuery.executeUpdate(queryString);
@@ -314,7 +313,7 @@ public class EmpresaCuentaEquivalenteView extends VerticalLayout implements View
                         inhabilitarBtn.setIcon(FontAwesome.HAND_O_UP);
                     }
 
-                    queryString += " WHERE IdNomenclatura = " + String.valueOf(container.getContainerProperty(cuentasEquivalentesGrid.getSelectedRow(), Col.ID_EMPRESA.id()).getValue());
+                    queryString += " WHERE IdNomenclatura = " + container.getContainerProperty(cuentasEquivalentesGrid.getSelectedRow(), Col.ID_EMPRESA.id()).getValue();
 
                     try {
                         stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
