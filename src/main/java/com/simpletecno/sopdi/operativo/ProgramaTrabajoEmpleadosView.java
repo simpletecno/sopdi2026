@@ -7,7 +7,6 @@ package com.simpletecno.sopdi.operativo;
 import com.simpletecno.sopdi.SopdiUI;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.util.filter.SimpleStringFilter;
-import com.vaadin.event.SelectionEvent;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;

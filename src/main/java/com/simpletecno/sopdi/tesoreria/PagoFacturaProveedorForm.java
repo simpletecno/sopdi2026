@@ -10,7 +10,6 @@ import com.vaadin.addon.tableexport.TableHolder;
 import com.vaadin.data.Item;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.util.filter.SimpleStringFilter;
-import com.vaadin.event.SelectionEvent;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.shared.Position;
