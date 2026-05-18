@@ -717,14 +717,16 @@ public class PagoAnticipoEmpresaRelForm extends Window {
     }
 
     public void llenarComboCuentaContable() {
-        if(empresaGrid.getSelectedRow() == null) {
-            return;
-        }
+//        if(empresaGrid.getSelectedRow() == null) {
+//            return;
+//        }
 
         String queryString = " SELECT * FROM contabilidad_nomenclatura_empresa ";
         queryString += " WHERE Estatus='HABILITADA'";
-        queryString += " AND IdEmpresa=" + empresaGrid.getSelectedRow();
+        queryString += " AND IdEmpresa=" + empresaId;
         queryString += " ORDER BY N5";
+
+Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query de cuentas contables: {0} ", new Object[]{queryString});
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();

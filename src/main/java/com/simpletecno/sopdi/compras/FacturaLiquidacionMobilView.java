@@ -1,6 +1,7 @@
 package com.simpletecno.sopdi.compras;
 
 import com.simpletecno.sopdi.SopdiUI;
+import com.simpletecno.sopdi.utilerias.Utileria;
 import com.sun.istack.logging.Logger;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.util.filter.SimpleStringFilter;
@@ -21,27 +22,32 @@ import org.vaadin.ui.NumberField;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.logging.Level;
 
 public class FacturaLiquidacionMobilView extends VerticalLayout implements View {
 
-    static final String FECHA_PROPERTY = "Fecha";
+    static final String TIPO_DOCUMENTO = "Tipo doc.";
     static final String PROVEEDOR_PROPERTY = "Proveedor";
     static final String FACTURA_PROPERTY = "Documento";
     static final String MONTO_PROPERTY = "Monto";
     static final String LIQUIDACION_PROPERTY = "LIQUIDACION";
     static final String CREADOSTAMP_PROPERTY = "Creado el";
+    static final String RAZON_PROPERTY = "Razón";
 
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
 
     private Statement stQuery;
     private ResultSet rsRecords;
 
-    private final ComboBox proveedorCbx = new ComboBox("Proveedor : " );
-    private final ComboBox cuentaContableCbx = new ComboBox("Cuenta contable : ");
-    private final ComboBox centroCostoCbx = new ComboBox("Centro de costo : ");
-    private final TextField numeroTxt = new TextField("Número factura : ");
-    private final NumberField montoTxt = new NumberField("Monto : ");
+    private final DateField fechaDt = new DateField();
+    private final ComboBox tipoDocumentoCbx = new ComboBox();
+    private final ComboBox proveedorCbx = new ComboBox();
+    private final ComboBox cuentaContableCbx = new ComboBox();
+    private final ComboBox centroCostoCbx = new ComboBox();
+    private final TextField numeroTxt = new TextField();
+    private final NumberField montoTxt = new NumberField();
+    private final TextField razonTxt = new TextField();
 
     private final Button guardarBtn = new Button("Guardar");
     private final Button cerrarBtn = new Button("Cerrar Liquidación");
@@ -72,7 +78,7 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
         Label titleLbl = new Label(empresaId + " " + empresaNombre + " FACTURA LIQUIDACION MOBIL");
         titleLbl.addStyleName(ValoTheme.LABEL_H4);
         titleLbl.setWidth("100%");
-        titleLbl.addStyleName("h1_custom");
+        titleLbl.addStyleName("h2_custom");
 
         titleLayout.addComponent(titleLbl);
 
@@ -80,8 +86,41 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
         setComponentAlignment(empresaLayout, Alignment.TOP_CENTER);
         setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
 
+        fechaDt.setDateFormat("dd/MM/yyyy");
+        fechaDt.setWidth("100%");
+        fechaDt.setValue(new java.util.Date());
+
+        HorizontalLayout fechaLayout = new HorizontalLayout();
+        fechaLayout.setResponsive(true);
+        fechaLayout.setSpacing(true);
+        fechaLayout.setWidth("90%");
+
+        fechaLayout.addComponent(fechaDt);
+        fechaLayout.setComponentAlignment(fechaDt, Alignment.MIDDLE_CENTER);
+
+        tipoDocumentoCbx.setTextInputAllowed(false);
+        tipoDocumentoCbx.setNewItemsAllowed(false);
+        tipoDocumentoCbx.setNullSelectionAllowed(false);
+        tipoDocumentoCbx.setInputPrompt("Tipo de documento");
+        tipoDocumentoCbx.setDescription("Tipo de documento");
+        tipoDocumentoCbx.setWidth("100%");
+        tipoDocumentoCbx.addItem("FACTURA");
+        tipoDocumentoCbx.addItem("RECIBO CONTABLE");
+        tipoDocumentoCbx.addItem("RECIBO CORRIENTE");
+        tipoDocumentoCbx.select("FACTURA");
+        tipoDocumentoCbx.setFilteringMode(FilteringMode.STARTSWITH);
+
+        HorizontalLayout tipoDocumentoLayout = new HorizontalLayout();
+        tipoDocumentoLayout.setResponsive(true);
+        tipoDocumentoLayout.setSpacing(true);
+        tipoDocumentoLayout.setWidth("90%");
+
+        tipoDocumentoLayout.addComponent(tipoDocumentoCbx);
+        tipoDocumentoLayout.setComponentAlignment(tipoDocumentoCbx, Alignment.MIDDLE_CENTER);
+
         proveedorCbx.setWidth("100%");
         proveedorCbx.setInputPrompt("Proveedor");
+        proveedorCbx.addContainerProperty("nit", String.class, "");
         proveedorCbx.setInvalidAllowed(false);
         proveedorCbx.setNewItemsAllowed(false);
         proveedorCbx.setNullSelectionAllowed(false);
@@ -89,7 +128,6 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
         proveedorCbx.addValueChangeListener(e -> {
             fillComboCuentaContable();
         });
-        proveedorCbx.addStyleName(ValoTheme.COMBOBOX_SMALL);
 
         HorizontalLayout proveedorLayout = new HorizontalLayout();
         proveedorLayout.setResponsive(true);
@@ -102,6 +140,7 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
         llenarComboProveedor();
 
         cuentaContableCbx.setImmediate(true);
+        cuentaContableCbx.setInputPrompt("Cuenta contable");
         cuentaContableCbx.setNullSelectionAllowed(false);
         cuentaContableCbx.setTextInputAllowed(true);
         cuentaContableCbx.setInvalidAllowed(false);
@@ -122,6 +161,7 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
         cuentaContableLayout.setComponentAlignment(cuentaContableCbx, Alignment.MIDDLE_CENTER);
 
         centroCostoCbx.setWidth("100%");
+        centroCostoCbx.setInputPrompt("Centro costo");
         centroCostoCbx.setTextInputAllowed(false);
         centroCostoCbx.setInvalidAllowed(false);
         centroCostoCbx.setNewItemsAllowed(false);
@@ -139,6 +179,7 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
 //        llenarComboCentroCosto();
 
         numeroTxt.setWidth("100%");
+        numeroTxt.setInputPrompt("Número");
         numeroTxt.addStyleName("mayusculas");
         numeroTxt.setInputPrompt("Número de factura SIN la serie..");
         numeroTxt.setDescription("Correlativo de factura");
@@ -152,6 +193,8 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
         numeroLayout.setComponentAlignment(numeroTxt, Alignment.MIDDLE_CENTER);
 
         montoTxt.setDecimalAllowed(true);
+        montoTxt.setDescription("Monto de la factura");
+        montoTxt.setInputPrompt("Monto");
         montoTxt.setDecimalPrecision(2);
         montoTxt.setMinimumFractionDigits(2);
         montoTxt.setDecimalSeparator('.');
@@ -173,6 +216,16 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
         montoLayout.addComponent(montoTxt);
         montoLayout.setComponentAlignment(montoTxt, Alignment.MIDDLE_CENTER);
 
+        razonTxt.setWidth("100%");
+        razonTxt.setDescription("Razón de la factura");
+        HorizontalLayout razonLayout = new HorizontalLayout();
+        razonLayout.setResponsive(true);
+        razonLayout.setSpacing(true);
+        razonLayout.setWidth("90%");
+
+        razonLayout.addComponent(razonTxt);
+        razonLayout.setComponentAlignment(razonTxt, Alignment.MIDDLE_CENTER);
+
         guardarBtn.setIcon(FontAwesome.SAVE);
         guardarBtn.setStyleName(ValoTheme.BUTTON_PRIMARY);
         guardarBtn.addClickListener(new Button.ClickListener() {
@@ -192,19 +245,22 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
         botonLayout.setComponentAlignment(guardarBtn, Alignment.BOTTOM_CENTER);
 
 //        addComponents(proveedorLayout, centroCostoLayout, cuentaContableLayout, numeroLayout, montoLayout, botonLayout);
-        addComponents(proveedorLayout,cuentaContableLayout, centroCostoLayout, numeroLayout, botonLayout);
+        addComponents(fechaLayout,tipoDocumentoLayout,proveedorLayout,cuentaContableLayout,centroCostoLayout,montoLayout,numeroLayout,razonLayout,botonLayout);
+        setComponentAlignment(fechaLayout, Alignment.MIDDLE_CENTER);
+        setComponentAlignment(tipoDocumentoLayout, Alignment.MIDDLE_CENTER);
         setComponentAlignment(proveedorLayout, Alignment.MIDDLE_CENTER);
         setComponentAlignment(centroCostoLayout, Alignment.MIDDLE_CENTER);
         setComponentAlignment(cuentaContableLayout, Alignment.MIDDLE_CENTER);
         setComponentAlignment(numeroLayout, Alignment.MIDDLE_CENTER);
-//        setComponentAlignment(montoLayout, Alignment.MIDDLE_CENTER);
+        setComponentAlignment(montoLayout, Alignment.MIDDLE_CENTER);
+        setComponentAlignment(razonLayout, Alignment.MIDDLE_CENTER);
 
         crearGridDocumentos();
         llenarGridDocumentos();
     }
 
     public void llenarComboProveedor() {
-        String queryString = " SELECT prv.IdProveedor, prv.Nombre ";
+        String queryString = " SELECT prv.IdProveedor, prv.Nombre, prv.NIT ";
         queryString += " FROM empleado_liquidador el";
         queryString += " INNER JOIN proveedor_empresa prv ON prv.IdProveedor = el.IdProveedor ";
         if(((SopdiUI) UI.getCurrent()).sessionInformation.getStrIdProveedor() == null || ((SopdiUI) UI.getCurrent()).sessionInformation.getStrIdProveedor().isEmpty()) {
@@ -224,8 +280,13 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
                 do {
                     proveedorCbx.addItem(rsRecords.getString("IdProveedor"));
                     proveedorCbx.setItemCaption(rsRecords.getString("IdProveedor"), rsRecords.getString("Nombre"));
+                    proveedorCbx.getContainerProperty(rsRecords.getString("IdProveedor"), "nit").setValue(rsRecords.getString("NIT"));
                 } while (rsRecords.next());
             }
+            proveedorCbx.addItem(((SopdiUI) UI.getCurrent()).sessionInformation.getStrIdProveedor());
+            proveedorCbx.setItemCaption(((SopdiUI) UI.getCurrent()).sessionInformation.getStrIdProveedor(), ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserFullName());
+            proveedorCbx.getContainerProperty(((SopdiUI) UI.getCurrent()).sessionInformation.getStrIdProveedor(), "nit").setValue("");
+
         } catch (Exception ex1) {
             Notification.show("ERROR AL BUSCAR PROVEEDORES : " + ex1.getMessage(), Notification.Type.ERROR_MESSAGE);
             ex1.printStackTrace();
@@ -337,10 +398,12 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
 
                     public void onClose(ConfirmDialog dialog) {
                         if (dialog.isConfirmed()) {
+
                             String queryString = " SELECT * FROM documento_liq_mobil";
                             queryString += " WHERE IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
                             queryString += " AND   IdProveedor = " + proveedorCbx.getValue();
                             queryString += " AND   Numero = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
+//                            queryString += " AND   TipoDocumento = '" + tipoDocumentoCbx.getValue().toString() + "'";
 
                             try {
                                 rsRecords = stQuery.executeQuery(queryString);
@@ -350,42 +413,301 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
                                     numeroTxt.focus();
                                     return;
                                 }
-
-                                queryString = "INSERT INTO documento_liq_mobil (IdEmpresa, IdProveedor, IdEmpleado, IdCentroCosto, ";
-                                queryString += " CodigoCentroCosto, IdNomenclatura, Numero, Monto, CreadoUsuario, CreadoFechaYHora) ";
-                                queryString += " VALUES (";
-                                queryString += empresaId;
-                                queryString += ","  + proveedorCbx.getValue();
-                                queryString += ","  + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrIdProveedor();
-                                queryString += ","  + centroCostoCbx.getValue();
-                                queryString += ",'" + centroCostoCbx.getItemCaption(centroCostoCbx.getValue()) + "'";
-                                queryString += ","  + cuentaContableCbx.getValue();
-                                queryString += ",'" + numeroTxt.getValue().toUpperCase().trim() + "'";
-                                queryString += ","  + montoTxt.getDoubleValueDoNotThrow();
-                                queryString += ","  + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
-                                queryString += ",current_timestamp";
-                                queryString += ")";
-
-                                stQuery.executeUpdate(queryString);
-
-//                                facturaRegistradaLiquidacionMobil(String.valueOf(proveedorCbx.getValue()), numeroTxt.getValue().toUpperCase().trim());
-
-                                Notification.show("DOCUMENTO REGISTRADO OK!", Notification.Type.HUMANIZED_MESSAGE);
-
-                                numeroTxt.setValue("");
-//                                montoTxt.setValue(0.00);
-
-                            } catch (Exception ex1) {
-                                Notification.show("ERROR AL INSERTAR REGISTRO.", Notification.Type.ERROR_MESSAGE);
+                            }
+                            catch (Exception ex1) {
+                                System.out.println("Error al insertar documento: " + ex1.getMessage());
+                                Notification.show("Error al insertar documento.", Notification.Type.ERROR_MESSAGE);
                                 ex1.printStackTrace();
+                                return;
+                            }
+
+                            if(tipoDocumentoCbx.getValue().equals("FACTURA")) {
+                                registrarLiquidacionMobil(false);
+                            } else if(tipoDocumentoCbx.getValue().equals("RECIBO CONTABLE") || tipoDocumentoCbx.getValue().equals("RECIBO CORRIENTE")) {
+                                registrarLiquidacionMobil(true);
+                                registrarDirectoLiquidacion();
                             }
                         } else {
                             Notification.show("OPERACION CANCELADA POR USUARIO", Notification.Type.WARNING_MESSAGE);
                         }
+
+                        limpiarCampos();
                     }
                 }
         );
 
+    }
+
+    /*
+        Solamente para documento tipo FACTURA.
+        Hace el registro en la tabla documento_liq_movil, para que luego
+        en ImportarFelSatView se haga el proceso general de documento compra.
+     */
+    private void registrarLiquidacionMobil(boolean noMensaje) {
+
+        String queryString = "INSERT INTO documento_liq_mobil (IdEmpresa, IdProveedor, IdEmpleado, IdCentroCosto, ";
+        queryString += " CodigoCentroCosto, IdNomenclatura, Numero, Monto, CreadoUsuario, CreadoFechaYHora, Contabilizado) ";
+        queryString += " VALUES (";
+        queryString += empresaId;
+        queryString += ","  + proveedorCbx.getValue();
+        queryString += ","  + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrIdProveedor();
+        queryString += ","  + centroCostoCbx.getValue();
+        queryString += ",'" + centroCostoCbx.getItemCaption(centroCostoCbx.getValue()) + "'";
+        queryString += ","  + cuentaContableCbx.getValue();
+        queryString += ",'" + numeroTxt.getValue().toUpperCase().trim() + "'";
+        queryString += ","  + montoTxt.getDoubleValueDoNotThrow();
+        queryString += ","  + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
+        queryString += ",current_timestamp";
+        if(!noMensaje) {
+            queryString += ",0";
+        }
+        else {
+            queryString += ",1";
+        }
+        queryString += ")";
+
+        try {
+            stQuery.executeUpdate(queryString);
+
+            if(!noMensaje) {
+                Notification.show("DOCUMENTO REGISTRADO OK!", Notification.Type.HUMANIZED_MESSAGE);
+                limpiarCampos();
+            }
+
+        } catch (Exception ex1) {
+            Notification.show("ERROR AL INSERTAR REGISTRO.", Notification.Type.ERROR_MESSAGE);
+            ex1.printStackTrace();
+        }
+    }
+
+    /*
+        Solamente para tipo de documento RECIBO CONTABLE y RECIBO CORRIENTE
+        Registra directamente en la liquidación abierta del liquidador.
+        Crea la partida contable del documento.
+     */
+    private void registrarDirectoLiquidacion() {
+
+        String codigoCC;
+        String nombreProveedor = proveedorCbx.getItemCaption(proveedorCbx.getValue());
+        String nitProveedor = proveedorCbx.getContainerProperty(proveedorCbx.getValue(), "nit").getValue().toString();
+        String nombreLiquidador = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserFullName();
+        String idLiquidador = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrIdProveedor();
+        int ultimaLiquidacion;
+
+        String idCentroCosto = centroCostoCbx.getValue().toString();
+        String codigoCentroCosto = centroCostoCbx.getItemCaption(centroCostoCbx.getValue());
+        String idNomenclatura = cuentaContableCbx.getValue().toString();
+
+        // encontrar la ultima liquidación abierta del liquidador
+        String queryString = " SELECT CodigoCC, IdLiquidacion ";
+        queryString += " FROM contabilidad_partida";
+        queryString += " WHERE IdEmpresa = " + empresaId;
+        queryString += " AND IdLiquidador = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrIdProveedor();;
+        queryString += " AND IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getLiquidacionesCajaChicha();
+        queryString += " AND IdLiquidacion > 0 ";
+        queryString += " AND Estatus IN ('INGRESADO', 'REVISADO')";
+        queryString += " AND EXTRACT(YEAR FROM Fecha) > 2024";
+        queryString += " GROUP BY CodigoCC, IdLiquidacion";
+
+        Logger.getLogger(this.getClass()).log(Level.INFO, "Liquidador=" + idLiquidador + " " + nombreLiquidador + " query=" + queryString);
+
+        try {
+            rsRecords = stQuery.executeQuery(queryString);
+
+            if (rsRecords.next()) { // encontrado
+                codigoCC = rsRecords.getString("CodigoCC");
+                ultimaLiquidacion = rsRecords.getInt("IdLiquidacion");
+            } else { // no tiene liquidacion abierta, crear una nueva
+                queryString = "SELECT *";
+                queryString += " FROM  contabilidad_empresa";
+                queryString += " WHERE IdEmpresa = " + empresaId;
+
+                rsRecords = stQuery.executeQuery(queryString);
+
+                if (rsRecords.next()) {
+                    ultimaLiquidacion = rsRecords.getInt("IdUltimaLiquidacion") + 1;
+                } else {
+                    ultimaLiquidacion = 1;
+                }
+
+                String fecha = Utileria.getFechaYYYYMMDD_1(fechaDt.getValue());
+                //0123456789
+                //1234567890
+                String ultimoEncontado; //yyyy-mm-dd
+                String dia = fecha.substring(8, 10);
+                String mes = fecha.substring(5, 7);
+                String año = fecha.substring(0, 4);
+
+                codigoCC = empresaId + año + mes + dia + "9";
+
+                queryString = " SELECT codigoCC FROM contabilidad_partida ";
+                queryString += " WHERE codigoCC LIKE '" + codigoCC + "%'";
+                queryString += " ORDER BY codigoCC DESC ";
+                queryString += " LIMIT 1";
+
+                rsRecords = stQuery.executeQuery(queryString);
+
+                if (rsRecords.next()) { //  encontrado
+                    ultimoEncontado = rsRecords.getString("codigoCC").substring(12, 15);
+                    codigoCC += String.format("%03d", (Integer.parseInt(ultimoEncontado) + 1));
+                } else {
+                    codigoCC += "001";
+                }
+            }
+
+            Logger.getLogger(this.getClass()).log(Level.INFO, "Liquidador=" + idLiquidador + " " + nombreLiquidador + " codigoCC=" + codigoCC + " liquidacionId=" + ultimaLiquidacion);
+
+            //crear la partida contable para este documento
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+            String fecha = Utileria.getFechaYYYYMMDD_1(fechaDt.getValue());
+            //0123456789
+            //1234567890
+            String ultimoEncontado; //yyyy-mm-dd
+            String dia = fecha.substring(8, 10);
+            String mes = fecha.substring(5, 7);
+            String año = fecha.substring(0, 4);
+
+            String codigoPartida = empresaId + año + mes + dia + "2";
+
+            queryString = " SELECT codigoPartida FROM contabilidad_partida ";
+            queryString += " WHERE codigoPartida LIKE '" + codigoPartida + "%'";
+            queryString += " ORDER BY codigoPartida desc ";
+
+            rsRecords = stQuery.executeQuery(queryString);
+
+            if (rsRecords.next()) { //  encontrado
+                ultimoEncontado = rsRecords.getString("codigoPartida").substring(12, 15);
+                codigoPartida += String.format("%03d", (Integer.valueOf(ultimoEncontado) + 1));
+            } else {
+                codigoPartida += "001";
+            }
+            /// HABER ingreso del LIQUIDACION
+            queryString = " INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
+            queryString += " TipoDocumento, Fecha, NITProveedor, IdProveedor, NombreProveedor,";
+            queryString += " SerieDocumento, NumeroDocumento, IdNomenclatura, MonedaDocumento, Debe, Haber, ";
+            queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, MontoDocumento, Saldo, IdLiquidador, IdLiquidacion, ";
+            queryString += " Descripcion, IdCentroCosto, CodigoCentroCosto, CreadoUsuario, CreadoFechaYHora)";
+            queryString += " VALUES ";
+            queryString += " (";
+            queryString += empresaId;
+            queryString += ",'INGRESADO'";
+            queryString += ",'" + codigoPartida + "'";
+            queryString += ",'" + codigoCC + "'";
+            queryString += ",'" + tipoDocumentoCbx.getValue() + "'";
+            queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
+            queryString += ",'" + nitProveedor + "'";
+            queryString += ", " + proveedorCbx.getValue();
+            queryString += ",'" + nombreProveedor + "'";
+            queryString += ",''";
+            queryString += ",'" + numeroTxt.getValue().toUpperCase().trim() + "'";
+            queryString += "," + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getLiquidacionesCajaChicha();
+            queryString += ",'QUETZALES'";
+            queryString += ",0.00"; // DEBE
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //HABER
+            queryString += ",0.00"; //DEBE Q
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
+            queryString += ",1";
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); // montodocumento
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); // SALDO
+            queryString += "," + idLiquidador;
+            queryString += "," + ultimaLiquidacion;
+            queryString += ",'LIQUIDACION GASTO " + ultimaLiquidacion + " " + nombreLiquidador +  " " + razonTxt.getValue() + "'";
+            queryString += "," + idCentroCosto;
+            queryString += ",'" + codigoCentroCosto + "'";
+            queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
+            queryString += ",current_timestamp";
+            queryString += ")";
+
+            /// DEBE ingreso del costo
+            queryString += ",(";
+            queryString += empresaId;
+            queryString += ",'INGRESADO'";
+            queryString += ",'" + codigoPartida + "'";
+            queryString += ",'" + codigoCC + "'";
+            queryString += ",'" + tipoDocumentoCbx.getValue() + "'";
+            queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
+            queryString += ",'" + nitProveedor + "'";
+            queryString += ", " + proveedorCbx.getValue();
+            queryString += ",'" + nombreProveedor + "'";
+            queryString += ",''";
+            queryString += ",'" + numeroTxt.getValue().toUpperCase().trim() + "'";
+            queryString += "," + cuentaContableCbx.getValue();
+            queryString += ",'QUETZALES'";
+            if (!((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyRegimen().equals("EXENTA") && !tipoDocumentoCbx.getValue().equals("RECIBO CORRIENTE")) {
+                queryString += "," + montoTxt.getDoubleValueDoNotThrow()/1.12; //DEBE
+                queryString += ",0.00"; // HABER
+                queryString += "," + montoTxt.getDoubleValueDoNotThrow()/1.12; //DEBE  Q
+                queryString += ",0.00"; //HABER Q
+            } else {
+                queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //DEBE
+                queryString += ",0.00"; // HABER
+                queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //DEBE  Q
+                queryString += ",0.00"; //HABER Q
+            }
+            queryString += ",1";
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); // montodocumento
+            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); // SALDO
+            queryString += "," + idLiquidador;
+            queryString += "," + ultimaLiquidacion;
+            queryString += ",'LIQUIDACION GASTO " + ultimaLiquidacion + " " + nombreLiquidador +  " " + razonTxt.getValue() + "'";
+            queryString += "," + idCentroCosto;
+            queryString += ",'" + codigoCentroCosto + "'";
+            queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
+            queryString += ",current_timestamp";
+            queryString += ")";
+
+            /// DEBE ingreso del IVA
+            if (!((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyRegimen().equals("EXENTA") && !tipoDocumentoCbx.getValue().equals("RECIBO CORRIENTE")) {
+                queryString += ",(";
+                queryString += empresaId;
+                queryString += ",'INGRESADO'";
+                queryString += ",'" + codigoPartida + "'";
+                queryString += ",'" + codigoCC + "'";
+                queryString += ",'" + tipoDocumentoCbx.getValue() + "'";
+                queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
+                queryString += ",'" + nitProveedor + "'";
+                queryString += ", " + proveedorCbx.getValue();
+                queryString += ",'" + nombreProveedor + "'";
+                queryString += ",''";
+                queryString += ",'" + numeroTxt.getValue().toUpperCase().trim() + "'";
+                queryString += "," + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getIvaPorCobrar();
+                queryString += ",'QUETZALES'";
+                queryString += "," + ((montoTxt.getDoubleValueDoNotThrow()/1.12) * .12); // DEBE
+                queryString += ",0.00"; //HABER
+                queryString += "," + ((montoTxt.getDoubleValueDoNotThrow()/1.12) * .12); //DEBE Q
+                queryString += ",0.00"; //HABER Q
+                queryString += ",1";
+                queryString += "," + montoTxt.getDoubleValueDoNotThrow(); // montodocumento
+                queryString += "," + montoTxt.getDoubleValueDoNotThrow(); // SALDO
+                queryString += "," + idLiquidador;
+                queryString += "," + ultimaLiquidacion;
+                queryString += ",'LIQUIDACION GASTO " + ultimaLiquidacion + " " + nombreLiquidador +  " " + razonTxt.getValue() + "'";
+                queryString += "," + idCentroCosto;
+                queryString += ",'" + codigoCentroCosto + "'";
+                queryString += "," + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
+                queryString += ",current_timestamp";
+                queryString += ")";
+            }
+
+            Logger.getLogger(this.getClass()).log(Level.INFO, "queryPartidaLiquidacionFelSatMobil=" + queryString);
+
+            stQuery.executeUpdate(queryString);
+
+            queryString = "UPDATE contabilidad_empresa SET";
+            queryString += " IdUltimaLiquidacion = " + ultimaLiquidacion;
+            queryString += " WHERE IdEmpresa = " + empresaId;
+
+            Logger.getLogger(this.getClass()).log(Level.INFO, "queryUpdateUltimaLiquidacion=" + queryString);
+
+            stQuery.executeUpdate(queryString);
+
+            Notification.show("DOCUMENTO REGISTRADO OK!", Notification.Type.HUMANIZED_MESSAGE);
+            llenarGridDocumentos();
+
+        } catch(Exception exception) {
+            Logger.getLogger(this.getClass()).log(Level.SEVERE, "Error al actualizar facturas previamente registradas documentos_fel_sat.", exception);
+            Notification.show("Error al actualizar facturas previamente registradas documentos_fel_sat", Notification.Type.ERROR_MESSAGE);
+        }
     }
 
     private void facturaRegistradaLiquidacionMobil(String idProveedor, String numero) {
@@ -423,6 +745,7 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
         } catch (Exception ex1) {
             Logger.getLogger(this.getClass()).log(Level.SEVERE, "Error al actualizar facturas previamente registradas documentos_fel_sat.", ex1);
             ex1.printStackTrace();
+            Notification.show("Error al actualizar facturas previamente registradas documentos_fel_sat", Notification.Type.ERROR_MESSAGE);
         }
 
     }
@@ -431,13 +754,18 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
 
         VerticalLayout documentosLayout = new VerticalLayout();
         documentosLayout.setWidth("100%");
+        documentosLayout.setHeight("100%");
         documentosLayout.addStyleName("rcorners3");
         documentosLayout.setResponsive(true);
+        documentosLayout.setMargin(true);
+        documentosLayout.setSpacing(true);
 
+        documentosContainer.addContainerProperty(TIPO_DOCUMENTO, String.class, "");
         documentosContainer.addContainerProperty(PROVEEDOR_PROPERTY, String.class, "");
         documentosContainer.addContainerProperty(FACTURA_PROPERTY, String.class, "");
         documentosContainer.addContainerProperty(MONTO_PROPERTY, String.class, "");
         documentosContainer.addContainerProperty(LIQUIDACION_PROPERTY, String.class, "");
+        documentosContainer.addContainerProperty(RAZON_PROPERTY, String.class, "");
         documentosContainer.addContainerProperty(CREADOSTAMP_PROPERTY, String.class, "");
 
         documentosGrid = new Grid("Liquidación actual ", documentosContainer);
@@ -594,18 +922,20 @@ System.out.println("Query cerrrar liquidacion=" + queryString);
 
             if (rsRecords.next()) { // si hay facturas compra por pagar
 
-                documentosGrid.setCaption("Liquidación actual de " + rsRecords.getString("IdLiquidacion"));
+                documentosGrid.setCaption("Liquidación " + rsRecords.getString("IdLiquidacion") + " de " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrIdProveedor() + " " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserFullName() );
                 double totalMonto = 0.0;
 
                 do {
 
                     Object itemId = documentosContainer.addItem();
 
+                    documentosContainer.getContainerProperty(itemId, TIPO_DOCUMENTO).setValue(rsRecords.getString("TipoDocumento"));
                     documentosContainer.getContainerProperty(itemId, PROVEEDOR_PROPERTY).setValue(rsRecords.getString("NombreProveedor"));
                     documentosContainer.getContainerProperty(itemId, FACTURA_PROPERTY).setValue(rsRecords.getString("SerieDocumento") + " " +rsRecords.getString("NumeroDocumento"));
                     documentosContainer.getContainerProperty(itemId, MONTO_PROPERTY).setValue(numberFormat.format(rsRecords.getDouble("Haber")));
                     documentosContainer.getContainerProperty(itemId, LIQUIDACION_PROPERTY).setValue(rsRecords.getString("IdLiquidacion"));
                     documentosContainer.getContainerProperty(itemId, CREADOSTAMP_PROPERTY).setValue(rsRecords.getString("CreadoFechaYHora"));
+                    documentosContainer.getContainerProperty(itemId, RAZON_PROPERTY).setValue(rsRecords.getString("Descripcion"));
                     totalMonto += rsRecords.getDouble("MontoDocumento");
 
                 } while (rsRecords.next());
@@ -618,7 +948,18 @@ System.out.println("Query cerrrar liquidacion=" + queryString);
         } catch (Exception ex) {
             System.out.println("Error al listar tabla Facturas de Liquidaciones : " + ex.getMessage());
             ex.printStackTrace();
+            Notification.show("Error al listar tabla Facturas de Liquidaciones : " + ex.getMessage());
         }
+    }
+
+    private void limpiarCampos() {
+        tipoDocumentoCbx.select("FACTURA");
+        proveedorCbx.select("0");
+        cuentaContableCbx.select("0");
+        centroCostoCbx.select("NO APLICA");
+        numeroTxt.setValue("");
+        montoTxt.setValue(0.0);
+        razonTxt.setValue("");
     }
 
     @Override

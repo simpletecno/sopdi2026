@@ -969,9 +969,9 @@ public class PagoFacturaProveedorForm extends Window {
         queryString += " INNER JOIN autorizacion_pago ON autorizacion_pago.CodigoCC = contabilidad_partida.CodigoCC ";
         queryString += " WHERE contabilidad_partida.IdEmpresa =" + empresaId;
         queryString += " AND contabilidad_partida.IdProveedor = " + IdProveedor;
-        queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getProveedores();
-        queryString += " AND UPPER(contabilidad_partida.TipoDocumento) IN ('FACTURA', 'RECIBO', ";
-        queryString += " 'RECIBO CONTABLE', 'RECIBO CORRIENTE', 'FORMULARIO RECTIFICACION')";
+        queryString += " AND contabilidad_partida.IdNomenclatura In (" + ((SopdiUI) mainUI).cuentasContablesDefault.getProveedores() + "," + ((SopdiUI) mainUI).cuentasContablesDefault.getInstituciones() + ")";
+        queryString += " AND UPPER(contabilidad_partida.TipoDocumento) IN  ('FACTURA','RECIBO','RECIBO CONTABLE','RECIBO CORRIENTE','FORMULARIO IVA',";
+        queryString += " 'FORMULARIO ISR', 'FORMULARIO ISR RETENIDO', 'FORMULARIO ISO', 'FORMULARIO RECTIFICACION', 'FORMULARIO ISR OPCIONAL MENSUAL')";
         queryString += " GROUP BY CodigoPartida";
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "query mostrar documentos a pagar FACTURAS : " + queryString);
@@ -1064,13 +1064,13 @@ public class PagoFacturaProveedorForm extends Window {
         // (método original sin cambios)
         String descripcion = descripcionTxt.getValue();
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
+        queryString = " INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
         queryString += " TipoDocumento, NoDOCA, TipoDOCA, Fecha, IdProveedor, NITProveedor, ";
         queryString += " NombreProveedor, NombreCheque, MontoDocumento, SerieDocumento, NumeroDocumento, ";
         queryString += " IdNomenclatura, MonedaDocumento, Debe, Haber,";
         queryString += " DebeQuetzales, HaberQuetzales, TipoCambio,";
         queryString += " Descripcion, CreadoUsuario, CreadoFechaYHora)";
-        queryString += " Values ";
+        queryString += " VALUES ";
 
         for (Object itemId: partidaContainer.getItemIds()) {
             Item item = partidaContainer.getItem(itemId);

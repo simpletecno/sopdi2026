@@ -310,16 +310,16 @@ public class IsrRetenidoPorDeclararForm extends Window {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
             queryString = "SELECT CodigoCC, IdNomenclatura, Fecha, SerieDocumento, NumeroDocumento, NombreProveedor, TipoDocumento ";
-            queryString += "FROM contabilidad_partida " + " ";
-            queryString += "WHERE  IdEmpresa = " + empresaId;
-            queryString += "AND Extract(YEAR_MONTH FROM Fecha) >= 202001 ";
-            queryString += "AND Fecha <= '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue())  + "' ";
-            queryString += "AND IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getIsrRetenidoPorPagar() + " ";
-            queryString += "AND HABER > 0 "; // solo las lineas cuenta por PAGAR
+            queryString += " FROM contabilidad_partida " + " ";
+            queryString += " WHERE  IdEmpresa = " + empresaId;
+            queryString += " AND Extract(YEAR_MONTH FROM Fecha) >= 202001 ";
+            queryString += " AND Fecha <= '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue())  + "' ";
+            queryString += " AND IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getIsrRetenidoPorPagar() + " ";
+            queryString += " AND HABER > 0 "; // solo las lineas cuenta por PAGAR
 //            queryString += " AND TipoDocumento IN ('CONSTANCIA ISR COMPRA')";
-            queryString += "AND Estatus <> 'ANULADO' ";
-            queryString += "AND PagadoIVA = 'NO' ";
-            queryString += "ORDER BY Fecha ";
+            queryString += " AND Estatus <> 'ANULADO' ";
+            queryString += " AND PagadoIVA = 'NO' ";
+            queryString += " ORDER BY Fecha ";
 
 //System.out.println(queryString);
 
@@ -327,16 +327,18 @@ public class IsrRetenidoPorDeclararForm extends Window {
 
             if (rsRecords.next()) {
 
+                stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+
                 do {
 
                     queryString = "SELECT ";
-                    queryString += "SUM(DEBE) TOTALDEBE, SUM(DEBEQuetzales) TOTALDEBEQ, SUM(HABER) TOTALHABER, SUM(HABERQuetzales) TOTALHABERQ ";
-                    queryString += "FROM contabilidad_partida ";
-                    queryString += "WHERE IdEmpresa = " + empresaId;
-                    queryString += "AND Fecha <= '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue())  + "' ";
-                    queryString += "AND CodigoCC = '" + rsRecords.getString("CodigoCC") + "' ";
-                    queryString += "AND contabilidad_partida.IdNomenclatura = " + rsRecords.getString("IdNomenclatura") + " ";
-                    queryString += "AND Estatus <> 'ANULADO'";
+                    queryString += " SUM(DEBE) TOTALDEBE, SUM(DEBEQuetzales) TOTALDEBEQ, SUM(HABER) TOTALHABER, SUM(HABERQuetzales) TOTALHABERQ ";
+                    queryString += " FROM contabilidad_partida ";
+                    queryString += " WHERE IdEmpresa = " + empresaId;
+                    queryString += " AND Fecha <= '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue())  + "' ";
+                    queryString += " AND CodigoCC = '" + rsRecords.getString("CodigoCC") + "' ";
+                    queryString += " AND contabilidad_partida.IdNomenclatura = " + rsRecords.getString("IdNomenclatura") + " ";
+                    queryString += " AND Estatus <> 'ANULADO'";
 
                     rsRecords1 = stQuery1.executeQuery(queryString);
 
