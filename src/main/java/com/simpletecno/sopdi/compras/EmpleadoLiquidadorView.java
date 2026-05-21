@@ -28,6 +28,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import com.vaadin.data.util.IndexedContainer;
+import com.vaadin.data.util.filter.SimpleStringFilter;
 import org.vaadin.dialogs.ConfirmDialog;
 
 /**
@@ -56,7 +58,7 @@ public class EmpleadoLiquidadorView extends VerticalLayout implements View {
 
     public EmpleadoLiquidadorView() {
 
-        setWidth("100%");
+        setSizeFull();
         setMargin(false);
         setSpacing(true);
 
@@ -85,44 +87,102 @@ public class EmpleadoLiquidadorView extends VerticalLayout implements View {
 
     public void createTable() {
 
-        HorizontalLayout reportLayout = new HorizontalLayout();
+        VerticalLayout reportLayout = new VerticalLayout();
         reportLayout.setWidth("95%");
+        reportLayout.setHeight("100%");
         reportLayout.addStyleName("rcorners3");
-        reportLayout.setResponsive(true);
+        reportLayout.setSpacing(false);
+        reportLayout.setMargin(false);
 
+        // --- Barra de filtros ---
+        HorizontalLayout filterBar = new HorizontalLayout();
+        filterBar.setWidth("100%");
+        filterBar.setSpacing(true);
+        filterBar.setMargin(true);
+
+        Label filterLbl = new Label("Filtrar:");
+        filterLbl.addStyleName(ValoTheme.LABEL_BOLD);
+        filterLbl.setSizeUndefined();
+
+        TextField liquidadorFld = new TextField();
+        liquidadorFld.setInputPrompt("Liquidador...");
+        liquidadorFld.addStyleName(ValoTheme.TEXTFIELD_SMALL);
+        liquidadorFld.addTextChangeListener(e -> {
+            ((IndexedContainer) empleadoLiquidadorTable.getContainerDataSource())
+                    .removeContainerFilters(LIQUIDADOR_PROPERTY);
+            if (!e.getText().isEmpty()) {
+                ((IndexedContainer) empleadoLiquidadorTable.getContainerDataSource())
+                        .addContainerFilter(new SimpleStringFilter(LIQUIDADOR_PROPERTY, e.getText(), true, false));
+            }
+        });
+
+        TextField proveedorFld = new TextField();
+        proveedorFld.setInputPrompt("Proveedor...");
+        proveedorFld.addStyleName(ValoTheme.TEXTFIELD_SMALL);
+        proveedorFld.addTextChangeListener(e -> {
+            ((IndexedContainer) empleadoLiquidadorTable.getContainerDataSource())
+                    .removeContainerFilters(PROVEEDOR_PROPERTY);
+            if (!e.getText().isEmpty()) {
+                ((IndexedContainer) empleadoLiquidadorTable.getContainerDataSource())
+                        .addContainerFilter(new SimpleStringFilter(PROVEEDOR_PROPERTY, e.getText(), true, false));
+            }
+        });
+
+        TextField cuentaFld = new TextField();
+        cuentaFld.setInputPrompt("Cuenta Contable...");
+        cuentaFld.addStyleName(ValoTheme.TEXTFIELD_SMALL);
+        cuentaFld.addTextChangeListener(e -> {
+            ((IndexedContainer) empleadoLiquidadorTable.getContainerDataSource())
+                    .removeContainerFilters(NOMENCLATURA_PROPERTY);
+            if (!e.getText().isEmpty()) {
+                ((IndexedContainer) empleadoLiquidadorTable.getContainerDataSource())
+                        .addContainerFilter(new SimpleStringFilter(NOMENCLATURA_PROPERTY, e.getText(), true, false));
+            }
+        });
+
+        filterBar.addComponents(filterLbl, liquidadorFld, proveedorFld, cuentaFld);
+        filterBar.setComponentAlignment(filterLbl, Alignment.MIDDLE_LEFT);
+
+        // --- Tabla ---
         empleadoLiquidadorTable = new Table("Relación Liquidador Contabilidad");
-
-        reportLayout.addComponent(empleadoLiquidadorTable);
-        reportLayout.setComponentAlignment(empleadoLiquidadorTable, Alignment.MIDDLE_CENTER);
-
-        empleadoLiquidadorTable.setWidth("100%");
+        empleadoLiquidadorTable.setSizeFull();
         empleadoLiquidadorTable.setResponsive(true);
-        empleadoLiquidadorTable.setPageLength(20);
-
         empleadoLiquidadorTable.setImmediate(true);
         empleadoLiquidadorTable.setSelectable(true);
 
-        empleadoLiquidadorTable.addContainerProperty(ID_PROPERTY,    String.class, null);
-        empleadoLiquidadorTable.addContainerProperty(EMPRESA_PROPERTY,   String.class, null);
-        empleadoLiquidadorTable.addContainerProperty(LIQUIDADOR_PROPERTY,   String.class, null);
+        empleadoLiquidadorTable.addContainerProperty(ID_PROPERTY,          String.class, null);
+        empleadoLiquidadorTable.addContainerProperty(EMPRESA_PROPERTY,     String.class, null);
+        empleadoLiquidadorTable.addContainerProperty(LIQUIDADOR_PROPERTY,  String.class, null);
         empleadoLiquidadorTable.addContainerProperty(PROVEEDOR_PROPERTY,   String.class, null);
-        empleadoLiquidadorTable.addContainerProperty(NOMENCLATURA_PROPERTY,   String.class, null);
-        empleadoLiquidadorTable.addContainerProperty(OPTIONS_PROPERTY,   MenuBar.class, null);
+        empleadoLiquidadorTable.addContainerProperty(NOMENCLATURA_PROPERTY, String.class, null);
+        empleadoLiquidadorTable.addContainerProperty(OPTIONS_PROPERTY,     MenuBar.class, null);
 
-        empleadoLiquidadorTable.setColumnAlignments(Table.Align.CENTER, Table.Align.LEFT, Table.Align.LEFT,
-                Table.Align.LEFT, Table.Align.LEFT, Table.Align.CENTER);
+        empleadoLiquidadorTable.setColumnCollapsingAllowed(true);
+        empleadoLiquidadorTable.setColumnCollapsed(ID_PROPERTY, true);
+        empleadoLiquidadorTable.setColumnCollapsed(EMPRESA_PROPERTY, true);
+        empleadoLiquidadorTable.setColumnAlignments(
+                Table.Align.CENTER, // Id (oculto)
+                Table.Align.LEFT,   // Empresa (oculta)
+                Table.Align.LEFT,   // Liquidador
+                Table.Align.LEFT,   // Proveedor
+                Table.Align.LEFT,   // Cuenta Contable
+                Table.Align.CENTER  // -
+        );
+
+        reportLayout.addComponent(filterBar);
+        reportLayout.addComponent(empleadoLiquidadorTable);
+        reportLayout.setExpandRatio(empleadoLiquidadorTable, 1);
 
         addComponent(reportLayout);
         setComponentAlignment(reportLayout, Alignment.MIDDLE_CENTER);
+        setExpandRatio(reportLayout, 1);
 
-        Button newBtn;
-        newBtn    = new Button("Agregar");
+        Button newBtn = new Button("Agregar");
         newBtn.setIcon(FontAwesome.PLUS_CIRCLE);
-        newBtn.setWidth(130,Sizeable.UNITS_PIXELS);
-//        newBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+        newBtn.setWidth(130, Sizeable.UNITS_PIXELS);
         newBtn.setDescription("Registrar nueva relación");
-        newBtn.addListener ((Button.ClickListener) event -> {
-            EmpleadoLiquidadorForm  empleadoLiquidadorForm = new EmpleadoLiquidadorForm("");
+        newBtn.addListener((Button.ClickListener) event -> {
+            EmpleadoLiquidadorForm empleadoLiquidadorForm = new EmpleadoLiquidadorForm("");
             UI.getCurrent().addWindow(empleadoLiquidadorForm);
         });
 
@@ -130,7 +190,6 @@ public class EmpleadoLiquidadorView extends VerticalLayout implements View {
         buttonsLayout.setSpacing(true);
         buttonsLayout.setMargin(true);
         buttonsLayout.addComponent(newBtn);
-
         buttonsLayout.setComponentAlignment(newBtn, Alignment.BOTTOM_CENTER);
 
         addComponent(buttonsLayout);
@@ -147,10 +206,13 @@ public class EmpleadoLiquidadorView extends VerticalLayout implements View {
         queryString += " CONCAT(NOM.IdNomenclatura, ' ', NOM.NoCuenta, ' ', NOM.N5) Nomenclatura ";
         queryString += " FROM empleado_liquidador EL";
         queryString += " INNER JOIN contabilidad_empresa EMP On EMP.IdEmpresa = EL.IdEmpresa";
-        queryString += " INNER JOIN contabilidad_nomenclatura NOM On NOM.IdNomenclatura = EL.IdNomenclatura";
-        queryString += " INNER JOIN proveedor LIQ ON LIQ.IDProveedor = EL.IdEmpleado";
-        queryString += " INNER JOIN proveedor PRV ON PRV.IDProveedor = EL.IdProveedor";
+        queryString += " INNER JOIN contabilidad_nomenclatura_empresa NOM On NOM.IdNomenclatura = EL.IdNomenclatura";
+        queryString += " INNER JOIN proveedor_empresa LIQ ON LIQ.IDProveedor = EL.IdEmpleado";
+        queryString += " INNER JOIN proveedor_empresa PRV ON PRV.IDProveedor = EL.IdProveedor";
         queryString += " AND   EL.IdEmpresa = " + empresaId;
+        queryString += " AND   NOM.IdEmpresa = " + empresaId;
+        queryString += " AND   LIQ.IdEmpresa = " + empresaId;
+        queryString += " AND   PRV.IdEmpresa = " + empresaId;
 
 System.out.println("\n\n"+queryString);
 
