@@ -354,6 +354,8 @@ public class LibroMayorView extends VerticalLayout implements View {
             queryString += " AND IdNomenclatura = " + cuentaContableCbx.getValue();
         }
         queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND IdNomenclatura > 0";
+        queryString += " AND NoCuenta <> '0'";
         queryString += " ORDER BY ID1";
 
 System.out.println("query con substring " + queryString);
@@ -538,6 +540,8 @@ System.out.println("query con substring " + queryString);
         queryString += " SELECT * FROM contabilidad_nomenclatura_empresa";
         queryString += " WHERE Estatus = 'HABILITADA'";
         queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND IdNomenclatura > 0";
+        queryString += " AND NoCuenta <> '0'";
         queryString += " ORDER BY N5";
 
         try {

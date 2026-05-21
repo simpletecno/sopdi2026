@@ -1061,9 +1061,41 @@ public class PagoFacturaProveedorForm extends Window {
     }
 
     private void insertarPartidaCompuesta() {
-        // (método original sin cambios)
         String descripcion = descripcionTxt.getValue();
 
+        if (nombreChequeTxt.getValue().trim().isEmpty()) {
+            Notification.show("Por favor, escriba el nombre del cheque o transferencia. ", Notification.Type.ERROR_MESSAGE);
+            nombreChequeTxt.focus();
+            return;
+        }
+        if (numeroTxt.getValue().trim().isEmpty()) {
+            Notification.show("Por favor, escriba el cheque o transferencia. ", Notification.Type.ERROR_MESSAGE);
+            numeroTxt.focus();
+            return;
+        }
+        if (montoTxt.getDoubleValueDoNotThrow() == 0.00) {
+            Notification.show("Por favor primero elija un documento o escriba el monto a pagar.", Notification.Type.ERROR_MESSAGE);
+            return;
+        }
+//        if (((SopdiUI) UI.getCurrent()).esMesCerrado(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+//            Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
+//            fechaDt.focus();
+//            return;
+//        }
+//        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+//            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(String.valueOf(empresaCbx.getValue())), Notification.Type.WARNING_MESSAGE);
+//            fechaDt.focus();
+//            return;
+//        }
+
+        if (!numberFormat.format(totalDebe.doubleValue()).equals(numberFormat.format(totalHaber.doubleValue()))) {
+            System.out.println("Debe =" + totalDebe.doubleValue() + "  haber=" + totalHaber.doubleValue());
+            Notification.show("La partida es descuadrada, por favor revisar"
+                    + " Debe = " + totalDebe.doubleValue() + "  Haber = " + totalHaber.doubleValue(), Notification.Type.WARNING_MESSAGE);
+            return;
+        }
+
+        codigoPartida = Utileria.nextCodigoPartida(((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection(), empresaId, fechaPago, 3);
         queryString = " INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,";
         queryString += " TipoDocumento, NoDOCA, TipoDOCA, Fecha, IdProveedor, NITProveedor, ";
         queryString += " NombreProveedor, NombreCheque, MontoDocumento, SerieDocumento, NumeroDocumento, ";
@@ -1264,8 +1296,25 @@ public class PagoFacturaProveedorForm extends Window {
         return true;
     }
 
-    /** Debe ser implementado para llenar las cuentas contables disponibles. */
     private void llenarComboCuentaContable() {
-        // implementación existente sin cambios
+        String queryString = " SELECT * FROM contabilidad_nomenclatura_empresa ";
+        queryString += " WHERE Estatus='HABILITADA'";
+        queryString += " AND IdEmpresa=" + empresaId;
+        queryString += " ORDER BY N5";
+
+        cuentasContables.clear();
+
+        try {
+            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
+            rsRecords = stQuery.executeQuery(queryString);
+
+            while (rsRecords.next()) { //  encontrado
+                cuentasContables.put(rsRecords.getString("IdNomenclatura"), rsRecords.getString("N5"));
+            }
+
+        } catch (Exception ex1) {
+            System.out.println("Error al listar cuentas contables: " + ex1.getMessage());
+            ex1.printStackTrace();
+        }
     }
 }

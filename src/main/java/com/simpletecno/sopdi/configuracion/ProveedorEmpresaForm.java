@@ -69,6 +69,8 @@ public class ProveedorEmpresaForm extends Window {
     CheckBox esVisitaResponsableCheck = new CheckBox("Es Visita Responsable");
     CheckBox esAutorizadoPagarCheck = new CheckBox("Es Autorizado Pagar");
     CheckBox esAbastosCheck = new CheckBox("Es Abastos");
+    CheckBox esRelacionadaCheck = new CheckBox("Es Relacionada");
+
     ComboBox cargoCbx = new ComboBox("Cargo");
     ComboBox usuarioCbx = new ComboBox("Usuario");
 
@@ -248,7 +250,7 @@ public class ProveedorEmpresaForm extends Window {
         layoutEs.addComponents(esAgenteRetenedorISRCheck, esAgenteRetenedorIVACheck);
         layoutEs.addComponents(esBancoCheck, esLiquidadorCheck, esComiteCheck, esPlanillaCheck);
         layoutEs.addComponents(esJefeCheck, esContactoObraCheck, esVisitaResponsableCheck, esAutorizadoPagarCheck);
-        layoutEs.addComponents(esAbastosCheck, cargoCbx, usuarioCbx, inabilitadoCbk);
+        layoutEs.addComponents(esAbastosCheck, esRelacionadaCheck, cargoCbx, usuarioCbx, inabilitadoCbk);
 
         mainLayout.addComponent(formLayout);
         mainLayout.setComponentAlignment(formLayout, Alignment.TOP_CENTER);
@@ -338,6 +340,7 @@ public class ProveedorEmpresaForm extends Window {
                     esAgenteRetenedorIVACheck.setValue(rsRecords.getString("EsAgenteRetenedorIVA").equals("1"));
                     esInstitucionFiscalCheck.setValue(rsRecords.getString("EsInstitucionFiscal").equals("1"));
                     esInstitucionSeguroSocialCheck.setValue(rsRecords.getString("EsInstitucionSeguroSocial").equals("1"));
+                    esSujetoARetencionDefinitivaISRCheck.setValue(rsRecords.getString("EsSujetoRetencionDefinitivaISR").equals("1"));
 
                     esLiquidadorCheck.setValue(rsRecords.getString("EsLiquidador").equals("1"));
                     esComiteCheck.setValue(rsRecords.getString("EsComite").equals("1"));
@@ -347,6 +350,7 @@ public class ProveedorEmpresaForm extends Window {
                     esVisitaResponsableCheck.setValue(rsRecords.getString("EsVisitaResponsable").equals("1"));
                     esAutorizadoPagarCheck.setValue(rsRecords.getString("EsAutorizadoPagar").equals("1"));
                     esAbastosCheck.setValue(rsRecords.getString("EsAbastos").equals("1"));
+                    esRelacionadaCheck.setValue(rsRecords.getString("EsRelacionada").equals("1"));
 
                     inabilitadoCbk.setValue(rsRecords.getString("Inhabilitado").equals("0") ? "NO" : "SI");
 
@@ -405,15 +409,17 @@ public class ProveedorEmpresaForm extends Window {
         String queryString = "";
 
         if (Objects.equals(idProveedor, "0")) {
-            queryString = "INSERT INTO proveedor_empresa (Codigo, Nit, TipoPersona, Regimen, ";
+            queryString = "INSERT INTO proveedor_empresa (IdEmpresa, Codigo, IdProveedor, Nit, TipoPersona, Regimen, ";
             queryString += " Genero, Nombre, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, ApellidoCasada,  ";
             queryString += " Nacionalidad, Dpi, Direccion, Telefono, TelefonoEmergencia, Email, ";
             queryString +=  "EsProveedor, EsCliente, EsBanco, EsAgenteRetenedorISR, EsAgenteRetenedorIVA, ";
             queryString += " EsInstitucionFiscal, EsInstitucionSeguroSocial, EsSujetoRetencionDefinitivaISR, ";
             queryString += " EsLiquidador, EsComite, EsJefe, EsPlanilla, EsContactoObra, EsVisitaResponsable, ";
-            queryString += " EsAutorizadoPagar, EsAbastos, Cargo, Usuario, Inhabilitado)";
+            queryString += " EsAutorizadoPagar, EsRelacionada, EsAbastos, Cargo, IdUsuario, Inhabilitado)";
             queryString += " VALUES (";
-            queryString += "'" + codigoTxt.getValue() + "'";
+            queryString +=  ((SopdiUI)UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+            queryString += ",'" + codigoTxt.getValue() + "'";
+            queryString += ",'" + codigoTxt.getValue() + "'";
             queryString += ",'" + nitTxt.getValue() + "'";
             queryString += ",'" + tipoPersonaCbx.getValue() + "'";
             queryString += ",'" + regimenCbx.getValue() + "'";
@@ -444,6 +450,8 @@ public class ProveedorEmpresaForm extends Window {
             queryString += ", " + (esPlanillaCheck.getValue() ? "1" : "0");
             queryString += ", " + (esContactoObraCheck.getValue() ? "1" : "0");
             queryString += ", " + (esVisitaResponsableCheck.getValue() ? "1" : "0");
+            queryString += ", " + (esAutorizadoPagarCheck.getValue() ? "1" : "0");
+            queryString += ", " + (esRelacionadaCheck.getValue() ? "1" : "0");
             queryString += ", " + (esAbastosCheck.getValue() ? "1" : "0");
             queryString += ",'" + cargoCbx.getValue() + "'";
             queryString += ", " + usuarioCbx.getValue();
@@ -474,12 +482,15 @@ public class ProveedorEmpresaForm extends Window {
             queryString += ",EsAgenteRetenedorIva = " + (esAgenteRetenedorIVACheck.getValue() ? "1" : "0");
             queryString += ",EsInstitucionFiscal = " + (esInstitucionFiscalCheck.getValue() ? "1" : "0");
             queryString += ",EsInstitucionSeguroSocial = " + (esInstitucionSeguroSocialCheck.getValue() ? "1" : "0");
+            queryString += ",EsSujetoRetencionDefinitivaISR = " + (esSujetoARetencionDefinitivaISRCheck.getValue() ? "1" : "0");
             queryString += ",EsLiquidador = " + (esLiquidadorCheck.getValue() ? "1" : "0");
             queryString += ",EsComite = " + (esComiteCheck.getValue() ? "1" : "0");
             queryString += ",EsJefe =  " + (esJefeCheck.getValue() ? "1" : "0");
             queryString += ",EsPlanilla =  " + (esPlanillaCheck.getValue() ? "1" : "0");
             queryString += ",EsContactoObra =  " + (esContactoObraCheck.getValue() ? "1" : "0");
             queryString += ",EsVisitaResponsable = " + (esVisitaResponsableCheck.getValue() ? "1" : "0");
+            queryString += ",EsAutorizadoPagar = " + (esAutorizadoPagarCheck.getValue() ? "1" : "0");
+            queryString += ",EsRelacionada = " + (esRelacionadaCheck.getValue() ? "1" : "0");
             queryString += ",EsAbastos = " + (esAbastosCheck.getValue() ? "1" : "0");
             queryString += ",Cargo = '" + cargoCbx.getValue() + "'";
             queryString += ",IdUsuario = " + usuarioCbx.getValue();

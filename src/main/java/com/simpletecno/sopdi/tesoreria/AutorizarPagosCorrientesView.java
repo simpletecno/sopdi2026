@@ -1089,7 +1089,7 @@ System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
                 queryString += "," + totalPago;                // Debe
                 queryString += ",0";                           // Haber
                 queryString += "," + tipoCambio;
-                queryString += "," + debeQuetzalesCC;          // DebeQuetzales
+                queryString += "," + debeQuetzalesCC;          // DebeQuetzales (saldo o haber del documento)
                 queryString += ",0";                           // HaberQuetzales
                 queryString += ",'PAGADO'";
                 queryString += ",'" + descripcion + "'";

@@ -609,7 +609,7 @@ public class FacturaVentaInfileForm extends Window {
 
     public void llenarComboCliente() {
 
-        queryString = " SELECT * FROM proveedor ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0 ";
         queryString += " AND EsCliente = 1";
         queryString += " ORDER BY Nombre";
