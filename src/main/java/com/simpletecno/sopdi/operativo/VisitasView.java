@@ -65,6 +65,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.vaadin.dialogs.ConfirmDialog;
 
 /**
  *
@@ -183,15 +184,16 @@ public class VisitasView extends VerticalLayout implements View {
         enviromentsVars = new EnvironmentVars();
 
         Responsive.makeResponsive(this);
-        setMargin(true);
-        setSpacing(true);
+        setSizeFull();
+        setMargin(false);
+        setSpacing(false);
 
         marginInfo = new MarginInfo(true, true, false, true);
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Visitas y reuniones del proyecto : " + ((SopdiUI)UI.getCurrent()).sessionInformation.getStrProjectName() + "<br>Empesa : " + ((SopdiUI)UI.getCurrent()).sessionInformation.getStrAccountingCompanyName() + "</br>");
+        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Visitas y reuniones.");
         titleLbl.addStyleName(ValoTheme.LABEL_H3);
         titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h2_custom");
+        titleLbl.addStyleName("h3_custom");
         titleLbl.setContentMode(ContentMode.HTML);
 
         HorizontalLayout titleLayout = new HorizontalLayout();
@@ -243,6 +245,8 @@ public class VisitasView extends VerticalLayout implements View {
         createVisitasGrid();
         createVisitasTabSheet();
         createButtons();
+
+        setExpandRatio(tabSheet, 1);
 
         fillVisitasTable();
 
@@ -470,6 +474,7 @@ public class VisitasView extends VerticalLayout implements View {
 
     private void createVisitasTabSheet() {
         tabSheet = new TabSheet();
+        tabSheet.setSizeFull();
         tabSheet.addStyleName(ValoTheme.TABSHEET_FRAMED);
         tabSheet.addStyleName(ValoTheme.TABSHEET_PADDED_TABBAR);
         tabSheet.addStyleName(ValoTheme.TABSHEET_PADDED_TABBAR);
@@ -514,7 +519,7 @@ public class VisitasView extends VerticalLayout implements View {
         HorizontalLayout layoutDatosVisita = new HorizontalLayout();
         layoutDatosVisita.setSpacing(true);
         layoutDatosVisita.setMargin(true);
-        layoutDatosVisita.setWidth(("100%"));
+        layoutDatosVisita.setSizeFull();
 
         FormLayout formLayout = new FormLayout();
         formLayout.setMargin(true);
@@ -678,10 +683,8 @@ public class VisitasView extends VerticalLayout implements View {
         agendaYResolucionesContainer.addContainerProperty(RESOLUCION_PROPERTY, String.class, "");
 
         agendaYResolucionesGrid = new Grid(agendaYResolucionesContainer);
-        agendaYResolucionesGrid.setHeightMode(HeightMode.ROW);
-        agendaYResolucionesGrid.setHeightByRows(7);
+        agendaYResolucionesGrid.setSizeFull();
         agendaYResolucionesGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
-        agendaYResolucionesGrid.setWidth("100%");
         agendaYResolucionesGrid.setDescription("DOBLE Click aqui para editar.");
 
         agendaYResolucionesGrid.getColumn(ID_AGENDA_PROPERTY).setExpandRatio(1);
@@ -722,9 +725,9 @@ public class VisitasView extends VerticalLayout implements View {
         addGridAgenda(true);
 
         HorizontalLayout resolucionesLayout = new HorizontalLayout();
-        resolucionesLayout.setWidth("100%");
+        resolucionesLayout.setSizeFull();
         resolucionesLayout.addComponent(agendaYResolucionesGrid);
-        resolucionesLayout.setComponentAlignment(agendaYResolucionesGrid, Alignment.MIDDLE_CENTER);
+        resolucionesLayout.setExpandRatio(agendaYResolucionesGrid, 1);
 
         TabSheet.Tab newTab = tabSheet.addTab(resolucionesLayout, "Agenda");
         newTab.setIcon(FontAwesome.CLIPBOARD);
@@ -751,11 +754,9 @@ public class VisitasView extends VerticalLayout implements View {
 
         participantesGrid = new Grid(participantesContainer);
         participantesGrid.setEditorBuffered(false);
-        participantesGrid.setHeightMode(HeightMode.ROW);
-        participantesGrid.setHeightByRows(7);
+        participantesGrid.setSizeFull();
         participantesGrid.setEditorEnabled(true);
         participantesGrid.setSelectionMode(Grid.SelectionMode.NONE);
-        participantesGrid.setWidth("100%");
         participantesGrid.setDescription("DOBLE Click aqui para editar lista de participantes.");        
         participantesGrid.addItemClickListener((event) -> {
             
@@ -779,12 +780,9 @@ public class VisitasView extends VerticalLayout implements View {
         addGridParticipantes(true);
 
         HorizontalLayout participantesLayout = new HorizontalLayout();
-        participantesLayout.setWidth("100%");
-//        participantesLayout.setMargin(new MarginInfo(true, true, false, true));
-        participantesLayout.setSpacing(true);
-//        participantesLayout.addStyleName("rcorners2");
+        participantesLayout.setSizeFull();
         participantesLayout.addComponent(participantesGrid);
-        participantesLayout.setComponentAlignment(participantesGrid, Alignment.MIDDLE_CENTER);
+        participantesLayout.setExpandRatio(participantesGrid, 1);
 
         TabSheet.Tab newTab = tabSheet.addTab(participantesLayout, "Participantes");
         newTab.setIcon(FontAwesome.USERS);
@@ -826,10 +824,8 @@ public class VisitasView extends VerticalLayout implements View {
         tareasContainer.addContainerProperty(ELIMINAR_PROPERTY, String.class, "ELIMINAR");
 
         tareasGrid = new Grid(tareasContainer);
-        tareasGrid.setHeightMode(HeightMode.ROW);
-        tareasGrid.setHeightByRows(7);
+        tareasGrid.setSizeFull();
         tareasGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
-        tareasGrid.setWidth("100%");
         tareasGrid.getColumn(CODIGO_TAREA_PROPERTY).setHidden(true);
         tareasGrid.setDescription("DOBLE Click aqui para editar.");
 
@@ -966,12 +962,9 @@ public class VisitasView extends VerticalLayout implements View {
         addGridTareas(true);
 
         HorizontalLayout tareasLayout = new HorizontalLayout();
-        tareasLayout.setWidth("100%");
-//        tareasLayout.setMargin(new MarginInfo(true, true, false, true));
-        tareasLayout.setSpacing(true);
-//        resolucionesLayout.addStyleName("rcorners2");
+        tareasLayout.setSizeFull();
         tareasLayout.addComponent(tareasGrid);
-        tareasLayout.setComponentAlignment(tareasGrid, Alignment.MIDDLE_CENTER);
+        tareasLayout.setExpandRatio(tareasGrid, 1);
 
         TabSheet.Tab newTab = tabSheet.addTab(tareasLayout, "Tareas");
         newTab.setIcon(FontAwesome.CHECK_CIRCLE_O);
@@ -1166,8 +1159,7 @@ public class VisitasView extends VerticalLayout implements View {
         addGridTareas(true);
 
 //        footer.getCell(CLIENTE_PROPERTY).setText("0 REGISTROS");
-        visitasGrid.setCaption(" 0 Visitas y reuniones");
-
+        visitasGrid.setCaption(" 0 Visitas y reuniones Proyecto : " + ((SopdiUI)UI.getCurrent()).sessionInformation.getStrProjectName());
         if (inicioDt.getValue().after(finDt.getValue())) {
             Notification.show("La fecha inicial no puede ser mayor a la fecha final, revise!", Notification.Type.WARNING_MESSAGE);
             inicioDt.focus();
@@ -1213,16 +1205,17 @@ System.out.println("\n\n"+queryString);
                     visitasContainer.getContainerProperty(itemId, CENTRO_COSTO_PROPERTY).setValue(rsRecords.getString("IdCentroCosto"));
                     visitasContainer.getContainerProperty(itemId, REFERENCIA_PROPERTY).setValue(rsRecords.getString("Referencia"));
 
-                    if (rsRecords.getString("ArchivoNombre").trim().isEmpty()) {
+                    String archivoNombre = rsRecords.getString("ArchivoNombre");
+                    if (archivoNombre == null || archivoNombre.trim().isEmpty()) {
                         visitasContainer.getContainerProperty(itemId, ARCHIVO_PROPERTY).setValue("Cargar archivo");
                     } else {
-                        visitasContainer.getContainerProperty(itemId, ARCHIVO_PROPERTY).setValue(rsRecords.getString("ArchivoNombre"));
+                        visitasContainer.getContainerProperty(itemId, ARCHIVO_PROPERTY).setValue(archivoNombre);
                     }
 
                 } while (rsRecords.next());
 
                 //rsRecords.last();
-                visitasGrid.setCaption(visitasContainer.size() + " Visitas y reunions");
+                visitasGrid.setCaption(visitasContainer.size() + " Visitas y reunions del proyecto : " + ((SopdiUI)UI.getCurrent()).sessionInformation.getStrProjectName());
                 //visitasGrid.select(visitasContainer.firstItemId());
                 // fillVisitaData();
             }
@@ -1622,9 +1615,8 @@ System.out.println("\n\n"+queryString);
                         System.out.println("length=" + stream.available());
                         System.out.println("mimeType=" + mimeType);
 
-                        fileSize = stream.available();
-                        byte[] buffer = new byte[stream.available()];
-                        stream.read(buffer);
+                        byte[] buffer = stream.readAllBytes();
+                        fileSize = buffer.length;
 
 //                                String filePath = VaadinService.getCurrent()
 //                                        .getBaseDirectory().getAbsolutePath() + "/projectfiles/" + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + "/";
@@ -1633,8 +1625,6 @@ System.out.println("\n\n"+queryString);
                         new File(filePath).mkdirs();
 
                         fileName = codigoVisita + fileName.substring(fileName.length() - 4);
-
-                        new File(filePath + filePath).mkdirs();
 
                         targetFile = new File(filePath + fileName);
                         OutputStream outStream = new FileOutputStream(targetFile);
@@ -1681,8 +1671,32 @@ System.out.println("\n\n"+queryString);
 
             JavaScript.getCurrent().execute("document.getElementsByClassName('gwt-FileUpload')[0].setAttribute('accept', '.PDF')");
 
-            pdfLayout.addComponent(singleUpload);
+            final String docNombre = archivoNombre;
 
+            Button eliminarBtn = new Button("Eliminar documento");
+            eliminarBtn.setIcon(FontAwesome.TRASH);
+            eliminarBtn.addStyleName(ValoTheme.BUTTON_DANGER);
+            eliminarBtn.addClickListener(ev ->
+                ConfirmDialog.show(UI.getCurrent(),
+                        "Confirme:",
+                        "¿Está seguro de eliminar el documento \"" + docNombre + "\" adjunto a esta visita?",
+                        "SI, eliminar", "No",
+                        dialog -> {
+                            if (dialog.isConfirmed()) {
+                                eliminarDocumentoVisita(selectedObject, idVisita);
+                                window.close();
+                            }
+                        })
+            );
+
+            HorizontalLayout docActionsLayout = new HorizontalLayout(singleUpload, eliminarBtn);
+            docActionsLayout.setSpacing(true);
+            docActionsLayout.setComponentAlignment(singleUpload, Alignment.MIDDLE_LEFT);
+            docActionsLayout.setComponentAlignment(eliminarBtn, Alignment.MIDDLE_RIGHT);
+
+            pdfLayout.addComponent(docActionsLayout);
+
+            window.setCaption("Documento: " + docNombre);
             window.setContent(pdfLayout);
 
             pdfLayout.setExpandRatio(browserFrame, 2);
@@ -1711,7 +1725,7 @@ System.out.println("\n\n"+queryString);
             queryString += "  ArchivoNombre ='" + fileName + "'";
             queryString += ", ArchivoTipo ='" + parametro2 + "'";
             queryString += ", ArchivoPeso = " + parametro3;
-            queryString += " WHERE IdVisita = " + idVisita;
+            queryString += " WHERE IdVisitaInspeccion = " + idVisita;
 
             PreparedStatement stPreparedQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(queryString);
             stPreparedQuery.executeUpdate();
@@ -1720,6 +1734,26 @@ System.out.println("\n\n"+queryString);
 
         } catch (Exception ex) {
             System.out.println("Error al intentar insertar Imagen" + ex);
+        }
+    }
+
+    public void eliminarDocumentoVisita(Object selectedObject, String idVisita) {
+        try {
+            String queryString = "UPDATE visita_inspeccion SET";
+            queryString += "  ArchivoNombre = ''";
+            queryString += ", ArchivoTipo   = ''";
+            queryString += ", ArchivoPeso   = 0";
+            queryString += " WHERE IdVisitaInspeccion = " + idVisita;
+
+            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+            stQuery.executeUpdate(queryString);
+
+            visitasContainer.getContainerProperty(selectedObject, ARCHIVO_PROPERTY).setValue("Cargar archivo");
+
+            Notification.show("Documento eliminado.", Notification.Type.TRAY_NOTIFICATION);
+        } catch (Exception ex) {
+            Logger.getLogger(VisitasView.class.getName()).log(Level.SEVERE, null, ex);
+            Notification.show("Error al eliminar el documento: " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
         }
     }
 
@@ -1748,8 +1782,10 @@ System.out.println("\n\n"+queryString);
 
 //System.out.println("Cliente=" + rsRecords.getString("Nombre") + " CentroCosto=" + rsRecords.getString("IdProveedor").substring(1, 5));
                 clienteCbx.addItem(rsRecords.getString("IdProveedor"));
-                clienteCbx.getContainerProperty(rsRecords.getString("IdProveedor"), "idCentroCosto").setValue(rsRecords.getString("IdProveedor").substring(2, 6));
-                clienteCbx.setItemCaption(rsRecords.getString("IdProveedor"), "(" + rsRecords.getString("IdProveedor").substring(2, 6) + ") " + rsRecords.getString("Nombre"));
+                if(!rsRecords.getString("IdProveedor").isEmpty() && rsRecords.getString("IdProveedor").length() > 6) {
+                    clienteCbx.getContainerProperty(rsRecords.getString("IdProveedor"), "idCentroCosto").setValue(rsRecords.getString("IdProveedor").substring(2, 6));
+                    clienteCbx.setItemCaption(rsRecords.getString("IdProveedor"), "(" + rsRecords.getString("IdProveedor").substring(2, 6) + ") " + rsRecords.getString("Nombre"));
+                }
 //System.out.println("PropertyCentroCosto=" + clienteCbx.getContainerProperty(rsRecords.getString("IdProveedor"), "CodigoCentroCosto").getValue());
             }
         } catch (Exception ex1) {

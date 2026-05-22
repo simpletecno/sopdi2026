@@ -81,9 +81,8 @@ public class CargarDocumentoVisita extends Window {
                     if (!mimeType.contains("pdf")) {
                         return;
                     }
-                    fileSize = stream.available();
-                    byte[] buffer = new byte[stream.available()];
-                    stream.read(buffer);
+                    byte[] buffer = stream.readAllBytes();
+                    fileSize = buffer.length;
 
                     String filePath = enviromentsVars.getDtePath();
 

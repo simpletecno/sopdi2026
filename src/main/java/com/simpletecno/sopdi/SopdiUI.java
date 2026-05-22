@@ -181,11 +181,17 @@ public class SopdiUI extends UI implements Button.ClickListener {
         }
         addStyleName(ValoTheme.UI_WITH_MENU);
 
-        treeMainMenu.addValueChangeListener(event -> { // Java 8
-            if (event.getProperty() != null &&
-                    event.getProperty().getValue() != null) {
-                if(treeMainMenu.getParent(event.getProperty().getValue()) != null) {
-                    getNavigator().navigateTo(event.getProperty().getValue().toString());
+        treeMainMenu.addValueChangeListener(event -> {
+            if (event.getProperty() != null && event.getProperty().getValue() != null) {
+                Object itemId = event.getProperty().getValue();
+                if (treeMainMenu.getParent(itemId) != null) {
+                    getNavigator().navigateTo(itemId.toString());
+                } else if (treeMainMenu.hasChildren(itemId)) {
+                    if (treeMainMenu.isExpanded(itemId)) {
+                        treeMainMenu.collapseItem(itemId);
+                    } else {
+                        treeMainMenu.expandItem(itemId);
+                    }
                 }
             }
         });
