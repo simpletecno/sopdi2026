@@ -1100,6 +1100,8 @@ public class OrdenCompraForm extends Window {
          queryString += " GROUP BY ODD.Idcc, ODD.Idex, ODD.NoCuenta, PIDX.Descripcion";
          **/
 
+        Object firstSelectedItemId = null;
+
         queryString = " SELECT * ";
         queryString += " FROM orden_compra_detalle";
         queryString += " WHERE IdOrdenCompra = " + idOrdenCompra;
@@ -1130,10 +1132,17 @@ public class OrdenCompraForm extends Window {
                                 && item.getItemProperty(CUENTA_PROPERTY).getValue().equals(rsRecords.getString("NoCuenta"))
                         ) {
                             idccGrid.select(itemId);
+                            if (firstSelectedItemId == null) {
+                                firstSelectedItemId = itemId;
+                            }
                         }
                     } // endfor
 
                 } while (rsRecords.next());
+
+                if (firstSelectedItemId != null) {
+                    idccGrid.scrollTo(firstSelectedItemId);
+                }
             }
         } catch (Exception ex) {
             Logger.getLogger(IntegracionItemCostos.class.getName()).log(Level.SEVERE, null, ex);

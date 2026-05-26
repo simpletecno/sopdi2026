@@ -104,6 +104,7 @@ public class InspectionTaskOCWindow extends Window {
     double cantidadOC;
     double totalOC;
     double precioOC;
+    double totalPresupuestoTarea = 0.00;
 
     public InspectionTaskOCWindow(
             String idOC,
@@ -133,9 +134,11 @@ public class InspectionTaskOCWindow extends Window {
 
         setContent(mainLayout);
 
+        calcularTotalPresupuestoTarea();
+
         Label titleLbl = new Label("<h4 style=\"color:RoyalBlue;\"" + "/> " +
                 "IdOC = " + idOC + " para tarea : <b>" + codigoTarea + "</b> " + descripcionTarea +
-                "<br>Centro de Costo : <b>" + idcc + " " + cliente + "</b></br>" +
+                "<br>Centro de Costo : <b>" + idcc + " " + cliente + "</b> &nbsp;&nbsp; PRESUPUESTO : <b>Q " + numberFormat.format(totalPresupuestoTarea) + "</b></br>" +
                 "<h4>");
         titleLbl.addStyleName(ValoTheme.LABEL_H4);
         titleLbl.setResponsive(true);
@@ -167,6 +170,21 @@ public class InspectionTaskOCWindow extends Window {
         fillOcGrid();
 
         actualizarBotones();
+    }
+
+    private void calcularTotalPresupuestoTarea() {
+        try {
+            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+            String q = "SELECT IFNULL(SUM(Total),0) TotalPresupuesto"
+                    + " FROM visita_inspeccion_tarea_presupuesto"
+                    + " WHERE IdVisitaInspeccionTarea = " + tareaId;
+            rsRecords = stQuery.executeQuery(q);
+            if (rsRecords.next()) {
+                totalPresupuestoTarea = rsRecords.getDouble("TotalPresupuesto");
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(InspectionTaskOCWindow.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     private void llenarComboProject() {
@@ -298,8 +316,7 @@ public class InspectionTaskOCWindow extends Window {
         enRevisionBtn.setIcon(FontAwesome.CHECK_CIRCLE);
         enRevisionBtn.addClickListener((Button.ClickListener) event -> {
             if (ocGrid.getSelectedRow() != null) {
-                if (String.valueOf(ocContainer.getContainerProperty(ocGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue()).equals("EN PREPARACION")
-                        || String.valueOf(ocContainer.getContainerProperty(ocGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue()).equals("AUTORIZADA")) {
+                if (String.valueOf(ocContainer.getContainerProperty(ocGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue()).equals("EN PREPARACION")) {
                     ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de cambiar a estatus EN REVISION la orden de cambio ?",
                             "SI", "NO", new ConfirmDialog.Listener() {
                                 public void onClose(ConfirmDialog dialog) {
@@ -311,7 +328,7 @@ public class InspectionTaskOCWindow extends Window {
                     ); //end dialog
                 } // if estatus pendiente
                 else {
-                    Notification.show("LA ORDEN DE CAMBIO YA NO ESTA EN PREPARACION O AUTORIZADA.", Notification.Type.WARNING_MESSAGE);
+                    Notification.show("SOLO SE PUEDE PASAR A EN REVISION SI LA OC ESTA EN PREPARACION.", Notification.Type.WARNING_MESSAGE);
                 }
             }
         });

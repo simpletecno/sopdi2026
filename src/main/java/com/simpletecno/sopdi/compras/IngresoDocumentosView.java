@@ -1219,7 +1219,11 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
                 queryString = " SELECT DATEDIFF(CURDATE(),contabilidad_partida.Fecha) AS DiasHoy, ";
                 queryString += " contabilidad_partida.ArchivoNombre,contabilidad_partida.ArchivoTipo,";
                 queryString += " contabilidad_partida.TipoDocumento, contabilidad_partida.Referencia, ";
-                queryString += " contabilidad_partida.MontoDocumento, contabilidad_partida.IdNomenclatura, ";
+                queryString += " contabilidad_partida.MontoDocumento, ";
+                queryString += " IFNULL((SELECT cp_g.IdNomenclatura FROM contabilidad_partida cp_g ";
+                queryString += "         WHERE cp_g.CodigoPartida = contabilidad_partida.CodigoPartida ";
+                queryString += "           AND cp_g.Debe > 0 AND cp_g.IdNomenclatura <> 7 ";
+                queryString += "         ORDER BY cp_g.Debe DESC LIMIT 1), contabilidad_partida.IdNomenclatura) AS IdNomenclatura, ";
                 queryString += " SUM(contabilidad_partida.Haber) AS total, SUM(contabilidad_partida.HaberQuetzales) AS totalQ,";
                 queryString += " contabilidad_partida.Fecha, contabilidad_partida.NombreProveedor, ";
                 queryString += " contabilidad_partida.CodigoPartida, contabilidad_partida.CodigoCC, ";

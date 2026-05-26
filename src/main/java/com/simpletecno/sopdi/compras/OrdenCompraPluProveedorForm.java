@@ -104,7 +104,8 @@ public class OrdenCompraPluProveedorForm extends Window {
         pluGrid.setHeightMode(HeightMode.ROW);
         pluGrid.setHeightByRows(5);
         pluGrid.setResponsive(true);
-        pluGrid.setEditorBuffered(true);
+        pluGrid.setEditorBuffered(false);
+        pluGrid.getColumn(ID_PROPERTY).setEditable(false);
         pluGrid.addItemClickListener((event) -> {
             if (event != null) {
                 pluGrid.editItem(event.getItemId());
@@ -163,6 +164,15 @@ Logger.getLogger(OrdenCompraPluProveedorForm.class.getName()).log(Level.INFO, "Q
 
     public void save() {
         try {
+            if (pluGrid.isEditorActive()) {
+                try {
+                    pluGrid.saveEditor();
+                } catch (Exception ex) {
+                    Logger.getLogger(OrdenCompraPluProveedorForm.class.getName()).log(Level.WARNING, "No se pudo guardar el editor antes de actualizar", ex);
+                }
+                pluGrid.cancelEditor();
+            }
+
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
             Iterator items = pluContainer.getItemIds().iterator();

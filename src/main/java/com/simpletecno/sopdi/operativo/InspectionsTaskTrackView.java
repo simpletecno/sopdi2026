@@ -60,6 +60,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
     static final String MONTO_PRESUPUESTO_PROPERTY = "Total Presupuesto";
     static final String MONTO_OC_PROPERTY = "Total OC";
     static final String MONTO_DOLARES_OC_PROPERTY = "Total OC $";
+    static final String DIAS_PROPERTY = "DIAS";
     static final String AUTORIZADO_TIPO_PROPERTY = "Autoriza";
     static final String ESTATUS_PROPERTY = "Estatus";
     static final String ARCHIVADO_PROPERTY = "Archivado";
@@ -183,8 +184,9 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
         taskContainer.addContainerProperty(GARANTIA_PROPERTY, String.class, null);
         taskContainer.addContainerProperty(PRESUPUESTO_PROPERTY, String.class, "0.00");
         taskContainer.addContainerProperty(MONTO_PRESUPUESTO_PROPERTY, String.class, "000");
-        taskContainer.addContainerProperty(MONTO_OC_PROPERTY, String.class, null);
+        taskContainer.addContainerProperty(MONTO_OC_PROPERTY, String.class, "0.00");
         taskContainer.addContainerProperty(MONTO_DOLARES_OC_PROPERTY, String.class, "0.00");
+        taskContainer.addContainerProperty(DIAS_PROPERTY, String.class, "0");
         taskContainer.addContainerProperty(AUTORIZADO_TIPO_PROPERTY, String.class, null);
         taskContainer.addContainerProperty(ESTATUS_PROPERTY, String.class, null);
         taskContainer.addContainerProperty(ARCHIVADO_PROPERTY, String.class, null);
@@ -280,6 +282,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
         inspectionsTaskTrackGrid.getColumn(MONTO_PRESUPUESTO_PROPERTY).setMaximumWidth(100);
         inspectionsTaskTrackGrid.getColumn(MONTO_OC_PROPERTY).setMaximumWidth(100);
         inspectionsTaskTrackGrid.getColumn(MONTO_DOLARES_OC_PROPERTY).setMaximumWidth(100);
+        inspectionsTaskTrackGrid.getColumn(DIAS_PROPERTY).setMaximumWidth(70);
         inspectionsTaskTrackGrid.getColumn(AUTORIZADO_TIPO_PROPERTY).setMaximumWidth(130);
 //        inspectionsTaskTrackGrid.getColumn(CODIGOOC_PROPERTY).setHidable(true).setHidden(true);
 
@@ -296,6 +299,10 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
                 return "rightalign";
             } else if (MONTO_DOLARES_OC_PROPERTY.equals(cellReference.getPropertyId())) {
                 return "rightalign";
+            } else if (MONTO_OC_PROPERTY.equals(cellReference.getPropertyId())) {
+                return "rightalign";
+            } else if (DIAS_PROPERTY.equals(cellReference.getPropertyId())) {
+                return "centeralign";
             } else {
                 return null;
             }
@@ -818,8 +825,10 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
 
         footer.getCell(INSTRUCCION_PROPERTY).setText("0 TAREAS");
 
-        queryString = "SELECT VisI.IdVisitaInspeccion, VisI.CodigoVisita, VisI.FechaYHoraInicio FechaVisita,";
-        queryString += " Tare.*, Usr.Nombre NombreAutorizadoPor, Cl.Nombre, Cc.Lote ";
+        queryString = "SELECT DISTINCT VisI.IdVisitaInspeccion, VisI.CodigoVisita, VisI.FechaYHoraInicio FechaVisita,";
+        queryString += " Tare.*, Usr.Nombre NombreAutorizadoPor, Cl.Nombre, Cc.Lote, ";
+        queryString += " (SELECT IFNULL(SUM(Total),0) FROM visita_inspeccion_tarea_oc WHERE IdVisitaInspeccionTarea = Tare.IdVisitaInspeccionTarea) TotalOC, ";
+        queryString += " (SELECT IFNULL(SUM(TotalDolares),0) FROM visita_inspeccion_tarea_oc WHERE IdVisitaInspeccionTarea = Tare.IdVisitaInspeccionTarea) TotalOCDolares ";
         queryString += " FROM visita_inspeccion_tarea Tare ";
         queryString += " INNER JOIN visita_inspeccion VisI ON VisI.IdVisitaInspeccion = Tare.IdVisitaInspeccion";
         queryString += " LEFT  JOIN usuario Usr ON Usr.IdUsuario = Tare.AutorizadoPor";
@@ -884,6 +893,9 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
                     taskContainer.getContainerProperty(itemId, AUTORIZADO_TIPO_PROPERTY).setValue(rsRecords.getString("AutorizadoTipo"));
 
                     taskContainer.getContainerProperty(itemId, MONTO_PRESUPUESTO_PROPERTY).setValue(montoPresupuesto);
+                    taskContainer.getContainerProperty(itemId, MONTO_OC_PROPERTY).setValue(numberFormat.format(rsRecords.getDouble("TotalOC")));
+                    taskContainer.getContainerProperty(itemId, MONTO_DOLARES_OC_PROPERTY).setValue(numberFormat.format(rsRecords.getDouble("TotalOCDolares")));
+                    taskContainer.getContainerProperty(itemId, DIAS_PROPERTY).setValue(String.valueOf(rsRecords.getInt("DiasHabiles")));
                     taskContainer.getContainerProperty(itemId, ESTATUS_PROPERTY).setValue(rsRecords.getString("Estatus"));
                     taskContainer.getContainerProperty(itemId, ARCHIVADO_PROPERTY).setValue(rsRecords.getString("Archivado").equals("0") ? "NO" : "SI");
 

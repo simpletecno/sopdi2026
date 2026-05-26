@@ -143,16 +143,16 @@ public final class IntegracionItemCostos extends Window {
         exportExcelBtn.addStyleName(ValoTheme.BUTTON_LINK);
         exportExcelBtn.addClickListener((Button.ClickListener) event -> {
             if (tabSheet.getSelectedTab().equals(inicialTab)) {
-                exportToExcel(INICIAL, integracionInicialContainer, integracionInicialGrid);
+                exportToExcel("INICIAL", integracionInicialContainer, integracionInicialGrid);
             } else if (tabSheet.getSelectedTab().equals(cambiosTab)) {
-                exportToExcel(CAMBIOS, integracionCambiosContainer, integracionCambiosGrid);
+                exportToExcel("CAMBIOS", integracionCambiosContainer, integracionCambiosGrid);
             } else if (tabSheet.getSelectedTab().equals(proyeccionTab)) {
-                exportToExcel(PROYECCION, integracionCambiosContainer, integracionCambiosGrid);
+                exportToExcel("PROYECCION", integracionProyeccionContainer, integracionProyeccionGrid);
             } else if (tabSheet.getSelectedTab().equals(actualTab)) {
-                exportToExcel(PROYECCION, integracionCambiosContainer, integracionCambiosGrid);
+                exportToExcel("ACTUAL", integracionActualContainer, integracionActualGrid);
             }
             else {
-                exportToExcel(SALDO, integracionSaldoContainer, integracionSaldoGrid);
+                exportToExcel("SALDO", integracionSaldoContainer, integracionSaldoGrid);
             }
         });
 
@@ -628,6 +628,7 @@ public final class IntegracionItemCostos extends Window {
         queryString =  "SELECT SUM(Total) TotalTotal ";
         queryString += " FROM  DocumentosContablesAplicados ";
         queryString += " WHERE  Idex     = '" + IDEX + "'";
+        queryString += " AND IdProject   = " + projectNumber;
         queryString += " AND IdEmpresa   = " + EMPRESA;
         queryString += " AND IdProveedor = " + PROVEEDOR;
         queryString += " AND NoCuenta = '" + CUENTA + "'";
