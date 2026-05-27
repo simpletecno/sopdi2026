@@ -70,7 +70,9 @@ public class ProjectTaskView extends VerticalLayout implements View {
     public ProjectTaskView() {
         this.mainUI = UI.getCurrent();
 
+        setSizeFull();
         setSpacing(true);
+        setMargin(false);
         Page.getCurrent().setTitle("Projects y tareas");
 
         marginInfo = new MarginInfo(true, false, false, false);
@@ -83,10 +85,11 @@ public class ProjectTaskView extends VerticalLayout implements View {
 
     private void createProjectsLayout() {
         VerticalLayout projectsLayout = new VerticalLayout();
-        projectsLayout.setWidth("95%");
+        projectsLayout.setWidth("100%");
         projectsLayout.addStyleName("rcorners3");
         projectsLayout.setResponsive(true);
-        projectsLayout.setMargin(true);
+        projectsLayout.setMargin(new MarginInfo(false, true, false, true));
+        projectsLayout.setSpacing(true);
 
         projectsContainer = new IndexedContainer();
 
@@ -105,7 +108,7 @@ public class ProjectTaskView extends VerticalLayout implements View {
         projectsGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
         projectsGrid.setDescription("Seleccione un registro.");
         projectsGrid.setHeightMode(HeightMode.ROW);
-        projectsGrid.setHeightByRows(10);
+        projectsGrid.setHeightByRows(6);
         projectsGrid.setWidth("100%");
         projectsGrid.setResponsive(true);
         projectsGrid.setEditorBuffered(false);
@@ -128,7 +131,6 @@ public class ProjectTaskView extends VerticalLayout implements View {
 
         uploadProjectBtn = new Button("Cargar nuevo");
         uploadProjectBtn.setIcon(FontAwesome.UPLOAD);
-        uploadProjectBtn.setWidth(120, Sizeable.UNITS_PIXELS);
         uploadProjectBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -143,7 +145,6 @@ public class ProjectTaskView extends VerticalLayout implements View {
 
         downloadProjectBtn = new Button("Descargar");
         downloadProjectBtn.setIcon(FontAwesome.DOWNLOAD);
-        downloadProjectBtn.setWidth(120, Sizeable.UNITS_PIXELS);
         downloadProjectBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -213,7 +214,6 @@ public class ProjectTaskView extends VerticalLayout implements View {
 
         exportExcelProjectBtn = new Button("Exportar Excel");
         exportExcelProjectBtn.setIcon(FontAwesome.FILE_EXCEL_O);
-        exportExcelProjectBtn.setWidth(120, Sizeable.UNITS_PIXELS);
         exportExcelProjectBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -232,7 +232,6 @@ public class ProjectTaskView extends VerticalLayout implements View {
 
         integracionBtn = new Button("Integración");
         integracionBtn.setIcon(FontAwesome.BARS);
-        integracionBtn.setWidth(120, Sizeable.UNITS_PIXELS);
         integracionBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -252,7 +251,6 @@ public class ProjectTaskView extends VerticalLayout implements View {
 
         idexRecursosBtn = new Button("IDEX Recursos");
         idexRecursosBtn.setIcon(FontAwesome.USERS);
-        idexRecursosBtn.setWidth(130, Sizeable.UNITS_PIXELS);
         idexRecursosBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -271,7 +269,6 @@ public class ProjectTaskView extends VerticalLayout implements View {
 
         notasBtn = new Button("Notas");
         notasBtn.setIcon(FontAwesome.NEWSPAPER_O);
-        notasBtn.setWidth(120, Sizeable.UNITS_PIXELS);
         notasBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -290,7 +287,6 @@ public class ProjectTaskView extends VerticalLayout implements View {
 
         compararBtn = new Button("Generar estadística");
         compararBtn.setIcon(FontAwesome.GEARS);
-        compararBtn.setWidth(150, Sizeable.UNITS_PIXELS);
         compararBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -305,6 +301,7 @@ public class ProjectTaskView extends VerticalLayout implements View {
         HorizontalLayout buttonsLayout = new HorizontalLayout();
         buttonsLayout.setSpacing(true);
         buttonsLayout.setMargin(false);
+        buttonsLayout.setWidth("100%");
 
         buttonsLayout.addComponent(uploadProjectBtn);
         buttonsLayout.addComponent(downloadProjectBtn);
@@ -316,7 +313,6 @@ public class ProjectTaskView extends VerticalLayout implements View {
 //        buttonsLayout.addComponent(compararBtn);
 
         projectsLayout.addComponent(buttonsLayout);
-        projectsLayout.setComponentAlignment(buttonsLayout, Alignment.TOP_CENTER);
 
         addComponent(projectsLayout);
         setComponentAlignment(projectsLayout, Alignment.TOP_CENTER);
@@ -325,9 +321,12 @@ public class ProjectTaskView extends VerticalLayout implements View {
     private void createTaskLayout() {
 
         VerticalLayout tasksLayout = new VerticalLayout();
+        tasksLayout.setWidth("100%");
+        tasksLayout.setHeight("100%");
         tasksLayout.addStyleName("rcorners3");
         tasksLayout.setResponsive(true);
-        tasksLayout.setMargin(true);
+        tasksLayout.setMargin(new MarginInfo(false, true, true, true));
+        tasksLayout.setSpacing(true);
 
         codigoTareaTxt = new TextField("IDEX :");
         codigoTareaTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_CENTER);
@@ -377,9 +376,12 @@ public class ProjectTaskView extends VerticalLayout implements View {
         tasksLayout.addComponent(filterLayout);
         tasksLayout.setComponentAlignment(filterLayout, Alignment.TOP_CENTER);
 
-        tasksLayout.addComponent(createtareasTable());
+        Table tareasTableComponent = createtareasTable();
+        tasksLayout.addComponent(tareasTableComponent);
+        tasksLayout.setExpandRatio(tareasTableComponent, 1f);
 
         addComponent(tasksLayout);
+        setExpandRatio(tasksLayout, 1f);
         setComponentAlignment(tasksLayout, Alignment.TOP_CENTER);
 
     }

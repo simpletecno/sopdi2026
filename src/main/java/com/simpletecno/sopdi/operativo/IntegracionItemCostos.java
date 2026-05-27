@@ -109,37 +109,29 @@ public final class IntegracionItemCostos extends Window {
         this.projectNumber = projecNumber;
 
         setResponsive(true);
-        setWidth("80%");
+        setWidth("90%");
         setHeight("90%");
-
-        MarginInfo marginInfo = new MarginInfo(true, true, true, true);
+        center();
 
         mainLayout = new VerticalLayout();
-        mainLayout.setMargin(marginInfo);
+        mainLayout.setWidth("100%");
+        mainLayout.setMargin(new MarginInfo(true, true, true, true));
         mainLayout.setSpacing(true);
         mainLayout.addStyleName("rcorners3");
-//        mainLayout.setSizeFull();
 
-        setContent(mainLayout);
+        Panel contentPanel = new Panel();
+        contentPanel.setSizeFull();
+        contentPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
+        contentPanel.setContent(mainLayout);
+        setContent(contentPanel);
 
         Label titleLbl = new Label(((SopdiUI) mainUI).sessionInformation.getStrProjectName() + " -- DETALLE ITEMS COSTOS (INTEGRACION) DEL PROJECT # " + projecNumber);
         titleLbl.addStyleName(ValoTheme.LABEL_H4);
         titleLbl.setSizeUndefined();
         titleLbl.addStyleName("h1_custom");
 
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
-        titleLayout.setWidth("100%");
-        titleLayout.setMargin(false);
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_LEFT);
-
-        mainLayout.addComponent(titleLayout);
-        mainLayout.setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         exportExcelBtn = new Button("Exportar a Excel");
         exportExcelBtn.setIcon(FontAwesome.FILE_EXCEL_O);
-//        exportExcelBtn.setWidth(130,Sizeable.UNITS_PIXELS);
         exportExcelBtn.addStyleName(ValoTheme.BUTTON_LINK);
         exportExcelBtn.addClickListener((Button.ClickListener) event -> {
             if (tabSheet.getSelectedTab().equals(inicialTab)) {
@@ -156,11 +148,16 @@ public final class IntegracionItemCostos extends Window {
             }
         });
 
-        HorizontalLayout buttonsLayout = new HorizontalLayout();
-        buttonsLayout.setSpacing(true);
-        buttonsLayout.setMargin(true);
-        buttonsLayout.addComponent(exportExcelBtn);
-        buttonsLayout.setComponentAlignment(exportExcelBtn, Alignment.BOTTOM_RIGHT);
+        HorizontalLayout titleLayout = new HorizontalLayout();
+        titleLayout.setWidth("100%");
+        titleLayout.setSpacing(true);
+        titleLayout.setMargin(false);
+        titleLayout.addComponents(titleLbl, exportExcelBtn);
+        titleLayout.setExpandRatio(titleLbl, 1f);
+        titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_LEFT);
+        titleLayout.setComponentAlignment(exportExcelBtn, Alignment.MIDDLE_RIGHT);
+
+        mainLayout.addComponent(titleLayout);
 
         crearTabSheet();
 
@@ -169,13 +166,11 @@ public final class IntegracionItemCostos extends Window {
         fillIntegraciones(PROYECCION, integracionProyeccionContainer, integracionProyeccionGrid, integracionProyeccionFooter);
         fillIntegraciones(ACTUAL, integracionActualContainer, integracionActualGrid, integracionActualFooter);
         fillIntegraciones(SALDO, integracionSaldoContainer, integracionSaldoGrid, integracionSaldoFooter);
-
-        mainLayout.addComponent(buttonsLayout);
-        mainLayout.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
     }
 
     private void crearTabSheet() {
         tabSheet = new TabSheet();
+        tabSheet.setWidth("100%");
         tabSheet.addStyleName(ValoTheme.TABSHEET_FRAMED);
         tabSheet.addStyleName(ValoTheme.TABSHEET_PADDED_TABBAR);
         tabSheet.addStyleName(ValoTheme.TABSHEET_CENTERED_TABS);
@@ -188,7 +183,6 @@ public final class IntegracionItemCostos extends Window {
         addTabIntegracionSaldo();
 
         mainLayout.addComponent(tabSheet);
-        mainLayout.setComponentAlignment(tabSheet, Alignment.TOP_CENTER);
     }
 
     private void addTabIntegracionInicial() {
@@ -229,10 +223,11 @@ public final class IntegracionItemCostos extends Window {
     public VerticalLayout createGrid(IndexedContainer indexedContainer, Grid grid, Grid.FooterRow gridFooter) {
 
         VerticalLayout reportLayout = new VerticalLayout();
-        reportLayout.setWidth("98%");
+        reportLayout.setWidth("100%");
         reportLayout.addStyleName("rcorners3");
         reportLayout.setResponsive(true);
-        reportLayout.setMargin(true);
+        reportLayout.setMargin(new MarginInfo(true, false, false, false));
+        reportLayout.setSpacing(false);
 
         indexedContainer.addContainerProperty(PROJECT_PROPERTY, Integer.class, null);
         indexedContainer.addContainerProperty(IDEX_PROPERTY, String.class, null);
@@ -258,10 +253,7 @@ public final class IntegracionItemCostos extends Window {
         grid.setSelectionMode(Grid.SelectionMode.SINGLE);
         grid.setDescription("Seleccione un registro.");
         grid.setHeightMode(HeightMode.ROW);
-        grid.setHeightByRows(15);
-        grid.setResponsive(true);
-        grid.setEditorBuffered(false);
-
+        grid.setHeightByRows(10);
         grid.setResponsive(true);
         grid.setEditorBuffered(false);
 
@@ -474,20 +466,21 @@ public final class IntegracionItemCostos extends Window {
             queryString += " DITEMC.Lote, DITEMC.IdProject, DITEMC.Moneda, DITEMC.Idex, ";
             queryString += " SUM(DITEMC.Total / DITEMC.Cantidad) PrecioTotal, SUM(DITEMC.Cantidad) CantidadTotal, SUM(DITEMC.Total) TotalTotal ";
             queryString += " FROM  DetalleItemsCostos DITEMC";
-            queryString += " LEFT JOIN proveedor Prov ON Prov.IdProveedor = DITEMC.IdProveedor";
+            queryString += " LEFT JOIN proveedor_empresa Prov ON Prov.IdProveedor = DITEMC.IdProveedor";
 //            queryString += " Where DITEMC.IdEmpresa = " + empresa;
             queryString += " WHERE DITEMC.IdProject = " + projectNumber;
             queryString += " AND DITEMC.Tipo In ('"  + INICIAL + "','" + CAMBIOS + "')";
-            queryString += " GROUP BY DITEMC.IdEmpresa, DITEMC.Empresa, DITEMC.NoCuenta, DITEMC.IdCC,";
-            queryString += " Prov.IdProveedor, DITEMC.Idex ";
+            queryString += " AND Prov.IdEmpresa = DITEMC.IdEmpresa";
+            queryString += " GROUP BY DITEMC.IdEmpresa, DITEMC.Empresa, DITEMC.NoCuenta, DITEMC.IdCC ";
             queryString += " ORDER BY DITEMC.NoCuenta";
         }
         else {
             queryString = "SELECT DITEMC.*, Prov.Nombre ProveedorNombre ";
             queryString += " FROM  DetalleItemsCostos DITEMC";
-            queryString += " LEFT JOIN proveedor Prov ON Prov.IdProveedor = DITEMC.IdProveedor";
+            queryString += " LEFT JOIN proveedor_empresa Prov ON Prov.IdProveedor = DITEMC.IdProveedor";
             queryString += " WHERE DITEMC.IdProject = " + projectNumber;
             queryString += " AND DITEMC.Tipo = '" + tipo + "'";
+            queryString += " AND Prov.IdEmpresa = DITEMC.IdEmpresa";
             queryString += " ORDER BY DITEMC.NoCuenta";
         }
 
@@ -634,7 +627,7 @@ public final class IntegracionItemCostos extends Window {
         queryString += " AND NoCuenta = '" + CUENTA + "'";
         queryString += " AND IDCC = '" + CENTROCOSTO + "'";
 
-System.out.println(queryString);
+//System.out.println(queryString);
 
         double total = 0.00;
 
