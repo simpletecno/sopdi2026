@@ -249,8 +249,9 @@ public class InspectionTaskBudgetWindow extends Window {
                     queryString = "SELECT Presu.*, CCC.CodigoCuentaCentroCosto, CCC.UnidadMedida, CCC.Descripcion, Prov.Nombre ProvNombre ";
                     queryString += " FROM visita_inspeccion_tarea_presupuesto Presu";
                     queryString += " INNER JOIN centro_costo_cuenta CCC ON CCC.IdCuentaCentroCosto = Presu.IdCuentaCentroCosto";
-                    queryString += " INNER JOIN proveedor Prov ON Prov.IdProveedor = Presu.IdProveedor";
+                    queryString += " INNER JOIN proveedor_empresa Prov ON Prov.IdProveedor = Presu.IdProveedor";
                     queryString += " WHERE IdVisitaInspeccionTareaPresupuesto  = " + budgetContainer.getContainerProperty(budgetGrid.getSelectedRow(), ID_BUDGET).getValue();
+                    queryString += " AND Prov.IdEmpresa = " + empresaId;
 
                     rsRecords = stQuery.executeQuery(queryString);
 

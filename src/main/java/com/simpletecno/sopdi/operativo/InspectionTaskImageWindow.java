@@ -98,6 +98,10 @@ public class InspectionTaskImageWindow extends Window {
     private void fillInspectionTaskImages() {
         
         imageLayout.removeAllComponents();
+
+        if(idVisitaInspeccionTarea == null || idVisitaInspeccionTarea.compareTo("0") == 0 || idVisitaInspeccionTarea.trim().isEmpty()) {
+            return;
+        }
         
         try {
             

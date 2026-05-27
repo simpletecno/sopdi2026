@@ -122,8 +122,6 @@ public class OrdenCompraForm extends Window {
     double diferencia = 0.00;
     double retencionIsr = 0.00;
 
-    Label titleLbl;
-
     String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
@@ -155,24 +153,11 @@ public class OrdenCompraForm extends Window {
         titleLayout.setWidth("100%");
 
         if(idOrdenCompra.trim().isEmpty()) {
-//            titleLbl = new Label(empresaId  + " " + empresaNombre + " NUEVA ORDEN DE COMPRA");
             setCaption(empresaId  + " " + empresaNombre + " NUEVA ORDEN DE COMPRA");
         }
         else {
-//            titleLbl = new Label(empresaId  + " " + empresaNombre + " EDITAR ORDEN DE COMPRA : " + idOrdenCompra);
             setCaption(empresaId  + " " + empresaNombre + " EDITAR ORDEN DE COMPRA : " + idOrdenCompra);
         }
-//        titleLbl.setSizeUndefined();
-//        titleLbl.addStyleName(ValoTheme.LABEL_H3);
-//        titleLbl.setContentMode(ContentMode.HTML);
-//        titleLbl.setImmediate(true);
-
-//        titleLayout.addComponent(titleLbl);
-//        titleLayout.setComponentAlignment(titleLbl, Alignment.BOTTOM_CENTER);
-
-//        contentLayout.addComponent(titleLayout);
-//        contentLayout.setComponentAlignment(titleLayout, Alignment.BOTTOM_CENTER);
-
         mainForm = new HorizontalLayout();
         mainForm.setWidth("100%");
         mainForm.setMargin(false);
@@ -193,10 +178,6 @@ public class OrdenCompraForm extends Window {
             }
             recalcularMontos();
         }
-//        else {
-//            tipoOrdenCompraCbx.select("1");
-//            tipoOrdenCompraCbx.setScrollToSelectedItem(true);
-//        }
     }
 
     private void crearComponents() {
@@ -208,7 +189,6 @@ public class OrdenCompraForm extends Window {
         leftLayout.addStyleName("rcorners3");
 
         rightLayout = new VerticalLayout();
-//        rightLayout.setWidth("100%");
         rightLayout.setMargin(true);
         rightLayout.setSpacing(false);
         rightLayout.addStyleName("rcorners3");
@@ -1751,7 +1731,6 @@ public class OrdenCompraForm extends Window {
                 if(rsRecords2.getString("Estado").equals("CERRADA")) {
                     guardarBtn.setEnabled(false);
                 }
-                titleLbl.setValue("EDITANDO ORDEN DE COMPRA : " + rsRecords2.getString("NOC").substring(3));
             }
         } catch (Exception ex) {
             System.out.println("Error al listar tablea orden compra detalle:" + ex);

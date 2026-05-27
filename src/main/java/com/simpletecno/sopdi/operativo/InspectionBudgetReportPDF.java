@@ -100,8 +100,9 @@ public class InspectionBudgetReportPDF extends Window {
     private void setVisitaInformation(String idVisitaInspeccion) {
         queryString = "SELECT Vis.*, Cli.*  ";
         queryString += " FROM visita_inspeccion Vis";
-        queryString += " INNER JOIN proveedor Cli ON Cli.IdProveedor = Vis.IdCliente";
+        queryString += " INNER JOIN proveedor_empresa Cli ON Cli.IdProveedor = Vis.IdCliente";
         queryString += " WHERE Vis.IdVisitaInspeccion = " + idVisitaInspeccion;
+        queryString += " AND Cli.IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
 
 //System.out.println("QUERY TAREAS POR INSPECCION: " +  queryString);        
 

@@ -42,6 +42,7 @@ public class EditarPartidaLiquidacion extends Window {
 
     ComboBox proveedorCbx;
     ComboBox monedaCbx;
+    ComboBox centroCostoCbx;
     ComboBox cuentaContableCbx;
     ComboBox cuentaContable1Cbx;
     ComboBox cuentaContable2Cbx;
@@ -227,6 +228,15 @@ public class EditarPartidaLiquidacion extends Window {
             }
         });
 
+        centroCostoCbx = new ComboBox("Centro de costo :");
+        centroCostoCbx.setInputPrompt("Centro de costo");
+        centroCostoCbx.setWidth("100%");
+        centroCostoCbx.setTextInputAllowed(false);
+        centroCostoCbx.setInvalidAllowed(false);
+        centroCostoCbx.setNewItemsAllowed(false);
+        centroCostoCbx.setNullSelectionAllowed(true);
+        llenarComboCentroCosto();
+
         tasaCambioTxt = new NumberField();
         tasaCambioTxt.setInputPrompt("Tasa de cambio");
         tasaCambioTxt.setDescription("Tasa de cambio");
@@ -251,6 +261,7 @@ public class EditarPartidaLiquidacion extends Window {
         leftVerticalLayout.addComponent(fechaDt);
         leftVerticalLayout.addComponent(montoTxt);
         leftVerticalLayout.addComponent(monedaCbx);
+        leftVerticalLayout.addComponent(centroCostoCbx);
         leftVerticalLayout.addComponent(tasaCambioTxt);
 
         HorizontalLayout layoutHorizontal = new HorizontalLayout();
@@ -540,6 +551,34 @@ public class EditarPartidaLiquidacion extends Window {
         }
     }
 
+    public void llenarComboCentroCosto() {
+
+        centroCostoCbx.removeAllItems();
+
+        queryString = " SELECT * FROM centro_costo";
+        queryString += " WHERE IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
+        queryString += " AND Inhabilitado = 0";
+
+        try {
+            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
+            rsRecords = stQuery.executeQuery(queryString);
+
+            if (rsRecords.next()) {
+                do {
+                    centroCostoCbx.addItem(rsRecords.getString("IdCentroCosto"));
+                    //centroCostoCbx.setItemCaption(rsRecords.getString("IdCentroCosto"), rsRecords.getString("CodigoCentroCosto") + " " + rsRecords.getString("Grupo"));
+                    centroCostoCbx.setItemCaption(rsRecords.getString("IdCentroCosto"), rsRecords.getString("CodigoCentroCosto"));
+                } while (rsRecords.next());
+            }
+
+        } catch (Exception ex1) {
+            System.out.println("Error al llenar combo centro costo: " + ex1.getMessage());
+            ex1.printStackTrace();
+            Notification.show("Error al llenar combo centro costo.", Notification.Type.ERROR_MESSAGE);
+        }
+    }
+
     public void verificarProveedorInsititucion(String id) {
         if (id == null) {
         }
@@ -601,6 +640,7 @@ public class EditarPartidaLiquidacion extends Window {
                     }
                     fechaDt.setValue(rsRecords2.getDate("Fecha"));
                     monedaCbx.setValue(rsRecords2.getString("MonedaDocumento"));
+                    centroCostoCbx.select(rsRecords2.getString("IdCentroCosto"));
                     tasaCambioTxt.setValue(rsRecords2.getDouble("TipoCambio"));
                     cuentaContableCbx.select(rsRecords2.getString("IdNomenclatura"));
                     haberTxt.setValue(rsRecords2.getDouble("Haber"));
@@ -831,7 +871,7 @@ public class EditarPartidaLiquidacion extends Window {
         queryString += " TipoDocumento, Fecha, NITProveedor, IdProveedor, NombreProveedor,";
         queryString += " SerieDocumento, NumeroDocumento, IdNomenclatura, MonedaDocumento, Debe, Haber, ";
         queryString += " DebeQuetzales, HaberQuetzales, TipoCambio, Saldo, ";
-        queryString += " IdLiquidador, IdLiquidacion,  ";
+        queryString += " IdLiquidador, IdLiquidacion, IdCentroCosto, CodigoCentroCosto, ";
         queryString += " Descripcion, CreadoUsuario, CreadoFechaYHora)";
         queryString += " VALUES ";
 
@@ -866,6 +906,8 @@ public class EditarPartidaLiquidacion extends Window {
 //            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
             queryString += "," + idLiquidadorEdit;
             queryString += "," + idLiquidacionEdit;
+            queryString += "," + centroCostoCbx.getValue();
+            queryString += ",'" + centroCostoCbx.getItemCaption(centroCostoCbx.getValue()) + "'";
             queryString += ",'" + descripcionEdit + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
@@ -912,6 +954,8 @@ public class EditarPartidaLiquidacion extends Window {
             queryString += ",0.00";
             queryString += "," + idLiquidadorEdit;
             queryString += "," + idLiquidacionEdit;
+            queryString += "," + centroCostoCbx.getValue();
+            queryString += ",'" + centroCostoCbx.getItemCaption(centroCostoCbx.getValue()) + "'";
             queryString += ",'" + descripcionEdit + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
@@ -960,6 +1004,8 @@ public class EditarPartidaLiquidacion extends Window {
 
             queryString += "," + idLiquidadorEdit;
             queryString += "," + idLiquidacionEdit;
+            queryString += "," + centroCostoCbx.getValue();
+            queryString += ",'" + centroCostoCbx.getItemCaption(centroCostoCbx.getValue()) + "'";
             queryString += ",'" + descripcionEdit + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
@@ -1007,6 +1053,8 @@ public class EditarPartidaLiquidacion extends Window {
             queryString += ",0.00";
             queryString += "," + idLiquidadorEdit;
             queryString += "," + idLiquidacionEdit;
+            queryString += "," + centroCostoCbx.getValue();
+            queryString += ",'" + centroCostoCbx.getItemCaption(centroCostoCbx.getValue()) + "'";
             queryString += ",'" + descripcionEdit + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
@@ -1055,6 +1103,8 @@ public class EditarPartidaLiquidacion extends Window {
             queryString += ",0.00";
             queryString += "," + idLiquidadorEdit;
             queryString += "," + idLiquidacionEdit;
+            queryString += "," + centroCostoCbx.getValue();
+            queryString += ",'" + centroCostoCbx.getItemCaption(centroCostoCbx.getValue()) + "'";
             queryString += ",'" + descripcionEdit + "'";
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";

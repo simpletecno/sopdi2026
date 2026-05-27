@@ -290,12 +290,13 @@ public class InspectionsBudgetReportView extends VerticalLayout implements View 
 
         queryString = "SELECT DISTINCT Vis.*, Cli.Nombre ClienteNombre, CC.CodigoCentroCosto";
         queryString += " FROM visita_inspeccion Vis ";
-        queryString += " INNER JOIN proveedor Cli ON Cli.IdProveedor = Vis.IdCliente";
+        queryString += " INNER JOIN proveedor_empresa Cli ON Cli.IdProveedor = Vis.IdCliente";
         queryString += " INNER JOIN visita_inspeccion_tarea Tar ON Tar.IdVisitaInspeccion = Vis.IdVisitaInspeccion And Tar.Presupuesto = 'SI'";
         queryString += " LEFT JOIN centro_costo CC ON CC.IdCentroCosto = Vis.IdCentroCosto";
         queryString += " WHERE Vis.IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
         queryString += " AND Vis.FechaYHoraInicio >= '2019-01-01 00:00:00'";
         queryString += " AND Vis.Motivo In ('Cliente', 'Residente')";
+        queryString += " AND Cli.IdEmpresa = " + empresaId;
         queryString += " ORDER BY Vis.CodigoVisita DESC";
 
 //System.out.println("\n\n"+queryString);

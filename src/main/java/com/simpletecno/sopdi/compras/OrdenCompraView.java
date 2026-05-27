@@ -3,6 +3,9 @@ package com.simpletecno.sopdi.compras;
 import com.simpletecno.sopdi.SopdiUI;
 import com.simpletecno.sopdi.utilerias.Utileria;
 import com.simpletecno.sopdi.contabilidad.MostrarPartidaContable;
+import com.vaadin.addon.tableexport.DefaultTableHolder;
+import com.vaadin.addon.tableexport.ExcelExport;
+import com.vaadin.addon.tableexport.TableHolder;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.util.filter.SimpleStringFilter;
 import com.vaadin.navigator.View;
@@ -11,11 +14,12 @@ import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.shared.Position;
 import com.vaadin.shared.ui.MarginInfo;
-import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
@@ -64,6 +68,10 @@ public class OrdenCompraView extends VerticalLayout implements View {
     Button delBtn;
     Button printBtn;
     Button partidaContableBtn;
+    Button exportExcelBtn;
+    Button refrescarBtn;
+
+    Grid.FooterRow footerRow;
 
     OptionGroup ordenCompraOg = new OptionGroup();
 //    CheckBox abiertasChbx = new CheckBox("Abiertas");
@@ -74,8 +82,8 @@ public class OrdenCompraView extends VerticalLayout implements View {
 
     public OrdenCompraView() {
         this.mainUI = UI.getCurrent();
-        setWidth("100%");
-        setHeightUndefined();
+        setSizeFull();
+        setMargin(false);
         setSpacing(true);
 
         Label titleLbl = new Label(empresaId + " " + empresaNombre + " ORDENES DE COMPRA");
@@ -128,9 +136,11 @@ public class OrdenCompraView extends VerticalLayout implements View {
 
         addComponent(titleLayout);
         setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
+        setExpandRatio(titleLayout, 0);
 
         addComponent(filterLayout);
         setComponentAlignment(filterLayout, Alignment.TOP_CENTER);
+        setExpandRatio(filterLayout, 0);
 
         crearTablaOrdenCompra();
 
@@ -142,13 +152,13 @@ public class OrdenCompraView extends VerticalLayout implements View {
 
         VerticalLayout contentLayout = new VerticalLayout();
         contentLayout.addStyleName("rcorners3");
-        contentLayout.setWidth("100%");
         contentLayout.setSizeFull();
-        contentLayout.setResponsive(true);
+        contentLayout.setMargin(new MarginInfo(false, true, false, true));
         contentLayout.setSpacing(true);
 
         HorizontalLayout filtrosLayout = new HorizontalLayout();
         filtrosLayout.setSpacing(true);
+        filtrosLayout.setDefaultComponentAlignment(Alignment.BOTTOM_LEFT);
 
         inicioDt = new DateField("Desde:");
         inicioDt.setDateFormat("dd/MM/yyyy");
@@ -172,6 +182,11 @@ public class OrdenCompraView extends VerticalLayout implements View {
             }
         });
 
+        refrescarBtn = new Button("Refrescar");
+        refrescarBtn.setIcon(FontAwesome.REFRESH);
+        refrescarBtn.setDescription("Recargar listado");
+        refrescarBtn.addClickListener(e -> llenarTablaOrdenCompra());
+
         ordenCompraContainer.addContainerProperty(ID_PROPERTY, String.class, null);
         ordenCompraContainer.addContainerProperty(NOC_PROPERTY, String.class, null);
 //        ordenCompraContainer.addContainerProperty(TIPO_PROPERTY, String.class, null);
@@ -192,14 +207,10 @@ public class OrdenCompraView extends VerticalLayout implements View {
         ordenCompraContainer.addContainerProperty(CREADOUSUARIO_PROPERTY, String.class, null);
 
         ordenCompraGrid = new Grid("Listado de ordenes de compra", ordenCompraContainer);
-        ordenCompraGrid.setWidth("100%");
+        ordenCompraGrid.setSizeFull();
         ordenCompraGrid.setImmediate(true);
         ordenCompraGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
-        ordenCompraGrid.setDescription("Seleccione un registro.");
-        ordenCompraGrid.setHeightMode(HeightMode.ROW);
-        ordenCompraGrid.setHeightByRows(10);
-//        ordenCompraGrid.setHeightMode(HeightMode.UNDEFINED);
-//        ordenCompraGrid.setResponsive(true);
+        ordenCompraGrid.setDescription("Seleccione un registro o doble click para editar.");
         ordenCompraGrid.setEditorBuffered(false);
         ordenCompraGrid.getColumn(ID_PROPERTY).setHidable(true).setHidden(true);
         ordenCompraGrid.getColumn(EMPRESA_PROPERTY).setHidable(true).setHidden(true);
@@ -209,51 +220,71 @@ public class OrdenCompraView extends VerticalLayout implements View {
         ordenCompraGrid.getColumn(CODIGOCC_ANTICIPO_PROPERTY).setHidable(true).setHidden(true);
         ordenCompraGrid.getColumn(CODIGOCC_DOCUMENTO_PROPERTY).setHidable(true).setHidden(true);
 
+        ordenCompraGrid.getColumn(NOC_PROPERTY).setWidth(140);
+        ordenCompraGrid.getColumn(FECHA_PROPERTY).setWidth(110);
+        ordenCompraGrid.getColumn(MONEDA_PROPERTY).setWidth(100);
+        ordenCompraGrid.getColumn(TOTAL_PROPERTY).setWidth(120);
+        ordenCompraGrid.getColumn(ANTICIPO_PROPERTY).setWidth(110);
+        ordenCompraGrid.getColumn(PROVEEDOR_PROPERTY).setExpandRatio(2);
+        ordenCompraGrid.getColumn(RAZON_PROPERTY).setExpandRatio(2);
+        ordenCompraGrid.getColumn(RESPONSABLE_PROPERTY).setExpandRatio(1);
+
         ordenCompraGrid.setCellStyleGenerator((Grid.CellReference cellReference) -> {
 
             if (TOTAL_PROPERTY.equals(cellReference.getPropertyId())) {
-                return "centeralign";
+                return "rightalign";
             } else if (ANTICIPO_PROPERTY.equals(cellReference.getPropertyId())) {
                 return "rightalign";
+            } else if (NOC_PROPERTY.equals(cellReference.getPropertyId())) {
+                return "centeralign";
+            } else if (FECHA_PROPERTY.equals(cellReference.getPropertyId())) {
+                return "centeralign";
+            } else if (MONEDA_PROPERTY.equals(cellReference.getPropertyId())) {
+                return "centeralign";
             } else {
                 return null;
             }
         });
 
-        Grid.HeaderRow filterRow = ordenCompraGrid.appendHeaderRow();
-
-        Grid.HeaderCell cell = filterRow.getCell(PROVEEDOR_PROPERTY);
-
-        TextField filterField = new TextField();
-        filterField.addStyleName(ValoTheme.TEXTFIELD_TINY);
-        filterField.setInputPrompt("Filtrar");
-        filterField.setColumns(15);
-
-        filterField.addTextChangeListener(change -> {
-            ordenCompraContainer.removeContainerFilters(PROVEEDOR_PROPERTY);
-
-            // (Re)create the filter if necessary
-            if (!change.getText().isEmpty()) {
-                ordenCompraContainer.addContainerFilter(
-                        new SimpleStringFilter(PROVEEDOR_PROPERTY,
-                                change.getText(), true, false));
+        ordenCompraGrid.addItemClickListener(event -> {
+            if (event.isDoubleClick()) {
+                ordenCompraGrid.select(event.getItemId());
+                editBtn.click();
             }
         });
-        cell.setComponent(filterField);
+
+        Grid.HeaderRow filterRow = ordenCompraGrid.appendHeaderRow();
+        agregarFiltroColumna(filterRow, NOC_PROPERTY, 8);
+        agregarFiltroColumna(filterRow, PROVEEDOR_PROPERTY, 15);
+        agregarFiltroColumna(filterRow, RAZON_PROPERTY, 15);
+        agregarFiltroColumna(filterRow, FECHA_PROPERTY, 8);
+        agregarFiltroColumna(filterRow, MONEDA_PROPERTY, 6);
+        agregarFiltroColumna(filterRow, TOTAL_PROPERTY, 8);
+        agregarFiltroColumna(filterRow, RESPONSABLE_PROPERTY, 10);
+
+        footerRow = ordenCompraGrid.appendFooterRow();
+        footerRow.getCell(PROVEEDOR_PROPERTY).setText("0 órdenes");
+        footerRow.getCell(PROVEEDOR_PROPERTY).setStyleName("rightalign");
+        footerRow.getCell(TOTAL_PROPERTY).setText("0.00");
+        footerRow.getCell(TOTAL_PROPERTY).setStyleName("rightalign");
+        footerRow.getCell(ANTICIPO_PROPERTY).setText("0.00");
+        footerRow.getCell(ANTICIPO_PROPERTY).setStyleName("rightalign");
 
         filtrosLayout.addComponent(inicioDt);
         filtrosLayout.addComponent(finDt);
         filtrosLayout.addComponent(consultarBtn);
-        filtrosLayout.setComponentAlignment(consultarBtn, Alignment.BOTTOM_CENTER);
+        filtrosLayout.addComponent(refrescarBtn);
 
         contentLayout.addComponent(filtrosLayout);
-        contentLayout.setComponentAlignment(filtrosLayout, Alignment.MIDDLE_CENTER);
+        contentLayout.setComponentAlignment(filtrosLayout, Alignment.TOP_LEFT);
+        contentLayout.setExpandRatio(filtrosLayout, 0);
 
         contentLayout.addComponent(ordenCompraGrid);
-        contentLayout.setComponentAlignment(ordenCompraGrid, Alignment.MIDDLE_CENTER);
+        contentLayout.setExpandRatio(ordenCompraGrid, 1);
 
         addComponent(contentLayout);
         setComponentAlignment(contentLayout, Alignment.MIDDLE_CENTER);
+        setExpandRatio(contentLayout, 1);
 
         editBtn = new Button("Editar orden");
         editBtn.setIcon(FontAwesome.EDIT);
@@ -278,7 +309,7 @@ public class OrdenCompraView extends VerticalLayout implements View {
                     UI.getCurrent().addWindow(ordenForm);
                     ordenForm.center();
                 } else {
-                    Notification notif = new Notification("Por favor seleccione una orden de compra para poder editarña..", Notification.Type.WARNING_MESSAGE);
+                    Notification notif = new Notification("Por favor seleccione una orden de compra para poder editarla.", Notification.Type.WARNING_MESSAGE);
                     notif.setDelayMsec(1500);
                     notif.setPosition(Position.MIDDLE_CENTER);
                     notif.setIcon(FontAwesome.WARNING);
@@ -407,9 +438,10 @@ public class OrdenCompraView extends VerticalLayout implements View {
                 return;
             }
             if(String.valueOf(ordenCompraContainer.getContainerProperty(ordenCompraGrid.getSelectedRow(), CODIGOCC_DOCUMENTO_PROPERTY).getValue()).trim().isEmpty()){
-                Notification.show("No se puede mostrar la partida contable, esta orden de compra no tiene un documento asociado.", Notification.Type.WARNING_MESSAGE);
+                Notification.show("No se puede mostrar la partida contable, esta orden de compra no tiene un documento gasto o compra asociado.", Notification.Type.WARNING_MESSAGE);
                 return;
             }
+
             queryString = " SELECT * ";
             queryString += " FROM contabilidad_partida";
             queryString += " WHERE CodigoCC = '" + ordenCompraContainer.getContainerProperty(ordenCompraGrid.getSelectedRow(), CODIGOCC_DOCUMENTO_PROPERTY).getValue() + "'";
@@ -435,20 +467,84 @@ public class OrdenCompraView extends VerticalLayout implements View {
             }
         });
 
+        exportExcelBtn = new Button("Exportar a Excel");
+        exportExcelBtn.setIcon(FontAwesome.FILE_EXCEL_O);
+        exportExcelBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS_COLORED);
+        exportExcelBtn.setDescription("Exportar listado a Excel");
+        exportExcelBtn.addClickListener(e -> exportarExcel());
+
         HorizontalLayout buttonsLayout = new HorizontalLayout();
         buttonsLayout.setSpacing(true);
         buttonsLayout.setWidth("100%");
+        buttonsLayout.setMargin(new MarginInfo(false, true, true, true));
+        buttonsLayout.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
 
-        buttonsLayout.addComponents(newBtn, editBtn, printBtn, partidaContableBtn, delBtn);
-        buttonsLayout.setComponentAlignment(newBtn, Alignment.BOTTOM_CENTER);
-        buttonsLayout.setComponentAlignment(editBtn, Alignment.BOTTOM_CENTER);
-        buttonsLayout.setComponentAlignment(printBtn, Alignment.BOTTOM_CENTER);
-        buttonsLayout.setComponentAlignment(partidaContableBtn, Alignment.BOTTOM_CENTER);
-        buttonsLayout.setComponentAlignment(delBtn, Alignment.BOTTOM_RIGHT);
+        buttonsLayout.addComponents(newBtn, editBtn, partidaContableBtn, printBtn, exportExcelBtn, delBtn);
+        buttonsLayout.setExpandRatio(exportExcelBtn, 1);
+        buttonsLayout.setComponentAlignment(exportExcelBtn, Alignment.MIDDLE_RIGHT);
+        buttonsLayout.setComponentAlignment(delBtn, Alignment.MIDDLE_RIGHT);
 
         addComponent(buttonsLayout);
         setComponentAlignment(buttonsLayout, Alignment.MIDDLE_CENTER);
+        setExpandRatio(buttonsLayout, 0);
 
+    }
+
+    private void agregarFiltroColumna(Grid.HeaderRow filterRow, String propertyId, int cols) {
+        Grid.HeaderCell cell = filterRow.getCell(propertyId);
+        TextField filterField = new TextField();
+        filterField.addStyleName(ValoTheme.TEXTFIELD_TINY);
+        filterField.setInputPrompt("Filtrar");
+        filterField.setColumns(cols);
+        filterField.addTextChangeListener(change -> {
+            ordenCompraContainer.removeContainerFilters(propertyId);
+            if (!change.getText().isEmpty()) {
+                ordenCompraContainer.addContainerFilter(
+                        new SimpleStringFilter(propertyId, change.getText(), true, false));
+            }
+            actualizarFooter();
+        });
+        cell.setComponent(filterField);
+    }
+
+    private void actualizarFooter() {
+        BigDecimal totalSum = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal anticipoSum = new BigDecimal(0).setScale(2, RoundingMode.HALF_UP);
+        int count = 0;
+        for (Object itemId : ordenCompraGrid.getContainerDataSource().getItemIds()) {
+            count++;
+            try {
+                String totalStr = String.valueOf(ordenCompraContainer.getContainerProperty(itemId, TOTAL_PROPERTY).getValue()).replace(",", "");
+                String anticipoStr = String.valueOf(ordenCompraContainer.getContainerProperty(itemId, ANTICIPO_PROPERTY).getValue()).replace(",", "");
+                totalSum = totalSum.add(new BigDecimal(totalStr).setScale(2, RoundingMode.HALF_UP));
+                anticipoSum = anticipoSum.add(new BigDecimal(anticipoStr).setScale(2, RoundingMode.HALF_UP));
+            } catch (Exception ignored) {
+            }
+        }
+        footerRow.getCell(PROVEEDOR_PROPERTY).setText(count + (count == 1 ? " orden" : " órdenes"));
+        footerRow.getCell(TOTAL_PROPERTY).setText(numberFormat.format(totalSum));
+        footerRow.getCell(ANTICIPO_PROPERTY).setText(numberFormat.format(anticipoSum));
+    }
+
+    private void exportarExcel() {
+        if (ordenCompraContainer.size() == 0) {
+            Notification notif = new Notification("No hay registros para exportar.", Notification.Type.WARNING_MESSAGE);
+            notif.setDelayMsec(1500);
+            notif.setPosition(Position.MIDDLE_CENTER);
+            notif.setIcon(FontAwesome.WARNING);
+            notif.show(Page.getCurrent());
+            return;
+        }
+        TableHolder tableHolder = new DefaultTableHolder(ordenCompraGrid);
+        ExcelExport excelExport = new ExcelExport(tableHolder);
+        excelExport.excludeCollapsedColumns();
+        excelExport.setDisplayTotals(false);
+        String fileexport = empresaId + "_" + empresaNombre.replaceAll(" ", "_").replaceAll(",", "_")
+                .replaceAll("[()]", "").replaceAll("[.]", "")
+                .replaceAll("ñ", "n").replaceAll("Ñ", "N")
+                .replaceAll("ó", "o").replaceAll("é", "") + "_ORDENES_COMPRA.xls";
+        excelExport.setExportFileName(fileexport);
+        excelExport.export();
     }
 
     public void llenarTablaOrdenCompra() {
@@ -528,6 +624,8 @@ Logger.getLogger(this.getClass().getName()).info(queryString);
 
                     ordenCompraGrid.select(ordenCompraContainer.firstItemId());
                 }
+
+                actualizarFooter();
 
             } else {
                 Notification.show("La fecha hasta no puede contener un valor menor a la fecha de inicio.", Notification.Type.WARNING_MESSAGE);

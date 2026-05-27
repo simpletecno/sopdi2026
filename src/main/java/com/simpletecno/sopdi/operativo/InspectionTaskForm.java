@@ -341,7 +341,7 @@ public class InspectionTaskForm extends Window {
 
         comboBox.addItem("");
 
-        String queryString = "SELECT * FROM proveedor ";
+        String queryString = "SELECT * FROM proveedor_empresa ";
         queryString += " WHERE EsVisitaResponsable = 1";
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
