@@ -339,24 +339,25 @@ public class FacturaVentaView extends VerticalLayout implements View {
         facturasVentaGrid.getColumn(IMAGEN_PROPERTY).setRenderer(new ButtonRenderer(e
                 -> {
 
-            if (facturasVentaContainer.getContainerProperty(e.getItemId(), IMAGEN_PROPERTY).getValue().equals("Cargar archivo")) {
-                String codigoPartida = String.valueOf(facturasVentaContainer.getContainerProperty(e.getItemId(), CODIGO_PROPERTY).getValue());
+//            if (facturasVentaContainer.getContainerProperty(e.getItemId(), IMAGEN_PROPERTY).getValue().equals("Cargar archivo")) {
+//                String codigoPartida = String.valueOf(facturasVentaContainer.getContainerProperty(e.getItemId(), CODIGO_PROPERTY).getValue());
+//
+//                facturasVentaGrid.select(e.getItemId());
+//
+//                CargarArchivoIngresoDocumentos cargarArchivo
+//                        = new CargarArchivoIngresoDocumentos(e.getItemId(), codigoPartida);
+//                UI.getCurrent().addWindow(cargarArchivo);
+//                cargarArchivo.center();
 
-                facturasVentaGrid.select(e.getItemId());
 
-                CargarArchivoIngresoDocumentos cargarArchivo
-                        = new CargarArchivoIngresoDocumentos(e.getItemId(), codigoPartida);
-                UI.getCurrent().addWindow(cargarArchivo);
-                cargarArchivo.center();
-
-            } else {
+//            } else {
                 //actualizarArchivo(e);
 
                 String UUID = String.valueOf(facturasVentaContainer.getContainerProperty(e.getItemId(), UUID_PROPERTY).getValue());
                 pdfFile = InfileClient.obtenerDTEPdf(UUID, ((SopdiUI) UI.getCurrent()).enviromentsVars.getDtePath() + UUID + ".pdf");
 
                 if (pdfFile == null) {
-                    Notification.show("ERROR AL OBTENER PDF DEL DTE, NOTIFIQUE!", Notification.Type.ERROR_MESSAGE);
+                    Notification.show("ERROR AL OBTENER PDF DEL DTE, NOTIFIQUE!", Notification.Type.WARNING_MESSAGE);
                     Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "ERROR AL OBTENER PDF DEL DTE, VERIFIQUE!");
                 }
                 else {
@@ -405,7 +406,7 @@ public class FacturaVentaView extends VerticalLayout implements View {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "ERROR AL OBTENER PDF DEL DTE, VERIFIQUE!");
                         Notification.show("ERROR AL OBTENER PDF DEL DTE, NOTIFIQUE!", Notification.Type.ERROR_MESSAGE);
                     }
-                }
+                //}
             }
         }));
 
@@ -1249,11 +1250,26 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY llenarTablaCC
                         }, fileName
                 );
             }
-            documentStreamResource.setMIMEType(archivoTipo);
+            String nombreLower = archivoNombre.toLowerCase();
+            boolean esPdf = nombreLower.endsWith(".pdf");
+            boolean esPng = nombreLower.endsWith(".png");
+            boolean esJpg = nombreLower.endsWith(".jpg") || nombreLower.endsWith(".jpeg");
+            String mimeResuelto;
+            if (esPdf) {
+                mimeResuelto = "application/pdf";
+            } else if (esPng) {
+                mimeResuelto = "image/png";
+            } else if (esJpg) {
+                mimeResuelto = "image/jpeg";
+            } else {
+                mimeResuelto = (archivoTipo != null && !archivoTipo.equals("null") && !archivoTipo.isEmpty()) ? archivoTipo : "application/octet-stream";
+            }
+
+            documentStreamResource.setMIMEType(mimeResuelto);
             documentStreamResource.setFilename(archivoNombre);
             documentStreamResource.getStream().setParameter("Content-Disposition", "attachment; filename=" + fileName);
 
-            if (archivoTipo.contains("pdf")) {
+            if (esPdf) {
                 window.setWidth("98%");
                 window.setHeight("98%");
 
@@ -1381,7 +1397,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY llenarTablaCC
                 buttons.setComponentAlignment(cagarAinnova, Alignment.BOTTOM_CENTER);
                 buttons.setComponentAlignment(cargarInfile, Alignment.BOTTOM_RIGHT);
 
-                pdfLayout.addComponents(buttons);
+//                pdfLayout.addComponents(buttons);
 
                 window.setContent(pdfLayout);
 

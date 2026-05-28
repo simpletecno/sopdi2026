@@ -143,9 +143,12 @@ public class   CargarArchivoIngresoDocumentos extends Window {
         singleUpload.setImmediate(true);
         singleUpload.getSmartUpload().setUploadButtonCaptions("Buscar y cargar archivo", "");
         
-        JavaScript.getCurrent().execute("document.getElementsByClassName('gwt-FileUpload')[0].setAttribute('accept', '.png')");
-        JavaScript.getCurrent().execute("document.getElementsByClassName('gwt-FileUpload')[1].setAttribute('accept', '.jpg')");
-        JavaScript.getCurrent().execute("document.getElementsByClassName('gwt-FileUpload')[2].setAttribute('accept', '.PDF')");
+        JavaScript.getCurrent().execute(
+                "var els = document.getElementsByClassName('gwt-FileUpload');"
+              + "for (var i = 0; i < els.length; i++) {"
+              + "  els[i].setAttribute('accept', '.png,.jpg,.jpeg,.pdf,application/pdf,image/png,image/jpeg');"
+              + "}"
+        );
         
         HorizontalLayout componentsLayout = new HorizontalLayout();
         componentsLayout.setMargin(true);
@@ -166,7 +169,7 @@ public class   CargarArchivoIngresoDocumentos extends Window {
     }
     
     public void guardarArchivo(Object selectedObject, String codigoPartida, String fileName) {
-           
+
         try {
             String queryString = "";
             queryString += " UPDATE contabilidad_partida SET  ";
@@ -174,29 +177,42 @@ public class   CargarArchivoIngresoDocumentos extends Window {
             queryString += ", ArchivoTipo ='" + parametro2 + "'";
             queryString += ", ArchivoPeso = " + parametro3;
             queryString += " WHERE CodigoPartida = '" + codigoPartida + "'";
-            
+
             stPreparedQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(queryString);
             stPreparedQuery.executeUpdate();
-                        
+
             if (mainUI.getNavigator().getCurrentView().getClass().getSimpleName().equals("FacturaVentaView")) {
-                System.out.println("nombre que lleva para actualizar " + fileName);
-                ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).facturasVentaContainer.getContainerProperty(selectedObject, IMAGEN_PROPERTY).setValue("Visualizar");
-                ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).facturasVentaContainer.getContainerProperty(selectedObject, ARCHIVO_PROPERTY).setValue(fileName);
-                ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).facturasVentaContainer.getContainerProperty(selectedObject, ARCHIVO_TIPO_PROPERTY).setValue(parametro2);
+                com.vaadin.data.util.IndexedContainer container = ((FacturaVentaView) (mainUI.getNavigator().getCurrentView())).facturasVentaContainer;
+                setPropertyIfPresent(container, selectedObject, IMAGEN_PROPERTY, "Visualizar");
+                setPropertyIfPresent(container, selectedObject, ARCHIVO_PROPERTY, fileName);
+                // FacturaVentaView declara la propiedad como "Tipo"; el resto de vistas usa "Type".
+                setPropertyIfPresent(container, selectedObject, ARCHIVO_TIPO_PROPERTY, parametro2);
+                setPropertyIfPresent(container, selectedObject, "Tipo", parametro2);
             }
             if (mainUI.getNavigator().getCurrentView().getClass().getSimpleName().equals("IngresoDocumentosView")) {
-              
-                ((IngresoDocumentosView) (mainUI.getNavigator().getCurrentView())).documentsContainer.getContainerProperty(selectedObject, IMAGEN_PROPERTY).setValue("Visualizar");
-                ((IngresoDocumentosView) (mainUI.getNavigator().getCurrentView())).documentsContainer.getContainerProperty(selectedObject, ARCHIVO_PROPERTY).setValue(fileName);
-                ((IngresoDocumentosView) (mainUI.getNavigator().getCurrentView())).documentsContainer.getContainerProperty(selectedObject, ARCHIVO_TIPO_PROPERTY).setValue(parametro2);
+                com.vaadin.data.util.IndexedContainer container = ((IngresoDocumentosView) (mainUI.getNavigator().getCurrentView())).documentsContainer;
+                setPropertyIfPresent(container, selectedObject, IMAGEN_PROPERTY, "Visualizar");
+                setPropertyIfPresent(container, selectedObject, ARCHIVO_PROPERTY, fileName);
+                setPropertyIfPresent(container, selectedObject, ARCHIVO_TIPO_PROPERTY, parametro2);
             }
 
             close();
-            
+
         } catch (Exception ex) {
             System.out.println("Error al intentar insertar Imagen" + ex);
             Notification.show("Error al insertar la imagen : " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
             ex.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static void setPropertyIfPresent(com.vaadin.data.util.IndexedContainer container, Object itemId, String propertyId, Object value) {
+        if (container == null || itemId == null) {
+            return;
+        }
+        com.vaadin.data.Property property = container.getContainerProperty(itemId, propertyId);
+        if (property != null) {
+            property.setValue(value);
         }
     }
     

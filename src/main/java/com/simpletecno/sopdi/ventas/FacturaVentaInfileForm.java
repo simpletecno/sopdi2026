@@ -4,7 +4,6 @@ import com.simpletecno.sopdi.utilerias.MyEmailMessanger;
 import com.simpletecno.sopdi.SopdiUI;
 import com.simpletecno.sopdi.utilerias.Utileria;
 import com.simpletecno.sopdi.utilerias.ValidarTokenForm;
-import com.simpletecno.sopdi.extras.custom.ToggleSwitch;
 import com.simpletecno.sopdi.extras.infile.InfileClient;
 import com.simpletecno.sopdi.extras.infile.Producto;
 import com.simpletecno.sopdi.extras.infile.Receptor;
@@ -58,6 +57,7 @@ public class FacturaVentaInfileForm extends Window {
 
     TextField serieTxt;
     TextField numeroTxt;
+    TextField UUIDTxt;
     ComboBox monedaCbx;
     NumberField tasaCambioTxt;
     NumberField totalFacturadoMesTxt;
@@ -82,7 +82,7 @@ public class FacturaVentaInfileForm extends Window {
 
     Button grabarBtn;
 
-    ToggleSwitch modoOg;  // Si se agrega La seria y numero manualmente o no
+    CheckBox modoOg;  // Si se agrega la serie y numero manualmente o no (true = FEL automatico)
 
     UI mainUI;
     Statement stQuery;
@@ -144,27 +144,25 @@ public class FacturaVentaInfileForm extends Window {
     private void createDocumentHeader() {
         headerLayout = new VerticalLayout();
         headerLayout.setWidth("100%");
-        headerLayout.setHeight("10em");
         headerLayout.setSpacing(true);
         headerLayout.setMargin(false);
 
         HorizontalLayout firstLineHeaderLayout = new HorizontalLayout();
-        firstLineHeaderLayout.setSizeFull();
+        firstLineHeaderLayout.setWidth("100%");
         firstLineHeaderLayout.setSpacing(true);
         firstLineHeaderLayout.setMargin(new MarginInfo(false, true, false, true));
         firstLineHeaderLayout.addStyleName("rcorners3");
 
         HorizontalLayout secondLineHaderLayout = new HorizontalLayout();
-        secondLineHaderLayout.setSizeFull();
+        secondLineHaderLayout.setWidth("100%");
         secondLineHaderLayout.setSpacing(true);
-        secondLineHaderLayout.setMargin(new MarginInfo(true, true, false, true));
+        secondLineHaderLayout.setMargin(new MarginInfo(false, true, false, true));
         secondLineHaderLayout.addStyleName("rcorners3");
 
         headerLayout.addComponents(firstLineHeaderLayout, secondLineHaderLayout);
 
         mainLayout.addComponents(headerLayout);
-        mainLayout.setComponentAlignment(headerLayout, Alignment.MIDDLE_CENTER);
-        mainLayout.setExpandRatio(headerLayout, 2.0f);
+        mainLayout.setComponentAlignment(headerLayout, Alignment.TOP_CENTER);
 
         tipoFacturaVentaCbx = new ComboBox("Venta de :");
         tipoFacturaVentaCbx.setWidth("100%");
@@ -270,6 +268,29 @@ public class FacturaVentaInfileForm extends Window {
         numeroTxt = new TextField("Número : ");
         numeroTxt.setWidth("12em");
 
+        UUIDTxt = new TextField("UUID : ");
+        UUIDTxt.setWidth("100%");
+
+        final String CLS_BLOQUEADO = "fel-campo-bloqueado";
+        serieTxt.addStyleName(CLS_BLOQUEADO);
+        numeroTxt.addStyleName(CLS_BLOQUEADO);
+        UUIDTxt.addStyleName(CLS_BLOQUEADO);
+
+        Page.getCurrent().getStyles().add(
+                  ".v-disabled ." + CLS_BLOQUEADO + " .v-textfield,"
+                + " ." + CLS_BLOQUEADO + ".v-disabled .v-textfield,"
+                + " .v-disabled .v-textfield." + CLS_BLOQUEADO + ","
+                + " .v-textfield." + CLS_BLOQUEADO + ".v-disabled,"
+                + " .v-textfield." + CLS_BLOQUEADO + "[disabled] {"
+                + "  background-color: #b8b8b8 !important;"
+                + "  color: #2b2b2b !important;"
+                + "  -webkit-text-fill-color: #2b2b2b !important;"
+                + "  opacity: 1 !important;"
+                + "  border: 1px solid #888 !important;"
+                + "  cursor: not-allowed;"
+                + "}"
+        );
+
         monedaCbx = new ComboBox("Moneda :");
         monedaCbx.setWidth("12em");
         monedaCbx.addItem("QUETZALES");
@@ -303,10 +324,13 @@ public class FacturaVentaInfileForm extends Window {
         tasaCambioTxt.setWidth("5em");
         tasaCambioTxt.setValue(1.00);
 
-        modoOg = new ToggleSwitch("Agregar", "Crear", event -> {
-            boolean value = (boolean) event.getProperty().getValue();
+        modoOg = new CheckBox("FEL automático");
+        modoOg.setDescription("Marcado: la serie y número se generan vía FEL.\nDesmarcado: ingresar serie, número y UUID manualmente.");
+        modoOg.addValueChangeListener(event -> {
+            boolean value = Boolean.TRUE.equals(modoOg.getValue());
             numeroTxt.setEnabled(!value);
             serieTxt.setEnabled(!value);
+            UUIDTxt.setEnabled(!value);
         });
 
         modoOg.setValue(!((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyFelUser().trim().isEmpty());
@@ -326,13 +350,16 @@ public class FacturaVentaInfileForm extends Window {
         totalFacturadoMesTxt.setValue(0.00);
         totalFacturadoMesTxt.setCaptionAsHtml(true);
 
-        secondLineHaderLayout.addComponents(serieTxt, numeroTxt, monedaCbx, tasaCambioTxt, modoOg, totalFacturadoMesTxt);
+        secondLineHaderLayout.addComponents(modoOg, serieTxt, numeroTxt, UUIDTxt, monedaCbx, tasaCambioTxt,  totalFacturadoMesTxt);
+        secondLineHaderLayout.setComponentAlignment(modoOg, Alignment.BOTTOM_LEFT);
         secondLineHaderLayout.setComponentAlignment(serieTxt, Alignment.MIDDLE_LEFT);
         secondLineHaderLayout.setComponentAlignment(numeroTxt, Alignment.MIDDLE_LEFT);
+        secondLineHaderLayout.setComponentAlignment(UUIDTxt, Alignment.MIDDLE_LEFT);
         secondLineHaderLayout.setComponentAlignment(monedaCbx, Alignment.MIDDLE_LEFT);
         secondLineHaderLayout.setComponentAlignment(tasaCambioTxt, Alignment.MIDDLE_LEFT);
-        secondLineHaderLayout.setComponentAlignment(modoOg, Alignment.BOTTOM_RIGHT);
         secondLineHaderLayout.setComponentAlignment(totalFacturadoMesTxt, Alignment.MIDDLE_RIGHT);
+        secondLineHaderLayout.setExpandRatio(UUIDTxt, 1f);
+
     }
 
     public void llenarCentroCosto() {
@@ -359,10 +386,10 @@ public class FacturaVentaInfileForm extends Window {
 
     private void createDocumentDetail() {
         HorizontalLayout detailLayout = new HorizontalLayout();
-        detailLayout.setSizeFull();
+        detailLayout.setWidth("100%");
+        detailLayout.setHeight("100%");
         detailLayout.setSpacing(true);
-        detailLayout.setMargin(false);
-//        detailLayout.setMargin(new MarginInfo(false, true, false, true));
+        detailLayout.setMargin(new MarginInfo(false, true, false, true));
 
         centerContentPanel = new Panel();
         centerContentPanel.setSizeFull();
@@ -370,16 +397,14 @@ public class FacturaVentaInfileForm extends Window {
         centralVerticalLayout = new VerticalLayout();
         centralVerticalLayout.setWidth("100%");
         centralVerticalLayout.setSpacing(true);
-//        centralVerticalLayout.setMargin(new MarginInfo(false, true, false, false));
 
         centerContentPanel.setContent(centralVerticalLayout);
 
         detailLayout.addComponent(centerContentPanel);
-        detailLayout.setComponentAlignment(centerContentPanel, Alignment.MIDDLE_CENTER);
         detailLayout.setExpandRatio(centerContentPanel, 1.0f);
 
         mainLayout.addComponents(detailLayout);
-        mainLayout.setExpandRatio(detailLayout, 3.0f);
+        mainLayout.setExpandRatio(detailLayout, 1.0f);
 
 
         cargarProductosDesdeBD();
@@ -536,15 +561,13 @@ public class FacturaVentaInfileForm extends Window {
     
     private void createDocumentFoother() {
         footerLayout = new HorizontalLayout();
-        footerLayout.setWidth("50%");
-        footerLayout.setHeight("5em");
+        footerLayout.setWidth("100%");
         footerLayout.setStyleName("rcorners3");
         footerLayout.setSpacing(true);
-        footerLayout.setMargin(new MarginInfo(false, true, true, true));
+        footerLayout.setMargin(new MarginInfo(false, true, false, true));
 
         mainLayout.addComponents(footerLayout);
-        mainLayout.setComponentAlignment(footerLayout, Alignment.BOTTOM_RIGHT);
-        mainLayout.setExpandRatio(footerLayout, 1.0f);
+        mainLayout.setComponentAlignment(footerLayout, Alignment.BOTTOM_CENTER);
 
         montoTxt = new NumberField("Monto : ");
         montoTxt.setDecimalAllowed(true);
@@ -599,11 +622,15 @@ public class FacturaVentaInfileForm extends Window {
             }
         });
 
-        footerLayout.addComponents(montoTxt, ivaTxt, isrTxt, grabarBtn);
-        footerLayout.setComponentAlignment(montoTxt, Alignment.MIDDLE_CENTER);
-        footerLayout.setComponentAlignment(ivaTxt, Alignment.MIDDLE_CENTER);
-        footerLayout.setComponentAlignment(isrTxt, Alignment.MIDDLE_CENTER);
+        Label footerSpacer = new Label();
+        footerSpacer.setWidth("100%");
+
+        footerLayout.addComponents(montoTxt, ivaTxt, isrTxt, footerSpacer, grabarBtn);
+        footerLayout.setComponentAlignment(montoTxt, Alignment.MIDDLE_LEFT);
+        footerLayout.setComponentAlignment(ivaTxt, Alignment.MIDDLE_LEFT);
+        footerLayout.setComponentAlignment(isrTxt, Alignment.MIDDLE_LEFT);
         footerLayout.setComponentAlignment(grabarBtn, Alignment.BOTTOM_RIGHT);
+        footerLayout.setExpandRatio(footerSpacer, 1f);
 
     }
 

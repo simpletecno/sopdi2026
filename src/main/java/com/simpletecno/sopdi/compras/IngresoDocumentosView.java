@@ -208,14 +208,12 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
 
         inicioDt = new DateField("DEL:");
         inicioDt.setDateFormat("dd/MM/yyyy");
-        Date primerDia = Utileria.getPrimerDiaDelMes();
-        inicioDt.setValue(primerDia);
+        inicioDt.setValue(Utileria.getPrimerDiaSemana());
         inicioDt.setWidth("10em");
 
         finDt = new DateField("AL:");
         finDt.setDateFormat("dd/MM/yyyy");
-        Date ultimoDia = Utileria.getUltimoDiaDelMes();
-        finDt.setValue(ultimoDia);
+        finDt.setValue(Utileria.getUltimoDiaSemana());
         finDt.setWidth("10em");
 
         fechaOpcion = new OptionGroup();
@@ -1263,7 +1261,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
                 }
                 queryString += " AND proveedor_empresa.IdEmpresa = " + empresaId;
                 queryString += " GROUP by contabilidad_partida.CodigoPartida ";
-                queryString += " ORDER BY contabilidad_partida.Fecha, contabilidad_partida.IdNomenclatura DESC ";
+//                queryString += " ORDER BY contabilidad_partida.Fecha DESC ";
 
 System.out.println("Query busqueda FACTURAS/DOCUMENTO COMPRA/GASTO : " + queryString);
 
@@ -1325,8 +1323,6 @@ System.out.println("Query busqueda FACTURAS/DOCUMENTO COMPRA/GASTO : " + querySt
                         documentsContainer.getContainerProperty(itemId,IDCENTROCOSTO_PROPERTY).setValue(rsRecords.getString("CodigoCentroCosto"));
 
                     } while (rsRecords.next());
-
-                    documentosGrid.select(documentosGrid.getContainerDataSource().getIdByIndex(0));
 
                     setTotal();
 

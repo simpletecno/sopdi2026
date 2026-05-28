@@ -30,6 +30,8 @@ import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.DecimalFormat;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -97,6 +99,8 @@ public final class IntegracionItemCostos extends Window {
 
     final UI mainUI = UI.getCurrent();
 
+    private final Set<String> loadedTabIds = new HashSet<>();
+
     static DecimalFormat moneyFormat = new DecimalFormat("#,###,##0.00");
     static DecimalFormat integerFormat2 = new DecimalFormat("##,##0");
 
@@ -161,11 +165,43 @@ public final class IntegracionItemCostos extends Window {
 
         crearTabSheet();
 
-        fillIntegraciones(INICIAL, integracionInicialContainer, integracionInicialGrid, integracionInicialFooter);
-        fillIntegraciones(CAMBIOS, integracionCambiosContainer, integracionCambiosGrid, integracionCambiosFooter);
-        fillIntegraciones(PROYECCION, integracionProyeccionContainer, integracionProyeccionGrid, integracionProyeccionFooter);
-        fillIntegraciones(ACTUAL, integracionActualContainer, integracionActualGrid, integracionActualFooter);
-        fillIntegraciones(SALDO, integracionSaldoContainer, integracionSaldoGrid, integracionSaldoFooter);
+        tabSheet.addSelectedTabChangeListener(event -> loadSelectedTab());
+        loadSelectedTab();
+    }
+
+    private void loadSelectedTab() {
+        Component content = tabSheet.getSelectedTab();
+        if (content == null) {
+            return;
+        }
+        TabSheet.Tab tab = tabSheet.getTab(content);
+        if (tab == null || tab.getId() == null) {
+            return;
+        }
+        String id = tab.getId();
+        if (loadedTabIds.contains(id)) {
+            return;
+        }
+        switch (id) {
+            case "1":
+                fillIntegraciones(INICIAL, integracionInicialContainer, integracionInicialGrid, integracionInicialFooter);
+                break;
+            case "2":
+                fillIntegraciones(CAMBIOS, integracionCambiosContainer, integracionCambiosGrid, integracionCambiosFooter);
+                break;
+            case "3":
+                fillIntegraciones(PROYECCION, integracionProyeccionContainer, integracionProyeccionGrid, integracionProyeccionFooter);
+                break;
+            case "4":
+                fillIntegraciones(ACTUAL, integracionActualContainer, integracionActualGrid, integracionActualFooter);
+                break;
+            case "5":
+                fillIntegraciones(SALDO, integracionSaldoContainer, integracionSaldoGrid, integracionSaldoFooter);
+                break;
+            default:
+                return;
+        }
+        loadedTabIds.add(id);
     }
 
     private void crearTabSheet() {
