@@ -32,8 +32,6 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
     static final String FACTURA_PROPERTY = "Documento";
     static final String MONTO_PROPERTY = "Monto";
     static final String LIQUIDACION_PROPERTY = "LIQUIDACION";
-    static final String CREADOSTAMP_PROPERTY = "Creado el";
-    static final String RAZON_PROPERTY = "Razón";
 
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
 
@@ -194,7 +192,7 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
 
         montoTxt.setDecimalAllowed(true);
         montoTxt.setDescription("Monto de la factura");
-        montoTxt.setInputPrompt("Monto");
+        montoTxt.setInputPrompt("Monto de la factura");
         montoTxt.setDecimalPrecision(2);
         montoTxt.setMinimumFractionDigits(2);
         montoTxt.setDecimalSeparator('.');
@@ -217,7 +215,8 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
         montoLayout.setComponentAlignment(montoTxt, Alignment.MIDDLE_CENTER);
 
         razonTxt.setWidth("100%");
-        razonTxt.setDescription("Razón de la factura");
+        razonTxt.setDescription("Razón o motivo del gasto");
+        razonTxt.setInputPrompt("Razón o motivo del gasto");
         HorizontalLayout razonLayout = new HorizontalLayout();
         razonLayout.setResponsive(true);
         razonLayout.setSpacing(true);
@@ -765,8 +764,6 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
         documentosContainer.addContainerProperty(FACTURA_PROPERTY, String.class, "");
         documentosContainer.addContainerProperty(MONTO_PROPERTY, String.class, "");
         documentosContainer.addContainerProperty(LIQUIDACION_PROPERTY, String.class, "");
-        documentosContainer.addContainerProperty(RAZON_PROPERTY, String.class, "");
-        documentosContainer.addContainerProperty(CREADOSTAMP_PROPERTY, String.class, "");
 
         documentosGrid = new Grid("Liquidación actual ", documentosContainer);
 
@@ -785,7 +782,6 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
         documentosGrid.getColumn(FACTURA_PROPERTY).setExpandRatio(2);
         documentosGrid.getColumn(MONTO_PROPERTY).setExpandRatio(1);
         documentosGrid.getColumn(LIQUIDACION_PROPERTY).setExpandRatio(1);
-        documentosGrid.getColumn(CREADOSTAMP_PROPERTY).setExpandRatio(1);
 
         documentosGrid.setCellStyleGenerator((Grid.CellReference cellReference) -> {
             if (MONTO_PROPERTY.equals(cellReference.getPropertyId())) {
@@ -870,7 +866,7 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
                                     queryString += " AND IdLiquidacion > 0";
                                     queryString += " AND Estatus IN ('INGRESADO', 'REVISADO')";
 
-System.out.println("Query cerrrar liquidacion=" + queryString);
+//System.out.println("Query cerrrar liquidacion=" + queryString);
 
                                     try {
                                         stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -934,8 +930,6 @@ System.out.println("Query cerrrar liquidacion=" + queryString);
                     documentosContainer.getContainerProperty(itemId, FACTURA_PROPERTY).setValue(rsRecords.getString("SerieDocumento") + " " +rsRecords.getString("NumeroDocumento"));
                     documentosContainer.getContainerProperty(itemId, MONTO_PROPERTY).setValue(numberFormat.format(rsRecords.getDouble("Haber")));
                     documentosContainer.getContainerProperty(itemId, LIQUIDACION_PROPERTY).setValue(rsRecords.getString("IdLiquidacion"));
-                    documentosContainer.getContainerProperty(itemId, CREADOSTAMP_PROPERTY).setValue(rsRecords.getString("CreadoFechaYHora"));
-                    documentosContainer.getContainerProperty(itemId, RAZON_PROPERTY).setValue(rsRecords.getString("Descripcion"));
                     totalMonto += rsRecords.getDouble("MontoDocumento");
 
                 } while (rsRecords.next());

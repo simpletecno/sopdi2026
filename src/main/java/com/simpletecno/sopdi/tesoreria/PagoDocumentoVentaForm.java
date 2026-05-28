@@ -155,9 +155,9 @@ public class PagoDocumentoVentaForm extends Window {
         queryString = " SELECT prov.* ";
         queryString += " FROM proveedor_empresa prov";
         queryString += " WHERE prov.Inhabilitado = 0 ";
-        queryString += " AND N0 in (1, 4, 7, 9)";
+//        queryString += " AND N0 in (1, 4, 7, 9)";
         queryString += " AND prov.EsCliente = 1";
-        queryString += " AND prov.EmpresaId = '" + empresaId + "'";
+        queryString += " AND prov.IdEmpresa = '" + empresaId + "'";
         queryString += " ORDER BY prov.Nombre";
 
         proveedorCbx.removeAllItems();
@@ -182,7 +182,7 @@ public class PagoDocumentoVentaForm extends Window {
 
         queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
         queryString += " WHERE Estatus = 'HABILITADA'";
-        queryString += " AND EmpresaId = '" + empresaId + "'";
+        queryString += " AND IdEmpresa = '" + empresaId + "'";
         queryString += " ORDER BY N5";
 
         try {

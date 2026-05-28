@@ -646,7 +646,7 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         this.facturasGrid.setCaption("Facturas de la liquidación : " + idLiquidacion);
 
         queryString = " SELECT IdPartida, CodigoPartida, TipoDocumento, IdLiquidacion, IdEmpresa, IdLiquidador,";
-        queryString += " NumeroDocumento,SerieDocumento,NombreProveedor,NITProveedor, Fecha, Estatus, Haber,";
+        queryString += " NumeroDocumento,SerieDocumento,NombreProveedor,NITProveedor, Fecha, Estatus, Haber, Debe,";
         queryString += " MonedaDocumento, DebeQuetzales, HaberQuetzales,  TipoCambio";
         queryString += " FROM contabilidad_partida";
         queryString += " WHERE IdEmpresa = " + empresaId;
@@ -670,12 +670,12 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                     containerFactura.getContainerProperty(itemId, NITPROVEEDOR_FACTURA_PROPERTY).setValue(rsRecords3.getString("NITProveedor"));
                     containerFactura.getContainerProperty(itemId, PROVEEDOR_PROPERTY).setValue(rsRecords3.getString("NombreProveedor"));
                     containerFactura.getContainerProperty(itemId, FECHA_FACTURA_PROPERTY).setValue(rsRecords3.getString("Fecha"));
-                    containerFactura.getContainerProperty(itemId, MONTO_QUETZALES_PROPERTY).setValue(numberFormat.format(rsRecords3.getDouble("HaberQuetzales")));
+                    containerFactura.getContainerProperty(itemId, MONTO_QUETZALES_PROPERTY).setValue(numberFormat.format(rsRecords3.getDouble("HaberQuetzales") > 0 ? rsRecords3.getDouble("HaberQuetzales") : (rsRecords3.getDouble("DebeQuetzales")*-1)));
                     containerFactura.getContainerProperty(itemId, ID_LIQUIDACION_FACTURA_PROPERTY).setValue(rsRecords3.getString("IdLiquidacion"));
                     containerFactura.getContainerProperty(itemId, ID_LIQUIDADOR_FACTURA_PROPERTY).setValue(rsRecords3.getString("IdLiquidador"));
                     containerFactura.getContainerProperty(itemId, ESTATUS_PROPERTY).setValue(rsRecords3.getString("ESTATUS"));
 
-                    totalMontoFactura = totalMontoFactura + rsRecords3.getDouble("Haber");
+                    totalMontoFactura = totalMontoFactura + (rsRecords3.getDouble("Haber") > 0 ? rsRecords3.getDouble("Haber") : (rsRecords3.getDouble("Debe")*-1));
                 } while (rsRecords3.next());
 
                 facturasGrid.select(facturasGrid.getContainerDataSource().getIdByIndex(0));
@@ -701,8 +701,8 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
                 queryString = " SELECT contabilidad_partida.IdPartida,";
                 queryString += " contabilidad_partida.Fecha, ";
                 queryString += " contabilidad_partida.MonedaDocumento, contabilidad_partida.TipoCambio,";
-                queryString += " SUM(HaberQuetzales) as TotalQ,";
-                queryString += " SUM(Haber) as Total, CodigoCC,";
+                queryString += " SUM(HaberQuetzales-DebeQuetzales) as TotalQ,";
+                queryString += " SUM(Haber-Debe) as Total, CodigoCC,";
                 queryString += " contabilidad_partida.Estatus,";
                 queryString += " contabilidad_partida.IdLiquidacion,";
                 queryString += " contabilidad_partida.IdLiquidador,";

@@ -272,16 +272,16 @@ public class ReporteLiquidacionPDF extends Window {
 
             String queryString = "";
             queryString += " Select contabilidad_partida.Fecha, contabilidad_partida.IdLiquidacion, contabilidad_partida.IdLiquidador,";
-            queryString += " contabilidad_partida.Haber, contabilidad_partida.HaberQuetzales, contabilidad_partida.MonedaDocumento,";
-            queryString += " proveedor_empresa.Nombre as NombreLiquidador, contabilidad_partida.Archivo, ";
+            queryString += " contabilidad_partida.Haber, contabilidad_partida.HaberQuetzales, contabilidad_partida.Debe, contabilidad_partida.DebeQuetzales, ";
+            queryString += " contabilidad_partida.MonedaDocumento,proveedor_empresa.Nombre as NombreLiquidador, contabilidad_partida.Archivo, ";
             queryString += " contabilidad_partida.SerieDocumento, contabilidad_partida.NumeroDocumento, ";
             queryString += " contabilidad_partida.NitProveedor, contabilidad_partida.NombreProveedor";
             queryString += " From contabilidad_partida, proveedor_empresa ";
             queryString += " Where contabilidad_partida.IdEmpresa = " + idEmpresa;
-            queryString += " And UPPER(contabilidad_partida.TipoDocumento) IN ('FACTURA', 'RECIBO', 'RECIBO CONTABLE', 'FORMULARIO','NOTA DE CREDITO')";
+            queryString += " And UPPER(contabilidad_partida.TipoDocumento) IN ('FACTURA', 'RECIBO', 'RECIBO CONTABLE', 'FORMULARIO','NOTA DE CREDITO COMPRA')";
             queryString += " And contabilidad_partida.IdLiquidacion = " + idLiquidacion;
             queryString += " And proveedor_empresa.IdProveedor = contabilidad_partida.IdLiquidador";
-            queryString += " And contabilidad_partida.Haber > 0.00";
+            queryString += " And contabilidad_partida.IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getLiquidacionesCajaChicha();
             queryString += " And proveedor_empresa.IdEmpresa = " + idEmpresa;
 //            queryString += " Group by contabilidad_partida.IdLiquidacion, contabilidad_partida.IdLiquidador";
 
@@ -332,14 +332,14 @@ public class ReporteLiquidacionPDF extends Window {
                         c1.setBorderWidthBottom(0);
                         reportTable.addCell(c1);
 
-                        c1 = new PdfPCell(new Paragraph(monedaSimbolo + df1.format(rsRecords.getDouble("Haber")), small10));
+                        c1 = new PdfPCell(new Paragraph(monedaSimbolo + df1.format((rsRecords.getDouble("Haber") > 0 ? rsRecords.getDouble("Haber") : (rsRecords.getDouble("Debe")*-1))), small10));
                         c1.setHorizontalAlignment(Element.ALIGN_RIGHT);
                         c1.setVerticalAlignment(Element.ALIGN_RIGHT);
                         c1.setBorderWidth(0);
                         c1.setBorderWidthBottom(0);
                         reportTable.addCell(c1);
 
-                        total += rsRecords.getDouble("Haber");
+                        total += (rsRecords.getDouble("Haber") > 0 ? rsRecords.getDouble("Haber") : (rsRecords.getDouble("Debe")*-1));
 
                     } while (rsRecords.next());
 
