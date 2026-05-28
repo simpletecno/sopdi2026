@@ -56,6 +56,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DecimalFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import org.vaadin.dialogs.ConfirmDialog;
@@ -67,7 +68,6 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
 
     static final String CODIGOCC_ABASTOS = "20210401000";
     MultiFileUpload singleUpload;
-    Image logoImage;
     public File file;
     StreamResource logoStreamResource = null;
     String parametro1, parametro2;
@@ -228,6 +228,9 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
         consultarBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
+                if (!validarRangoFechas()) {
+                    return;
+                }
                 llenarTablaFactura(empresaId, 0);
             }
         });
@@ -238,6 +241,9 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
         pendienteIsr.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
+                if (!validarRangoFechas()) {
+                    return;
+                }
                 vanderaIsr = 1; /// buscar las facturas pendeitnes de isr
                 llenarTablaFactura(empresaId, 0);
             }
@@ -582,8 +588,8 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
         filtrosLayout.setComponentAlignment(inicioDt, Alignment.BOTTOM_CENTER);
         filtrosLayout.addComponent(finDt);
         filtrosLayout.setComponentAlignment(finDt, Alignment.BOTTOM_CENTER);
-        filtrosLayout.addComponent(documentTxt);
-        filtrosLayout.setComponentAlignment(documentTxt, Alignment.BOTTOM_CENTER);
+//        filtrosLayout.addComponent(documentTxt);
+//        filtrosLayout.setComponentAlignment(documentTxt, Alignment.BOTTOM_CENTER);
         filtrosLayout.addComponent(consultarBtn);
         filtrosLayout.setComponentAlignment(consultarBtn, Alignment.BOTTOM_CENTER);
         filtrosLayout.addComponent(pendienteIsr);
@@ -1195,6 +1201,31 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
             System.out.println("Error al listar tabla PARTIDA:" + ex.getMessage());
             ex.printStackTrace();
         }
+    }
+
+    private boolean validarRangoFechas() {
+        if (inicioDt.getValue() == null || finDt.getValue() == null) {
+            Notification notif = new Notification("Por favor seleccione fechas de inicio y fin.",
+                    Notification.Type.WARNING_MESSAGE);
+            notif.setDelayMsec(2000);
+            notif.setPosition(Position.MIDDLE_CENTER);
+            notif.setIcon(FontAwesome.WARNING);
+            notif.show(Page.getCurrent());
+            return false;
+        }
+        Calendar limite = Calendar.getInstance();
+        limite.setTime(inicioDt.getValue());
+        limite.add(Calendar.MONTH, 2);
+        if (finDt.getValue().after(limite.getTime())) {
+            Notification notif = new Notification("El rango de fechas no puede exceder 2 meses. Reduzca el rango para evitar cargas pesadas.",
+                    Notification.Type.WARNING_MESSAGE);
+            notif.setDelayMsec(3000);
+            notif.setPosition(Position.MIDDLE_CENTER);
+            notif.setIcon(FontAwesome.WARNING);
+            notif.show(Page.getCurrent());
+            return false;
+        }
+        return true;
     }
 
     public void llenarTablaFactura(String empresa, int pdfHoy) {

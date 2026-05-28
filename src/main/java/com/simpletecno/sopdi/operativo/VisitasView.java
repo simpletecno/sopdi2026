@@ -1766,7 +1766,7 @@ System.out.println("\n\n"+queryString);
         String queryString = "SELECT * ";
         queryString += " FROM proveedor_empresa ";
         queryString += " WHERE EsCliente=1 ";
-        queryString += " AND Inhabilitado = 0";
+//        queryString += " AND Inhabilitado = 0";
         queryString += " ORDER BY Nombre";
 
         try {
