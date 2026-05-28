@@ -1245,53 +1245,57 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
         try {
             if (inicioDt.getValue().before(finDt.getValue())) {
 
-                queryString = " SELECT DATEDIFF(CURDATE(),contabilidad_partida.Fecha) AS DiasHoy, ";
-                queryString += " contabilidad_partida.ArchivoNombre,contabilidad_partida.ArchivoTipo,";
-                queryString += " contabilidad_partida.TipoDocumento, contabilidad_partida.Referencia, ";
-                queryString += " contabilidad_partida.MontoDocumento, ";
-                queryString += " IFNULL((SELECT cp_g.IdNomenclatura FROM contabilidad_partida cp_g ";
-                queryString += "         WHERE cp_g.CodigoPartida = contabilidad_partida.CodigoPartida ";
-                queryString += "           AND cp_g.Debe > 0 AND cp_g.IdNomenclatura <> 7 ";
-                queryString += "         ORDER BY cp_g.Debe DESC LIMIT 1), contabilidad_partida.IdNomenclatura) AS IdNomenclatura, ";
-                queryString += " SUM(contabilidad_partida.Haber) AS total, SUM(contabilidad_partida.HaberQuetzales) AS totalQ,";
-                queryString += " contabilidad_partida.Fecha, contabilidad_partida.NombreProveedor, ";
-                queryString += " contabilidad_partida.CodigoPartida, contabilidad_partida.CodigoCC, ";
-                queryString += " contabilidad_partida.Debe,contabilidad_partida.Haber, ";
-                queryString += " contabilidad_partida.DebeQuetzales,contabilidad_partida.HaberQuetzales, contabilidad_partida.TipoCambio, ";
-                queryString += " contabilidad_partida.NitProveedor, contabilidad_partida.SerieDocumento, contabilidad_partida.NumeroDocumento, ";
-                queryString += " contabilidad_partida.Descripcion, contabilidad_partida.MonedaDocumento, contabilidad_partida.Estatus,";
-                queryString += " usuario.Nombre as NombreUsuario, contabilidad_partida.IDProveedor, orden_compra.NOC, contabilidad_partida.CodigoCentroCosto";
-                queryString += " FROM contabilidad_partida ";
-                queryString += " INNER JOIN usuario on usuario.IdUsuario = contabilidad_partida.CreadoUsuario";
-                queryString += " INNER JOIN proveedor_empresa ON proveedor_empresa.IDProveedor = contabilidad_partida.IdProveedor";
-                queryString += " LEFT JOIN orden_compra ON orden_compra.Id = contabilidad_partida.IdOrdenCompra";
-                queryString += " WHERE UPPER(contabilidad_partida.TipoDocumento) IN ('FACTURA','RECIBO','RECIBO CONTABLE', ";
-                queryString += " 'FORMULARIO ISR', 'FORMULARIO ISR RETENIDO', 'FORMULARIO ISO', 'FORMULARIO IVA','FORMULARIO IGSS',";
-                queryString += " 'FORMULARIO RECTIFICACION', 'FORMULARIO ISR OPCIONAL MENSUAL', 'RECIBO CORRIENTE',";
-                queryString += " 'NOTA DE CREDITO COMPRA', 'CONSTANCIA ISR COMPRA')";
+                queryString = " SELECT DATEDIFF(CURDATE(), cp.Fecha) AS DiasHoy, ";
+                queryString += " cp.ArchivoNombre, cp.ArchivoTipo, ";
+                queryString += " cp.TipoDocumento, cp.Referencia, ";
+                queryString += " cp.MontoDocumento, ";
+                queryString += " IFNULL(cp_idx.IdNomenclatura, cp.IdNomenclatura) AS IdNomenclatura, ";
+                queryString += " SUM(cp.Haber) AS total, SUM(cp.HaberQuetzales) AS totalQ, ";
+                queryString += " cp.Fecha, cp.NombreProveedor, ";
+                queryString += " cp.CodigoPartida, cp.CodigoCC, ";
+                queryString += " cp.Debe, cp.Haber, ";
+                queryString += " cp.DebeQuetzales, cp.HaberQuetzales, cp.TipoCambio, ";
+                queryString += " cp.NitProveedor, cp.SerieDocumento, cp.NumeroDocumento, ";
+                queryString += " cp.Descripcion, cp.MonedaDocumento, cp.Estatus, ";
+                queryString += " usuario.Nombre AS NombreUsuario, cp.IDProveedor, orden_compra.NOC, cp.CodigoCentroCosto ";
+                queryString += " FROM contabilidad_partida cp ";
+                queryString += " INNER JOIN usuario ON usuario.IdUsuario = cp.CreadoUsuario ";
+                queryString += " INNER JOIN proveedor_empresa pe ON pe.IDProveedor = cp.IdProveedor AND pe.IdEmpresa = cp.IdEmpresa ";
+                queryString += " LEFT JOIN orden_compra ON orden_compra.Id = cp.IdOrdenCompra ";
+                queryString += " LEFT JOIN ( ";
+                queryString += "   SELECT CodigoPartida, IdNomenclatura FROM ( ";
+                queryString += "     SELECT CodigoPartida, IdNomenclatura, ";
+                queryString += "            ROW_NUMBER() OVER (PARTITION BY CodigoPartida ORDER BY Debe DESC) AS rn ";
+                queryString += "     FROM contabilidad_partida ";
+                queryString += "     WHERE Debe > 0 AND IdNomenclatura <> 7 AND IdEmpresa = " + empresaId + " ";
+                queryString += "   ) ranked WHERE ranked.rn = 1 ";
+                queryString += " ) cp_idx ON cp_idx.CodigoPartida = cp.CodigoPartida ";
+                queryString += " WHERE cp.TipoDocumento IN ('FACTURA','RECIBO','RECIBO CONTABLE', ";
+                queryString += " 'FORMULARIO ISR', 'FORMULARIO ISR RETENIDO', 'FORMULARIO ISO', 'FORMULARIO IVA', 'FORMULARIO IGSS', ";
+                queryString += " 'FORMULARIO RECTIFICACION', 'FORMULARIO ISR OPCIONAL MENSUAL', 'RECIBO CORRIENTE', ";
+                queryString += " 'NOTA DE CREDITO COMPRA', 'CONSTANCIA ISR COMPRA') ";
 
                 if (pdfHoy == 0 && documentTxt.getValue().trim().isEmpty()) {
-                    queryString += " AND contabilidad_partida.Fecha BETWEEN ";
+                    queryString += " AND cp.Fecha BETWEEN ";
                     queryString += "     '" + Utileria.getFechaYYYYMMDD_1(inicioDt.getValue()) + "'";
                     queryString += " AND '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "'";
                 } else {
                     if (pdfHoy == 1 && documentTxt.getValue().trim().isEmpty()) {
-                        queryString += " AND CreadoFechaYHora BETWEEN ";
+                        queryString += " AND cp.CreadoFechaYHora BETWEEN ";
                         queryString += "     '" + Utileria.getFechaYYYYMMDD_1(new java.util.Date()) + " 00:00:00'";
                         queryString += " AND '" + Utileria.getFechaYYYYMMDD_1(new java.util.Date()) + " 23:59:59'";
                     }
                 }
 
-                queryString += " AND contabilidad_partida.IdEmpresa = " + empresaId;
-                queryString += " AND contabilidad_partida.IdLiquidacion = 0";
+                queryString += " AND cp.IdEmpresa = " + empresaId;
+                queryString += " AND cp.IdLiquidacion = 0";
                 if (!documentTxt.getValue().trim().isEmpty()) {
-                    queryString += " AND contabilidad_partida.NumeroDocumento Like '%" + documentTxt.getValue().trim() + "%'";
+                    queryString += " AND cp.NumeroDocumento Like '%" + documentTxt.getValue().trim() + "%'";
                 }
                 if (vanderaIsr == 1) {
-                    queryString += " AND contabilidad_partida.Referencia = 'SI'";  // Para listado de facturas pendientes de IRS
+                    queryString += " AND cp.Referencia = 'SI'";  // Para listado de facturas pendientes de IRS
                 }
-                queryString += " AND proveedor_empresa.IdEmpresa = " + empresaId;
-                queryString += " GROUP by contabilidad_partida.CodigoPartida ";
+                queryString += " GROUP BY cp.CodigoPartida ";
 //                queryString += " ORDER BY contabilidad_partida.Fecha DESC ";
 
 System.out.println("Query busqueda FACTURAS/DOCUMENTO COMPRA/GASTO : " + queryString);
