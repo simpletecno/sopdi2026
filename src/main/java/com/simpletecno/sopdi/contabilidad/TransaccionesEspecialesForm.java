@@ -70,6 +70,7 @@ public class TransaccionesEspecialesForm extends Window {
     String backupCodigoEditar;
     String tipoDocumento;
     int editar;
+    boolean cargandoDatos = false;
 
     static final String NIT_PROPERTY = "NIT";
 
@@ -292,7 +293,7 @@ public class TransaccionesEspecialesForm extends Window {
         montoTxt.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
-                generarTable(codigoPartida);
+                if (!cargandoDatos) generarTable(codigoPartida);
             }
         });
 
@@ -611,6 +612,7 @@ public class TransaccionesEspecialesForm extends Window {
 
     public void llenarDatos() {
 
+        cargandoDatos = true;
         container.removeAllItems();
 
         footer.getCell("DEBE").setText("0.00");
@@ -681,6 +683,8 @@ public class TransaccionesEspecialesForm extends Window {
             System.out.println("Error al listar cuentas contables: " + ex1.getMessage());
             ex1.printStackTrace();
             Notification.show("ERROR EN BASE DE DATOS. " + ex1.getMessage(), Notification.Type.ERROR_MESSAGE);
+        } finally {
+            cargandoDatos = false;
         }
     }
 
