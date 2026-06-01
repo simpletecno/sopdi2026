@@ -404,7 +404,7 @@ public class ExencionIvaInfileForm extends Window {
 
         queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
         queryString += " WHERE Estatus = 'HABILITADA'";
-        queryString += " AND + IdEmpresa = " + empresaId;
+        queryString += " AND IdEmpresa = " + empresaId;
         queryString += " ORDER BY N5";
 
         try {
@@ -476,8 +476,8 @@ public class ExencionIvaInfileForm extends Window {
         queryString += "FROM contabilidad_partida cp ";
         queryString += "INNER JOIN contabilidad_nomenclatura_empresa cn ON cp.IdNomenclatura = cn.IdNomenclatura ";
         queryString += "LEFT JOIN documentos_fel_sat dfs ON cp.NumeroDocumento = dfs.Numero ";
-        queryString += "WHERE cp.CodigoPartida = '" + codigoCC + "'";
-        queryString += " AND cn.IdEmpresa = " + empresaId;
+        queryString += "WHERE cp.CodigoPartida = '" + codigoCC + "' ";
+        queryString += "AND cn.IdEmpresa = " + empresaId;
 
         try {
             double debe = 0.00;
@@ -510,8 +510,8 @@ public class ExencionIvaInfileForm extends Window {
                     queryString += "WHERE Inhabilitado = 0 ";
                     queryString += "AND EsProveedor = 1 ";
                     queryString += "AND IDProveedor = " + rsRecords3.getString("IdProveedor");
-                    queryString += "AND IdEmpresa = " + empresaId;
-                    queryString += "ORDER BY Nombre ";
+                    queryString += " AND IdEmpresa = " + empresaId;
+                    queryString += " ORDER BY Nombre ";
 
                     try {
                         stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();

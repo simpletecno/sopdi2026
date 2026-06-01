@@ -415,7 +415,7 @@ public class ImportarFelSatView extends VerticalLayout implements View {
                     break;
                 }
                 if (!((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyTaxId().replaceAll("-", "").equals(sheet.getRow(linea).getCell(12).getStringCellValue())) {
-                    Notification.show("ESTE ARCHIVO DE FACTURAS FEL SAT NO CORRESPONDE A : " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName() + " POR FAVOR REVISE!!",
+                    Notification.show("ESTE ARCHIVO DE FACTURAS FEL SAT NO CORRESPONDE A : " + empresaNombre + " POR FAVOR REVISE!!",
                             Notification.Type.ERROR_MESSAGE);
                     return;
                 }
@@ -943,7 +943,7 @@ public class ImportarFelSatView extends VerticalLayout implements View {
         centroCostoCbx.removeAllItems();
 
         queryString = " SELECT * FROM centro_costo";
-        queryString += " WHERE IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+        queryString += " WHERE IdEmpresa = " + empresaId;
         queryString += " AND IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
         queryString += " AND Inhabilitado = 0";
 
@@ -1017,30 +1017,31 @@ public class ImportarFelSatView extends VerticalLayout implements View {
 
         ordenCompraContainer.removeAllItems();
 
-        if(facturasFelGrid.getSelectedRow() == null) {
+        Object selectedRow = facturasFelGrid.getSelectedRow();
+        if (selectedRow == null) {
             return;
         }
 
-        if (facturasFelGrid.getContainerDataSource()
-                .getItem(facturasFelGrid.getSelectedRow()).getItemProperty("tipoDte") == null
-         ) {
+        com.vaadin.data.Item selectedItem = facturasFelGrid.getContainerDataSource().getItem(selectedRow);
+        if (selectedItem == null) {
             return;
         }
 
-        if (  ( String.valueOf(facturasFelGrid.getContainerDataSource()
-                .getItem(facturasFelGrid.getSelectedRow()).getItemProperty("tipoDte")
-                .getValue()).equals("FACTURA")
-            || String.valueOf(facturasFelGrid.getContainerDataSource()
-                .getItem(facturasFelGrid.getSelectedRow()).getItemProperty("tipoDte")
-                .getValue()).contains("RECIBO")) ) {
+        if (selectedItem.getItemProperty("tipoDte") == null) {
+            return;
+        }
+
+        String tipoDte = String.valueOf(selectedItem.getItemProperty("tipoDte").getValue());
+
+        if (tipoDte.equals("FACTURA") || tipoDte.contains("RECIBO")) {
 
             queryString = " SELECT *, tipo_orden_compra.Descripcion As TipoOrdenCompra ";
             queryString += " FROM orden_compra";
             queryString += " INNER JOIN tipo_orden_compra ON orden_compra.IdTipoOrdenCompra = tipo_orden_compra.Id";
-            queryString += " WHERE orden_compra.IdProveedor = " + facturasFelGrid.getContainerDataSource().getItem(facturasFelGrid.getSelectedRow()).getItemProperty("idProveedor").getValue();
+            queryString += " WHERE orden_compra.IdProveedor = " + selectedItem.getItemProperty("idProveedor").getValue();
             queryString += " AND orden_compra.IdEmpresa =" + empresaId;
             queryString += " AND ((orden_compra.CodigoCCDocumento = '') OR (orden_compra.CodigoCCDocumento IS NULL) OR (orden_compra.CodigoCCDocumento = '0') )";
-            queryString += " AND orden_compra.Moneda = '" + facturasFelGrid.getContainerDataSource().getItem(facturasFelGrid.getSelectedRow()).getItemProperty("moneda").getValue() + "'";
+            queryString += " AND orden_compra.Moneda = '" + selectedItem.getItemProperty("moneda").getValue() + "'";
 
             System.out.println("llenarOrdenCompra=" + queryString);
 
@@ -1850,7 +1851,7 @@ System.out.println("TEMPORALLOG=subQueryStringVerificaFacturaVenta=" + subQueryS
                                         queryStringDOCA += ",'" + rsRecords1.getString("Descripcion") + "'";  //descripcion;
                                         queryStringDOCA += ",'" + rsRecords1.getString("IdProject") + "'"; //idproject numero
                                         queryStringDOCA += ",'" + rsRecords1.getString("IDCC") + "'"; //centro costo
-                                        queryStringDOCA += ",'" + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName() + "'";
+                                        queryStringDOCA += ",'" + empresaNombre + "'";
                                         queryStringDOCA += "," + empresaId;
                                         queryStringDOCA += "," + rsRecords1.getString("Total");//total
                                         queryStringDOCA += ",'" + moneda + "'"; //moneda
@@ -2642,7 +2643,7 @@ System.out.println("TEMPORALLOG=queryStringInsertDOCA=" + queryStringDOCA);
             facturasFelContainer.getContainerProperty(itemId, "nitProveedor").setValue(finalProveedorCbx.getContainerProperty(finalProveedorCbx.getValue(), "nit").getValue());
             facturasFelContainer.getContainerProperty(itemId, "proveedor").setValue(finalProveedorCbx.getItemCaption(finalProveedorCbx.getValue()));
             facturasFelContainer.getContainerProperty(itemId, "idReceptor").setValue(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyTaxId());
-            facturasFelContainer.getContainerProperty(itemId, "receptor").setValue(((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName());
+            facturasFelContainer.getContainerProperty(itemId, "receptor").setValue(empresaNombre);
             facturasFelContainer.getContainerProperty(itemId, "moneda").setValue("QUETZALES");
             facturasFelContainer.getContainerProperty(itemId, "monto").setValue(numberFormat.format(finalMontoTxt1.getDoubleValueDoNotThrow()));
             facturasFelContainer.getContainerProperty(itemId, "iva").setValue("0.0");

@@ -54,8 +54,8 @@ public class TransaccionesEspecialesForm extends Window {
     ComboBox monedaCbx;
     ComboBox tipoDocumentoCbx;
 
-    Statement stQuery, stQuery2, stQuery3;
-    ResultSet rsRecords, rsRecords2, rsRecords3;
+    Statement stQuery, stQuery2, stQuery3, stQuery4;
+    ResultSet rsRecords, rsRecords2, rsRecords3, rsRecords4;
     String queryString;
 
     Button guardarBtn;
@@ -153,7 +153,7 @@ public class TransaccionesEspecialesForm extends Window {
         documentoAfectaTxt.setWidth("14em");
         documentoAfectaTxt.setVisible(false);
 
-        if (!tipoDocumento.equals("TRANSACCION ESPECIAL") || !tipoDocumento.equals("CONSTANCIA ISR COMPRA") || !tipoDocumento.equals("CONSTANCIA ISR VENTA") || !tipoDocumento.equals("NOTA DE CREDITO ")) {
+        if (!tipoDocumento.equals("TRANSACCION ESPECIAL") || !tipoDocumento.equals("CONSTANCIA ISR COMPRA") || !tipoDocumento.equals("CONSTANCIA ISR VENTA") || !tipoDocumento.contains("NOTA DE CREDITO ")) {
             tipoDocumentoCbx.setVisible(true);
             documentoAfectaTxt.setVisible(true);
         }
@@ -541,17 +541,17 @@ public class TransaccionesEspecialesForm extends Window {
                 double debe = 0.00;
                 double haber = 0.00;
 
-                stQuery3 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-                rsRecords3 = stQuery3.executeQuery(queryString);
+                stQuery4 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
+                rsRecords4 = stQuery4.executeQuery(queryString);
 
-                if (rsRecords3.next()) {
+                if (rsRecords4.next()) {
 
                     do {
 
                         if (tipoDocumento.equals("CONSTANCIA ISR COMPRA") || tipoDocumento.equals("CONSTANCIA ISR VENTA")) {
 
-                            proveedorCbx.setValue(rsRecords3.getString("IdProveedor"));
-                            proveedorCbx.select(rsRecords3.getString("IdProveedor"));
+                            proveedorCbx.setValue(rsRecords4.getString("IdProveedor"));
+                            proveedorCbx.select(rsRecords4.getString("IdProveedor"));
                             nitProveedotTxt.setValue(String.valueOf(proveedorCbx.getContainerProperty(proveedorCbx.getValue(), "NIT").getValue()));
 
                             if (tipoDocumento.equals("CONSTANCIA ISR VENTA")) {
@@ -563,14 +563,14 @@ public class TransaccionesEspecialesForm extends Window {
                                 tipoDocumentoCbx.setReadOnly(true);
                             }
 
-                            monedaCbx.select(rsRecords3.getString("MonedaDocumento"));
+                            monedaCbx.select(rsRecords4.getString("MonedaDocumento"));
                             monedaCbx.setReadOnly(true);
 
-                            documentoAfectaTxt.setValue(rsRecords3.getString("SerieDocumento") + " " + rsRecords3.getString("NumeroDocumento"));
+                            documentoAfectaTxt.setValue(rsRecords4.getString("SerieDocumento") + " " + rsRecords4.getString("NumeroDocumento"));
                             documentoAfectaTxt.setReadOnly(true);
 
                             descripcionTxt.setValue("RETENCION ISR FACTURA (N# " + documentoAfectaTxt.getValue()
-                                    + " " + rsRecords3.getString("NombreProveedor") + " ) ");
+                                    + " " + rsRecords4.getString("NombreProveedor") + " ) ");
 
                             Object itemId = container.addItem();
                             Object itemId2 = container.addItem();
@@ -583,7 +583,7 @@ public class TransaccionesEspecialesForm extends Window {
                                 container.getContainerProperty(itemId2, "CUENTA").setValue(getDescripcionCuentas( ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getClientes() ));
                             }
                             else {
-                                container.getContainerProperty(itemId2, "CUENTA").setValue(rsRecords3.getString("IdNomenclatura") + " " + rsRecords3.getString("NoCuenta") + " " + rsRecords3.getString("N5"));
+                                container.getContainerProperty(itemId2, "CUENTA").setValue(rsRecords4.getString("IdNomenclatura") + " " + rsRecords4.getString("NoCuenta") + " " + rsRecords4.getString("N5"));
                             }
                             container.getContainerProperty(itemId, "DEBE").setValue(montoTxt.getValue());
                             container.getContainerProperty(itemId, "HABER").setValue("0.00");
@@ -593,10 +593,10 @@ public class TransaccionesEspecialesForm extends Window {
                             haber = montoTxt.getDoubleValueDoNotThrow();
                         }
                         else {
-                            debe += rsRecords3.getDouble("Debe");
-                            haber += rsRecords3.getDouble("Haber");
+                            debe += rsRecords4.getDouble("Debe");
+                            haber += rsRecords4.getDouble("Haber");
                         }
-                    } while (rsRecords3.next());
+                    } while (rsRecords4.next());
                 }
 
                 footer.getCell("DEBE").setText(numberFormat.format(debe));
@@ -646,12 +646,12 @@ public class TransaccionesEspecialesForm extends Window {
                         tasaCambioTxt.setValue(rsRecords3.getDouble("TipoCambio"));
                         descripcionTxt.setValue(rsRecords3.getString("Descripcion"));
                         tipoDocumentoCbx.select(rsRecords3.getString("TipoDocumento"));
-                        montoTxt.setValue(rsRecords3.getDouble("MontoDocumento"));
                         documentoAfectaTxt.setValue(rsRecords3.getString("NoDoca"));
-
-                        if (tipoDocumento.equals("CONSTANCIA ISR VENTA") || tipoDocumento.equals("CONSTANCIA ISR COMPRA") || tipoDocumento.equals("NOTA DE CREDITO")) {
+                        if (tipoDocumento.equals("CONSTANCIA ISR VENTA") || tipoDocumento.equals("CONSTANCIA ISR COMPRA") || tipoDocumento.contains("NOTA DE CREDITO")) {
                             codigoCCFactura = rsRecords3.getString("CodigoCC");
                         }
+                        montoTxt.setValue(rsRecords3.getDouble("MontoDocumento"));
+
                     }
 
                     Object itemId = container.addItem();

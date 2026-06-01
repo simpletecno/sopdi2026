@@ -1848,6 +1848,8 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
 
                                 if (((totalIngresos - descuentos[0]) - montoBaseRetenerISR) > 0) { //ingresos - cuotalaboraligss
                                     descuentos[2] = Utileria.round(((totalIngresos - descuentos[0]) - montoBaseRetenerISR) * 0.05); //isr
+                                }else{
+                                    descuentos[2] = 0;
                                 }
 
                             }

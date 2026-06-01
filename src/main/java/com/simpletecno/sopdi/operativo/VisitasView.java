@@ -1170,12 +1170,11 @@ public class VisitasView extends VerticalLayout implements View {
 
         queryString = "SELECT Vis.*, Cli.Nombre ClienteNombre ";
         queryString += " FROM visita_inspeccion Vis ";
-        queryString += " LEFT JOIN proveedor_empresa Cli ON Cli.IdProveedor = Vis.IdCliente";
+        queryString += " LEFT JOIN proveedor_empresa Cli ON Cli.IdProveedor = Vis.IdCliente AND Cli.IdEmpresa = Vis.IdEmpresa";
         queryString += " WHERE Vis.IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
-        queryString += " AND Vis.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND Vis.IdEmpresa = " + empresaId;
         queryString += " AND FechaYHoraInicio >= '" + Utileria.getFechaYYYYMMDD_1(inicioDt.getValue()) + " 00:00:00'";
         queryString += " AND FechaYHoraInicio <= '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + " 23:59:59'";
-        queryString += " AND Cli.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
         queryString += " ORDER BY Vis.FechaYHoraInicio DESC";
 
 System.out.println("\n\n"+queryString);
@@ -1300,7 +1299,7 @@ System.out.println("\n\n"+queryString);
                 queryString += " CreadoUsuario, CreadoFechaYHora, Lugar, Observaciones) ";
                 queryString += " VALUES (";
                 queryString += "  " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectId();
-                queryString += ","  + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+                queryString += ","  + empresaId;
                 queryString += ",'" + codigoVisita + "'";
                 queryString += ",'" + Utileria.getFechaYYYYMMDDHHMMSS(fechaYHoraInicioDt.getValue()) + "'";
                 queryString += ",'" + Utileria.getFechaYYYYMMDDHHMMSS(fechaYHoraFinDt.getValue()) + "'";
@@ -1434,7 +1433,7 @@ System.out.println("\n\n"+queryString);
             for (Object item : agendaYResolucionesContainer.getItemIds()) {
                 if(!agendaYResolucionesContainer.getContainerProperty(item, PUNTO_AGENDA_PROPERTY).getValue().equals("")) {
                     queryString += "(" + idVisitaInspeccionTxt.getValue() + ", ";
-                    queryString += ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + ", ";
+                    queryString += empresaId + ", ";
                     queryString += "'" + codigoVisitaInspeccionTxt.getValue() + "', ";
                     queryString += posicion + ", ";
                     queryString += "'" + agendaYResolucionesContainer.getContainerProperty(item, PUNTO_AGENDA_PROPERTY).getValue() + "', ";
@@ -1478,7 +1477,7 @@ System.out.println("\n\n"+queryString);
                 if(!participantesContainer.getContainerProperty(item, NOMBRE_PROPERTY).getValue().equals("")) {
                     queryString += "(" + idVisitaInspeccionTxt.getValue() + ", ";
                     queryString += "'" + codigoVisitaInspeccionTxt.getValue() + "', ";
-                    queryString += ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + ", ";
+                    queryString += empresaId + ", ";
                     queryString += "'" + participantesContainer.getContainerProperty(item, NOMBRE_PROPERTY).getValue() + "', ";
                     queryString += "'" + participantesContainer.getContainerProperty(item, DPI_PROPERTY).getValue() + "', ";
                     queryString += "'" + participantesContainer.getContainerProperty(item, EMAIL_PROPERTY).getValue() + "', ";
@@ -1804,7 +1803,7 @@ System.out.println("\n\n"+queryString);
         String queryString = "SELECT * ";
         queryString += " FROM centro_costo ";
         queryString += " WHERE IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
-        queryString += " AND IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND IdEmpresa = " + empresaId;
         queryString += " AND Inhabilitado = 0";
 
         try {
