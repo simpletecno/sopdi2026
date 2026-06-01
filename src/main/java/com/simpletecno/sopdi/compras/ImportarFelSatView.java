@@ -897,9 +897,14 @@ public class ImportarFelSatView extends VerticalLayout implements View {
         noProcedeBtn.setIcon(FontAwesome.STOP);
         noProcedeBtn.addClickListener(e -> {
             //TODO : marcar como no procede
+            Object selectedRow = facturasFelGrid.getSelectedRow();
+            if (selectedRow == null) return;
+            com.vaadin.data.Item selectedItem = facturasFelGrid.getContainerDataSource().getItem(selectedRow);
+            if (selectedItem == null) return;
+
             queryString = "UPDATE documentos_fel_sat SET ";
             queryString += " Accion = 'NO PROCEDE'";
-            queryString += " WHERE Id = " + facturasFelGrid.getContainerDataSource().getItem(facturasFelGrid.getSelectedRow()).getItemProperty("id").getValue();
+            queryString += " WHERE Id = " + selectedItem.getItemProperty("id").getValue();
 
             ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de registrar esta acción ?",
                     "SI", "NO", new ConfirmDialog.Listener() {
@@ -970,15 +975,16 @@ public class ImportarFelSatView extends VerticalLayout implements View {
 
         doctoAfectaCbx.removeAllItems();
 
-        if (facturasFelGrid.getSelectedRow() == null) {
-            return;
-        }
+        Object selectedRow = facturasFelGrid.getSelectedRow();
+        if (selectedRow == null) return;
+        com.vaadin.data.Item selectedItem = facturasFelGrid.getContainerDataSource().getItem(selectedRow);
+        if (selectedItem == null) return;
 
         queryString = " SELECT SerieDocumento, NumeroDocumento, CodigoCC, IdNomenclatura ";
         queryString += " FROM contabilidad_partida";
         queryString += " WHERE IdEmpresa = " + empresaId;
-        queryString += " AND IdProveedor = " + facturasFelGrid.getContainerDataSource().getItem(facturasFelGrid.getSelectedRow()).getItemProperty("idProveedor").getValue();
-        queryString += " AND MonedaDocumento = '" + facturasFelGrid.getContainerDataSource().getItem(facturasFelGrid.getSelectedRow()).getItemProperty("moneda").getValue() + "'";
+        queryString += " AND IdProveedor = " + selectedItem.getItemProperty("idProveedor").getValue();
+        queryString += " AND MonedaDocumento = '" + selectedItem.getItemProperty("moneda").getValue() + "'";
         queryString += " AND Estatus <> 'ANULADO'";
 
         try {
