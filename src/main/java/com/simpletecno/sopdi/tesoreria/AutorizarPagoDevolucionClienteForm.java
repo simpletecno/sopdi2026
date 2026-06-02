@@ -290,6 +290,7 @@ public class AutorizarPagoDevolucionClienteForm extends Window {
                     if (event.getProperty().getValue() != null) {
                         if (!String.valueOf(event.getProperty().getValue()).trim().isEmpty()) {
                             Item item = container.getItem(clienteGrid.getEditedItemId());
+                            if (item == null) return;
                             Object propertyValue = item.getItemProperty(propertyId).getValue(); ///MONTO_DEVOLVER
                             Object propertyValue2 = item.getItemProperty(SALDO_MONEDA).getValue();
 
@@ -328,22 +329,25 @@ public class AutorizarPagoDevolucionClienteForm extends Window {
         totalHaberQueztales = 0.00;
         saldo = 0.00;
 
-        queryString = "  SELECT contabilidad_partida.MonedaDocumento, contabilidad_nomenclatura_empresa.N5, contabilidad_partida.IdNomenclatura, ";
-        queryString += " contabilidad_partida.CodigoCC, proveedor_empresa.IdProveedor, proveedor_empresa.Nombre, ";
-        queryString += " SUM(contabilidad_partida.Debe) SUMDEBE, SUM(contabilidad_partida.Haber) SUMHABER,";
-        queryString += " SUM(contabilidad_partida.DebeQuetzales) SUMDEBEQ, SUM(contabilidad_partida.HaberQuetzales) SUMHABERQ ";
-        queryString += " FROM contabilidad_partida";
-        queryString += " INNER JOIN proveedor_empresa on contabilidad_partida.IdProveedor = proveedor_empresa.IDProveedor ";
-        queryString += " INNER JOIN contabilidad_nomenclatura_empresa on contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura";
-        queryString += " WHERE contabilidad_partida.IdEmpresa =" + empresaId;
-        queryString += " AND contabilidad_partida.Fecha >= '2019-01-01'";
-        queryString += " AND contabilidad_partida.CodigoCC NOT IN (SELECT autorizacion_pago.CodigoCC FROM autorizacion_pago)";
-        queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
-        queryString += " AND contabilidad_partida.IdNomenclatura In (" + ((SopdiUI) mainUI).cuentasContablesDefault.getEnganches() + "," + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposClientes() + ")";
-        queryString += " AND contabildiad_nomenclatura_empresa.IdEmpresa = " + empresaId;
-        queryString += " ANd proveedor_empresa.IdEmpresa = " + empresaId;
-        queryString += " GROUP BY contabilidad_partida.MonedaDocumento, contabilidad_partida.IdNomenclatura, contabilidad_partida.CodigoCC, proveedor_empresa.IdProveedor ";
-        queryString += " ORDER BY contabilidad_partida.Fecha desc";
+        queryString =  " SELECT cp.MonedaDocumento, cne.N5, cp.IdNomenclatura, cp.CodigoCC, pe.IdProveedor,";
+        queryString += " pe.Nombre, SUM(cp.Debe) AS SUMDEBE, SUM(cp.Haber) AS SUMHABER,";
+        queryString += " SUM(cp.DebeQuetzales) AS SUMDEBEQ, SUM(cp.HaberQuetzales) AS SUMHABERQ";
+        queryString += " FROM contabilidad_partida cp";
+        queryString += " INNER JOIN proveedor_empresa pe ON cp.IdProveedor = pe.IdProveedor";
+        queryString += " INNER JOIN contabilidad_nomenclatura_empresa cne ON cne.IdNomenclatura = cp.IdNomenclatura";
+        queryString += " WHERE cp.IdEmpresa = " + empresaId;
+        queryString += " AND cp.Fecha >= '2019-01-01'";
+        queryString += " AND cp.CodigoCC NOT IN (SELECT ap.CodigoCC FROM autorizacion_pago ap)";
+        queryString += " AND cp.Estatus <> 'ANULADO'";
+        queryString += " AND cp.IdNomenclatura IN (";
+        queryString += ((SopdiUI) mainUI).cuentasContablesDefault.getEnganches();
+        queryString += ",";
+        queryString += ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposClientes();
+        queryString += ")";
+        queryString += " AND cne.IdEmpresa = " + empresaId;
+        queryString += " AND pe.IdEmpresa = " + empresaId;
+        queryString += " GROUP BY cp.MonedaDocumento, cne.N5, cp.IdNomenclatura, cp.CodigoCC, pe.IdProveedor, pe.Nombre";
+        queryString += " ORDER BY cp.Fecha DESC";
 
         try {
 
@@ -373,8 +377,8 @@ public class AutorizarPagoDevolucionClienteForm extends Window {
                             container.getContainerProperty(itemId, TIPO).setValue(rsRecords.getString("N5"));
                             container.getContainerProperty(itemId, CODIGO_CC).setValue(rsRecords.getString("CodigoCC"));
 //                            container.getContainerProperty(itemId, FECHA).setValue(Utileria.getFechaDDMMYYYY(rsRecords.getDate("Fecha")));
-                            container.getContainerProperty(itemId, ID_PROVEEDOR).setValue(rsRecords.getString("proveedor.IdProveedor"));
-                            container.getContainerProperty(itemId, PROVEEDOR).setValue(rsRecords.getString("proveedor.Nombre"));
+                            container.getContainerProperty(itemId, ID_PROVEEDOR).setValue(rsRecords.getString("IdProveedor"));
+                            container.getContainerProperty(itemId, PROVEEDOR).setValue(rsRecords.getString("Nombre"));
                             container.getContainerProperty(itemId, MONEDA).setValue(rsRecords.getString("MonedaDocumento"));
                             container.getContainerProperty(itemId, DEBE_MONEDA).setValue(numberFormat.format((rsRecords.getDouble("SUMDEBE"))));
                             container.getContainerProperty(itemId, HABER_MONEDA).setValue(numberFormat.format((rsRecords.getDouble("SUMHABER"))));
