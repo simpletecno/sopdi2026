@@ -1138,9 +1138,10 @@ public class EditarIngresoDocumentos extends Window {
 
         cuentaContableCbx.setReadOnly(false);
 
-        queryString = " SELECT * from proveedor ";
+        queryString = " SELECT * from proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0";
         queryString += " AND IDProveedor = " + id;
+        queryString += " AND IdEmpresa = " + empresaId;
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1164,11 +1165,12 @@ public class EditarIngresoDocumentos extends Window {
 
     public void llenarComboCuentaContable() {
 
-        queryString = " SELECT * from contabilidad_nomenclatura";
-        queryString += " where FiltrarIngresoDocumentos = 'S'";
-        queryString += " and Estatus = 'HABILITADA'";
-        queryString += " and IdNomenclatura <> " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getIvaPorPagar(); // solicitado por Shwaony 1/9/2021
-        queryString += " Order By N5";
+        queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
+        queryString += " WHERE FiltrarIngresoDocumentos = 'S'";
+        queryString += " AND Estatus = 'HABILITADA'";
+        queryString += " AND IdNomenclatura <> " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getIvaPorPagar(); // solicitado por Shwaony 1/9/2021
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " ORDER BY N5";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1383,9 +1385,9 @@ public class EditarIngresoDocumentos extends Window {
 
         nuevoCodigoPartida = empresaId + año + mes + dia + "1";
 
-        queryString = " select codigoPartida from contabilidad_partida ";
-        queryString += " where codigoPartida like '" + nuevoCodigoPartida + "%'";
-        queryString += " order by codigoPartida desc ";
+        queryString = " SELECT codigoPartida FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida LIKE '" + nuevoCodigoPartida + "%'";
+        queryString += " ORDER BY codigoPartida DESC ";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -1406,10 +1408,10 @@ public class EditarIngresoDocumentos extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Select * from contabilidad_partida";
-        queryString += " Where SerieDocumento  = '" + serieTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " And   NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
-        queryString += " And   NombreProveedor = '" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
+        queryString = " SELECT * FROM contabilidad_partida";
+        queryString += " WHERE SerieDocumento  = '" + serieTxt.getValue().toUpperCase().trim() + "'";
+        queryString += " AND   NumeroDocumento = '" + numeroTxt.getValue().toUpperCase().trim() + "'";
+        queryString += " AND   NombreProveedor = '" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
 
         try {
             rsRecords = stQuery.executeQuery(queryString);
@@ -1424,13 +1426,13 @@ public class EditarIngresoDocumentos extends Window {
             ex1.printStackTrace();
         }
 
-        queryString = " Insert Into contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC, ";
+        queryString = " INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC, ";
         queryString += " TipoDocumento, Fecha, IdProveedor, NITProveedor, NombreProveedor, Referencia,";
         queryString += " SerieDocumento, NumeroDocumento, IdNomenclatura, MonedaDocumento, MontoDocumento,";
         queryString += " Debe, Haber, DebeQuetzales, HaberQuetzales, TipoCambio, Saldo, ";
         queryString += " IdLiquidador, Descripcion, CreadoUsuario, CreadoFechaYHora, ";
         queryString += " Archivo, ArchivoTipo, ArchivoPeso, ArchivoNombre, IdOrdenCompra,IdCentroCosto, CodigoCentroCosto)";
-        queryString += " Values ";
+        queryString += " VALUES ";
 
         //// ingreso del haber
         if (cuentaContableCbx.getValue() != null && haberTxt.getDoubleValueDoNotThrow() > 0) {
@@ -2088,7 +2090,7 @@ System.out.println(queryString);
 
     public void llenarComboOrdenCompra() {
         queryString = " SELECT * FROM orden_compra ";
-        queryString += " Where IdEmpresa = " + empresaId;
+        queryString += " WHERE IdEmpresa = " + empresaId;
         queryString += " AND IdProyecto = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectId();
 
         try {

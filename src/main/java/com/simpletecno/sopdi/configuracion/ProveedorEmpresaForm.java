@@ -495,7 +495,8 @@ public class ProveedorEmpresaForm extends Window {
             queryString += ",Cargo = '" + cargoCbx.getValue() + "'";
             queryString += ",IdUsuario = " + usuarioCbx.getValue();
             queryString += ",InHabilitado = " + (Objects.equals(inabilitadoCbk.getValue(), "NO") ? "0" : "1");
-            queryString += " WHERE Id = " + idProveedor;
+            queryString += " WHERE IdProveedor = " + idProveedor;
+            queryString += " AND IdEmpresa = " + ((SopdiUI)UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
 
         }
 
