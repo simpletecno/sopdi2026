@@ -1138,7 +1138,7 @@ public class EditarIngresoDocumentos extends Window {
 
         cuentaContableCbx.setReadOnly(false);
 
-        queryString = " SELECT * from proveedor_empresa ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0";
         queryString += " AND IDProveedor = " + id;
         queryString += " AND IdEmpresa = " + empresaId;
@@ -1148,7 +1148,7 @@ public class EditarIngresoDocumentos extends Window {
             rsRecords = stQuery.executeQuery(queryString);
 
             if (rsRecords.next()) { //  encontrado
-                if (rsRecords.getString("Grupo").equals("Instituciones")) {
+                if (rsRecords.getString("EsInstitucionFiscal").equals("1") || rsRecords.getString("EsInstitucionSeguroSocial").equals("1")) {
                     cuentaContableCbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getInstituciones());
                 } else {
                     cuentaContableCbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getProveedores());
