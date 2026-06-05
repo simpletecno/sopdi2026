@@ -132,14 +132,14 @@ public class FacturaVentaAnularForm extends Window {
         ResultSet rsRecords;
 
         queryString = "SELECT CodigoCC, IdEmpresa, IdNomenclatura, Fecha, Max(IdConciliacion) AS IdConciliacion, count(CodigoPartida) AS DocumentosAsociados ";
-        queryString += "FROM contabilidad_partida ";
-        queryString += "WHERE codigoCC = '" + codigoPartida + "' ";
-        queryString += "AND Estatus <> 'ANULADO' ";
-        queryString += "AND IdEmpresa = " + empresaId;
-        queryString += "AND IdNomenclatura In (" + ((SopdiUI) mainUI).cuentasContablesDefault.getClientes() + "," +
+        queryString += " FROM contabilidad_partida ";
+        queryString += " WHERE codigoCC = '" + codigoPartida + "' ";
+        queryString += " AND Estatus <> 'ANULADO' ";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND IdNomenclatura In (" + ((SopdiUI) mainUI).cuentasContablesDefault.getClientes() + "," +
                                                    ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposClientes() + "," +
                                                    ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposClientes() + ") ";
-        queryString += "GROUP BY CodigoCC, IdEmpresa, IdNomenclatura";
+        queryString += " GROUP BY CodigoCC, IdEmpresa, IdNomenclatura";
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO,"QUERY BUSCAR FACTURA VENTA  : " + queryString);
 
@@ -193,10 +193,10 @@ public class FacturaVentaAnularForm extends Window {
         ResultSet rsRecords;
 
         queryString = "SELECT * ";
-        queryString += "FROM contabilidad_partida ";
-        queryString += "WHERE codigoPartida = '" + codgioPartida + "' ";
-        queryString += "AND IdEmpresa = " + empresaId;
-        queryString += "AND IdNomenclatura In (" + ((SopdiUI) mainUI).cuentasContablesDefault.getClientes() + "," + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposProveedor() + "," +
+        queryString += " FROM contabilidad_partida ";
+        queryString += " WHERE codigoPartida = '" + codgioPartida + "' ";
+        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND IdNomenclatura In (" + ((SopdiUI) mainUI).cuentasContablesDefault.getClientes() + "," + ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposProveedor() + "," +
                                                     ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposClientes() + "," + ((SopdiUI) mainUI).cuentasContablesDefault.getProveedores() + ")";
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO,"QUERY BUSCAR FACTURA VENTA  : " + queryString);
@@ -223,9 +223,9 @@ public class FacturaVentaAnularForm extends Window {
                         if (respuesta) {
                             // Insertar documentoFel
                             queryString =   "INSERT INTO certificado_fel_infile (";
-                            queryString +=  "Fecha, Origen, Descripcion, Saldo, Creditos, AlertasInfile, AlertasSat, ";
-                            queryString +=  "InformacionAdicional, UUID, Serie, Numero, JsonResponse, CodigoPartida, IdEmpresa, Estado) ";
-                            queryString +=  "VALUES (";
+                            queryString +=  " Fecha, Origen, Descripcion, Saldo, Creditos, AlertasInfile, AlertasSat, ";
+                            queryString +=  " InformacionAdicional, UUID, Serie, Numero, JsonResponse, CodigoPartida, IdEmpresa, Estado) ";
+                            queryString +=  " VALUES (";
                             queryString +=  "'" +Utileria.getFechaYYYYMMDDHHMMSS(infileClient.getFechaHoraCertificacion()) + "'";
                             queryString +=  ", '" + infileClient.getOrigen() + "'";
                             queryString +=  ", '" + infileClient.getDescripcion() + "'";
@@ -279,10 +279,10 @@ public class FacturaVentaAnularForm extends Window {
                             try {
 
                                 queryString = "UPDATE contabilidad_partida ";
-                                queryString += "SET Estatus = 'ANULADO' ";
+                                queryString += " SET Estatus = 'ANULADO' ";
                                 if(cuota==1) queryString += ",codigoCC = '" + codgioPartida + "' ";
-                                queryString += "WHERE codigoPartida = '" + codgioPartida + "' ";
-                                queryString += "AND IdEmpresa = " + empresaId;
+                                queryString += " WHERE codigoPartida = '" + codgioPartida + "' ";
+                                queryString += " AND IdEmpresa = " + empresaId;
 
                                 stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                                 stQuery.executeUpdate(queryString);
@@ -300,8 +300,8 @@ public class FacturaVentaAnularForm extends Window {
                                 try {
 
                                     queryString = "DELETE FROM contabilidad_partida ";
-                                    queryString += "WHERE codigoPartida = '" + codigoCC + "' ";
-                                    queryString += "AND IdEmpresa = " + empresaId;
+                                    queryString += " WHERE codigoPartida = '" + codigoCC + "' ";
+                                    queryString += " AND IdEmpresa = " + empresaId;
 
                                     stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                                     stQuery.executeUpdate(queryString);
@@ -316,18 +316,18 @@ public class FacturaVentaAnularForm extends Window {
                                 try {
 
                                     queryString = "UPDATE cuotas AS c ";
-                                    queryString += "JOIN cuotas_tipo AS ct ON c.TipoCuota = ct.IdCuota ";
-                                    queryString += "JOIN Producto_venta_empresa AS pve ON ct.IdProducto = pve.CorrelativoProducto ";
-                                    queryString += "JOIN contabilidad_partida AS cp ON cp.idProducto = pve.IdProducto ";
-                                    queryString += "AND c.CodigoPartida = cp.CodigoPartida ";
+                                    queryString += " JOIN cuotas_tipo AS ct ON c.TipoCuota = ct.IdCuota ";
+                                    queryString += " JOIN Producto_venta_empresa AS pve ON ct.IdProducto = pve.CorrelativoProducto ";
+                                    queryString += " JOIN contabilidad_partida AS cp ON cp.idProducto = pve.IdProducto ";
+                                    queryString += " AND c.CodigoPartida = cp.CodigoPartida ";
                                     if (((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyRegimen().equals("EXENTA")) {
-                                        queryString += "SET c.MontoPagado = GREATEST(0, c.MontoPagado - cp.MontoDocumento) ";
+                                        queryString += " SET c.MontoPagado = GREATEST(0, c.MontoPagado - cp.MontoDocumento) ";
                                     } else {
-                                        queryString += "SET c.MontoPagado = GREATEST(0, c.MontoPagado - ROUND((cp.MontoDocumento * 112) / 100, 2)) ";
+                                        queryString += " SET c.MontoPagado = GREATEST(0, c.MontoPagado - ROUND((cp.MontoDocumento * 112) / 100, 2)) ";
                                     }
-                                    queryString += "WHERE cp.Estatus = 'ANULADO' ";
-                                    queryString += "AND cp.CodigoPartida = '" + codgioPartida + "' ";
-                                    queryString += "AND cp.IdEmpresa = " + empresaId + ";";
+                                    queryString += " WHERE cp.Estatus = 'ANULADO' ";
+                                    queryString += " AND cp.CodigoPartida = '" + codgioPartida + "' ";
+                                    queryString += " AND cp.IdEmpresa = " + empresaId + ";";
 
                                     stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                                     stQuery.executeUpdate(queryString);

@@ -333,7 +333,7 @@ public class IngresoDocumentosForm extends Window {
                 queryString += " AND   IdCentroCosto = " + centroCostoCbx.getValue();
 //                queryString += " AND   Fecha < '" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
 
-Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
+//Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
 
                 rsRecords1 = stQuery1.executeQuery(queryString);
 
@@ -1347,7 +1347,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
                 proveedorCbx.addItem(rsRecords.getString("IDProveedor"));
                 proveedorCbx.setItemCaption(rsRecords.getString("IDProveedor"), rsRecords.getString("Nombre"));
                 proveedorCbx.getItem(rsRecords.getString("IDProveedor")).getItemProperty(NIT_PROPERTY).setValue(rsRecords.getString("NIT"));
-                proveedorCbx.getItem(rsRecords.getString("IDProveedor")).getItemProperty(GRUPO_PROPERTY).setValue(rsRecords.getString("GRUPO"));
+                proveedorCbx.getItem(rsRecords.getString("IDProveedor")).getItemProperty(GRUPO_PROPERTY).setValue((rsRecords.getInt("EsInstitucionFiscal") == 1 || rsRecords.getInt("EsInstitucionSeguroSocial") == 1) ? "Instituciones" : "" );
                 proveedorCbx.getItem(rsRecords.getString("IDProveedor")).getItemProperty(NOMBRESINCODIGO_PROPERTY).setValue(rsRecords.getString("Nombre"));
             }
 

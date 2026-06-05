@@ -82,7 +82,7 @@ public class FacturaVentaInfileForm extends Window {
 
     Button grabarBtn;
 
-    CheckBox modoOg;  // Si se agrega la serie y numero manualmente o no (true = FEL automatico)
+    CheckBox felAutomaticoChk;  // Si se agrega la serie y numero manualmente o no (true = FEL automatico)
 
     UI mainUI;
     Statement stQuery;
@@ -269,6 +269,7 @@ public class FacturaVentaInfileForm extends Window {
         numeroTxt.setWidth("12em");
 
         UUIDTxt = new TextField("UUID : ");
+        UUIDTxt.setInputPrompt("Código de autorización FEL");
         UUIDTxt.setWidth("100%");
 
         final String CLS_BLOQUEADO = "fel-campo-bloqueado";
@@ -324,16 +325,16 @@ public class FacturaVentaInfileForm extends Window {
         tasaCambioTxt.setWidth("5em");
         tasaCambioTxt.setValue(1.00);
 
-        modoOg = new CheckBox("FEL automático");
-        modoOg.setDescription("Marcado: la serie y número se generan vía FEL.\nDesmarcado: ingresar serie, número y UUID manualmente.");
-        modoOg.addValueChangeListener(event -> {
-            boolean value = Boolean.TRUE.equals(modoOg.getValue());
+        felAutomaticoChk = new CheckBox("FEL automático");
+        felAutomaticoChk.setDescription("Marcado: la serie y número se generan vía FEL.\nDesmarcado: ingresar serie, número y UUID manualmente.");
+        felAutomaticoChk.addValueChangeListener(event -> {
+            boolean value = Boolean.TRUE.equals(felAutomaticoChk.getValue());
             numeroTxt.setEnabled(!value);
             serieTxt.setEnabled(!value);
             UUIDTxt.setEnabled(!value);
         });
 
-        modoOg.setValue(!((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyFelUser().trim().isEmpty());
+        felAutomaticoChk.setValue(!((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyFelUser().trim().isEmpty());
 
         totalFacturadoMesTxt = new NumberField("<b>Total Facturado Mes<B>");
         totalFacturadoMesTxt.setDecimalAllowed(true);
@@ -350,8 +351,8 @@ public class FacturaVentaInfileForm extends Window {
         totalFacturadoMesTxt.setValue(0.00);
         totalFacturadoMesTxt.setCaptionAsHtml(true);
 
-        secondLineHaderLayout.addComponents(modoOg, serieTxt, numeroTxt, UUIDTxt, monedaCbx, tasaCambioTxt,  totalFacturadoMesTxt);
-        secondLineHaderLayout.setComponentAlignment(modoOg, Alignment.BOTTOM_LEFT);
+        secondLineHaderLayout.addComponents(felAutomaticoChk, serieTxt, numeroTxt, UUIDTxt, monedaCbx, tasaCambioTxt,  totalFacturadoMesTxt);
+        secondLineHaderLayout.setComponentAlignment(felAutomaticoChk, Alignment.BOTTOM_LEFT);
         secondLineHaderLayout.setComponentAlignment(serieTxt, Alignment.MIDDLE_LEFT);
         secondLineHaderLayout.setComponentAlignment(numeroTxt, Alignment.MIDDLE_LEFT);
         secondLineHaderLayout.setComponentAlignment(UUIDTxt, Alignment.MIDDLE_LEFT);
@@ -762,7 +763,7 @@ public class FacturaVentaInfileForm extends Window {
         if (datosValidos()) {
             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "DATOS VALIDOS OK!");
 
-            if (!((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyFelUser().trim().isEmpty() && modoOg.getValue()) {
+            if (!((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyFelUser().trim().isEmpty() && felAutomaticoChk.getValue()) {
                 Logger.getLogger(this.getClass().getName()).log(Level.INFO, "ES FEL!");
                 if (documentoCeritficaroInfile()) {
                     String serie = infileClient.getSerie();
@@ -899,6 +900,13 @@ public class FacturaVentaInfileForm extends Window {
                 0
         );
 
+        if(!felAutomaticoChk.getValue()) {
+            if(UUIDTxt.getValue() == null || UUIDTxt.getValue().isEmpty()) {
+                Notification.show("Por favor ingrese el UUID del documento.", Notification.Type.WARNING_MESSAGE);
+                UUIDTxt.focus();
+                return false;
+            }
+        }
         return true;
     }
 
@@ -1045,15 +1053,15 @@ public class FacturaVentaInfileForm extends Window {
         }
         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
         queryString += ",current_timestamp";
-        queryString += ",null"; //archivo
+        queryString += "," + (felAutomaticoChk.getValue() ? "''" : "'" + UUIDTxt.getValue() + "'"); //archivo
         queryString += ",'application/pdf'"; //archivo tipo
         queryString += ","  + (pdfFile != null ? pdfFile.length() : 0);    //archivo size
         queryString += ",'" + (pdfFile != null ? pdfFile.getAbsolutePath() : "").replace("\\", "/") + "'";
-        if(modoOg.getValue()) {
+        if(felAutomaticoChk.getValue()) {
             queryString += ",'" + infileClient.getUUID() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(infileClient.getFechaHoraCertificacion()) + "'";
         }else{
-            queryString += ",null";
+            queryString += ",'" + UUIDTxt.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         }
         queryString += ",''"; //XmlRequest
@@ -1106,15 +1114,15 @@ public class FacturaVentaInfileForm extends Window {
                 queryString += ",'" + productoVenta.getCentroCosto() + "'";
                 queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
                 queryString += ",current_timestamp";
-                queryString += ",null"; //archivo
+                queryString += "," + (felAutomaticoChk.getValue() ? "''" : "'" + UUIDTxt.getValue() + "'"); //archivo
                 queryString += ",'application/pdf'"; //archivo tipo
                 queryString += "," + (pdfFile != null ? pdfFile.length() : 0);    //archvio size
                 queryString += ",'" + (pdfFile != null ? pdfFile.getAbsolutePath() : "").replace("\\", "/") + "'";
-                if(modoOg.getValue()) {
+                if(felAutomaticoChk.getValue()) {
                     queryString += ",'" + infileClient.getUUID() + "'";
                     queryString += ",'" + Utileria.getFechaYYYYMMDD_1(infileClient.getFechaHoraCertificacion()) + "'";
                 }else{
-                    queryString += ",null";
+                    queryString += ",'" + UUIDTxt.getValue() + "'";
                     queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
                 }
                 queryString += ",''";
@@ -1161,15 +1169,15 @@ System.out.println("entra a insertar linea del iva.  exenta=" + exenta + " getIv
             }
             queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += ",current_timestamp";
-            queryString += ",null"; //archivo
+            queryString += "," + (felAutomaticoChk.getValue() ? "''" : "'" + UUIDTxt.getValue() + "'"); //archivo
             queryString += ",'application/pdf'"; //archivo tipo
             queryString += "," + (pdfFile != null ? pdfFile.length() : 0);    //archvio size
             queryString += ",'" + (pdfFile != null ? pdfFile.getAbsolutePath() : "").replace("\\", "/") + "'";
-            if(modoOg.getValue()) {
+            if(felAutomaticoChk.getValue()) {
                 queryString += ",'" + infileClient.getUUID() + "'";
                 queryString += ",'" + Utileria.getFechaYYYYMMDD_1(infileClient.getFechaHoraCertificacion()) + "'";
             }else{
-                queryString += ",null";
+                queryString += ",'" + UUIDTxt.getValue() + "'";
                 queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             }
             queryString += ",''";
@@ -1217,15 +1225,15 @@ System.out.println("entra a insertar linea del iva.  exenta=" + exenta + " getIv
                 }
                 queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
                 queryString += ",current_timestamp";
-                queryString += ",null"; //archivo
+                queryString += "," + (felAutomaticoChk.getValue() ? "''" : "'" + UUIDTxt.getValue() + "'"); //archivo
                 queryString += ",'application/pdf'"; //archivo tipo
                 queryString += "," + (pdfFile != null ? pdfFile.length() : 0);    //archvio size
                 queryString += ",'" + (pdfFile != null ? pdfFile.getAbsolutePath() : "").replace("\\", "/") + "'";
-                if(modoOg.getValue()) {
+                if(felAutomaticoChk.getValue()) {
                     queryString += ",'" + infileClient.getUUID() + "'";
                     queryString += ",'" + Utileria.getFechaYYYYMMDD_1(infileClient.getFechaHoraCertificacion()) + "'";
                 }else{
-                    queryString += ",null";
+                    queryString += ",'" + UUIDTxt.getValue() + "'";
                     queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
                 }
                 queryString += ",''";
@@ -1267,15 +1275,15 @@ System.out.println("entra a insertar linea del iva.  exenta=" + exenta + " getIv
                 }
                 queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
                 queryString += ",current_timestamp";
-                queryString += ",null"; //archivo
+                queryString += "," + (felAutomaticoChk.getValue() ? "''" : "'" + UUIDTxt.getValue() + "'"); //archivo
                 queryString += ",'application/pdf'"; //archivo tipo
                 queryString += "," + (pdfFile != null ? pdfFile.length() : 0);    //archvio size
                 queryString += ",'" + (pdfFile != null ? pdfFile.getAbsolutePath() : "").replace("\\", "/") + "'";
-                if(modoOg.getValue()) {
+                if(felAutomaticoChk.getValue()) {
                     queryString += ",'" + infileClient.getUUID() + "'";
                     queryString += ",'" + Utileria.getFechaYYYYMMDD_1(infileClient.getFechaHoraCertificacion()) + "'";
                 }else{
-                    queryString += ",null";
+                    queryString += ",'" + UUIDTxt.getValue() + "'";
                     queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
                 }
                 queryString += ",''";

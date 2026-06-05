@@ -1298,7 +1298,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
                 queryString += " GROUP BY cp.CodigoPartida ";
 //                queryString += " ORDER BY contabilidad_partida.Fecha DESC ";
 
-System.out.println("Query busqueda FACTURAS/DOCUMENTO COMPRA/GASTO : " + queryString);
+//System.out.println("Query busqueda FACTURAS/DOCUMENTO COMPRA/GASTO : " + queryString);
 
                 stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                 rsRecords = stQuery.executeQuery(queryString);
