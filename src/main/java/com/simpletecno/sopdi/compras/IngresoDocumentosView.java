@@ -95,13 +95,13 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
     static final String USUARIO_PROPERTY = "Usuario";
     static final String NOC_PROPERTY = "NOC";
     static final String IMAGEN_PROPERTY = "Imagen";
-    static final String ELIMINAR_PROPERTY = "Eliminar";
     static final String ARCHIVO_PROPERTY = "Archivo";
     static final String ARCHIVO_TIPO_PROPERTY = "Type";
     static final String VALORSF_PROPERTY = "MSF";
     static final String MONTOQSF_PROPERTY = "MQSF";
     static final String RETISR_PROPERTY = "REST.ISR";
     static final String ID_NOMENCLATURA_PROPERTY = "ID_NOMENCLATURA";
+    static final String ELIMINAR_PROPERTY = "Eliminar";
 
     static final String IDCENTROCOSTO_PROPERTY = "IDCENTROCOSTO";
 
@@ -265,7 +265,6 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
         documentsContainer.addContainerProperty(USUARIO_PROPERTY, String.class, null);
         documentsContainer.addContainerProperty(NOC_PROPERTY, String.class, null);
         documentsContainer.addContainerProperty(IMAGEN_PROPERTY, String.class, null);
-        documentsContainer.addContainerProperty(ELIMINAR_PROPERTY, String.class, null);
         documentsContainer.addContainerProperty(CODIGOCC_PROPERTY, String.class, null);
         documentsContainer.addContainerProperty(RETISR_PROPERTY, String.class, null);
         documentsContainer.addContainerProperty(ARCHIVO_PROPERTY, String.class, null);
@@ -274,6 +273,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
         documentsContainer.addContainerProperty(MONTOQSF_PROPERTY, String.class, null);
         documentsContainer.addContainerProperty(ID_NOMENCLATURA_PROPERTY, String.class, null);
         documentsContainer.addContainerProperty(IDCENTROCOSTO_PROPERTY, String.class, null);
+        documentsContainer.addContainerProperty(ELIMINAR_PROPERTY, String.class, null);
 
         documentosGrid = new Grid("", documentsContainer);
         documentosGrid.setWidth("100%");
@@ -310,7 +310,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
         documentosGrid.getColumn(DESCRIPCION_PROPERTY).setHidable(true).setHidden(true);
         documentosGrid.getColumn(ID_PROPERTY).setExpandRatio(1);
         documentosGrid.getColumn(FECHA_PROPERTY).setWidth(113);
-        documentosGrid.getColumn(DIAHOY_PROPERTY).setWidth(60).setHidable(true).setHidden(true);
+//        documentosGrid.getColumn(DIAHOY_PROPERTY).setWidth(60).setHidable(true).setHidden(true);
         documentosGrid.getColumn(PROVEEDOR_PROPERTY).setExpandRatio(1);
         documentosGrid.getColumn(TIPODOCUMENTO_PROPERTY).setExpandRatio(1).setHidable(true);
         documentosGrid.getColumn(DOCUMENTO_PROPERTY).setExpandRatio(1);
@@ -330,6 +330,8 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
         documentosGrid.getColumn(RETISR_PROPERTY).setHidable(true).setHidden(true);
         documentosGrid.getColumn(ID_NOMENCLATURA_PROPERTY).setHidable(true).setHidden(true);
         documentosGrid.getColumn(IDCENTROCOSTO_PROPERTY).setHidable(true).setHidden(true);
+        documentosGrid.getColumn(PARTIDA_PROPERTY).setHidable(true).setHidden(true);
+        documentosGrid.getColumn(CODIGOCC_PROPERTY).setHidable(true).setHidden(true);
 
         documentosGrid.setCellStyleGenerator(
                 (Grid.CellReference cellReference) -> {

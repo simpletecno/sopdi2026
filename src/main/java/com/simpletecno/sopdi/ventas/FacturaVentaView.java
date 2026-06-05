@@ -319,7 +319,6 @@ public class FacturaVentaView extends VerticalLayout implements View {
         facturasVentaContainer.addContainerProperty(ESTATUS_PROPERTY, String.class, null);
         facturasVentaContainer.addContainerProperty(DESCRIPCION_PROPERTY, String.class, null);
         facturasVentaContainer.addContainerProperty(USUARIO_PROPERTY, String.class, null);
-        facturasVentaContainer.addContainerProperty(IMAGEN_PROPERTY, String.class, null);
         facturasVentaContainer.addContainerProperty(ARCHIVO_PROPERTY, String.class, null);
         facturasVentaContainer.addContainerProperty(ARCHIVO_TIPO_PROPERTY, String.class, null);
         facturasVentaContainer.addContainerProperty(VALORSF_PROPERTY, String.class, null);
@@ -336,7 +335,7 @@ public class FacturaVentaView extends VerticalLayout implements View {
         facturasVentaGrid.setHeightByRows(5);
         facturasVentaGrid.setEditorBuffered(false);
 
-        facturasVentaGrid.getColumn(IMAGEN_PROPERTY).setRenderer(new ButtonRenderer(e
+        facturasVentaGrid.getColumn(FACTURA_PROPERTY).setRenderer(new ButtonRenderer(e
                 -> {
 
 //            if (facturasVentaContainer.getContainerProperty(e.getItemId(), IMAGEN_PROPERTY).getValue().equals("Cargar archivo")) {
@@ -424,6 +423,8 @@ public class FacturaVentaView extends VerticalLayout implements View {
         facturasVentaGrid.getColumn(VALORSF_PROPERTY).setHidable(true).setHidden(true);
         facturasVentaGrid.getColumn(MONTOQSF_PROPERTY).setHidable(true).setHidden(true);
         facturasVentaGrid.getColumn(CUOTA_PROPERTY).setHidable(true).setHidden(true);
+        facturasVentaGrid.getColumn(CODIGOCC_PROPERTY).setHidable(true).setHidden(true);
+        facturasVentaGrid.getColumn(UUID_PROPERTY).setHidable(true).setHidden(true);
 
         facturasVentaGrid.getColumn(FECHA_PROPERTY).setWidth(113);
         facturasVentaGrid.getColumn(DIAHOY_PROPERTY).setWidth(60);
@@ -431,7 +432,6 @@ public class FacturaVentaView extends VerticalLayout implements View {
         facturasVentaGrid.getColumn(SALDO_PROPERTY).setWidth(118);
         facturasVentaGrid.getColumn(MONTO_QUETZALES_PROPERTY).setWidth(118);
         facturasVentaGrid.getColumn(ESTATUS_PROPERTY).setWidth(118);
-        facturasVentaGrid.getColumn(IMAGEN_PROPERTY).setWidth(100);
 
         facturasVentaGrid.setCellStyleGenerator((Grid.CellReference cellReference) -> {
             if (DIAHOY_PROPERTY.equals(cellReference.getPropertyId())) {
@@ -1020,11 +1020,6 @@ public class FacturaVentaView extends VerticalLayout implements View {
                         facturasVentaContainer.getContainerProperty(itemId, ESTATUS_PROPERTY).setValue(rsRecords.getString("Estatus"));
                         facturasVentaContainer.getContainerProperty(itemId, USUARIO_PROPERTY).setValue(rsRecords.getString("NombreUsuario"));
                         facturasVentaContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).setValue(rsRecords.getString("Descripcion"));
-                        if (rsRecords.getObject("ArchivoNombre") == null || rsRecords.getString("ArchivoNombre").trim().isEmpty() ) {
-                            facturasVentaContainer.getContainerProperty(itemId, IMAGEN_PROPERTY).setValue("Cargar archivo");
-                        } else {
-                            facturasVentaContainer.getContainerProperty(itemId, IMAGEN_PROPERTY).setValue("Visualizar");
-                        }
                         facturasVentaContainer.getContainerProperty(itemId, ARCHIVO_PROPERTY).setValue(rsRecords.getString("ArchivoNombre"));
                         facturasVentaContainer.getContainerProperty(itemId, ARCHIVO_TIPO_PROPERTY).setValue(rsRecords.getString("ArchivoTipo"));
 
@@ -1567,7 +1562,6 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY llenarTablaCC
             stPreparedQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(queryString);
             stPreparedQuery.executeUpdate();
 
-            facturasVentaContainer.getContainerProperty(selectedObject, FacturaVentaView.IMAGEN_PROPERTY).setValue("Visualizar");
             facturasVentaContainer.getContainerProperty(selectedObject, FacturaVentaView.ARCHIVO_PROPERTY).setValue(fileName);
             facturasVentaContainer.getContainerProperty(selectedObject, FacturaVentaView.ARCHIVO_TIPO_PROPERTY).setValue(parametro2);
 

@@ -7,12 +7,14 @@ LOCAL_DIR=target/classes
 echo "📤 Subiendo clases modificadas..."
 rsync -avz --checksum $LOCAL_DIR/ $SERVER:/tmp/sopdi-classes/
 
-echo "🚀 Copiando al directorio de Tomcat..."
+echo "🚀 Copiando al directorio de Tomcat SOPDI..."
 ssh $SERVER "sudo cp -r /tmp/sopdi-classes/. $REMOTE_DIR/ && sudo chown -R tomcat:tomcat $REMOTE_DIR/"
+echo "🚀 Copiando al directorio de Tomcat SOPDI FUNDAMEX..."
 ssh $SERVER "sudo cp -r /tmp/sopdi-classes/. $REMOTE_DIRFX/ && sudo chown -R tomcat:tomcat $REMOTE_DIR/"
 
-echo "♻️  Recargando aplicación..."
+echo "♻️  Recargando aplicación SOPDI..."
 ssh $SERVER "sudo touch /opt/tomcat/webapps/sopdi/WEB-INF/web.xml"
+echo "♻️  Recargando aplicación SOPDI FUNDAMEX..."
 ssh $SERVER "sudo touch /opt/tomcat/webapps/sopdi_fundamex/WEB-INF/web.xml"
 
 echo "✅ Clases actualizadas"
