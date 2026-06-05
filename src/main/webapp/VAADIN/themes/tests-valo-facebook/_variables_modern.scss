@@ -1,0 +1,24 @@
+$v-app-loading-text: "SOPDI v 4.0";
+$v-background-color: #f4f7fb;
+$v-app-background-color: #eef3f9;
+$v-panel-background-color: #ffffff;
+$v-focus-color: #2f6fed;
+$v-focus-style: 0 0 0 2px rgba($v-focus-color, .22);
+$v-border-radius: 10px;
+$v-textfield-border-radius: 10px;
+$v-font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+$v-font-size: 14px;
+$v-font-color: #233044;
+$v-font-weight: 400;
+$v-link-text-decoration: none;
+$v-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+$v-bevel: none;
+$v-unit-size: 34px;
+$v-gradient: none;
+$v-overlay-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
+$v-shadow-opacity: 14%;
+$v-selection-overlay-padding-horizontal: 2px;
+$v-selection-overlay-padding-vertical: 8px;
+$v-selection-item-border-radius: 8px;
+
+@import "../valo/valo";
