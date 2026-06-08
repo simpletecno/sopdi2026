@@ -386,6 +386,10 @@ public class OrdenCompraView extends VerticalLayout implements View {
         printBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
         printBtn.setDescription("Imprimir Orden de Compra.");
         printBtn.addClickListener((Button.ClickListener) event -> {
+                if (ordenCompraGrid.getSelectedRow() == null) {
+                    Notification.show("Por favor seleccione una orden de compra.", Notification.Type.WARNING_MESSAGE);
+                    return;
+                }
                 queryString = " SELECT * ";
                 queryString += " FROM orden_compra";
                 queryString += " INNER JOIN tipo_orden_compra ON orden_compra.IdTipoOrdenCompra = tipo_orden_compra.Id";

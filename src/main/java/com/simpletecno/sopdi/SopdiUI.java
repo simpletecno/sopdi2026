@@ -266,6 +266,25 @@ public class SopdiUI extends UI implements Button.ClickListener {
                     return false;
                 }
 
+                // --- Restriccion de acceso por horario (opcional por usuario) ---
+                String msgHorario = ControlAcceso.validarHorario(
+                        rsRecords.getTime("HorarioAccesoInicio"),
+                        rsRecords.getTime("HorarioAccesoFin"));
+                if (msgHorario != null) {
+                    Notification.show(msgHorario, Notification.Type.WARNING_MESSAGE);
+                    loginMsg = msgHorario;
+                    return false;
+                }
+
+                // --- Restriccion de acceso por IP autorizada (opcional por usuario) ---
+                String ipCliente = ControlAcceso.obtenerIpCliente();
+                String msgIp = ControlAcceso.validarIp(rsRecords.getString("IpsAutorizadas"), ipCliente);
+                if (msgIp != null) {
+                    Notification.show(msgIp, Notification.Type.WARNING_MESSAGE);
+                    loginMsg = msgIp;
+                    return false;
+                }
+
 //                loginLayout.removeAllComponents();
                 sessionInformation = new SessionInformation();
 

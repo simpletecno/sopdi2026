@@ -61,6 +61,9 @@ public class UserForm extends Window {
     ComboBox estatusCbx;
     ComboBox perfilCbx;
     TextField codigoEspecialTxt;
+    TextField horarioInicioTxt;
+    TextField horarioFinTxt;
+    TextField ipsAutorizadasTxt;
 
     UI mainUI;
     
@@ -137,6 +140,24 @@ public class UserForm extends Window {
         codigoEspecialTxt.setWidth("8em");
         codigoEspecialTxt.setMaxLength(16);
 
+        horarioInicioTxt = new TextField("Acceso desde (HH:mm) :");
+        horarioInicioTxt.setWidth("8em");
+        horarioInicioTxt.setMaxLength(5);
+        horarioInicioTxt.setInputPrompt("08:00");
+        horarioInicioTxt.setDescription("Hora de inicio del acceso permitido. Vacío = sin restricción de horario.");
+
+        horarioFinTxt = new TextField("Acceso hasta (HH:mm) :");
+        horarioFinTxt.setWidth("8em");
+        horarioFinTxt.setMaxLength(5);
+        horarioFinTxt.setInputPrompt("18:00");
+        horarioFinTxt.setDescription("Hora de fin del acceso permitido. Vacío = sin restricción de horario.");
+
+        ipsAutorizadasTxt = new TextField("IPs autorizadas :");
+        ipsAutorizadasTxt.setWidth("20em");
+        ipsAutorizadasTxt.setMaxLength(512);
+        ipsAutorizadasTxt.setInputPrompt("192.168.1.10, 200.30.40.0/24");
+        ipsAutorizadasTxt.setDescription("IPs o rangos CIDR separados por coma. Vacío = sin restricción por IP.");
+
         estatusCbx = new ComboBox("Estatus : ");
         estatusCbx.setNewItemsAllowed(false);
         estatusCbx.setInvalidAllowed(false);
@@ -184,6 +205,9 @@ public class UserForm extends Window {
         userForm.addComponent(emailTxt);
         userForm.addComponent(perfilCbx);
         userForm.addComponent(codigoEspecialTxt);
+        userForm.addComponent(horarioInicioTxt);
+        userForm.addComponent(horarioFinTxt);
+        userForm.addComponent(ipsAutorizadasTxt);
         userForm.addComponent(estatusCbx);
         userForm.addComponent(buttonsLayout);
         userForm.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
@@ -264,6 +288,10 @@ public class UserForm extends Window {
                 telefonoTxt.setValue(rsRecords.getString("Telefono"));
                 perfilCbx.select(rsRecords.getString("Perfil"));
                 codigoEspecialTxt.setValue(rsRecords.getString("CodigoEspecial"));
+                horarioInicioTxt.setValue(ControlAcceso.timeAHhmm(rsRecords.getTime("HorarioAccesoInicio")));
+                horarioFinTxt.setValue(ControlAcceso.timeAHhmm(rsRecords.getTime("HorarioAccesoFin")));
+                String ips = rsRecords.getString("IpsAutorizadas");
+                ipsAutorizadasTxt.setValue(ips == null ? "" : ips);
                 estatusCbx.select(rsRecords.getString("Estatus"));
             }
             
@@ -295,6 +323,26 @@ public class UserForm extends Window {
             }
         }
 
+        // --- Restricciones de acceso (horario / IPs) ---
+        String horaInicioSql;
+        String horaFinSql;
+        try {
+            horaInicioSql = ControlAcceso.horaALiteralSql(horarioInicioTxt.getValue());
+            horaFinSql    = ControlAcceso.horaALiteralSql(horarioFinTxt.getValue());
+        } catch (IllegalArgumentException iae) {
+            Notification.show(iae.getMessage(), Notification.Type.ERROR_MESSAGE);
+            horarioInicioTxt.focus();
+            return;
+        }
+        // Si se restringe por horario, deben indicarse ambas horas.
+        if (horaInicioSql.equals("NULL") != horaFinSql.equals("NULL")) {
+            Notification.show("Para restringir por horario debe indicar ambas horas (desde y hasta).", Notification.Type.WARNING_MESSAGE);
+            horarioInicioTxt.focus();
+            return;
+        }
+        String ipsValue = ipsAutorizadasTxt.getValue() == null ? "" : ipsAutorizadasTxt.getValue().trim();
+        String ipsSql   = ipsValue.isEmpty() ? "NULL" : "'" + ipsValue + "'";
+
         String queryString;
         
         try {
@@ -314,7 +362,7 @@ public class UserForm extends Window {
                     usuarioTxt.focus();
                     return;
                 }
-                queryString =  "Insert Into usuario (Usuario, Nombre, Clave, Email, Telefono, Perfil, CodigoEspecial, Estatus, IdEmpresa, Division)";
+                queryString =  "Insert Into usuario (Usuario, Nombre, Clave, Email, Telefono, Perfil, CodigoEspecial, Estatus, IdEmpresa, Division, HorarioAccesoInicio, HorarioAccesoFin, IpsAutorizadas)";
                 queryString += " Values (";
                 queryString += "'"   + usuarioTxt.getValue() + "'";
                 queryString += ",'"  + nombreTxt.getValue()  + "'";
@@ -333,6 +381,9 @@ public class UserForm extends Window {
                 queryString += ",'" + estatusCbx.getValue() + "'";
                 queryString += ","  + companyCbx.getValue();
                 queryString += ",'" + divisionTxt.getValue() + "'";
+                queryString += ","  + horaInicioSql;
+                queryString += ","  + horaFinSql;
+                queryString += ","  + ipsSql;
                 queryString += ")";
             }
             else {
@@ -353,6 +404,9 @@ public class UserForm extends Window {
                 queryString += ",Estatus = '" + estatusCbx.getValue() + "'";
                 queryString += ",IdEmpresa ="  + companyCbx.getValue();
                 queryString += ",Division = '" + divisionTxt.getValue() + "'";
+                queryString += ",HorarioAccesoInicio = " + horaInicioSql;
+                queryString += ",HorarioAccesoFin = "    + horaFinSql;
+                queryString += ",IpsAutorizadas = "      + ipsSql;
                 queryString += " Where IdUsuario = " + idUsuario;
             }
 
