@@ -1037,7 +1037,7 @@ public class PagoCompraMonedaForm extends Window {
             queryString = " DELETE FROM autorizacion_pago";
             queryString += " WHERE IdAutorizacion = " + monedaContainer.getContainerProperty(monedaGrid.getSelectedRow(), NO).getValue();
 
-//System.out.println("queryString=" + queryString);
+System.out.println("queryString=" + queryString);
 
             stQuery2 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             stQuery2.executeUpdate(queryString);

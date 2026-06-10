@@ -38,10 +38,10 @@ ALTER TABLE usuario
 -- =====================================================================
 
 -- 1) Usuario que solo puede ingresar de 08:00 a 18:00 (sin restriccion de IP):
--- UPDATE usuario
---    SET HorarioAccesoInicio = '08:00:00',
---        HorarioAccesoFin    = '18:00:00'
---  WHERE Usuario = 'jperez';
+UPDATE usuario
+  SET HorarioAccesoInicio = '08:00:00',
+  HorarioAccesoFin    = '23:00:00'
+  WHERE Usuario = 'jaguirre@simpletecno.com';
 
 -- 2) Usuario que solo puede ingresar desde la red de la oficina (sin restriccion de horario):
 -- UPDATE usuario
