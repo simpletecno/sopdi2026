@@ -30,6 +30,8 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
     private Button btnEditar;
     private Button btnQuitar;
 
+    private CheckBox chkInhabilitados;
+
     Statement stQuery = null;
     ResultSet rsRecords = null;
 
@@ -48,6 +50,9 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
     private void buildUI() {
         Label title = new Label("Proveedores, Clientes y Otros");
         title.addStyleName(ValoTheme.LABEL_H2);
+
+        chkInhabilitados = new CheckBox("Ver inhabilitados");
+        chkInhabilitados.addValueChangeListener(e -> loadData());
 
         maestroContainer.addContainerProperty("codigo", String.class, null);
         maestroContainer.addContainerProperty("nombre", String.class, "");
@@ -178,7 +183,7 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
         });
 
         // Layout central: grid maestro | botones | grid mis
-        VerticalLayout middleButtons = new VerticalLayout(btnAgregar, btnQuitar);
+        VerticalLayout middleButtons = new VerticalLayout(chkInhabilitados,btnAgregar, btnQuitar);
         middleButtons.setSpacing(true);
         middleButtons.setMargin(true);
         middleButtons.setWidthUndefined();
@@ -238,9 +243,11 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
         maestroContainer.removeAllItems();
         misContainer.removeAllItems();
 
+        int inhabilitado = chkInhabilitados.getValue() ? 1 : 0;
+
         String queryString = " SELECT * ";
         queryString += " FROM proveedor";
-        queryString += " WHERE Inhabilitado = 0";
+        queryString += " WHERE Inhabilitado = " + inhabilitado;
         queryString += " AND Codigo NOT IN (SELECT pe.Codigo FROM proveedor_empresa pe WHERE pe.IdEmpresa = " + idEmpresa + ")";
         queryString += " ORDER BY Nombre";
 
@@ -264,7 +271,7 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
 
             queryString = " SELECT * ";
             queryString += " FROM proveedor_empresa";
-            queryString += " WHERE Inhabilitado = 0";
+            queryString += " WHERE Inhabilitado = " + inhabilitado;
             queryString += " AND IdEmpresa = " + idEmpresa ;
             queryString += " ORDER BY Nombre";
 
