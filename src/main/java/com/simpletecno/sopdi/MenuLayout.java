@@ -48,6 +48,21 @@ public class MenuLayout extends HorizontalLayout {
         return contentArea;
     }
 
+    public CssLayout getMenuArea() {
+        return menuArea;
+    }
+
+    /**
+     * Oculta o muestra el panel del menú principal. Al estar oculto, el área de
+     * contenido (con expandRatio 1) aprovecha todo el ancho de la pantalla.
+     *
+     * @return true si el menú quedó visible, false si quedó oculto.
+     */
+    public boolean toggleMenu() {
+        menuArea.setVisible(!menuArea.isVisible());
+        return menuArea.isVisible();
+    }
+
     public void addMenu(Component menu) {
         menu.addStyleName(ValoTheme.MENU_PART);
         menuArea.addComponent(menu);

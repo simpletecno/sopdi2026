@@ -158,7 +158,7 @@ public class ChequeTesoreriaForm extends Window {
         queryString += " FROM proveedor_empresa prov";
 //        queryString += " WHERE N0 in (4, 6, 7, 9)";
         //queryString += " AND prov.EsCliente = 1";
-        queryString += " AND prov.EmpresaId = '" + empresaId + "'";
+        queryString += " AND prov.IdEmpresa = '" + empresaId + "'";
         queryString += " ORDER BY prov.Nombre";
 
         proveedorCbx.removeAllItems();
@@ -183,7 +183,7 @@ public class ChequeTesoreriaForm extends Window {
 
         queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
         queryString += " WHERE Estatus = 'HABILITADA'";
-        queryString += " AND EmpresaId = '" + empresaId + "'";
+        queryString += " AND IdEmpresa = '" + empresaId + "'";
         queryString += " ORDER BY N5";
 
         try {

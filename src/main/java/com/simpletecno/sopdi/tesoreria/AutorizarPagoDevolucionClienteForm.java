@@ -68,7 +68,7 @@ public class AutorizarPagoDevolucionClienteForm extends Window {
         this.mainUI = UI.getCurrent();
         setResponsive(true);
         setWidth("85%");
-        setHeight("80%");
+        setHeight("95%");
 
         mainLayout = new VerticalLayout();
         mainLayout.setSpacing(true);

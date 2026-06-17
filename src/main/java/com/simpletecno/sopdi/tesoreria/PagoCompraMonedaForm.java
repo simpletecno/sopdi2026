@@ -984,8 +984,6 @@ public class PagoCompraMonedaForm extends Window {
 
             ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().commit();
             ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection(). setAutoCommit(true);
-            
-            System.out.println("valor enviado como numero " + numeroTxt.getValue());
 
             PagoChequesPDF Pagocheques
                     = new PagoChequesPDF(

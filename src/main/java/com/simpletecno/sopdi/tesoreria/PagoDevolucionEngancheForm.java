@@ -54,56 +54,19 @@ public class PagoDevolucionEngancheForm extends Window {
     NumberField montoTxt;
     NumberField tasaCambioTxt;
 
-    TextField codigo1Txt;
-    TextField codigo2Txt;
-    TextField codigo3Txt;
-    TextField codigo4Txt;
-    TextField codigo5Txt;
-    TextField codigo6Txt;
-    TextField codigo7Txt;
+    // Numero maximo de lineas (cuentas contables) que puede tener una partida.
+    static final int FILAS = 20;
 
-    NumberField debe1Txt;
-    NumberField debe2Txt;
-    NumberField debe3Txt;
-    NumberField debe4Txt;
-    NumberField debe5Txt;
-    NumberField debe6Txt;
-    NumberField debe7Txt;
-
-    NumberField debe1QTxt;
-    NumberField debe2QTxt;
-    NumberField debe3QTxt;
-    NumberField debe4QTxt;
-    NumberField debe5QTxt;
-    NumberField debe6QTxt;
-    NumberField debe7QTxt;
-
-    NumberField haber1Txt;
-    NumberField haber2Txt;
-    NumberField haber3Txt;
-    NumberField haber4Txt;
-    NumberField haber5Txt;
-    NumberField haber6Txt;
-    NumberField haber7Txt;
-
-    NumberField haber1QTxt;
-    NumberField haber2QTxt;
-    NumberField haber3QTxt;
-    NumberField haber4QTxt;
-    NumberField haber5QTxt;
-    NumberField haber6QTxt;
-    NumberField haber7QTxt;
+    TextField[] codigoTxt = new TextField[FILAS];
+    NumberField[] debeTxt = new NumberField[FILAS];
+    NumberField[] debeQTxt = new NumberField[FILAS];
+    NumberField[] haberTxt = new NumberField[FILAS];
+    NumberField[] haberQTxt = new NumberField[FILAS];
 
     ComboBox proveedorCbx;
     ComboBox monedaCbx;
     ComboBox medioCbx;
-    ComboBox cuentaContable1Cbx;
-    ComboBox cuentaContable2Cbx;
-    ComboBox cuentaContable3Cbx;
-    ComboBox cuentaContable4Cbx;
-    ComboBox cuentaContable5Cbx;
-    ComboBox cuentaContable6Cbx;
-    ComboBox cuentaContable7Cbx;
+    ComboBox[] cuentaContableCbx = new ComboBox[FILAS];
 
     HorizontalLayout chequeLayout = new HorizontalLayout();
     HorizontalLayout chequeLayout2 = new HorizontalLayout();
@@ -148,14 +111,14 @@ public class PagoDevolucionEngancheForm extends Window {
         setContent(mainLayout);
 
         setResponsive(true);
-        setWidth("90%");
-        setHeight("90%");
+        setWidth("95%");
+        setHeight("100%");
 
         titleLbl = new Label("");
         titleLbl.setValue(empresaId + " " + empresaNombre + " DEVOLUCION A CLIENTE");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
+        titleLbl.addStyleName(ValoTheme.LABEL_H3);
         titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h2_custom");
+        titleLbl.addStyleName("h3_custom");
 
         proveedorCbx = new ComboBox("Cliente : ");
         proveedorCbx.setWidth("35em");
@@ -171,7 +134,6 @@ public class PagoDevolucionEngancheForm extends Window {
         llenarComboProveedor("ESCLIENTE = 1");
 
         HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
@@ -403,12 +365,14 @@ public class PagoDevolucionEngancheForm extends Window {
         chequeLayout.setComponentAlignment(monedaCbx, Alignment.MIDDLE_CENTER);
         chequeLayout.addComponent(tasaCambioTxt);
         chequeLayout.setComponentAlignment(tasaCambioTxt, Alignment.MIDDLE_CENTER);
+        chequeLayout.addComponent(nombreChequeTxt);
+        chequeLayout.setComponentAlignment(nombreChequeTxt, Alignment.MIDDLE_CENTER);
 
         mainLayout.addComponent(chequeLayout);
         mainLayout.setComponentAlignment(chequeLayout, Alignment.MIDDLE_CENTER);
 
-        chequeLayout2.addComponent(nombreChequeTxt);
-        chequeLayout2.setComponentAlignment(nombreChequeTxt, Alignment.MIDDLE_CENTER);
+//        chequeLayout2.addComponent(nombreChequeTxt);
+//        chequeLayout2.setComponentAlignment(nombreChequeTxt, Alignment.MIDDLE_CENTER);
         chequeLayout2.addComponent(descripcionTxt);
         chequeLayout2.setComponentAlignment(descripcionTxt, Alignment.MIDDLE_CENTER);
 
@@ -419,38 +383,12 @@ public class PagoDevolucionEngancheForm extends Window {
     public void crearPartidaLayout() {
 
         partidaLayout.addStyleName("rcorners3");
-        partidaLayout.setWidth("70%");
+        partidaLayout.setWidthUndefined();
         partidaLayout.setResponsive(true);
         partidaLayout.setSpacing(false);
-        partidaLayout.setMargin(false);
+        partidaLayout.setMargin(true);
 
-        HorizontalLayout layoutHorizontal1 = new HorizontalLayout();
-        layoutHorizontal1.setSpacing(true);
-        layoutHorizontal1.setMargin(false);
-
-        HorizontalLayout layoutHorizontal2 = new HorizontalLayout();
-        layoutHorizontal2.setSpacing(true);
-        layoutHorizontal2.setMargin(false);
-
-        HorizontalLayout layoutHorizontal3 = new HorizontalLayout();
-        layoutHorizontal3.setSpacing(true);
-        layoutHorizontal3.setMargin(false);
-
-        HorizontalLayout layoutHorizontal4 = new HorizontalLayout();
-        layoutHorizontal4.setSpacing(true);
-        layoutHorizontal4.setMargin(false);
-
-        HorizontalLayout layoutHorizontal5 = new HorizontalLayout();
-        layoutHorizontal5.setSpacing(true);
-        layoutHorizontal5.setMargin(false);
-
-        HorizontalLayout layoutHorizontal6 = new HorizontalLayout();
-        layoutHorizontal6.setSpacing(true);
-        layoutHorizontal6.setMargin(false);
-
-        HorizontalLayout layoutHorizontal7 = new HorizontalLayout();
-        layoutHorizontal7.setSpacing(true);
-        layoutHorizontal7.setMargin(false);
+        // Las filas de la partida (hasta FILAS lineas) se crean dinamicamente mas abajo.
 
         HorizontalLayout layoutHorizontalBotones = new HorizontalLayout();
         layoutHorizontalBotones.setSpacing(true);
@@ -459,518 +397,23 @@ public class PagoDevolucionEngancheForm extends Window {
         layoutHorizontalBotones.setWidth("90%");
         layoutHorizontalBotones.setSpacing(true);
 
-        codigo1Txt = new TextField("");
-        codigo1Txt.setWidth("2em");
-        codigo1Txt.setVisible(false);
-        codigo1Txt.setValue("");
+        for (int i = 0; i < FILAS; i++) {
+            codigoTxt[i] = new TextField();
+            codigoTxt[i].setWidth("2em");
+            codigoTxt[i].setVisible(false);
+            codigoTxt[i].setValue("");
 
-        codigo2Txt = new TextField("");
-        codigo2Txt.setWidth("2em");
-        codigo2Txt.setVisible(false);
-        codigo2Txt.setValue("");
+            cuentaContableCbx[i] = new ComboBox();
+            cuentaContableCbx[i].setWidth("30em");
+            cuentaContableCbx[i].setFilteringMode(FilteringMode.CONTAINS);
 
-        codigo3Txt = new TextField("");
-        codigo3Txt.setWidth("2em");
-        codigo3Txt.setVisible(false);
-        codigo3Txt.setValue("");
-
-        codigo4Txt = new TextField("");
-        codigo4Txt.setWidth("2em");
-        codigo4Txt.setVisible(false);
-        codigo4Txt.setValue("");
-
-        codigo5Txt = new TextField("");
-        codigo5Txt.setWidth("2em");
-        codigo5Txt.setVisible(false);
-        codigo5Txt.setValue("");
-
-        codigo6Txt = new TextField("");
-        codigo6Txt.setWidth("2em");
-        codigo6Txt.setVisible(false);
-        codigo6Txt.setValue("");
-
-        codigo7Txt = new TextField("");
-        codigo7Txt.setWidth("2em");
-        codigo7Txt.setVisible(false);
-        codigo7Txt.setValue("");
-
-        cuentaContable1Cbx = new ComboBox("Cuenta contable :");
-        cuentaContable1Cbx.setWidth("30em");
-        cuentaContable1Cbx.setFilteringMode(FilteringMode.CONTAINS);
-
-        cuentaContable2Cbx = new ComboBox();
-        cuentaContable2Cbx.setWidth("30em");
-        cuentaContable2Cbx.setFilteringMode(FilteringMode.CONTAINS);
-
-        cuentaContable3Cbx = new ComboBox();
-        cuentaContable3Cbx.setWidth("30em");
-        cuentaContable3Cbx.setFilteringMode(FilteringMode.CONTAINS);
-
-        cuentaContable4Cbx = new ComboBox();
-        cuentaContable4Cbx.setWidth("30em");
-        cuentaContable4Cbx.setFilteringMode(FilteringMode.CONTAINS);
-
-        cuentaContable5Cbx = new ComboBox();
-        cuentaContable5Cbx.setWidth("30em");
-        cuentaContable5Cbx.setFilteringMode(FilteringMode.CONTAINS);
-
-        cuentaContable6Cbx = new ComboBox();
-        cuentaContable6Cbx.setWidth("30em");
-        cuentaContable6Cbx.setFilteringMode(FilteringMode.CONTAINS);
-
-        cuentaContable7Cbx = new ComboBox();
-        cuentaContable7Cbx.setWidth("30em");
-        cuentaContable7Cbx.setFilteringMode(FilteringMode.CONTAINS);
+            debeTxt[i] = crearNumberField();
+            haberTxt[i] = crearNumberField();
+            debeQTxt[i] = crearNumberField();
+            haberQTxt[i] = crearNumberField();
+        }
 
         llenarComboCuentaContable();
-
-        debe1Txt = new NumberField("Debe :");
-        debe1Txt.setValidationVisible(false);
-        debe1Txt.setDecimalAllowed(true);
-        debe1Txt.setDecimalPrecision(2);
-        debe1Txt.setMinimumFractionDigits(2);
-        debe1Txt.setDecimalSeparator('.');
-        debe1Txt.setDecimalSeparatorAlwaysShown(true);
-        debe1Txt.setValue(0d);
-        debe1Txt.setGroupingUsed(true);
-        debe1Txt.setGroupingSeparator(',');
-        debe1Txt.setGroupingSize(3);
-        debe1Txt.setImmediate(true);
-        debe1Txt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        debe1Txt.setWidth("8em");
-        debe1Txt.setValue(0.00);
-
-        debe2Txt = new NumberField();
-        debe2Txt.setValidationVisible(false);
-        debe2Txt.setDecimalAllowed(true);
-        debe2Txt.setDecimalPrecision(2);
-        debe2Txt.setMinimumFractionDigits(2);
-        debe2Txt.setDecimalSeparator('.');
-        debe2Txt.setDecimalSeparatorAlwaysShown(true);
-        debe2Txt.setValue(0d);
-        debe2Txt.setGroupingUsed(true);
-        debe2Txt.setGroupingSeparator(',');
-        debe2Txt.setGroupingSize(3);
-        debe2Txt.setImmediate(true);
-        debe2Txt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        debe2Txt.setWidth("8em");
-        debe2Txt.setValue(0.00);
-
-        debe3Txt = new NumberField();
-        debe3Txt.setValidationVisible(false);
-        debe3Txt.setDecimalAllowed(true);
-        debe3Txt.setDecimalPrecision(2);
-        debe3Txt.setMinimumFractionDigits(2);
-        debe3Txt.setDecimalSeparator('.');
-        debe3Txt.setDecimalSeparatorAlwaysShown(true);
-        debe3Txt.setValue(0d);
-        debe3Txt.setGroupingUsed(true);
-        debe3Txt.setGroupingSeparator(',');
-        debe3Txt.setGroupingSize(3);
-        debe3Txt.setImmediate(true);
-        debe3Txt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        debe3Txt.setWidth("8em");
-        debe3Txt.setValue(0.00);
-
-        debe4Txt = new NumberField();
-        debe4Txt.setValidationVisible(false);
-        debe4Txt.setDecimalAllowed(true);
-        debe4Txt.setDecimalPrecision(2);
-        debe4Txt.setMinimumFractionDigits(2);
-        debe4Txt.setDecimalSeparator('.');
-        debe4Txt.setDecimalSeparatorAlwaysShown(true);
-        debe4Txt.setValue(0d);
-        debe4Txt.setGroupingUsed(true);
-        debe4Txt.setGroupingSeparator(',');
-        debe4Txt.setGroupingSize(3);
-        debe4Txt.setImmediate(true);
-        debe4Txt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        debe4Txt.setWidth("8em");
-        debe4Txt.setValue(0.00);
-
-        debe5Txt = new NumberField();
-        debe5Txt.setValidationVisible(false);
-        debe5Txt.setDecimalAllowed(true);
-        debe5Txt.setDecimalPrecision(2);
-        debe5Txt.setMinimumFractionDigits(2);
-        debe5Txt.setDecimalSeparator('.');
-        debe5Txt.setDecimalSeparatorAlwaysShown(true);
-        debe5Txt.setValue(0d);
-        debe5Txt.setGroupingUsed(true);
-        debe5Txt.setGroupingSeparator(',');
-        debe5Txt.setGroupingSize(3);
-        debe5Txt.setImmediate(true);
-        debe5Txt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        debe5Txt.setWidth("8em");
-        debe5Txt.setValue(0.00);
-
-        debe6Txt = new NumberField();
-        debe6Txt.setValidationVisible(false);
-        debe6Txt.setDecimalAllowed(true);
-        debe6Txt.setDecimalPrecision(2);
-        debe6Txt.setMinimumFractionDigits(2);
-        debe6Txt.setDecimalSeparator('.');
-        debe6Txt.setDecimalSeparatorAlwaysShown(true);
-        debe6Txt.setValue(0d);
-        debe6Txt.setGroupingUsed(true);
-        debe6Txt.setGroupingSeparator(',');
-        debe6Txt.setGroupingSize(3);
-        debe6Txt.setImmediate(true);
-        debe6Txt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        debe6Txt.setWidth("8em");
-        debe6Txt.setValue(0.00);
-
-        debe7Txt = new NumberField();
-        debe7Txt.setValidationVisible(false);
-        debe7Txt.setDecimalAllowed(true);
-        debe7Txt.setDecimalPrecision(2);
-        debe7Txt.setMinimumFractionDigits(2);
-        debe7Txt.setDecimalSeparator('.');
-        debe7Txt.setDecimalSeparatorAlwaysShown(true);
-        debe7Txt.setValue(0d);
-        debe7Txt.setGroupingUsed(true);
-        debe7Txt.setGroupingSeparator(',');
-        debe7Txt.setGroupingSize(3);
-        debe7Txt.setImmediate(true);
-        debe7Txt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        debe7Txt.setWidth("8em");
-        debe7Txt.setValue(0.00);
-
-        debe1QTxt = new NumberField("Debe Q. :");
-        debe1QTxt.setValidationVisible(false);
-        debe1QTxt.setDecimalAllowed(true);
-        debe1QTxt.setDecimalPrecision(2);
-        debe1QTxt.setMinimumFractionDigits(2);
-        debe1QTxt.setDecimalSeparator('.');
-        debe1QTxt.setDecimalSeparatorAlwaysShown(true);
-        debe1QTxt.setValue(0d);
-        debe1QTxt.setGroupingUsed(true);
-        debe1QTxt.setGroupingSeparator(',');
-        debe1QTxt.setGroupingSize(3);
-        debe1QTxt.setImmediate(true);
-        debe1QTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        debe1QTxt.setWidth("8em");
-        debe1QTxt.setValue(0.00);
-
-        debe2QTxt = new NumberField();
-        debe2QTxt.setValidationVisible(false);
-        debe2QTxt.setDecimalAllowed(true);
-        debe2QTxt.setDecimalPrecision(2);
-        debe2QTxt.setMinimumFractionDigits(2);
-        debe2QTxt.setDecimalSeparator('.');
-        debe2QTxt.setDecimalSeparatorAlwaysShown(true);
-        debe2QTxt.setValue(0d);
-        debe2QTxt.setGroupingUsed(true);
-        debe2QTxt.setGroupingSeparator(',');
-        debe2QTxt.setGroupingSize(3);
-        debe2QTxt.setImmediate(true);
-        debe2QTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        debe2QTxt.setWidth("8em");
-        debe2QTxt.setValue(0.00);
-
-        debe3QTxt = new NumberField();
-        debe3QTxt.setValidationVisible(false);
-        debe3QTxt.setDecimalAllowed(true);
-        debe3QTxt.setDecimalPrecision(2);
-        debe3QTxt.setMinimumFractionDigits(2);
-        debe3QTxt.setDecimalSeparator('.');
-        debe3QTxt.setDecimalSeparatorAlwaysShown(true);
-        debe3QTxt.setValue(0d);
-        debe3QTxt.setGroupingUsed(true);
-        debe3QTxt.setGroupingSeparator(',');
-        debe3QTxt.setGroupingSize(3);
-        debe3QTxt.setImmediate(true);
-        debe3QTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        debe3QTxt.setWidth("8em");
-        debe3QTxt.setValue(0.00);
-
-        debe4QTxt = new NumberField();
-        debe4QTxt.setValidationVisible(false);
-        debe4QTxt.setDecimalAllowed(true);
-        debe4QTxt.setDecimalPrecision(2);
-        debe4QTxt.setMinimumFractionDigits(2);
-        debe4QTxt.setDecimalSeparator('.');
-        debe4QTxt.setDecimalSeparatorAlwaysShown(true);
-        debe4QTxt.setValue(0d);
-        debe4QTxt.setGroupingUsed(true);
-        debe4QTxt.setGroupingSeparator(',');
-        debe4QTxt.setGroupingSize(3);
-        debe4QTxt.setImmediate(true);
-        debe4QTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        debe4QTxt.setWidth("8em");
-        debe4QTxt.setValue(0.00);
-
-        debe5QTxt = new NumberField();
-        debe5QTxt.setValidationVisible(false);
-        debe5QTxt.setDecimalAllowed(true);
-        debe5QTxt.setDecimalPrecision(2);
-        debe5QTxt.setMinimumFractionDigits(2);
-        debe5QTxt.setDecimalSeparator('.');
-        debe5QTxt.setDecimalSeparatorAlwaysShown(true);
-        debe5QTxt.setValue(0d);
-        debe5QTxt.setGroupingUsed(true);
-        debe5QTxt.setGroupingSeparator(',');
-        debe5QTxt.setGroupingSize(3);
-        debe5QTxt.setImmediate(true);
-        debe5QTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        debe5QTxt.setWidth("8em");
-        debe5QTxt.setValue(0.00);
-
-        debe6QTxt = new NumberField();
-        debe6QTxt.setValidationVisible(false);
-        debe6QTxt.setDecimalAllowed(true);
-        debe6QTxt.setDecimalPrecision(2);
-        debe6QTxt.setMinimumFractionDigits(2);
-        debe6QTxt.setDecimalSeparator('.');
-        debe6QTxt.setDecimalSeparatorAlwaysShown(true);
-        debe6QTxt.setValue(0d);
-        debe6QTxt.setGroupingUsed(true);
-        debe6QTxt.setGroupingSeparator(',');
-        debe6QTxt.setGroupingSize(3);
-        debe6QTxt.setImmediate(true);
-        debe6QTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        debe6QTxt.setWidth("8em");
-        debe6QTxt.setValue(0.00);
-
-        debe7QTxt = new NumberField();
-        debe7QTxt.setValidationVisible(false);
-        debe7QTxt.setDecimalAllowed(true);
-        debe7QTxt.setDecimalPrecision(2);
-        debe7QTxt.setMinimumFractionDigits(2);
-        debe7QTxt.setDecimalSeparator('.');
-        debe7QTxt.setDecimalSeparatorAlwaysShown(true);
-        debe7QTxt.setValue(0d);
-        debe7QTxt.setGroupingUsed(true);
-        debe7QTxt.setGroupingSeparator(',');
-        debe7QTxt.setGroupingSize(3);
-        debe7QTxt.setImmediate(true);
-        debe7QTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        debe7QTxt.setWidth("8em");
-        debe7QTxt.setValue(0.00);
-
-        haber1Txt = new NumberField("Haber:");
-        haber1Txt.setValidationVisible(false);
-        haber1Txt.setDecimalAllowed(true);
-        haber1Txt.setDecimalPrecision(2);
-        haber1Txt.setMinimumFractionDigits(2);
-        haber1Txt.setDecimalSeparator('.');
-        haber1Txt.setDecimalSeparatorAlwaysShown(true);
-        haber1Txt.setValue(0d);
-        haber1Txt.setGroupingUsed(true);
-        haber1Txt.setGroupingSeparator(',');
-        haber1Txt.setGroupingSize(3);
-        haber1Txt.setImmediate(true);
-        haber1Txt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        haber1Txt.setWidth("8em");
-        haber1Txt.setValue(0.00);
-
-        haber2Txt = new NumberField();
-        haber2Txt.setValidationVisible(false);
-        haber2Txt.setDecimalAllowed(true);
-        haber2Txt.setDecimalPrecision(2);
-        haber2Txt.setMinimumFractionDigits(2);
-        haber2Txt.setDecimalSeparator('.');
-        haber2Txt.setDecimalSeparatorAlwaysShown(true);
-        haber2Txt.setValue(0d);
-        haber2Txt.setGroupingUsed(true);
-        haber2Txt.setGroupingSeparator(',');
-        haber2Txt.setGroupingSize(3);
-        haber2Txt.setImmediate(true);
-        haber2Txt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        haber2Txt.setWidth("8em");
-        haber2Txt.setValue(0.00);
-
-        haber3Txt = new NumberField();
-        haber3Txt.setValidationVisible(false);
-        haber3Txt.setDecimalAllowed(true);
-        haber3Txt.setDecimalPrecision(2);
-        haber3Txt.setMinimumFractionDigits(2);
-        haber3Txt.setDecimalSeparator('.');
-        haber3Txt.setDecimalSeparatorAlwaysShown(true);
-        haber3Txt.setValue(0d);
-        haber3Txt.setGroupingUsed(true);
-        haber3Txt.setGroupingSeparator(',');
-        haber3Txt.setGroupingSize(3);
-        haber3Txt.setImmediate(true);
-        haber3Txt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        haber3Txt.setWidth("8em");
-        haber3Txt.setValue(0.00);
-
-        haber4Txt = new NumberField();
-        haber4Txt.setValidationVisible(false);
-        haber4Txt.setDecimalAllowed(true);
-        haber4Txt.setDecimalPrecision(2);
-        haber4Txt.setMinimumFractionDigits(2);
-        haber4Txt.setDecimalSeparator('.');
-        haber4Txt.setDecimalSeparatorAlwaysShown(true);
-        haber4Txt.setValue(0d);
-        haber4Txt.setGroupingUsed(true);
-        haber4Txt.setGroupingSeparator(',');
-        haber4Txt.setGroupingSize(3);
-        haber4Txt.setImmediate(true);
-        haber4Txt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        haber4Txt.setWidth("8em");
-        haber4Txt.setValue(0.00);
-
-        haber5Txt = new NumberField();
-        haber5Txt.setValidationVisible(false);
-        haber5Txt.setDecimalAllowed(true);
-        haber5Txt.setDecimalPrecision(2);
-        haber5Txt.setMinimumFractionDigits(2);
-        haber5Txt.setDecimalSeparator('.');
-        haber5Txt.setDecimalSeparatorAlwaysShown(true);
-        haber5Txt.setValue(0d);
-        haber5Txt.setGroupingUsed(true);
-        haber5Txt.setGroupingSeparator(',');
-        haber5Txt.setGroupingSize(3);
-        haber5Txt.setImmediate(true);
-        haber5Txt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        haber5Txt.setWidth("8em");
-        haber5Txt.setValue(0.00);
-
-        haber6Txt = new NumberField();
-        haber6Txt.setValidationVisible(false);
-        haber6Txt.setDecimalAllowed(true);
-        haber6Txt.setDecimalPrecision(2);
-        haber6Txt.setMinimumFractionDigits(2);
-        haber6Txt.setDecimalSeparator('.');
-        haber6Txt.setDecimalSeparatorAlwaysShown(true);
-        haber6Txt.setValue(0d);
-        haber6Txt.setGroupingUsed(true);
-        haber6Txt.setGroupingSeparator(',');
-        haber6Txt.setGroupingSize(3);
-        haber6Txt.setImmediate(true);
-        haber6Txt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        haber6Txt.setWidth("8em");
-        haber6Txt.setValue(0.00);
-
-        haber7Txt = new NumberField();
-        haber7Txt.setValidationVisible(false);
-        haber7Txt.setDecimalAllowed(true);
-        haber7Txt.setDecimalPrecision(2);
-        haber7Txt.setMinimumFractionDigits(2);
-        haber7Txt.setDecimalSeparator('.');
-        haber7Txt.setDecimalSeparatorAlwaysShown(true);
-        haber7Txt.setValue(0d);
-        haber7Txt.setGroupingUsed(true);
-        haber7Txt.setGroupingSeparator(',');
-        haber5Txt.setGroupingSize(3);
-        haber7Txt.setImmediate(true);
-        haber7Txt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        haber7Txt.setWidth("8em");
-        haber7Txt.setValue(0.00);
-
-        haber1QTxt = new NumberField("Haber Q. :");
-        haber1QTxt.setValidationVisible(false);
-        haber1QTxt.setDecimalAllowed(true);
-        haber1QTxt.setDecimalPrecision(2);
-        haber1QTxt.setMinimumFractionDigits(2);
-        haber1QTxt.setDecimalSeparator('.');
-        haber1QTxt.setDecimalSeparatorAlwaysShown(true);
-        haber1QTxt.setValue(0d);
-        haber1QTxt.setGroupingUsed(true);
-        haber1QTxt.setGroupingSeparator(',');
-        haber1QTxt.setGroupingSize(3);
-        haber1QTxt.setImmediate(true);
-        haber1QTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        haber1QTxt.setWidth("8em");
-        haber1QTxt.setValue(0.00);
-
-        haber2QTxt = new NumberField();
-        haber2QTxt.setValidationVisible(false);
-        haber2QTxt.setDecimalAllowed(true);
-        haber2QTxt.setDecimalPrecision(2);
-        haber2QTxt.setMinimumFractionDigits(2);
-        haber2QTxt.setDecimalSeparator('.');
-        haber2QTxt.setDecimalSeparatorAlwaysShown(true);
-        haber2QTxt.setValue(0d);
-        haber2QTxt.setGroupingUsed(true);
-        haber2QTxt.setGroupingSeparator(',');
-        haber2QTxt.setGroupingSize(3);
-        haber2QTxt.setImmediate(true);
-        haber2QTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        haber2QTxt.setWidth("8em");
-        haber2QTxt.setValue(0.00);
-
-        haber3QTxt = new NumberField();
-        haber3QTxt.setValidationVisible(false);
-        haber3QTxt.setDecimalAllowed(true);
-        haber3QTxt.setDecimalPrecision(2);
-        haber3QTxt.setMinimumFractionDigits(2);
-        haber3QTxt.setDecimalSeparator('.');
-        haber3QTxt.setDecimalSeparatorAlwaysShown(true);
-        haber3QTxt.setValue(0d);
-        haber3QTxt.setGroupingUsed(true);
-        haber3QTxt.setGroupingSeparator(',');
-        haber3QTxt.setGroupingSize(3);
-        haber3QTxt.setImmediate(true);
-        haber3QTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        haber3QTxt.setWidth("8em");
-        haber3QTxt.setValue(0.00);
-
-        haber4QTxt = new NumberField();
-        haber4QTxt.setValidationVisible(false);
-        haber4QTxt.setDecimalAllowed(true);
-        haber4QTxt.setDecimalPrecision(2);
-        haber4QTxt.setMinimumFractionDigits(2);
-        haber4QTxt.setDecimalSeparator('.');
-        haber4QTxt.setDecimalSeparatorAlwaysShown(true);
-        haber4QTxt.setValue(0d);
-        haber4QTxt.setGroupingUsed(true);
-        haber4QTxt.setGroupingSeparator(',');
-        haber4QTxt.setGroupingSize(3);
-        haber4QTxt.setImmediate(true);
-        haber4QTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        haber4QTxt.setWidth("8em");
-        haber4QTxt.setValue(0.00);
-
-        haber5QTxt = new NumberField();
-        haber5QTxt.setValidationVisible(false);
-        haber5QTxt.setDecimalAllowed(true);
-        haber5QTxt.setDecimalPrecision(2);
-        haber5QTxt.setMinimumFractionDigits(2);
-        haber5QTxt.setDecimalSeparator('.');
-        haber5QTxt.setDecimalSeparatorAlwaysShown(true);
-        haber5QTxt.setValue(0d);
-        haber5QTxt.setGroupingUsed(true);
-        haber5QTxt.setGroupingSeparator(',');
-        haber5QTxt.setGroupingSize(3);
-        haber5QTxt.setImmediate(true);
-        haber5QTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        haber5QTxt.setWidth("8em");
-        haber5QTxt.setValue(0.00);
-
-        haber6QTxt = new NumberField();
-        haber6QTxt.setValidationVisible(false);
-        haber6QTxt.setDecimalAllowed(true);
-        haber6QTxt.setDecimalPrecision(2);
-        haber6QTxt.setMinimumFractionDigits(2);
-        haber6QTxt.setDecimalSeparator('.');
-        haber6QTxt.setDecimalSeparatorAlwaysShown(true);
-        haber6QTxt.setValue(0d);
-        haber6QTxt.setGroupingUsed(true);
-        haber6QTxt.setGroupingSeparator(',');
-        haber6QTxt.setGroupingSize(3);
-        haber6QTxt.setImmediate(true);
-        haber6QTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        haber6QTxt.setWidth("8em");
-        haber6QTxt.setValue(0.00);
-
-        haber7QTxt = new NumberField();
-        haber7QTxt.setValidationVisible(false);
-        haber7QTxt.setDecimalAllowed(true);
-        haber7QTxt.setDecimalPrecision(2);
-        haber7QTxt.setMinimumFractionDigits(2);
-        haber7QTxt.setDecimalSeparator('.');
-        haber7QTxt.setDecimalSeparatorAlwaysShown(true);
-        haber7QTxt.setValue(0d);
-        haber7QTxt.setGroupingUsed(true);
-        haber7QTxt.setGroupingSeparator(',');
-        haber7QTxt.setGroupingSize(3);
-        haber7QTxt.setImmediate(true);
-        haber7QTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
-        haber7QTxt.setWidth("8em");
-        haber7QTxt.setValue(0.00);
 
         Button desAutorizarBtn = new Button("Eliminar Autorización");
         desAutorizarBtn.addStyleName(ValoTheme.BUTTON_DANGER);
@@ -1050,53 +493,48 @@ public class PagoDevolucionEngancheForm extends Window {
             }
         });
 
-        layoutHorizontal1.addComponent(codigo1Txt);
-        layoutHorizontal1.addComponent(cuentaContable1Cbx);
-        layoutHorizontal1.addComponent(debe1Txt);
-        layoutHorizontal1.addComponent(haber1Txt);
-        layoutHorizontal1.addComponent(debe1QTxt);
-        layoutHorizontal1.addComponent(haber1QTxt);
+        // Encabezado de columnas (se muestra una sola vez, sobre el area con scroll)
+        HorizontalLayout headerFila = new HorizontalLayout();
+        headerFila.setSpacing(true);
+        headerFila.setMargin(false);
+        headerFila.addComponent(crearEncabezado("#", "2em"));
+        headerFila.addComponent(crearEncabezado("Cuenta contable", "30em"));
+        headerFila.addComponent(crearEncabezado("Debe", "8em"));
+        headerFila.addComponent(crearEncabezado("Haber", "8em"));
+        headerFila.addComponent(crearEncabezado("Debe Q.", "8em"));
+        headerFila.addComponent(crearEncabezado("Haber Q.", "8em"));
 
-        layoutHorizontal2.addComponent(codigo2Txt);
-        layoutHorizontal2.addComponent(cuentaContable2Cbx);
-        layoutHorizontal2.addComponent(debe2Txt);
-        layoutHorizontal2.addComponent(haber2Txt);
-        layoutHorizontal2.addComponent(debe2QTxt);
-        layoutHorizontal2.addComponent(haber2QTxt);
+        // Filas de la partida dentro de un Panel con scroll vertical, para poder
+        // manejar hasta FILAS lineas sin que el formulario crezca demasiado.
+        VerticalLayout filasLayout = new VerticalLayout();
+        filasLayout.setSpacing(false);
+        filasLayout.setMargin(false);
+        filasLayout.setWidthUndefined();
 
-        layoutHorizontal3.addComponent(codigo3Txt);
-        layoutHorizontal3.addComponent(cuentaContable3Cbx);
-        layoutHorizontal3.addComponent(debe3Txt);
-        layoutHorizontal3.addComponent(haber3Txt);
-        layoutHorizontal3.addComponent(debe3QTxt);
-        layoutHorizontal3.addComponent(haber3QTxt);
+        for (int i = 0; i < FILAS; i++) {
+            HorizontalLayout fila = new HorizontalLayout();
+            fila.setSpacing(true);
+            fila.setMargin(false);
 
-        layoutHorizontal4.addComponent(codigo4Txt);
-        layoutHorizontal4.addComponent(cuentaContable4Cbx);
-        layoutHorizontal4.addComponent(debe4Txt);
-        layoutHorizontal4.addComponent(haber4Txt);
-        layoutHorizontal4.addComponent(debe4QTxt);
-        layoutHorizontal4.addComponent(haber4QTxt);
+            Label numLbl = new Label(String.valueOf(i + 1));
+            numLbl.setWidth("2em");
 
-        layoutHorizontal4.addComponent(codigo5Txt);
-        layoutHorizontal5.addComponent(cuentaContable5Cbx);
-        layoutHorizontal5.addComponent(debe5Txt);
-        layoutHorizontal5.addComponent(haber5Txt);
-        layoutHorizontal5.addComponent(debe5QTxt);
-        layoutHorizontal5.addComponent(haber5QTxt);
+            fila.addComponent(numLbl);
+            fila.setComponentAlignment(numLbl, Alignment.MIDDLE_CENTER);
+            fila.addComponent(cuentaContableCbx[i]);
+            fila.addComponent(debeTxt[i]);
+            fila.addComponent(haberTxt[i]);
+            fila.addComponent(debeQTxt[i]);
+            fila.addComponent(haberQTxt[i]);
 
-        //reservados para cuenta bancos y diferencial cambiario cuando sean 5 enganches..., por default no tienen codigoCC
-        layoutHorizontal6.addComponent(cuentaContable6Cbx);
-        layoutHorizontal6.addComponent(debe6Txt);
-        layoutHorizontal6.addComponent(haber6Txt);
-        layoutHorizontal6.addComponent(debe6QTxt);
-        layoutHorizontal6.addComponent(haber6QTxt);
+            filasLayout.addComponent(fila);
+        }
 
-        layoutHorizontal7.addComponent(cuentaContable7Cbx);
-        layoutHorizontal7.addComponent(debe7Txt);
-        layoutHorizontal7.addComponent(haber7Txt);
-        layoutHorizontal7.addComponent(debe7QTxt);
-        layoutHorizontal7.addComponent(haber7QTxt);
+        Panel filasPanel = new Panel();
+        filasPanel.setWidthUndefined();
+        filasPanel.setHeight("280px");
+        filasPanel.addStyleName(ValoTheme.PANEL_WELL);
+        filasPanel.setContent(filasLayout);
 
 //        layoutHorizontalBotones.addComponent(cancelarBtn);
 //        layoutHorizontalBotones.setComponentAlignment(cancelarBtn, Alignment.BOTTOM_LEFT);
@@ -1105,26 +543,11 @@ public class PagoDevolucionEngancheForm extends Window {
         layoutHorizontalBotones.addComponent(grabarPartidaBtn);
         layoutHorizontalBotones.setComponentAlignment(grabarPartidaBtn, Alignment.BOTTOM_RIGHT);
 
-        partidaLayout.addComponent(layoutHorizontal1);
-        partidaLayout.setComponentAlignment(layoutHorizontal1, Alignment.MIDDLE_CENTER);
+        partidaLayout.addComponent(headerFila);
+        partidaLayout.setComponentAlignment(headerFila, Alignment.MIDDLE_CENTER);
 
-        partidaLayout.addComponent(layoutHorizontal2);
-        partidaLayout.setComponentAlignment(layoutHorizontal2, Alignment.MIDDLE_CENTER);
-
-        partidaLayout.addComponent(layoutHorizontal3);
-        partidaLayout.setComponentAlignment(layoutHorizontal3, Alignment.MIDDLE_CENTER);
-
-        partidaLayout.addComponent(layoutHorizontal4);
-        partidaLayout.setComponentAlignment(layoutHorizontal4, Alignment.MIDDLE_CENTER);
-
-        partidaLayout.addComponent(layoutHorizontal5);
-        partidaLayout.setComponentAlignment(layoutHorizontal5, Alignment.MIDDLE_CENTER);
-
-        partidaLayout.addComponent(layoutHorizontal6);
-        partidaLayout.setComponentAlignment(layoutHorizontal6, Alignment.MIDDLE_CENTER);
-
-        partidaLayout.addComponent(layoutHorizontal7);
-        partidaLayout.setComponentAlignment(layoutHorizontal7, Alignment.MIDDLE_CENTER);
+        partidaLayout.addComponent(filasPanel);
+        partidaLayout.setComponentAlignment(filasPanel, Alignment.MIDDLE_CENTER);
 
         partidaLayout.addComponent(layoutHorizontalBotones);
         partidaLayout.setComponentAlignment(layoutHorizontalBotones, Alignment.MIDDLE_CENTER);
@@ -1132,6 +555,38 @@ public class PagoDevolucionEngancheForm extends Window {
         mainLayout.addComponent(partidaLayout);
         mainLayout.setComponentAlignment(partidaLayout, Alignment.MIDDLE_CENTER);
 
+    }
+
+    /**
+     * Crea un NumberField con el formato estandar usado en las lineas de la partida.
+     */
+    private NumberField crearNumberField() {
+        NumberField nf = new NumberField();
+        nf.setValidationVisible(false);
+        nf.setDecimalAllowed(true);
+        nf.setDecimalPrecision(2);
+        nf.setMinimumFractionDigits(2);
+        nf.setDecimalSeparator('.');
+        nf.setDecimalSeparatorAlwaysShown(true);
+        nf.setValue(0d);
+        nf.setGroupingUsed(true);
+        nf.setGroupingSeparator(',');
+        nf.setGroupingSize(3);
+        nf.setImmediate(true);
+        nf.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
+        nf.setWidth("8em");
+        nf.setValue(0.00);
+        return nf;
+    }
+
+    /**
+     * Crea una etiqueta de encabezado de columna con el ancho indicado.
+     */
+    private Label crearEncabezado(String texto, String ancho) {
+        Label lbl = new Label(texto);
+        lbl.setWidth(ancho);
+        lbl.addStyleName(ValoTheme.LABEL_BOLD);
+        return lbl;
     }
 
     public void calcularPartida() {
@@ -1198,173 +653,73 @@ public class PagoDevolucionEngancheForm extends Window {
             monedaCbx.select(String.valueOf(enganchesGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(MONEDA_PROPERTY).getValue()));
 
             try {
-                //// ENGANCHES SELECCIONADOS
-                if (cuentaContable1Cbx.getValue() == null) {
-                    cuentaContable1Cbx.setValue(enganchesGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(IDNOMENCLATURA).getValue());
-                    debe1Txt.setValue(montoEnganche);
-                    debe1QTxt.setValue(montoProporcialQ);
-                    codigo1Txt.setValue(codigoCC);
-
-                } else if (cuentaContable2Cbx.getValue() == null) {
-                    cuentaContable2Cbx.setValue(enganchesGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(IDNOMENCLATURA).getValue());
-                    debe2Txt.setValue(montoEnganche);
-                    debe2QTxt.setValue(montoProporcialQ);
-                    codigo2Txt.setValue(codigoCC);
-
-                } else if (cuentaContable3Cbx.getValue() == null) {
-                    cuentaContable3Cbx.setValue(enganchesGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(IDNOMENCLATURA).getValue());
-                    debe3Txt.setValue(montoEnganche);
-                    debe3QTxt.setValue(montoProporcialQ);
-                    codigo3Txt.setValue(codigoCC);
-
-                } else if (cuentaContable4Cbx.getValue() == null) {
-                    cuentaContable4Cbx.select(enganchesGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(IDNOMENCLATURA).getValue());
-                    debe4Txt.setValue(montoEnganche);
-                    debe4QTxt.setValue(montoProporcialQ);
-                    codigo4Txt.setValue(codigoCC);
-
-                } else if (cuentaContable5Cbx.getValue() == null) {
-                    cuentaContable5Cbx.select(enganchesGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(IDNOMENCLATURA).getValue());
-                    debe5Txt.setValue(montoEnganche);
-                    debe5QTxt.setValue(montoProporcialQ);
-                    codigo5Txt.setValue(codigoCC);
-
+                //// ENGANCHES SELECCIONADOS: se coloca en la primera linea disponible
+                for (int i = 0; i < FILAS; i++) {
+                    if (cuentaContableCbx[i].getValue() == null) {
+                        cuentaContableCbx[i].setValue(enganchesGrid.getContainerDataSource().getItem(gridItem2).getItemProperty(IDNOMENCLATURA).getValue());
+                        debeTxt[i].setValue(montoEnganche);
+                        debeQTxt[i].setValue(montoProporcialQ);
+                        codigoTxt[i].setValue(codigoCC);
+                        break;
+                    }
                 }
             } catch (Exception ex) {
                 System.out.println("Error " + ex);
             }
         }
 
-        if(monedaCbx.getValue().toString().equals("QUETZALES")) {
+        //// CUENTA DE BANCOS (contrapartida del pago): primera linea disponible desde la 2da
+        String cuentaBancos;
+        double haberQBancos;
+        if (monedaCbx.getValue().toString().equals("QUETZALES")) {
             tasaCambioTxt.setValue(1.00);
-            if (cuentaContable2Cbx.getValue() == null) {
-                cuentaContable2Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal());
-                haber2Txt.setValue(montoTotalSeleccionado);
-                haber2QTxt.setReadOnly(false);
-                haber2QTxt.setValue(montoTotalSeleccionado * tasaCambioTxt.getDoubleValueDoNotThrow());
-
-            } else if (cuentaContable3Cbx.getValue() == null) {
-                cuentaContable3Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal());
-                haber3Txt.setValue(montoTotalSeleccionado);
-                haber3QTxt.setReadOnly(false);
-                haber3QTxt.setValue(montoTotalSeleccionado * tasaCambioTxt.getDoubleValueDoNotThrow());
-
-            } else if (cuentaContable4Cbx.getValue() == null) {
-                cuentaContable4Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal());
-                haber4Txt.setValue(montoTotalSeleccionado);
-                haber4QTxt.setReadOnly(false);
-                haber4QTxt.setValue(montoTotalSeleccionado * tasaCambioTxt.getDoubleValueDoNotThrow());
-
-            } else if (cuentaContable5Cbx.getValue() == null) {
-                cuentaContable5Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal());
-                haber5Txt.setValue(montoTotalSeleccionado);
-                haber5QTxt.setReadOnly(false);
-                haber5QTxt.setValue(montoTotalSeleccionado * tasaCambioTxt.getDoubleValueDoNotThrow());
-
-            } else if (cuentaContable6Cbx.getValue() == null) {
-                cuentaContable6Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal());
-                haber6Txt.setValue(montoTotalSeleccionado);
-                haber6QTxt.setReadOnly(false);
-                haber6QTxt.setValue(montoTotalSeleccionado * tasaCambioTxt.getDoubleValueDoNotThrow());
+            cuentaBancos = ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaLocal();
+            haberQBancos = montoTotalSeleccionado * tasaCambioTxt.getDoubleValueDoNotThrow();
+        } else {
+            cuentaBancos = ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaExtranjera();
+            haberQBancos = Double.valueOf(numberFormat3.format(montoTotalSeleccionado * tasaCambioTxt.getDoubleValueDoNotThrow()));
+        }
+        for (int i = 1; i < FILAS; i++) {
+            if (cuentaContableCbx[i].getValue() == null) {
+                cuentaContableCbx[i].select(cuentaBancos);
+                haberTxt[i].setValue(montoTotalSeleccionado);
+                haberQTxt[i].setReadOnly(false);
+                haberQTxt[i].setValue(haberQBancos);
+                break;
             }
         }
-        else {
-            double enquetzales = Double.valueOf(numberFormat3.format(montoTotalSeleccionado * tasaCambioTxt.getDoubleValueDoNotThrow()));
-//                                tasaCambioTxt.setValue((Float.toString(((SopdiUI) UI.getCurrent()).sessionInformation.getFltExchangeRate())));
-            if (cuentaContable2Cbx.getValue() == null) {
-                cuentaContable2Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaExtranjera());
-                haber2Txt.setValue(montoTotalSeleccionado);
-                haber2QTxt.setReadOnly(false);
-                haber2QTxt.setValue(enquetzales);
 
-            } else if (cuentaContable3Cbx.getValue() == null) {
-                cuentaContable3Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaExtranjera());
-                haber3Txt.setValue(montoTotalSeleccionado);
-                haber3QTxt.setReadOnly(false);
-                haber3QTxt.setValue(enquetzales);
-
-            } else if (cuentaContable4Cbx.getValue() == null) {
-                cuentaContable4Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaExtranjera());
-                haber4Txt.setValue(montoTotalSeleccionado);
-                haber4QTxt.setReadOnly(false);
-                haber4QTxt.setValue(enquetzales);
-
-            } else if (cuentaContable5Cbx.getValue() == null) {
-                cuentaContable5Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaExtranjera());
-                haber5Txt.setValue(montoTotalSeleccionado);
-                haber5QTxt.setReadOnly(false);
-                haber5QTxt.setValue(enquetzales);
-
-            } else if (cuentaContable6Cbx.getValue() == null) {
-                cuentaContable6Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getBancosMonedaExtranjera());
-                haber6Txt.setValue(montoTotalSeleccionado);
-                haber6QTxt.setReadOnly(false);
-                haber6QTxt.setValue(enquetzales);
-
-            }
+        totalDebe = new BigDecimal(0);
+        totalHaber = new BigDecimal(0);
+        for (int i = 0; i < FILAS; i++) {
+            totalDebe = totalDebe.add(new BigDecimal(debeQTxt[i].getDoubleValueDoNotThrow()));
+            totalHaber = totalHaber.add(new BigDecimal(haberQTxt[i].getDoubleValueDoNotThrow()));
         }
-        totalDebe = new BigDecimal(debe1QTxt.getDoubleValueDoNotThrow()
-                + debe2QTxt.getDoubleValueDoNotThrow() + debe3QTxt.getDoubleValueDoNotThrow()
-                + debe4QTxt.getDoubleValueDoNotThrow() + debe5QTxt.getDoubleValueDoNotThrow()
-        ).setScale(2, RoundingMode.HALF_UP);
-
-        totalHaber = new BigDecimal(haber1QTxt.getDoubleValueDoNotThrow()
-                + haber2QTxt.getDoubleValueDoNotThrow() + haber3QTxt.getDoubleValueDoNotThrow()
-                + haber4QTxt.getDoubleValueDoNotThrow() + haber5QTxt.getDoubleValueDoNotThrow()
-                + haber6QTxt.getDoubleValueDoNotThrow() + haber7QTxt.getDoubleValueDoNotThrow()
-        ).setScale(2, RoundingMode.HALF_UP);
-
-        totalDebe.setScale(2, RoundingMode.HALF_UP);
-        totalHaber.setScale(2, RoundingMode.HALF_UP);
+        totalDebe = totalDebe.setScale(2, RoundingMode.HALF_UP);
+        totalHaber = totalHaber.setScale(2, RoundingMode.HALF_UP);
 
         double diferencia = Double.valueOf(numberFormat3.format((totalHaber.doubleValue() - totalDebe.doubleValue())));
 
-        //para diferencial cambiario, si es que lo hay ...
+        //para diferencial cambiario, si es que lo hay ... primera linea libre desde la 3ra
+        String diferencial = ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario();
         if (diferencia < 0) {
             diferencia = diferencia * -1;
-            if (cuentaContable3Cbx.getValue() == null) {
-                cuentaContable3Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario());
-                haber3QTxt.setValue(diferencia);
-
-            } else if (cuentaContable4Cbx.getValue() == null && !cuentaContable3Cbx.getValue().equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario())) {
-                cuentaContable4Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario());
-                haber4QTxt.setValue(diferencia);
-
-            } else if (cuentaContable5Cbx.getValue() == null && !cuentaContable4Cbx.getValue().equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario())) {
-                cuentaContable5Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario());
-                haber5QTxt.setValue(diferencia);
-
-            } else if (cuentaContable6Cbx.getValue() == null && !cuentaContable5Cbx.getValue().equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario())) {
-                cuentaContable6Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario());
-                haber6QTxt.setValue(diferencia);
-
-            } else if (cuentaContable7Cbx.getValue() == null && !cuentaContable6Cbx.getValue().equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario())) {
-                cuentaContable7Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario());
-                haber7QTxt.setValue(diferencia);
-
+            for (int i = 2; i < FILAS; i++) {
+                if (cuentaContableCbx[i].getValue() == null
+                        && (i == 2 || !diferencial.equals(String.valueOf(cuentaContableCbx[i - 1].getValue())))) {
+                    cuentaContableCbx[i].select(diferencial);
+                    haberQTxt[i].setValue(diferencia);
+                    break;
+                }
             }
-        }
-        else {
-            if (cuentaContable3Cbx.getValue() == null) {
-                cuentaContable3Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario());
-                debe3QTxt.setValue(diferencia);
-
-            } else if (cuentaContable4Cbx.getValue() == null && !cuentaContable3Cbx.getValue().equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario())) {
-                cuentaContable4Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario());
-                debe4QTxt.setValue(diferencia);
-
-            } else if (cuentaContable5Cbx.getValue() == null && !cuentaContable4Cbx.getValue().equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario())) {
-                cuentaContable5Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario());
-                debe5QTxt.setValue(diferencia);
-
-            } else if (cuentaContable6Cbx.getValue() == null && !cuentaContable5Cbx.getValue().equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario())) {
-                cuentaContable6Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario());
-                debe6QTxt.setValue(diferencia);
-
-            } else if (cuentaContable7Cbx.getValue() == null && !cuentaContable6Cbx.getValue().equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario())) {
-                cuentaContable7Cbx.select(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getDiferencialCambiario());
-                debe7QTxt.setValue(diferencia);
-
+        } else {
+            for (int i = 2; i < FILAS; i++) {
+                if (cuentaContableCbx[i].getValue() == null
+                        && (i == 2 || !diferencial.equals(String.valueOf(cuentaContableCbx[i - 1].getValue())))) {
+                    cuentaContableCbx[i].select(diferencial);
+                    debeQTxt[i].setValue(diferencia);
+                    break;
+                }
             }
         }
     }
@@ -1372,7 +727,7 @@ public class PagoDevolucionEngancheForm extends Window {
     public void llenarComboCuentaContable() {
         String queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
         queryString += " WHERE Estatus='HABILITADA'";
-        queryString += " ANd IdEmprewsa = " + empresaId;
+        queryString += " ANd IdEmpresa = " + empresaId;
         queryString += " ORDER BY N5";
 
         try {
@@ -1380,27 +735,12 @@ public class PagoDevolucionEngancheForm extends Window {
             rsRecords = stQuery.executeQuery(queryString);
 
             while (rsRecords.next()) { //  encontrado
-
-                cuentaContable1Cbx.addItem(rsRecords.getString("IdNomenclatura"));
-                cuentaContable1Cbx.setItemCaption(rsRecords.getString("IdNomenclatura"), rsRecords.getString("NoCuenta") + " " + rsRecords.getString("N5"));
-
-                cuentaContable2Cbx.addItem(rsRecords.getString("IdNomenclatura"));
-                cuentaContable2Cbx.setItemCaption(rsRecords.getString("IdNomenclatura"), rsRecords.getString("NoCuenta") + " " + rsRecords.getString("N5"));
-
-                cuentaContable3Cbx.addItem(rsRecords.getString("IdNomenclatura"));
-                cuentaContable3Cbx.setItemCaption(rsRecords.getString("IdNomenclatura"), rsRecords.getString("NoCuenta") + " " + rsRecords.getString("N5"));
-
-                cuentaContable4Cbx.addItem(rsRecords.getString("IdNomenclatura"));
-                cuentaContable4Cbx.setItemCaption(rsRecords.getString("IdNomenclatura"), rsRecords.getString("NoCuenta") + " " + rsRecords.getString("N5"));
-
-                cuentaContable5Cbx.addItem(rsRecords.getString("IdNomenclatura"));
-                cuentaContable5Cbx.setItemCaption(rsRecords.getString("IdNomenclatura"), rsRecords.getString("NoCuenta") + " " + rsRecords.getString("N5"));
-
-                cuentaContable6Cbx.addItem(rsRecords.getString("IdNomenclatura"));
-                cuentaContable6Cbx.setItemCaption(rsRecords.getString("IdNomenclatura"), rsRecords.getString("NoCuenta") + " " + rsRecords.getString("N5"));
-
-                cuentaContable7Cbx.addItem(rsRecords.getString("IdNomenclatura"));
-                cuentaContable7Cbx.setItemCaption(rsRecords.getString("IdNomenclatura"), rsRecords.getString("NoCuenta") + " " + rsRecords.getString("N5"));
+                String idNomenclatura = rsRecords.getString("IdNomenclatura");
+                String caption = rsRecords.getString("NoCuenta") + " " + rsRecords.getString("N5");
+                for (int i = 0; i < FILAS; i++) {
+                    cuentaContableCbx[i].addItem(idNomenclatura);
+                    cuentaContableCbx[i].setItemCaption(idNomenclatura, caption);
+                }
             }
 
         } catch (Exception ex1) {
@@ -1427,20 +767,14 @@ public class PagoDevolucionEngancheForm extends Window {
             return;
         }
 
-        totalDebe = new BigDecimal(debe1Txt.getDoubleValueDoNotThrow()
-                + debe2Txt.getDoubleValueDoNotThrow() + debe3Txt.getDoubleValueDoNotThrow()
-                + debe4Txt.getDoubleValueDoNotThrow() + debe5Txt.getDoubleValueDoNotThrow()
-                + debe6Txt.getDoubleValueDoNotThrow() + debe7Txt.getDoubleValueDoNotThrow()
-        ).setScale(2, RoundingMode.HALF_UP);
-
-        totalHaber = new BigDecimal(haber1Txt.getDoubleValueDoNotThrow()
-                + haber2Txt.getDoubleValueDoNotThrow() + haber3Txt.getDoubleValueDoNotThrow()
-                + haber4Txt.getDoubleValueDoNotThrow() + haber5Txt.getDoubleValueDoNotThrow()
-                + haber6Txt.getDoubleValueDoNotThrow() + haber7Txt.getDoubleValueDoNotThrow()
-        ).setScale(2, RoundingMode.HALF_UP);
-
-        totalDebe.setScale(2, RoundingMode.HALF_UP);
-        totalHaber.setScale(2, RoundingMode.HALF_UP);
+        totalDebe = new BigDecimal(0);
+        totalHaber = new BigDecimal(0);
+        for (int i = 0; i < FILAS; i++) {
+            totalDebe = totalDebe.add(new BigDecimal(debeTxt[i].getDoubleValueDoNotThrow()));
+            totalHaber = totalHaber.add(new BigDecimal(haberTxt[i].getDoubleValueDoNotThrow()));
+        }
+        totalDebe = totalDebe.setScale(2, RoundingMode.HALF_UP);
+        totalHaber = totalHaber.setScale(2, RoundingMode.HALF_UP);
 
         if (totalDebe.doubleValue() != totalHaber.doubleValue()) {
             Notification.show("La partida es descuadrada, por favor revisar"
@@ -1463,9 +797,9 @@ public class PagoDevolucionEngancheForm extends Window {
             montoTxt.focus();
             return;
         }
-        if (cuentaContable1Cbx.getValue() == null || cuentaContable2Cbx.getValue() == null) {
+        if (cuentaContableCbx[0].getValue() == null || cuentaContableCbx[1].getValue() == null) {
             Notification.show("Por favor elija la cuenta contable que corresponda. ", Notification.Type.ERROR_MESSAGE);
-            cuentaContable1Cbx.focus();
+            cuentaContableCbx[0].focus();
             return;
         }
 
@@ -1535,7 +869,7 @@ public class PagoDevolucionEngancheForm extends Window {
         queryString += empresaId;
         queryString += ",'INGRESADO'";
         queryString += ",'" + codigoPartida + "'";
-        queryString += ",'" + codigo1Txt.getValue() + "'";
+        queryString += ",'" + codigoTxt[0].getValue() + "'";
         queryString += ",'" + medioCbx.getValue() + "'";
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += "," + proveedorId;
@@ -1547,11 +881,11 @@ public class PagoDevolucionEngancheForm extends Window {
         queryString += ",'" + numeroTxt.getValue() + "'";
         queryString += ",''"; //tipodoca
         queryString += ",''"; //doca
-        queryString += "," + cuentaContable1Cbx.getValue(); //idcuentacontable
+        queryString += "," + cuentaContableCbx[0].getValue(); //idcuentacontable
         queryString += ",'" + monedaCbx.getValue() + "'";
-        queryString += "," + debe1Txt.getDoubleValueDoNotThrow(); //DEBE
+        queryString += "," + debeTxt[0].getDoubleValueDoNotThrow(); //DEBE
         queryString += ",0.00"; //HABER
-        queryString += "," + debe1QTxt.getDoubleValueDoNotThrow(); //DEBE Q
+        queryString += "," + debeQTxt[0].getDoubleValueDoNotThrow(); //DEBE Q
         queryString += ",0.00"; //HABER Q.
         queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
         queryString += "," + montoTxt.getDoubleValueDoNotThrow();
@@ -1560,195 +894,40 @@ public class PagoDevolucionEngancheForm extends Window {
         queryString += ",current_timestamp";
         queryString += ")";
 
-        if (cuentaContable2Cbx.getValue() != null && (debe2Txt.getDoubleValueDoNotThrow() > 0 || haber2Txt.getDoubleValueDoNotThrow() > 0)) {
-            queryString += ",(";
-            queryString += empresaId;
-            queryString += ",'INGRESADO'";
-            queryString += ",'" + codigoPartida + "'";
-            queryString += ",'" + codigo2Txt.getValue() + "'";
-            queryString += ",'" + medioCbx.getValue() + "'";
-            queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
-            queryString += "," + proveedorId;
-            queryString += ",''"; //nitproveedor
-            queryString += ",'" + nombreProveedor + "'";
-            queryString += ",'" + nombreChequeTxt.getValue() + "'";
-            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-            queryString += ",''"; //serie documento
-            queryString += ",'" + numeroTxt.getValue() + "'";
-            queryString += ",''"; //tipodoca
-            queryString += ",''"; //doca
-            queryString += "," + cuentaContable2Cbx.getValue(); //idcuentacontable
-            queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + debe2Txt.getDoubleValueDoNotThrow(); // DEBE
-            queryString += "," + haber2Txt.getDoubleValueDoNotThrow(); // HABER
-            queryString += "," + debe2QTxt.getDoubleValueDoNotThrow(); //DEBE Q.
-            queryString += "," + haber2QTxt.getDoubleValueDoNotThrow(); //HABER Q
-            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
-            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-            queryString += ",'" + descripcionTxt.getValue() + "'";
-            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
-            queryString += ",current_timestamp";
-            queryString += ")";
-
-        }
-
-        if (cuentaContable3Cbx.getValue() != null && (debe3Txt.getDoubleValueDoNotThrow() > 0 || haber3Txt.getDoubleValueDoNotThrow() > 0)) {
-            queryString += ",(";
-            queryString += empresaId;
-            queryString += ",'INGRESADO'";
-            queryString += ",'" + codigoPartida + "'";
-            queryString += ",'" + codigo3Txt.getValue() + "'";
-            queryString += ",'" + medioCbx.getValue() + "'";
-            queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
-            queryString += "," + proveedorId;
-            queryString += ",''";
-            queryString += ",'" + nombreProveedor + "'";
-            queryString += ",'" + nombreChequeTxt.getValue() + "'";
-            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-            queryString += ",''"; //serie documento
-            queryString += ",'" + numeroTxt.getValue() + "'";
-            queryString += ",''"; //tipodoca
-            queryString += ",''"; //doca
-            queryString += "," + cuentaContable3Cbx.getValue(); //idcuentacontable
-            queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + debe3Txt.getDoubleValueDoNotThrow();
-            queryString += "," + haber3Txt.getDoubleValueDoNotThrow(); // HABER
-            queryString += "," + debe3QTxt.getDoubleValueDoNotThrow(); //DEBE Q.
-            queryString += "," + haber3QTxt.getDoubleValueDoNotThrow(); //HABER Q
-            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
-            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-            queryString += ",'" + descripcionTxt.getValue() + "'";
-            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
-            queryString += ",current_timestamp";
-            queryString += ")";
-
-        }
-        if (cuentaContable4Cbx.getValue() != null && (debe4Txt.getDoubleValueDoNotThrow() > 0 || haber4Txt.getDoubleValueDoNotThrow() > 0)) {
-            queryString += ",(";
-            queryString += empresaId;
-            queryString += ",'INGRESADO'";
-            queryString += ",'" + codigoPartida + "'";
-            queryString += ",'" + codigo4Txt.getValue() + "'";
-            queryString += ",'" + medioCbx.getValue() + "'";
-            queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
-            queryString += "," + proveedorId;
-            queryString += ",''";
-            queryString += ",'" + nombreProveedor + "'";
-            queryString += ",'" + nombreChequeTxt.getValue() + "'";
-            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-            queryString += ",''"; //serie documento
-            queryString += ",'" + numeroTxt.getValue() + "'";
-            queryString += ",''"; //tipodoca
-            queryString += ",''"; //doca
-            queryString += "," + cuentaContable4Cbx.getValue(); //idcuentacontable
-            queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + debe4Txt.getDoubleValueDoNotThrow();
-            queryString += "," + haber4Txt.getDoubleValueDoNotThrow(); // HABER
-            queryString += "," + debe4QTxt.getDoubleValueDoNotThrow(); //DEBE Q.
-            queryString += "," + haber4QTxt.getDoubleValueDoNotThrow(); //HABER Q
-            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
-            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-            queryString += ",'" + descripcionTxt.getValue() + "'";
-            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
-            queryString += ",current_timestamp";
-            queryString += ")";
-
-            System.out.println("cuarto query" + queryString);
-
-        }
-        if (cuentaContable5Cbx.getValue() != null && (debe5Txt.getDoubleValueDoNotThrow() > 0 || haber5Txt.getDoubleValueDoNotThrow() > 0)) {
-            queryString += ",(";
-            queryString += empresaId;
-            queryString += ",'INGRESADO'";
-            queryString += ",'" + codigoPartida + "'";
-            queryString += ",''";
-            queryString += ",'" + medioCbx.getValue() + "'";
-            queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
-            queryString += "," + proveedorId;
-            queryString += ",''";
-            queryString += ",'" + nombreProveedor + "'";
-            queryString += ",'" + nombreChequeTxt.getValue() + "'";
-            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-            queryString += ",''"; //serie documento
-            queryString += ",'" + numeroTxt.getValue() + "'";
-            queryString += ",''"; //tipodoca
-            queryString += ",''"; //doca
-            queryString += "," + cuentaContable5Cbx.getValue(); //idcuentacontable
-            queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + debe5Txt.getDoubleValueDoNotThrow();
-            queryString += "," + haber5Txt.getDoubleValueDoNotThrow(); // HABER
-            queryString += "," + debe5QTxt.getDoubleValueDoNotThrow(); //DEBE Q.
-            queryString += "," + haber5QTxt.getDoubleValueDoNotThrow(); //HABER Q
-            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
-            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-            queryString += ",'" + descripcionTxt.getValue() + "'";
-            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
-            queryString += ",current_timestamp";
-            queryString += ")";
-
-        }
-
-        if (cuentaContable6Cbx.getValue() != null && (debe6Txt.getDoubleValueDoNotThrow() > 0 || haber6Txt.getDoubleValueDoNotThrow() > 0)) {
-            queryString += ",(";
-            queryString += empresaId;
-            queryString += ",'INGRESADO'";
-            queryString += ",'" + codigoPartida + "'";
-            queryString += ",''";
-            queryString += ",'" + medioCbx.getValue() + "'";
-            queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
-            queryString += "," + proveedorId;
-            queryString += ",''";
-            queryString += ",'" + nombreProveedor + "'";
-            queryString += ",'" + nombreChequeTxt.getValue() + "'";
-            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-            queryString += ",''"; //serie documento
-            queryString += ",'" + numeroTxt.getValue() + "'";
-            queryString += ",''"; //tipodoca
-            queryString += ",''"; //doca
-            queryString += "," + cuentaContable6Cbx.getValue(); //idcuentacontable
-            queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + debe6Txt.getDoubleValueDoNotThrow();
-            queryString += "," + haber6Txt.getDoubleValueDoNotThrow(); // HABER
-            queryString += "," + debe6QTxt.getDoubleValueDoNotThrow(); //DEBE Q.
-            queryString += "," + haber6QTxt.getDoubleValueDoNotThrow(); //HABER Q
-            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
-            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-            queryString += ",'" + descripcionTxt.getValue() + "'";
-            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
-            queryString += ",current_timestamp";
-            queryString += ")";
-
-        }
-
-        if (cuentaContable7Cbx.getValue() != null && (debe7Txt.getDoubleValueDoNotThrow() > 0 || haber7Txt.getDoubleValueDoNotThrow() > 0)) {
-            queryString += ",(";
-            queryString += empresaId;
-            queryString += ",'INGRESADO'";
-            queryString += ",'" + codigoPartida + "'";
-            queryString += ",''";
-            queryString += ",'" + medioCbx.getValue() + "'";
-            queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
-            queryString += "," + proveedorId;
-            queryString += ",''";
-            queryString += ",'" + nombreProveedor + "'";
-            queryString += ",'" + nombreChequeTxt.getValue() + "'";
-            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-            queryString += ",''"; //serie documento
-            queryString += ",'" + numeroTxt.getValue() + "'";
-            queryString += ",''"; //tipodoca
-            queryString += ",''"; //doca
-            queryString += "," + cuentaContable7Cbx.getValue(); //idcuentacontable
-            queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + debe7Txt.getDoubleValueDoNotThrow();
-            queryString += "," + haber7Txt.getDoubleValueDoNotThrow(); // HABER
-            queryString += "," + debe7QTxt.getDoubleValueDoNotThrow(); //DEBE Q.
-            queryString += "," + haber7QTxt.getDoubleValueDoNotThrow(); //HABER Q
-            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
-            queryString += "," + montoTxt.getDoubleValueDoNotThrow();
-            queryString += ",'" + descripcionTxt.getValue() + "'";
-            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
-            queryString += ",current_timestamp";
-            queryString += ")";
+        // Lineas adicionales de la partida (de la 2da en adelante): se agregan las que
+        // tengan cuenta contable seleccionada y algun monto en debe o haber.
+        for (int i = 1; i < FILAS; i++) {
+            if (cuentaContableCbx[i].getValue() != null
+                    && (debeTxt[i].getDoubleValueDoNotThrow() > 0 || haberTxt[i].getDoubleValueDoNotThrow() > 0)) {
+                queryString += ",(";
+                queryString += empresaId;
+                queryString += ",'INGRESADO'";
+                queryString += ",'" + codigoPartida + "'";
+                queryString += ",'" + codigoTxt[i].getValue() + "'";
+                queryString += ",'" + medioCbx.getValue() + "'";
+                queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
+                queryString += "," + proveedorId;
+                queryString += ",''"; //nitproveedor
+                queryString += ",'" + nombreProveedor + "'";
+                queryString += ",'" + nombreChequeTxt.getValue() + "'";
+                queryString += "," + montoTxt.getDoubleValueDoNotThrow();
+                queryString += ",''"; //serie documento
+                queryString += ",'" + numeroTxt.getValue() + "'";
+                queryString += ",''"; //tipodoca
+                queryString += ",''"; //doca
+                queryString += "," + cuentaContableCbx[i].getValue(); //idcuentacontable
+                queryString += ",'" + monedaCbx.getValue() + "'";
+                queryString += "," + debeTxt[i].getDoubleValueDoNotThrow(); // DEBE
+                queryString += "," + haberTxt[i].getDoubleValueDoNotThrow(); // HABER
+                queryString += "," + debeQTxt[i].getDoubleValueDoNotThrow(); //DEBE Q.
+                queryString += "," + haberQTxt[i].getDoubleValueDoNotThrow(); //HABER Q
+                queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
+                queryString += "," + montoTxt.getDoubleValueDoNotThrow();
+                queryString += ",'" + descripcionTxt.getValue() + "'";
+                queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+                queryString += ",current_timestamp";
+                queryString += ")";
+            }
         }
 
         try {
@@ -1873,87 +1052,18 @@ public class PagoDevolucionEngancheForm extends Window {
         nombreChequeTxt.setReadOnly(((SopdiUI) mainUI).sessionInformation.getStrUserProfileName().equals("CONTADOR"));
         nombreChequeTxt.setReadOnly(((SopdiUI) mainUI).sessionInformation.getStrUserProfileName().equals("AUXILIAR"));
 
-        cuentaContable1Cbx.setReadOnly(false);
-        cuentaContable1Cbx.clear();
-        debe1Txt.setReadOnly(false);
-        haber1Txt.setReadOnly(false);
-        debe1Txt.setValue(0.00);
-        haber1Txt.setValue(0.00);
-        debe1QTxt.setReadOnly(false);
-        haber1QTxt.setReadOnly(false);
-        debe1QTxt.setValue(0.00);
-        haber1QTxt.setValue(0.00);
-
-        cuentaContable2Cbx.setReadOnly(false);
-        cuentaContable2Cbx.clear();
-        debe2Txt.setReadOnly(false);
-        haber2Txt.setReadOnly(false);
-        debe2Txt.setValue(0.00);
-        haber2Txt.setValue(0.00);
-        debe2QTxt.setReadOnly(false);
-        haber2QTxt.setReadOnly(false);
-        debe2QTxt.setValue(0.00);
-        haber2QTxt.setValue(0.00);
-
-        cuentaContable3Cbx.setReadOnly(false);
-        cuentaContable3Cbx.clear();
-        debe3Txt.setReadOnly(false);
-        haber3Txt.setReadOnly(false);
-        debe3Txt.setValue(0.00);
-        haber3Txt.setValue(0.00);
-        debe3QTxt.setReadOnly(false);
-        haber3QTxt.setReadOnly(false);
-        debe3QTxt.setValue(0.00);
-        haber3QTxt.setValue(0.00);
-
-        cuentaContable4Cbx.setReadOnly(false);
-        cuentaContable4Cbx.clear();
-        debe4Txt.setReadOnly(false);
-        haber4Txt.setReadOnly(false);
-        debe4Txt.setValue(0.00);
-        haber4Txt.setValue(0.00);
-        debe4QTxt.setReadOnly(false);
-        haber4QTxt.setReadOnly(false);
-        debe4QTxt.setValue(0.00);
-        haber4QTxt.setValue(0.00);
-
-        cuentaContable5Cbx.setReadOnly(false);
-        cuentaContable5Cbx.clear();
-        debe5Txt.setReadOnly(false);
-        haber5Txt.setReadOnly(false);
-        debe5Txt.setValue(0.00);
-        haber5Txt.setValue(0.00);
-        debe5QTxt.setReadOnly(false);
-        haber5QTxt.setReadOnly(false);
-        debe5QTxt.setValue(0.00);
-        haber5QTxt.setValue(0.00);
-
-        cuentaContable6Cbx.setReadOnly(false);
-        cuentaContable6Cbx.clear();
-        debe6Txt.setReadOnly(false);
-        haber6Txt.setReadOnly(false);
-        debe6Txt.setValue(0.00);
-        haber6Txt.setValue(0.00);
-        debe6QTxt.setReadOnly(false);
-        haber6QTxt.setReadOnly(false);
-        debe6QTxt.setValue(0.00);
-        haber6QTxt.setValue(0.00);
-
-        cuentaContable7Cbx.setReadOnly(false);
-        cuentaContable7Cbx.clear();
-        debe7Txt.setReadOnly(false);
-        haber7Txt.setReadOnly(false);
-        debe7Txt.setValue(0.00);
-        haber7Txt.setValue(0.00);
-        debe7QTxt.setReadOnly(false);
-        haber7QTxt.setReadOnly(false);
-        debe7QTxt.setValue(0.00);
-        haber7QTxt.setValue(0.00);
-
-        codigo1Txt.setValue("");
-        codigo2Txt.setValue("");
-        codigo3Txt.setValue("");
-        codigo4Txt.setValue("");
-        codigo5Txt.setValue("");
+        for (int i = 0; i < FILAS; i++) {
+            cuentaContableCbx[i].setReadOnly(false);
+            cuentaContableCbx[i].clear();
+            debeTxt[i].setReadOnly(false);
+            haberTxt[i].setReadOnly(false);
+            debeTxt[i].setValue(0.00);
+            haberTxt[i].setValue(0.00);
+            debeQTxt[i].setReadOnly(false);
+            haberQTxt[i].setReadOnly(false);
+            debeQTxt[i].setValue(0.00);
+            haberQTxt[i].setValue(0.00);
+            codigoTxt[i].setValue("");
+        }
     }
 }

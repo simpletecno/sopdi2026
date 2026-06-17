@@ -77,6 +77,7 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
     ComboBox cuentaContable42Cbx;
     ComboBox cuentaContable43Cbx;
     ComboBox cuentaContable44Cbx;
+    ComboBox cuentaContable45Cbx;
 
     public CuentasContablesDefaultView() {
 
@@ -213,7 +214,7 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
         verticalLayout.setMargin(true);
         verticalLayout.setSpacing(true);
         verticalLayout.setWidth("100%");
-        verticalLayout.setHeight("100%");
+        verticalLayout.setHeightUndefined();
 
         cuentaContable1Cbx = new ComboBox("Proveedores : ");
         cuentaContable1Cbx.setWidth("25em");
@@ -523,11 +524,18 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
         cuentaContable44Cbx.setNewItemsAllowed(false);
         cuentaContable44Cbx.addStyleName("mybluecaption");
 
+        cuentaContable45Cbx = new ComboBox("Cheques en Tesoreria : ");
+        cuentaContable45Cbx.setWidth("25em");
+        cuentaContable45Cbx.setFilteringMode(FilteringMode.CONTAINS);
+        cuentaContable45Cbx.setInvalidAllowed(false);
+        cuentaContable45Cbx.setNewItemsAllowed(false);
+        cuentaContable45Cbx.addStyleName("mybluecaption");
+
         HorizontalLayout horizontalLayout = new HorizontalLayout();
         horizontalLayout.setSpacing(true);
         horizontalLayout.setResponsive(true);
         horizontalLayout.setWidth("100%");
-        horizontalLayout.setHeight("100%");
+        horizontalLayout.setHeightUndefined();
 //        horizontalLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
         horizontalLayout.addStyleName(ValoTheme.LAYOUT_HORIZONTAL_WRAPPING);
 
@@ -535,18 +543,24 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
         verticalLayout1.setMargin(true);
         verticalLayout1.setSpacing(true);
         verticalLayout1.setResponsive(true);
+        verticalLayout1.setWidthUndefined();
+        verticalLayout1.setHeightUndefined();
         verticalLayout1.setCaption("");
 
         VerticalLayout verticalLayout2= new VerticalLayout();
         verticalLayout2.setMargin(true);
         verticalLayout2.setSpacing(true);
         verticalLayout2.setResponsive(true);
+        verticalLayout2.setWidthUndefined();
+        verticalLayout2.setHeightUndefined();
         verticalLayout2.setCaption("");
 
         VerticalLayout verticalLayout3= new VerticalLayout();
         verticalLayout3.setMargin(true);
         verticalLayout3.setSpacing(true);
         verticalLayout3.setResponsive(true);
+        verticalLayout3.setWidthUndefined();
+        verticalLayout3.setHeightUndefined();
         verticalLayout3.setCaption("");
 
         verticalLayout1.addComponents(
@@ -561,6 +575,7 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
                 cuentaContable9Cbx,
                 cuentaContable10Cbx,
                 cuentaContable11Cbx,
+                cuentaContable12Cbx,
                 cuentaContable13Cbx,
                 cuentaContable14Cbx,
                 cuentaContable15Cbx,
@@ -598,7 +613,8 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
                 cuentaContable41Cbx,
                 cuentaContable42Cbx,
                 cuentaContable43Cbx,
-                cuentaContable44Cbx
+                cuentaContable44Cbx,
+                cuentaContable45Cbx
         );
 
         horizontalLayout.addComponents(verticalLayout1, verticalLayout2,verticalLayout3);
@@ -754,6 +770,9 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
 
                 cuentaContable44Cbx.addItem(rsRecords.getString("IdNomenclatura"));
                 cuentaContable44Cbx.setItemCaption(rsRecords.getString("IdNomenclatura"), rsRecords.getString("NoCuenta") + " " + rsRecords.getString("N5"));
+
+                cuentaContable45Cbx.addItem(rsRecords.getString("IdNomenclatura"));
+                cuentaContable45Cbx.setItemCaption(rsRecords.getString("IdNomenclatura"), rsRecords.getString("NoCuenta") + " " + rsRecords.getString("N5"));
             }
             selectCuentasContablesPorDefault();
 
@@ -818,6 +837,7 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
                 cuentaContable42Cbx.select(rsRecords.getString("Bono14"));
                 cuentaContable43Cbx.select(rsRecords.getString("TituloAccion"));
                 cuentaContable44Cbx.select(rsRecords.getString("TituloAccion2"));
+                cuentaContable45Cbx.select(rsRecords.getString("ChequesTesoreria"));
 
             }
         } catch (Exception ex1) {
@@ -939,7 +959,7 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
                     queryString += " IsrGasto, IsrPorPagar, IsrRetenidoPorPagar, IsrOpcionalMensualPorPagar, Redondeo, MultasYRectificaciones, ";
                     queryString += " CuotaPatronalIgssPorPagar, CuotaLaboralIgssPorPagar, CuotaPatronalIgss, OtrosArbitrios, ";
                     queryString += " ProvisionCompras, ServiciosBancos, ChequesDevueltos, PerdidasGananciasEjercicioAnterior, SueldoOrdinario, ";
-                    queryString += " SueldoExtraordinario, Bono37_2001, Bono78_89, Aguinaldo, Bono14, TituloAccion, TituloAccion2 ";
+                    queryString += " SueldoExtraordinario, Bono37_2001, Bono78_89, Aguinaldo, Bono14, TituloAccion, TituloAccion2, ChequesTesoreria ";
                     queryString +=   ") ";
                     queryString += " VALUES ( ";
                     queryString +=  ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
@@ -987,6 +1007,7 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
                     queryString +=  ",'" + cuentaContable42Cbx.getValue() + "'";
                     queryString +=  ",'" + cuentaContable43Cbx.getValue() + "'";
                     queryString +=  ",'" + cuentaContable44Cbx.getValue() + "'";
+                    queryString +=  ",'" + cuentaContable45Cbx.getValue() + "'";
                     queryString += " ) ";
 
                     stQuery.executeUpdate(queryString);

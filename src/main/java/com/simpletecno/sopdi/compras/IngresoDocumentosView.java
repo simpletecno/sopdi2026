@@ -1217,7 +1217,7 @@ public class IngresoDocumentosView extends VerticalLayout implements View {
         }
         Calendar limite = Calendar.getInstance();
         limite.setTime(inicioDt.getValue());
-        limite.add(Calendar.MONTH, 2);
+        limite.add(Calendar.MONTH, 6);
         if (finDt.getValue().after(limite.getTime())) {
             Notification notif = new Notification("El rango de fechas no puede exceder 2 meses. Reduzca el rango para evitar cargas pesadas.",
                     Notification.Type.WARNING_MESSAGE);

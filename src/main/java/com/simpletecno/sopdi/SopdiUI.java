@@ -92,7 +92,9 @@ public class SopdiUI extends UI implements Button.ClickListener {
 
     private final MenuLayout appLayout = new MenuLayout();
 
-    ComponentContainer viewDisplay = appLayout.getContentContainer();
+    // Contenedor donde el Navigator coloca las vistas (debajo del header).
+    // Vive dentro del área de contenido, por lo que el header persiste al navegar.
+    CssLayout viewDisplay = new CssLayout();
     CssLayout mainMenuLayout = new CssLayout();
     private final CssLayout menuItemsLayout = new CssLayout();
     {
@@ -540,9 +542,12 @@ public class SopdiUI extends UI implements Button.ClickListener {
         getNavigator().setErrorView(ErrorView.class);
         getNavigator().setErrorView(AccessDeniedView.class);
 
+        // Vista de calendario de eventos del usuario (no proviene de la BD de menús).
+        getNavigator().addView("calendarView", com.simpletecno.sopdi.calendario.CalendarView.class);
+
         String f = Page.getCurrent().getUriFragment();
-        if (f == null || f.equals("")) {
-            navigator.navigateTo("dashboardGerencial");
+        if (f == null || f.isEmpty()) {
+            navigator.navigateTo("calendarView");
         }
 
         getNavigator().addViewChangeListener(new ViewChangeListener() {
@@ -589,12 +594,124 @@ public class SopdiUI extends UI implements Button.ClickListener {
             }
         });
 
-        setContent(appLayout);
         appLayout.setWidth("100%");
         appLayout.addMenu(buildMenu());
 
+        // Columna de contenido: header arriba + área de vistas (Navigator) debajo.
+        // El header vive FUERA del contenedor del Navigator, por lo que persiste
+        // al cambiar de vista (el Navigator sólo reemplaza viewDisplay).
+        viewDisplay.setSizeFull();
+        viewDisplay.addStyleName("v-scrollable");
+
+        VerticalLayout contentColumn = new VerticalLayout();
+        contentColumn.setSizeFull();
+        contentColumn.setMargin(false);
+        contentColumn.setSpacing(false);
+        contentColumn.addComponent(buildHeader());
+        contentColumn.addComponent(viewDisplay);
+        contentColumn.setExpandRatio(viewDisplay, 1);
+
+        appLayout.getContentContainer().addComponent(contentColumn);
+
+        setContent(appLayout);
+
 //        fillCuentasContablesPorDefault();
 
+    }
+
+    /**
+     * Construye el header superior con el logo de la empresa, el botón
+     * hamburguesa que oculta/muestra el menú principal y el menú de usuario
+     * (userSettings, antes ubicado dentro del menú principal).
+     */
+    private HorizontalLayout buildHeader() {
+
+        // CSS en runtime para no depender de recompilar el tema.
+        getPage().getStyles().add(
+                ".app-header {"
+                        + " background-color: #ffffff;"
+                        + " border-bottom: 1px solid #d4d4d4;"
+                        + " padding: 4px 12px;"
+                        + " }"
+                        // Avatar pequeño e inline para el menú de usuario en el header.
+                        + ".header-user-menu .v-menubar-menuitem img.v-icon {"
+                        + " width: 30px;"
+                        + " height: 30px;"
+                        + " border-radius: 15px;"
+                        + " border: 1px solid #afafaf;"
+                        + " display: inline-block;"
+                        + " vertical-align: middle;"
+                        + " margin: 0 6px 0 0;"
+                        + " }");
+
+        HorizontalLayout header = new HorizontalLayout();
+        header.setWidth("100%");
+        header.setHeightUndefined();
+        header.setSpacing(true);
+        header.addStyleName("app-header");
+        header.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
+
+        final Button menuToggle = new Button();
+        menuToggle.setIcon(FontAwesome.BARS);
+        menuToggle.setDescription("Mostrar / ocultar el menú principal");
+        menuToggle.addStyleName(ValoTheme.BUTTON_PRIMARY);
+        menuToggle.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
+        menuToggle.addStyleName(ValoTheme.BUTTON_SMALL);
+        menuToggle.addClickListener(event -> appLayout.toggleMenu());
+
+        // El logo del header usa el logo del proyecto (de la sesión); si no hay,
+        // se conserva el logo por defecto del tema.
+        if (sessionInformation != null && sessionInformation.getProjectStreamResource() != null) {
+            projectCover.setSource(sessionInformation.getProjectStreamResource());
+        } else {
+            projectCover.setSource(projectLogo);
+        }
+        projectCover.setHeight("40px");
+
+        // Espaciador que empuja el menú de usuario hacia la derecha.
+        Label spacer = new Label();
+        spacer.setWidth("100%");
+
+        header.addComponents(menuToggle, projectCover, spacer);
+        header.setExpandRatio(spacer, 1);
+
+        if (userSettings != null) {
+            header.addComponent(userSettings);
+            header.setComponentAlignment(userSettings, Alignment.MIDDLE_RIGHT);
+        }
+
+        return header;
+    }
+
+    /**
+     * Carga la fotografía del usuario actual desde el campo Fotografia de la
+     * tabla usuario. Es la imagen que se muestra como avatar en userSettings.
+     *
+     * @return el StreamResource con la foto del usuario, o null si no tiene.
+     */
+    public StreamResource getUserPhotoResource() {
+
+        String queryString = " SELECT Fotografia FROM usuario ";
+        queryString += " WHERE IdUsuario = " + sessionInformation.getStrUserId();
+
+        try {
+            stQuery = databaseProvider.getCurrentConnection().createStatement();
+            rsRecords = stQuery.executeQuery(queryString);
+
+            if (rsRecords.next()) {
+                final byte[] imageBytes = rsRecords.getBytes("Fotografia");
+                if (imageBytes != null && imageBytes.length > 0) {
+                    return new StreamResource(
+                            () -> new ByteArrayInputStream(imageBytes),
+                            "user_photo_" + sessionInformation.getStrUserId()
+                                    + "_" + System.currentTimeMillis() + ".jpg");
+                }
+            }
+        } catch (Exception ex1) {
+            Logger.getLogger(SopdiUI.class.getName()).log(Level.SEVERE,
+                    "Error al leer la fotografía del usuario: " + ex1.getMessage());
+        }
+        return null;
     }
 
     CssLayout buildMenu() {
@@ -653,7 +770,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
         showMenu.setIcon(FontAwesome.LIST);
         mainMenuLayout.addComponent(showMenu);
 
-        empresaProyecto = "<strong>" + sessionInformation.getStrAccountingCompanyName() + "<br></strong><strong>" + sessionInformation.getStrProjectName() + "</strong></br>";
+        empresaProyecto = "<strong>" + sessionInformation.getStrAccountingCompanySmallName() + "<br></strong><strong>" + sessionInformation.getStrProjectName() + "</strong></br>";
 
         Label title = new Label(empresaProyecto,
                 ContentMode.HTML);
@@ -661,8 +778,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
         top.addComponent(title);
         top.setExpandRatio(title, 1);
 
-        MenuBar settings = new MenuBar();
-        settings.addStyleName("user-menu");
+        userSettings = new MenuBar();
         // Define a common menu command for all the menu items.
         MenuBar.Command mycommand = selectedItem -> {
             if (selectedItem.getId() == 3) { // preferencias
@@ -753,10 +869,16 @@ public class SopdiUI extends UI implements Button.ClickListener {
             }
         };
 
-        settings.addStyleName("menu-logo-empresa");
-        settings.setAutoOpen(true);
+        userSettings.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
+        userSettings.addStyleName(ValoTheme.MENUBAR_SMALL);
+        userSettings.addStyleName("header-user-menu");
+        userSettings.setAutoOpen(true);
 
-        userSettingsItem = settings.addItem(sessionInformation.getStrUserFullName(),
+        // El avatar de userSettings usa la fotografía del usuario (usuario.Fotografia),
+        // no el logo de la empresa.
+        sessionInformation.setPhotoStreamResource(getUserPhotoResource());
+
+        userSettingsItem = userSettings.addItem(sessionInformation.getStrUserFullName(),
                 sessionInformation.getPhotoStreamResource(),
                 null);
         userSettingsItem.addItem("Preferencias", FontAwesome.HEART, mycommand).setDescription("Preferencias del usuario.");
@@ -769,7 +891,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
         userSettingsItem.addItem("Ayuda", FontAwesome.BOOK, mycommand).setDescription("Ayuda del sistema."); //12
         userSettingsItem.addSeparator();
         userSettingsItem.addItem("Salir", FontAwesome.SIGN_OUT, mycommand).setDescription("Salir (logout) del sistema."); //10
-        mainMenuLayout.addComponent(settings);
+        // userSettings ahora se coloca en el header superior (ver buildHeader()).
 
         getMenuItemsLayout().setPrimaryStyleName("valo-menuitems");
         mainMenuLayout.addComponent(getMenuItemsLayout());

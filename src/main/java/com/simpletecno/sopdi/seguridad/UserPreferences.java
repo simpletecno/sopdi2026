@@ -1,6 +1,7 @@
 /*
- * Ventana para editar el perfil de usuario
- * ...
+ * Ventana para editar el perfil del usuario.
+ * Lee y actualiza la fotografía del usuario (campo Fotografia de la tabla usuario).
+ *
  * @author Jose Aguirre
 */
 
@@ -19,7 +20,6 @@ import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
 import com.vaadin.ui.Button.ClickEvent;
-import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Image;
 import com.vaadin.ui.Notification;
@@ -35,76 +35,72 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.Calendar;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @SuppressWarnings("unchecked")
 public class UserPreferences extends Window implements Button.ClickListener
-{      
+{
     private static Statement stQuery;
     private static PreparedStatement stPreparedQuery;
     private static ResultSet rsRecords;
 
     Button acceptBtn;
     Button exitBtn;
-    
+
     Upload uploader;
     Image personPhoto;
 
-    final Calendar now = Calendar.getInstance();
-    
-    ImageUploader receiver = new ImageUploader();        
-    
+    ImageUploader receiver = new ImageUploader();
+
     public UserPreferences() {
-        
+
         setSizeFull();
         setCaption("Preferencias de usuario");
 
-        acceptBtn    = new Button("Aceptar");
+        acceptBtn = new Button("Aceptar");
         acceptBtn.setIcon(FontAwesome.CHECK);
-        acceptBtn.setWidth(120,Sizeable.UNITS_PIXELS);
+        acceptBtn.setWidth(120, Sizeable.UNITS_PIXELS);
         acceptBtn.addListener(this);
         acceptBtn.setClickShortcut(KeyCode.ENTER);
-        exitBtn    = new Button("Salir");
+
+        exitBtn = new Button("Salir");
         exitBtn.setIcon(FontAwesome.EJECT);
-        exitBtn.setWidth(120,Sizeable.UNITS_PIXELS);
+        exitBtn.setWidth(120, Sizeable.UNITS_PIXELS);
         exitBtn.addListener(this);
         exitBtn.setClickShortcut(KeyCode.ESCAPE);
 
-        ThemeResource resource = new ThemeResource("img/profile-pic-300px.jpg");
+        ThemeResource resource = new ThemeResource("img/profilepicture.jpg");
 
         personPhoto = new Image("", resource);
         personPhoto.setImmediate(true);
-        personPhoto.setWidth("100px");
-        personPhoto.setHeight("100px"); 
-        personPhoto.addStyleName("user-menu");
+        personPhoto.setWidth("150px");
+        personPhoto.setHeight("150px");
 
-        uploader = new Upload("Logo de la empresa", receiver);
+        uploader = new Upload("Fotografía de usuario", receiver);
         uploader.setButtonCaption("Cargar");
-        uploader.addSucceededListener(receiver);   
-           
+        uploader.addSucceededListener(receiver);
+
         MarginInfo marginInfo = new MarginInfo(true, true, true, true);
         VerticalLayout layout = new VerticalLayout();
         layout.setMargin(marginInfo);
         layout.setSpacing(true);
-                        
+
         HorizontalLayout pictureLayout = new HorizontalLayout();
         pictureLayout.setMargin(marginInfo);
+        pictureLayout.setSpacing(true);
         pictureLayout.addComponent(personPhoto);
         pictureLayout.addComponent(uploader);
-        pictureLayout.setComponentAlignment(uploader, Alignment.MIDDLE_CENTER);
+        pictureLayout.setComponentAlignment(personPhoto, Alignment.MIDDLE_LEFT);
         pictureLayout.setComponentAlignment(uploader, Alignment.MIDDLE_RIGHT);
-        
-        layout.addComponent(pictureLayout);
-        
-        HorizontalLayout footer = new HorizontalLayout();
 
+        layout.addComponent(pictureLayout);
+
+        HorizontalLayout footer = new HorizontalLayout();
         footer.setSpacing(true);
         footer.addComponent(exitBtn);
         footer.setComponentAlignment(exitBtn, Alignment.BOTTOM_LEFT);
@@ -116,200 +112,144 @@ public class UserPreferences extends Window implements Button.ClickListener
         setContent(layout);
 
         setWidth("520px");
-        setHeight("500px");
-        
+        setHeight("400px");
+
         setPositionX(500);
         setPositionY(100);
         setModal(true);
         setResizable(false);
-        
+
         fillData();
     }
 
+    /**
+     * Lee la fotografía del usuario actual desde el campo Fotografia de la tabla
+     * usuario y la muestra. Si no hay fotografía guardada, se conserva la imagen
+     * por defecto del tema.
+     */
     void fillData() {
-        
-        personPhoto.setSource(((SopdiUI) UI.getCurrent()).sessionInformation.getPhotoStreamResource());
+
+        String queryString = "SELECT Fotografia FROM usuario ";
+        queryString += " WHERE IdUsuario = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
+
+        try {
+            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
+            rsRecords = stQuery.executeQuery(queryString);
+
+            if (rsRecords.next()) {
+                final byte[] imageBytes = rsRecords.getBytes("Fotografia");
+                if (imageBytes != null && imageBytes.length > 0) {
+                    personPhoto.setSource(new StreamResource(
+                            () -> new ByteArrayInputStream(imageBytes),
+                            "user_photo_" + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId()
+                                    + "_" + System.currentTimeMillis() + ".jpg"));
+                }
+            }
+        } catch (Exception ex1) {
+            Logger.getLogger(UserPreferences.class.getName()).log(Level.SEVERE, ex1.getMessage());
+            Notification.show("Error al leer la fotografía del usuario: " + ex1.getMessage(),
+                    Notification.Type.ERROR_MESSAGE);
+            ex1.printStackTrace();
+        }
     }
-    
+
     @Override
     public void buttonClick(ClickEvent event) {
         final Button source = event.getButton();
-        
-        if(source == acceptBtn) {
-       
-            if(!datosValidos()) {
+
+        if (source == acceptBtn) {
+
+            if (receiver.fis == null || receiver.file == null) {
+                Notification.show("Seleccione una fotografía para cargar.",
+                        Notification.Type.WARNING_MESSAGE);
                 return;
             }
 
             try {
+                // Lee los bytes del archivo subido.
+                final byte[] thisArray = new byte[(int) receiver.fis.getChannel().size()];
+                receiver.fis.read(thisArray, 0, thisArray.length);
+                ByteArrayInputStream inputStream1 = new ByteArrayInputStream(thisArray);
 
-                String queryString;
-                queryString = "update empresa Set ";
-                queryString += " Estatus = 'ACTIVA'";
-                
-                ByteArrayInputStream inputStream1 = null;
-                
-                if(receiver.fis != null) {
-                    
-System.out.println("\nfis file size=" + receiver.fis.getChannel().size());
+                // Actualiza el campo Fotografia de la tabla usuario.
+                String queryString = "UPDATE usuario SET Fotografia = ? ";
+                queryString += " WHERE IdUsuario = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
 
-                    final byte []thisArray = new byte[(int)receiver.fis.getChannel().size()];
-                    receiver.fis.read(thisArray,0,thisArray.length);
-                    inputStream1 = new ByteArrayInputStream(thisArray);                
-                    queryString += ",LogoFileName = '" + receiver.file.getName() + "'";
-                    queryString += ",Logo = ?";
-                    ((SopdiUI)UI.getCurrent()).sessionInformation.setPhotoStreamResource(new StreamResource(
-                        new StreamResource.StreamSource() {
-                            public InputStream getStream() {
-                                return new ByteArrayInputStream(thisArray);
-                            }
-                        },receiver.file.getName()));
-                    ((SopdiUI) UI.getCurrent()).userSettings.getItems().get(0).setIcon(((SopdiUI)UI.getCurrent()).sessionInformation.getPhotoStreamResource());
+                stPreparedQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().prepareStatement(queryString);
+                stPreparedQuery.setBinaryStream(1, inputStream1, inputStream1.available());
+                stPreparedQuery.execute();
+
+                // Refresca la foto en sesión y el avatar del menú de usuario (header).
+                StreamResource photo = new StreamResource(
+                        () -> new ByteArrayInputStream(thisArray),
+                        "user_photo_" + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId()
+                                + "_" + System.currentTimeMillis() + ".jpg");
+                ((SopdiUI) UI.getCurrent()).sessionInformation.setPhotoStreamResource(photo);
+                if (((SopdiUI) UI.getCurrent()).getUserSettingsItem() != null) {
+                    ((SopdiUI) UI.getCurrent()).getUserSettingsItem().setIcon(photo);
                 }
-                
-                queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrCompanyId();
-                                
-                stPreparedQuery  = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().prepareStatement(queryString);
 
-                if(receiver.file != null) {
-                    stPreparedQuery.setBinaryStream(1, inputStream1, inputStream1.available());
-//                    receiver.file.delete(); 
+                Notification.show("Fotografía actualizada!", Notification.Type.HUMANIZED_MESSAGE);
+
+                // Limpia el archivo temporal de staging.
+                try {
+                    receiver.file.delete();
+                } catch (Exception ignored) {
                 }
-                
-System.out.println("preparedQuery="+stPreparedQuery.toString());
 
-                stPreparedQuery.execute();                
-
-                Notification.show("Actualización de perfil exitoso!", Notification.Type.HUMANIZED_MESSAGE);
- 
                 close();
-                    
-            }
-            catch(Exception ex1) {
-                Logger.getLogger(UserPreferences.class.getName()).log(Level.SEVERE, ex1.getMessage() );
-                Notification.show("ERROR FATAL DEL SISTEMA", Notification.Type.ERROR_MESSAGE); 
-                System.out.println("ERROR AL INTENTAR ACTUALIZAR PERFIL : " + ex1.getMessage());
+
+            } catch (Exception ex1) {
+                Logger.getLogger(UserPreferences.class.getName()).log(Level.SEVERE, ex1.getMessage());
+                Notification.show("ERROR AL ACTUALIZAR LA FOTOGRAFÍA: " + ex1.getMessage(),
+                        Notification.Type.ERROR_MESSAGE);
                 ex1.printStackTrace();
             }
-            
         }
 
-        if(source == exitBtn) {
+        if (source == exitBtn) {
             try {
-                if(receiver.fis != null) {
+                if (receiver.fis != null && receiver.file != null) {
                     receiver.file.delete();
                 }
-            }
-            catch(Exception ex) {
+            } catch (Exception ex) {
                 ex.printStackTrace();
             }
             this.close();
         }
     }
 
-    public final ComboBox createComboYear() {
-        final ComboBox comboBox = new ComboBox("Año");
-        comboBox.setImmediate(true);
-
-        for(int iyear = now.get(Calendar.YEAR); iyear > 1930; iyear--) {
-            comboBox.addItem(iyear);
-        }
-        
-        return comboBox;
-    }
-    
-    public final ComboBox createComboPais() {
-        
-        final ComboBox comboBox = new ComboBox("Pais");
-        comboBox.setWidth("15em");
-        comboBox.setImmediate(true);
-                
-        String queryString = "Select * ";
-        queryString += " From cat_pais ";
-        queryString += " Order By Nombre";
- 
-        try {
-                       
-            stQuery  = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-
-            rsRecords = stQuery.executeQuery(queryString);
-                        
-            while(rsRecords.next()) { //  encontrado                
-                comboBox.addItem(rsRecords.getInt("IdPais"));
-                comboBox.setItemCaption(rsRecords.getInt("IdPais"), rsRecords.getString("Nombre"));
-            }
-            comboBox.select(320);
-        }
-        catch(Exception ex1) {
-            Notification.show("ERROR FATAL DEL SISTEMA");
-            System.out.println("ERROR AL INTENTAR BUSCAR CATALOGO DE PAISES : " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-        
-        comboBox.setNewItemsAllowed(false);
-        
-        return comboBox;
-    }        
-    
-    private boolean datosValidos() {
-/*
-        if(nombreTxt.getValue().isEmpty()) {
-            Notification.show("Falta ingresar el nombre");
-            nombreTxt.focus();
-            return false;
-        }
-        if(telefonoTxt.getValue().isEmpty()) {
-            Notification.show("Falta ingresar el número de teléfono");
-            telefonoTxt.focus();
-            return false;
-        }
-        if(String.valueOf(telefonoTxt.getValue()).isEmpty()) {
-            Notification.show("Falta ingresar el número de teléfono");
-            telefonoTxt.focus();
-            return false;
-        }
-        if(String.valueOf(paisCbx.getValue()).isEmpty()) {
-            Notification.show("Falta ingresar el pais");
-            paisCbx.focus();
-            return false;
-        }
-*/
-        return true;
-    }
-    
-    // Implement both receiver that saves upload in a file and
-    // listener for successful upload
+    // Receiver que guarda la subida en un archivo temporal y listener de subida exitosa.
     class ImageUploader implements Receiver, SucceededListener {
         public File file;
-        public FileOutputStream fos = null; // Stream to write to
+        public FileOutputStream fos = null; // Stream para escribir
         public FileInputStream fis = null;
+
         @Override
-        public OutputStream receiveUpload(String filename,
-            String mimeType) {
-            // Create upload stream
+        public OutputStream receiveUpload(String filename, String mimeType) {
             try {
-                // Open the file for writing.
-                
-                new File(VaadinService.getCurrent().getBaseDirectory().getAbsolutePath() + "/WEB-INF/LOGOS/" + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrCompanyId()).mkdirs();
-                file = new File(VaadinService.getCurrent().getBaseDirectory().getAbsolutePath() + "/WEB-INF/LOGOS/" + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrCompanyId() + "/" + filename);
-System.out.println("\nfile="+file.getAbsolutePath());
+                String userId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
+                String basePath = VaadinService.getCurrent().getBaseDirectory().getAbsolutePath()
+                        + "/WEB-INF/FOTOS_USUARIO/" + userId;
+                new File(basePath).mkdirs();
+                file = new File(basePath + "/" + filename);
                 fos = new FileOutputStream(file);
             } catch (final java.io.FileNotFoundException e) {
-                new Notification("El archivo se puede abrir o leer",
-                e.getMessage(),
-                Notification.Type.ERROR_MESSAGE)
-                .show(Page.getCurrent());
+                new Notification("El archivo no se puede abrir o leer",
+                        e.getMessage(),
+                        Notification.Type.ERROR_MESSAGE)
+                        .show(Page.getCurrent());
                 return null;
             }
-            return fos; // Return the output stream to write to
+            return fos; // Stream de salida donde escribir
         }
+
         @Override
         public void uploadSucceeded(SucceededEvent event) {
-            Notification.show("Archivo cargado con exito!", Notification.Type.TRAY_NOTIFICATION);
+            Notification.show("Archivo cargado con éxito!", Notification.Type.TRAY_NOTIFICATION);
             personPhoto.setSource(new FileResource(file));
             try {
                 fis = new FileInputStream(file);
-                //file.delete();
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(UserPreferences.class.getName()).log(Level.SEVERE, null, ex);
             }

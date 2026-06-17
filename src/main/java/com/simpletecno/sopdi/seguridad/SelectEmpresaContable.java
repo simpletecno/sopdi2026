@@ -575,16 +575,10 @@ public class SelectEmpresaContable extends Window {
                 }
             }
 
-            byte[] imageBytes1 = rsRecords.getBytes("Logo");
-            if (imageBytes1 != null) {
-                ((SopdiUI) mainUI).sessionInformation.setPhotoStreamResource(
-                        new StreamResource(
-                                () -> new ByteArrayInputStream(imageBytes1),
-                                ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId()
-                        ));
-            } else {
-                ((SopdiUI) mainUI).sessionInformation.setPhotoStreamResource(null);
-            }
+            // El avatar de userSettings usa la fotografía del usuario
+            // (usuario.Fotografia), no el logo de la empresa.
+            ((SopdiUI) mainUI).sessionInformation.setPhotoStreamResource(
+                    ((SopdiUI) mainUI).getUserPhotoResource());
 
         } catch (Exception ex) {
             Notification.show(
@@ -605,6 +599,13 @@ public class SelectEmpresaContable extends Window {
             mainUI.setContent(((SopdiUI) mainUI).getAppLayout());
             ((SopdiUI) mainUI).getUserSettingsItem().setIcon(
                     ((SopdiUI) UI.getCurrent()).sessionInformation.getPhotoStreamResource());
+            // Refresca el logo del proyecto en el header.
+            if (((SopdiUI) mainUI).sessionInformation.getProjectStreamResource() != null) {
+                ((SopdiUI) mainUI).projectCover.setSource(
+                        ((SopdiUI) mainUI).sessionInformation.getProjectStreamResource());
+            } else {
+                ((SopdiUI) mainUI).projectCover.setSource(((SopdiUI) mainUI).projectLogo);
+            }
         }
 
         if (((SopdiUI) mainUI).currentViewName != null) {
@@ -612,7 +613,7 @@ public class SelectEmpresaContable extends Window {
         }
 
         String empresaProyecto = "<strong>"
-                + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyName()
+                + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanySmallName()
                 + "<br></strong><strong>"
                 + ((SopdiUI) mainUI).sessionInformation.getStrProjectName()
                 + "</strong></br>";

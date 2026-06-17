@@ -8,7 +8,7 @@ import com.vaadin.ui.themes.ValoTheme;
 
 public class AccessDeniedView extends VerticalLayout implements View {
 
-    private static final String HOME_VIEW = "/sopdi"; // pon "dashboard" o tu home real si quieres
+    private static final String HOME_VIEW = "calendarView"; // pon "dashboard" o tu home real si quieres
 
     public AccessDeniedView() {
         buildUI();
