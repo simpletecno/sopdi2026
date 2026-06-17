@@ -13,6 +13,7 @@ import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.Notification;
+import com.vaadin.ui.Panel;
 import com.vaadin.ui.UI;
 import com.vaadin.ui.VerticalLayout;
 import com.vaadin.ui.components.calendar.CalendarComponentEvents.EventClick;
@@ -125,11 +126,16 @@ public class CalendarView extends VerticalLayout implements View {
         nuevoBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
         nuevoBtn.addClickListener(e -> abrirFormularioNuevo());
 
+        Button importarSatBtn = new Button("Importar SAT", FontAwesome.FILE_PDF_O);
+        importarSatBtn.setDescription("Importar vencimientos de un Calendario Tributario SAT (PDF)");
+        importarSatBtn.addClickListener(e ->
+                UI.getCurrent().addWindow(new ImportarCalendarioSatForm(this::cargarEventos)));
+
         HorizontalLayout izquierda = new HorizontalLayout(hoyBtn, anteriorBtn, siguienteBtn, rangoLbl);
         izquierda.setSpacing(true);
         izquierda.setComponentAlignment(rangoLbl, Alignment.MIDDLE_LEFT);
 
-        HorizontalLayout derecha = new HorizontalLayout(vistaCbx, nuevoBtn);
+        HorizontalLayout derecha = new HorizontalLayout(vistaCbx, importarSatBtn, nuevoBtn);
         derecha.setSpacing(true);
 
         HorizontalLayout toolbar = new HorizontalLayout();
@@ -174,8 +180,18 @@ public class CalendarView extends VerticalLayout implements View {
             }
         });
 
-        addComponent(calendar);
-        setExpandRatio(calendar, 1);
+        // El Calendar de Vaadin 7 recalcula su altura de forma agresiva tras un
+        // re-layout (p. ej. al cerrar una ventana modal) y, si es hijo directo de
+        // expansión, llega a aplastar a 0 las filas hermanas de altura natural
+        // (título y barra de herramientas), dejándolas ocultas. Envolverlo en un
+        // Panel con altura definida aísla ese cálculo: el Panel ocupa el slot de
+        // expansión y el Calendar lee la altura estable del Panel.
+        Panel calendarPanel = new Panel(calendar);
+        calendarPanel.setSizeFull();
+        calendarPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
+
+        addComponent(calendarPanel);
+        setExpandRatio(calendarPanel, 1);
     }
 
     /** Desplaza el cursor hacia adelante/atrás según la vista activa. */

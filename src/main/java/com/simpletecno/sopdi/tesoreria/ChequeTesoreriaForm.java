@@ -123,8 +123,8 @@ public class ChequeTesoreriaForm extends Window {
 
         this.mainUI = UI.getCurrent();
         setResponsive(true);
-        setWidth("87%");
-        setHeight("85%");
+        setWidth("90%");
+        setHeight("98%");
         setModal(true);
 
         mainLayout = new VerticalLayout();
@@ -156,11 +156,11 @@ public class ChequeTesoreriaForm extends Window {
     public void llenarComboProveedor() {
         queryString = " SELECT prov.* ";
         queryString += " FROM proveedor_empresa prov";
-//        queryString += " WHERE N0 in (4, 6, 7, 9)";
-        //queryString += " AND prov.EsCliente = 1";
-        queryString += " AND prov.IdEmpresa = '" + empresaId + "'";
+        queryString += " WHERE (prov.EsProveedor = 1 OR prov.EsCliente = 1)";
+        queryString += " AND prov.IdEmpresa = " + empresaId;
         queryString += " ORDER BY prov.Nombre";
 
+Logger.getLogger(this.getClass().getName()).log(Level.INFO, "queryString: {0}", queryString);
         proveedorCbx.removeAllItems();
 
         try {
@@ -261,7 +261,7 @@ public class ChequeTesoreriaForm extends Window {
         tipoIngresoCbx.select("CHEQUE TESORERIA");
         tipoIngresoCbx.setReadOnly(true);
 
-        proveedorCbx = new ComboBox("Cliente");
+        proveedorCbx = new ComboBox("Proveedor/Cliente");
         proveedorCbx.addContainerProperty(NIT_PROPERTY, String.class, "");
         proveedorCbx.setInvalidAllowed(false);
         proveedorCbx.setNewItemsAllowed(false);
