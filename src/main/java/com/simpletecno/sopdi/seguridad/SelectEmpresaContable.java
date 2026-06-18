@@ -612,7 +612,7 @@ public class SelectEmpresaContable extends Window {
             mainUI.getNavigator().navigateTo(((SopdiUI) mainUI).currentViewName);
         }
 
-        String empresaProyecto = "<strong>"
+        String empresaProyecto = "<strong>(" + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + ") "
                 + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanySmallName()
                 + "<br></strong><strong>"
                 + ((SopdiUI) mainUI).sessionInformation.getStrProjectName()

@@ -95,21 +95,6 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
 
         addComponent(mainLayout);
 
-        Label titleLbl = new Label("Cuentas contables default para : " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId() + " "+ ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName());
-        titleLbl.addStyleName(ValoTheme.LABEL_H1);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setMargin(true);
-        titleLayout.setSpacing(true);
-        titleLayout.setWidth("100%");
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_LEFT);
-
-        mainLayout.addComponent(titleLayout);
-        mainLayout.setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         crearTabSheet();
 //        createTablaCuentasContables();
 //        createButtons();
@@ -1035,6 +1020,7 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("Cuentas contables default para : " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId() + " "+ ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName());
         Page.getCurrent().setTitle("Sopdi - Cuentas contables Default");
     }
 }

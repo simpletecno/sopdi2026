@@ -86,11 +86,6 @@ public class OrdenCompraView extends VerticalLayout implements View {
         setMargin(false);
         setSpacing(true);
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " ORDENES DE COMPRA");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h2_custom");
-
         ordenCompraOg.setStyleName("horizontal");
         if(((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId().equals("10") || ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId().equals("11")) {
             ordenCompraOg.addItems("EVENTUAL", "RECURRENTE");
@@ -123,20 +118,6 @@ public class OrdenCompraView extends VerticalLayout implements View {
 //        filterLayout.setComponentAlignment(abiertasChbx, Alignment.MIDDLE_RIGHT);
         filterLayout.setComponentAlignment(cerradasChbx, Alignment.MIDDLE_CENTER);
         filterLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
-        titleLayout.setSpacing(true);
-        titleLayout.setMargin(new MarginInfo(false, true, false, false));
-        titleLayout.setWidth("100%");
-
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
-        titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-        setExpandRatio(titleLayout, 0);
 
         addComponent(filterLayout);
         setComponentAlignment(filterLayout, Alignment.TOP_CENTER);
@@ -644,6 +625,7 @@ Logger.getLogger(this.getClass().getName()).info(queryString);
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " ORDENES DE COMPRA");
         Page.getCurrent().setTitle("Sopdi - Orden de Compra");
     }
 }

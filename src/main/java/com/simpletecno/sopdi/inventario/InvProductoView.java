@@ -54,22 +54,6 @@ public class InvProductoView extends VerticalLayout implements View {
     public InvProductoView() {
         this.mainUI = UI.getCurrent();
 
-        Label titleLbl = new Label("Catalogo de productos");
-        titleLbl.addStyleName(ValoTheme.LABEL_H1);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setMargin(new MarginInfo(false, true, false, true));
-        titleLayout.setSpacing(true);
-        titleLayout.setWidth("100%");
-
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_LEFT);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         Responsive.makeResponsive(this);
         setMargin(true);
         setSpacing(true);
@@ -353,6 +337,7 @@ public class InvProductoView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("Catalogo de productos");
         Page.getCurrent().setTitle("Sopdi - Catalogo Productos");
     }
 

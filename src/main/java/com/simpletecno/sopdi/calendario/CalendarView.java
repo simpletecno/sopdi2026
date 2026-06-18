@@ -73,20 +73,11 @@ public class CalendarView extends VerticalLayout implements View {
 
         crearTablaSiNoExiste();
 
-        construirEncabezado();
         construirBarraHerramientas();
         construirCalendario();
 
         aplicarRango();
         cargarEventos();
-    }
-
-    private void construirEncabezado() {
-        Label titleLbl = new Label("Mi Calendario de Eventos");
-        titleLbl.addStyleName(ValoTheme.LABEL_H1);
-        titleLbl.addStyleName("h1_custom");
-        titleLbl.setSizeUndefined();
-        addComponent(titleLbl);
     }
 
     private void construirBarraHerramientas() {
@@ -359,6 +350,7 @@ public class CalendarView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("Mi Calendario de Eventos");
         Page.getCurrent().setTitle("Sopdi - Mi Calendario");
         cargarEventos();
     }

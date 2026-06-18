@@ -60,21 +60,6 @@ public class ConsultaReursoDiarioView extends VerticalLayout implements View {
         setMargin(true);
         setSpacing(true);
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " DISPONIBILIDAD DE RH1 Y RH2");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
-        titleLayout.setWidth("100%");
-        titleLayout.setMargin(false);
-        titleLayout.addComponent(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_RIGHT);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         createDetails();
 
         fillRecursoDiarioGrid();
@@ -415,6 +400,7 @@ public class ConsultaReursoDiarioView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " DISPONIBILIDAD DE RH1 Y RH2");
         Page.getCurrent().setTitle("Sopdi - DISPONIBILIDAD DE RH");
     }
 }

@@ -65,25 +65,7 @@ public class ConciliacionBancariaView extends VerticalLayout implements View {
         setSpacing(true);
         setMargin(false);
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " LIBRO CONCILIACIONES BANCARIAS");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
-        titleLayout.setSpacing(true);
-        titleLayout.setWidth("100%");
-        titleLayout.setMargin(false);
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.BOTTOM_CENTER);
-        titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         crearFormularioConciliacion();
-        setExpandRatio(titleLayout, 0f);
     }
 
     public void crearFormularioConciliacion() {
@@ -408,6 +390,7 @@ public class ConciliacionBancariaView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " LIBRO CONCILIACIONES BANCARIAS");
         Page.getCurrent().setTitle("Sopdi - Conciliaciones Bancarias");
     }
 

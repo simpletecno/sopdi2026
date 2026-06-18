@@ -24,8 +24,8 @@ import java.sql.Statement;
  */
 public class ProgramaTrabajoCheckView extends VerticalLayout implements View {
 
-    ComboBox empresaCbx;
-    String empresa;
+    String empresa = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     // Tabla Tarea
     static final String ID_PROPERTY = "ID";
@@ -74,47 +74,6 @@ public class ProgramaTrabajoCheckView extends VerticalLayout implements View {
         setSpacing(true);
         setResponsive(true);
 
-        Label titleLbl = new Label("VERIFICAR TAREAS");
-        if (mainUI.getPage().getBrowserWindowWidth() >= 736) {
-            titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        }
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        empresaCbx = new ComboBox("Empresa:");
-        if (mainUI.getPage().getBrowserWindowWidth() >= 736) {
-            empresaCbx.setWidth("400px");
-        }
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        if (mainUI.getPage().getBrowserWindowWidth() >= 736) {
-            empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        }
-
-        llenarComboEmpresa();
-
-        empresaCbx.addValueChangeListener(event -> {
-            empresa = String.valueOf(event.getProperty().getValue());
-            fillIdexGrid();
-        });
-
-        empresa = String.valueOf(empresaCbx.getValue());
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
-        titleLayout.setSpacing(true);
-        titleLayout.setWidth("100%");
-        titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
-        titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         createIdexGrid();
 
         // Si es un telemfono o un jefe
@@ -138,28 +97,6 @@ public class ProgramaTrabajoCheckView extends VerticalLayout implements View {
         }
 
         fillIdexGrid();
-    }
-
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * FROM contabilidad_empresa";
-        queryString += " WHERE IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords.getString("IdEmpresa"), rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-
-            empresaCbx.select(rsRecords.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar Combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
     }
 
     public void createTiemposGrid() {
@@ -694,6 +631,7 @@ System.out.println("queryCheck="+queryString);
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("VERIFICAR TAREAS");
         Page.getCurrent().setTitle("Sopdi - VERIFICAR TAREAS TRABAJO");
     }
 }

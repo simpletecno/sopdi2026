@@ -59,6 +59,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  * @author JAguirre
  */
 @SuppressWarnings("serial")
+
 public class PresupuestoView extends VerticalLayout implements View {
     
     public Statement stQuery = null;
@@ -78,12 +79,7 @@ public class PresupuestoView extends VerticalLayout implements View {
     protected static final String TIPO_PROPERTY   = "Tipo";
     protected static final String FECHA_AUTORIZADO_PROPERTY = "F.Autorizado";
 
-    Button nextBtn;
-    Button prevBtn;
-    List<String> empresaLst;
-    ListIterator<String> listIterator;
     String empresa = "";
-    Label empresaLbl;
 
     CheckBox agruparCuentaChb;
     CheckBox agruparMesChb;
@@ -101,88 +97,30 @@ public class PresupuestoView extends VerticalLayout implements View {
     public Table presupuestoTable;
             
     final UI mainUI = UI.getCurrent();
-       
+
+    String idEmpresa = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String nombreEmpresa = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public PresupuestoView() {
         
         setResponsive(true);
         MarginInfo marginInfo = new MarginInfo(true,true,false,true); 
 
-        Label titleLbl = new Label("PRESUPUESTO");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        empresaLbl = new Label("");
-        empresaLbl.setWidth("340px");
-        empresaLbl.addStyleName(ValoTheme.LABEL_H2);
-
         final int EPREV = 0;
         final int ENEXT = 1;
-
-        empresaLst = new ArrayList<String>();
-
-        llenarComboEmpresa();
-        listIterator = empresaLst.listIterator();
-
-        prevBtn = new Button("Anterior");
-        prevBtn.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
-        prevBtn.addStyleName(ValoTheme.BUTTON_LARGE);
-        prevBtn.addStyleName("flechas");
-        prevBtn.setIcon(FontAwesome.ARROW_LEFT);
-        prevBtn.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                if (listIterator.hasPrevious()) {
-                    prevBtn.setEnabled(true);
-                    nextBtn.setEnabled(true);
-                    empresaLbl.setValue(listIterator.previous());
-                    empresa = empresaLbl.getValue().substring(1, 3);
-                    fillReportTable(empresa);
-                } else {
-                    prevBtn.setEnabled(false);
-                }
-            }
-        });
-
-        nextBtn = new Button("Siguiente");
-        nextBtn.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
-        nextBtn.addStyleName(ValoTheme.BUTTON_LARGE);
-        nextBtn.addStyleName("flechas");
-        nextBtn.setIcon(FontAwesome.ARROW_RIGHT);
-        nextBtn.addClickListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                if (listIterator.hasNext()) {
-                    prevBtn.setEnabled(true);
-                    nextBtn.setEnabled(true);
-
-                    empresaLbl.setValue(listIterator.next());
-                    empresa = empresaLbl.getValue().substring(1, 3);
-
-                    fillReportTable(empresa);
-                } else {
-                    nextBtn.setEnabled(false);
-                }
-            }
-        });
 
         HorizontalLayout empresaLayout = new HorizontalLayout();
         empresaLayout.setSizeUndefined();
         empresaLayout.setResponsive(true);
         empresaLayout.setSpacing(true);
         empresaLayout.addStyleName("rcorners4");
-        empresaLayout.addComponents(empresaLbl, prevBtn, nextBtn);
-        empresaLayout.setComponentAlignment(empresaLbl, Alignment.MIDDLE_LEFT);
-        empresaLayout.setComponentAlignment(prevBtn, Alignment.MIDDLE_LEFT);
-        empresaLayout.setComponentAlignment(nextBtn, Alignment.MIDDLE_LEFT);
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaLayout, titleLbl);
+        titleLayout.addComponents(empresaLayout);
         titleLayout.setComponentAlignment(empresaLayout, Alignment.MIDDLE_LEFT);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_RIGHT);
 
         addComponent(titleLayout);
         setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
@@ -216,7 +154,7 @@ public class PresupuestoView extends VerticalLayout implements View {
                 PresupuestoForm presupuestoForm = new PresupuestoForm();
                 presupuestoForm.presupuestoId = 0;
                 presupuestoForm.empresa = empresa;
-                presupuestoForm.empresaNombre = empresaLbl.getValue();
+                presupuestoForm.empresaNombre = idEmpresa;
                 presupuestoForm.fechaDt.focus();
                 UI.getCurrent().addWindow(presupuestoForm);
             }
@@ -237,7 +175,7 @@ public class PresupuestoView extends VerticalLayout implements View {
                         PresupuestoForm presupuestoForm = new PresupuestoForm();
                         presupuestoForm.presupuestoId = Integer.valueOf(String.valueOf(presupuestoTable.getValue()));
                         presupuestoForm.empresa = empresa;
-                        presupuestoForm.empresaNombre = empresaLbl.getValue();
+                        presupuestoForm.empresaNombre = idEmpresa;
                         presupuestoForm.fillData();
                         presupuestoForm.fechaDt.focus();
                         UI.getCurrent().addWindow(presupuestoForm);
@@ -344,37 +282,11 @@ public class PresupuestoView extends VerticalLayout implements View {
         addComponent(buttonsLayout);
         setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
 
-        String empresaString = String.valueOf(listIterator.next());
-
-        empresaLbl.setValue(empresaString);
-
-        empresa = empresaString.substring(1, 3);
-
         if (presupuestoTable != null) {
-            empresa = empresaString.substring(1, 3);
             fillReportTable(empresa);
         }
     }
             
-    public void llenarComboEmpresa() {
-        String queryString = " SELECT * from contabilidad_empresa";
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) { //  encontrado                
-                empresaLst.add("(" + rsRecords.getString("IdEmpresa") + ") " + rsRecords.getString("Empresa"));
-            }
-            rsRecords.first();
-            empresaLbl.setValue("(" + rsRecords.getString("IdEmpresa") + ") " + rsRecords.getString("Empresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al llenar Combo empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     public void createReportTable() {
 
         HorizontalLayout reportLayout = new HorizontalLayout();
@@ -631,10 +543,10 @@ public class PresupuestoView extends VerticalLayout implements View {
 
         excelExport = new ExcelExport(presupuestoTable);
         excelExport.excludeCollapsedColumns();
-        excelExport.setExportFileName("SOPDI_Presupuesto_" + empresaLbl.getValue().replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é","") + "_" +  new Utileria().getFechaHoraSinFormato(new Date()) + ".xls");
+        excelExport.setExportFileName("SOPDI_Presupuesto_" + nombreEmpresa + "_" +  new Utileria().getFechaHoraSinFormato(new Date()) + ".xls");
 
         new Utileria();
-        String mainTitle = "SOPDI - PRESUPUESTO DE " + empresaLbl.getCaption() + " AL: "  + Utileria.getFechaYYYYMMDD_1(new Date());
+        String mainTitle = "SOPDI - PRESUPUESTO DE " + nombreEmpresa + " AL: "  + Utileria.getFechaYYYYMMDD_1(new Date());
   
         excelExport.setReportTitle(mainTitle);
 
@@ -788,5 +700,6 @@ System.out.println("...FIN...");
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
         Page.getCurrent().setTitle("Sopdi - PRESUPUESTO");
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("PRESUPUESTO");
     }
 }

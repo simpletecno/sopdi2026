@@ -62,21 +62,6 @@ public class EmpleadoResumenHorasExtraView extends VerticalLayout implements Vie
         setMargin(false);
         setSpacing(true);
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " RESUMEN HORAS EXTRA Y VACACIONES");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
-        titleLayout.setWidth("100%");
-        titleLayout.setMargin(false);
-        titleLayout.addComponent(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_RIGHT);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         createDetailsGrid();
         fillresumenGrid();
 
@@ -306,6 +291,7 @@ System.out.println("queryRESUMENHORASEXTRA=" + queryString);
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " RESUMEN HORAS EXTRA Y VACACIONES");
         Page.getCurrent().setTitle("Sopdi - RESUMEN HORAS EXTRA Y VACACIONES");
     }
 }

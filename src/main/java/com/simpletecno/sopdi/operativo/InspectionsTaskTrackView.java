@@ -103,10 +103,6 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
 
         marginInfo = new MarginInfo(true, true, true, false);
 
-        Label titleLbl = new Label("Seguimiento de tareas");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-
         Button refreshBtn = new Button("Refrescar");
         refreshBtn.setIcon(FontAwesome.REFRESH);
         refreshBtn.setDescription("Refrescar listado");
@@ -134,8 +130,6 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
 
-        titleLayout.addComponent(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_LEFT);
         titleLayout.addComponents(ordenCambioOg, archivadoChbx);
         titleLayout.setComponentAlignment(ordenCambioOg, Alignment.MIDDLE_RIGHT);
         titleLayout.setComponentAlignment(archivadoChbx, Alignment.MIDDLE_RIGHT);
@@ -1011,6 +1005,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("Seguimiento de tareas");
         Page.getCurrent().setTitle("Sopdi - Seguimiento de tareas");
     }
 }

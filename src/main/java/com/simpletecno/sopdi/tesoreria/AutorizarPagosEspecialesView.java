@@ -144,13 +144,6 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
         mainLayout.setSpacing(true);
         mainLayout.setWidth("100%");
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Autorizar Pagos Especiales");
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-//        titleLbl.addStyleName("h2_custom");
-
-        mainLayout.addComponent(titleLbl);
-
         crearComboTipoPago();
 
         addComponent(mainLayout);
@@ -1323,6 +1316,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event
     ) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " Autorizar Pagos Especiales");
         Page.getCurrent().setTitle("Sopdi - Pagos especiales");
     }
 }

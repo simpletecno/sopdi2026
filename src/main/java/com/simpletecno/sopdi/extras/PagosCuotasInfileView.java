@@ -38,11 +38,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
     String queryString;
     Statement stQuery1;
     ResultSet rsRecords1;
-    Statement stQuery2;
     ResultSet rsRecords2;
-
-    String xmlRequest;
-    String xmlResponse;
 
     //                                        (MONTO IVA) * RETENCION
     static final Double FACTOR_IVA_RETENIDO = 0.12 / 1.12 * 0.15;
@@ -89,10 +85,6 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
     VerticalLayout mainLayout;
     InfileClient infileClient;
 
-    HorizontalLayout tituloLayout;
-    ComboBox empresaCbx;
-    Label tituloLbl;
-
     VerticalLayout cuotasLayout;
     IndexedContainer cuotasPendientesContainer;
     Grid cuotasPendientesGrid;
@@ -130,43 +122,20 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
 
     Boolean aplicaRetencionIva = false;
 
-    public PagosCuotasInfileView(){
+    String empresa = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
+    public PagosCuotasInfileView() {
         setResponsive(true);
 
         this.mainUI = UI.getCurrent();
         mainLayout = new VerticalLayout();
         mainLayout.setResponsive(true);
 
-        infileClient = new InfileClient(((SopdiUI)mainUI).sessionInformation.getInfileEmisor());
+        infileClient = new InfileClient(((SopdiUI) mainUI).sessionInformation.getInfileEmisor());
 
         addComponent(mainLayout);
         setComponentAlignment(mainLayout, Alignment.TOP_CENTER);
-
-        tituloLayout = new HorizontalLayout();
-        tituloLayout.setSpacing(true);
-        tituloLayout.setMargin(true);
-        tituloLayout.setWidth("100%");
-
-        empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("400px");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-
-        tituloLbl = new Label("PAGO Y CONTROL DE CUOTAS");
-        tituloLbl.addStyleName(ValoTheme.LABEL_H2);
-        tituloLbl.setSizeUndefined();
-
-        tituloLayout.addComponent(empresaCbx);
-        tituloLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_LEFT);
-
-        tituloLayout.addComponent(tituloLbl);
-        tituloLayout.setComponentAlignment(tituloLbl, Alignment.BOTTOM_RIGHT);
-
-        mainLayout.addComponent(tituloLayout);
-        mainLayout.setComponentAlignment(tituloLayout, Alignment.TOP_CENTER);
 
         cuotasLayout = new VerticalLayout();
         cuotasLayout.setWidth("100%");
@@ -195,7 +164,6 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
         createCuotasPagadasGrid();
 
         llenarProveedores();
-        llenarComboEmpresa();
     }
 
     private void createCuotasPendientesGrid(){
@@ -526,28 +494,6 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
 
     }
 
-    public void llenarComboEmpresa() {
-        queryString = " SELECT * from contabilidad_empresa";
-        queryString += " Where IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-
-        try {
-            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords1 = stQuery1.executeQuery(queryString);
-
-            while (rsRecords1.next()) { //  encontrado
-                empresaCbx.addItem(rsRecords1.getString("IdEmpresa"));
-                empresaCbx.setItemCaption(rsRecords1.getString("IdEmpresa"), rsRecords1.getString("Empresa"));
-            }
-            rsRecords1.first();
-
-            empresaCbx.select(rsRecords1.getString("IdEmpresa"));
-
-        } catch (Exception ex1) {
-            System.out.println("Error al listar empresas: " + ex1.getMessage());
-            ex1.printStackTrace();
-        }
-    }
-
     private void llenarProveedores(){
         queryString = "SELECT * FROM proveedor_empresa ";
         queryString += "WHERE EsCliente = 1 ";
@@ -820,9 +766,8 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
             montoSobrante -= montoACobrar;
 
             montoTotal += montoACobrar;
-            netoMontoTotal += new Double(Utileria.format(montoACobrar / 1.12));
-            ivaMontoTotal += new Double(Utileria.format((montoACobrar / 1.12) * 0.12));
-
+            netoMontoTotal += Double.parseDouble(Utileria.format(montoACobrar / 1.12));
+            ivaMontoTotal +=  Double.parseDouble(Utileria.format((montoACobrar / 1.12) * 0.12));
 
             ((Producto) cuotasPendientesContainer.getContainerProperty(itemId, PRODUCTO).getValue()).setMonto(montoACobrar);
             pagarList.add(itemId);
@@ -857,8 +802,8 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
                 montoSobrante -= montoACobrar;
 
                 montoTotal += montoACobrar;
-                netoMontoTotal += new Double(Utileria.format(montoACobrar / 1.12));
-                ivaMontoTotal += new Double(Utileria.format((montoACobrar / 1.12) * 0.12));
+                netoMontoTotal += Double.parseDouble(Utileria.format(montoACobrar / 1.12));
+                ivaMontoTotal += Double.parseDouble(Utileria.format((montoACobrar / 1.12) * 0.12));
 
 
                 ((Producto) cuotasPendientesContainer.getContainerProperty(itemId, PRODUCTO).getValue()).setMonto(montoACobrar);
@@ -925,22 +870,15 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
 
     public boolean datosValidos(ComboBox proveedorCbx) {
 
-        if (((SopdiUI) UI.getCurrent()).esMesCerrado(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+        if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresa, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
             Notification.show("La fecha del documento no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return false;
         }
-        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(String.valueOf(empresaCbx.getValue()), Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
-            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(String.valueOf(empresaCbx.getValue())), Notification.Type.WARNING_MESSAGE);
+        if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(empresa, Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()))) {
+            Notification.show("El mes abierto a operaciones es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(empresa), Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return false;
-        }
-        if (((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyFelUser().trim().isEmpty()) {
-            if (this.empresaCbx.getValue() != null) {
-                Notification.show("Empresa sin Usuario FEL, comuníquese son el administrador", Notification.Type.WARNING_MESSAGE);
-                empresaCbx.focus();
-                return false;
-            }
         }
         if (proveedorCbx.getValue() == null || proveedorCbx.getValue().equals("0")) {
             Notification.show("Por favor ingrese el cliente.", Notification.Type.WARNING_MESSAGE);
@@ -976,7 +914,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
         queryString += "WHERE NumeroDocumento = '" + numeroBoletaTxt.getValue().toUpperCase().trim() + "' ";
         queryString += "AND IdProveedor =  " + proveedorCbx.getValue() + " ";
         queryString += "AND TipoDocumento = '" + tipoBoletaCbx.getValue() + "' ";
-        queryString += "AND IdEmpresa = " + empresaCbx.getValue();
+        queryString += "AND IdEmpresa = " + empresa;
 
         try {
             rsRecords1 = stQuery1.executeQuery(queryString);
@@ -1010,7 +948,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
         queryString += " Monto, MontoQuetzales, TipoCambio ";
         queryString += ", IdUsuarioAutorizoPago,CreadoFechayHora,CreadoUsuario)";
         queryString += " Values(";
-        queryString += empresaCbx.getValue();
+        queryString += empresa;
         queryString += "," + proveedorCbx.getContainerProperty(proveedorCbx.getValue(), ID_PROVEEDOR).getValue();
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += ",'" + tipoDocumento + "'";
@@ -1064,7 +1002,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
         ///---------------------------------------- ANTICIPO -----------------------------------------------///
         //// ANTICIPO BOlETA
         queryString += "(";
-        queryString += empresaCbx.getValue();  // IdEmpresa
+        queryString += empresa;  // IdEmpresa
         queryString += ",'INGRESADO'";  //Estatus
         queryString += ",'" + codigoPartidaAnticipo + "'";  //CodigoPartida
         queryString += ",'" + codigoPartidaAnticipo + "'";  //CodigoCC
@@ -1104,7 +1042,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
 
         //// BANCOS
         queryString += ",(";
-        queryString += empresaCbx.getValue();  // IdEmpresa
+        queryString += empresa;  // IdEmpresa
         queryString += ",'INGRESADO'";  //Estatus
         queryString += ",'" + codigoPartidaAnticipo + "'";  //CodigoPartida
         queryString += ",'" + codigoPartidaAnticipo + "'";  //CodigoCC
@@ -1151,7 +1089,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
                 Producto p = ((Producto) cuotasPendientesContainer.getContainerProperty(itemId, PRODUCTO).getValue());
                 BigDecimal monto = p.getMonto().multiply(BigDecimal.valueOf(p.getCantidad()));
                 queryString += ",(";
-                queryString += empresaCbx.getValue();  // IdEmpresa
+                queryString += empresa;  // IdEmpresa
                 queryString += ",'INGRESADO'";  //Estatus
                 queryString += ",'" + codigoPartidaCuota + "'";  //CodigoPartida
                 queryString += ",'" + codigoPartidaAnticipo + "'";  //CodigoCC
@@ -1201,7 +1139,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
 
         //// ANTICIPO DOCUMENTO VENTA
         queryString += ",(";
-        queryString += empresaCbx.getValue();  // IdEmpresa
+        queryString += empresa;  // IdEmpresa
         queryString += ",'INGRESADO'";  //Estatus
         queryString += ",'" + codigoPartidaCuota + "'";  //CodigoPartida
         queryString += ",'" + codigoPartidaAnticipo + "'";  //CodigoCC
@@ -1244,7 +1182,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
             System.out.println("entra a insertar linea del iva.  exentaChb.getValue()=" + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyRegimen().equals("EXENTA") + " getIvaPorPagar()=" + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getIvaPorPagar());
             //// INSERTAR EL IVA
             queryString += ",(";
-            queryString += empresaCbx.getValue();  // IdEmpresa
+            queryString += empresa;  // IdEmpresa
             queryString += ",'INGRESADO'";  //Estatus
             queryString += ",'" + codigoPartidaCuota + "'";  //CodigoPartida
             queryString += ",'" + codigoPartidaAnticipo + "'";  //CodigoCC
@@ -1290,7 +1228,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
                 isrMotno > 0) {
                 //// ISR GASTO
                 queryString += ",(";
-                queryString += empresaCbx.getValue();  // IdEmpresa
+                queryString += empresa;  // IdEmpresa
                 queryString += ",'INGRESADO'";  //Estatus
                 queryString += ",'" + codigoPartidaCuota + "'";  //CodigoPartida
                 queryString += ",'" + codigoPartidaAnticipo + "'";  //CodigoCC
@@ -1330,7 +1268,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
 
                 //// ISR OPCIONAL MENSUAL POR PAGAR
                 queryString += ",(";
-                queryString += empresaCbx.getValue();  // IdEmpresa
+                queryString += empresa;  // IdEmpresa
                 queryString += ",'INGRESADO'";  //Estatus
                 queryString += ",'" + codigoPartidaCuota + "'";  //CodigoPartida
                 queryString += ",'" + codigoPartidaAnticipo + "'";  //CodigoCC
@@ -1494,6 +1432,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent viewChangeEvent) {
-
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("PAGO DE CUOTAS");
+        Page.getCurrent().setTitle("Sopdi - PAGO DE CUOTAS");
     }
 }

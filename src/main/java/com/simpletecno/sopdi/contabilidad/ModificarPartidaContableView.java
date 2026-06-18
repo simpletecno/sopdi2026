@@ -103,21 +103,6 @@ public class ModificarPartidaContableView extends VerticalLayout implements View
 
         addComponent(mainLayout);
 
-        Label titleLbl = new Label(" -- BUSCAR O MODIFICAR PARTIDA CONTABLE -- ");
-        titleLbl.addStyleName(ValoTheme.LABEL_H3);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
-        titleLayout.setWidth("100%");
-        titleLayout.setMargin(false);
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_RIGHT);
-
-        mainLayout.addComponent(titleLayout);
-        mainLayout.setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         HorizontalLayout filtrosLayout = new HorizontalLayout();
         filtrosLayout.setResponsive(true);
         filtrosLayout.setMargin(false);
@@ -611,6 +596,7 @@ public class ModificarPartidaContableView extends VerticalLayout implements View
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(" -- BUSCAR O MODIFICAR PARTIDA CONTABLE -- ");
         Page.getCurrent().setTitle("Sopdi - Modificar partidas contables");
     }
 }

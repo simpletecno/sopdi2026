@@ -54,21 +54,6 @@ public class ProductosProveedorView extends VerticalLayout implements View {
         setMargin(false);
         setSpacing(true);
 
-        Label titleLbl = new Label("PRODUCTOS Y SUS PROVEEDORES");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
-        titleLayout.setWidth("100%");
-        titleLayout.setMargin(new MarginInfo(false, true, false, false));
-        titleLayout.addComponent(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_RIGHT);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         createDetailsGrid();
 
         fillproductosGrid();
@@ -298,6 +283,7 @@ AsignarProveedorProductoForm asignacionProductos
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("PRODUCTOS Y SUS PROVEEDORES");
         Page.getCurrent().setTitle("Sopdi - PRODUCTOS INVENTARIO Y SUS PROVEEDORES");
     }
 }

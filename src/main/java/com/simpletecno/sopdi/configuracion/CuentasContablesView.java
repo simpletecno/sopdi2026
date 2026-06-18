@@ -65,27 +65,15 @@ public class CuentasContablesView extends VerticalLayout implements View {
     Button inhabilitarBtn;
     Button exportExcelBtn;
 
+    String idEmpresa = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String nombreEmpresa = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public CuentasContablesView() {
 
         Responsive.makeResponsive(this);
         setMargin(true);
         setSpacing(true);
         this.mainUI = UI.getCurrent();
-
-        Label titleLbl = new Label("Cuentas contables");
-        titleLbl.addStyleName(ValoTheme.LABEL_H1);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setMargin(true);
-        titleLayout.setSpacing(true);
-        titleLayout.setWidth("100%");
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_LEFT);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
 
         createTablaCuentasContables();
         llenarTablaCuentas();
@@ -455,6 +443,7 @@ public class CuentasContablesView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("Cuentas contables");
         Page.getCurrent().setTitle("Sopdi - Cuentas contables");
     }
 

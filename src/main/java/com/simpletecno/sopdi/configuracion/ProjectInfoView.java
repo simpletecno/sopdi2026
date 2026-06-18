@@ -394,6 +394,7 @@ public class ProjectInfoView extends VerticalLayout implements View {
     public void enter(ViewChangeListener.ViewChangeEvent event) {
         // TODO Auto-generated method stub
         Page.getCurrent().setTitle("Sopdi - Información del proyecto");
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("INFORMACIÓN DEL PROYECTO");
         idProyecto = Integer.valueOf(((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectId());
         idProyectoTxt.setReadOnly(false);
         idProyectoTxt.setValue(((SopdiUI) UI.getCurrent()).sessionInformation.getStrProjectId());

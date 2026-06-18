@@ -189,6 +189,9 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
 
     VerticalLayout mainLayout = new VerticalLayout();
 
+    String empresa = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
+
     public EmpleadoCalculoSalarioView() {
 
         this.mainUI = UI.getCurrent();
@@ -196,41 +199,14 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
         setMargin(false);
         setSpacing(true);
 
-        Label titleLbl = new Label("CALCULO DE PLANILLA");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponent(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_RIGHT);
 
         addComponent(titleLayout);
         setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
-        ComboBox empresaCbx = new ComboBox("Empresa:");
-        empresaCbx.setWidth("95%");
-        empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
-        empresaCbx.setInvalidAllowed(false);
-        empresaCbx.setNewItemsAllowed(false);
-        empresaCbx.setTextInputAllowed(false);
-        empresaCbx.setNullSelectionAllowed(false);
-        empresaCbx.addItem(((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId());
-        empresaCbx.setItemCaption(((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId(), ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyName());
-
-        empresaCbx.select(((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId());
-
-        titleLayout.addComponents(empresaCbx, titleLbl);
-        titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
-        titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
+        
         addComponent(mainLayout);
         setComponentAlignment(mainLayout, Alignment.TOP_CENTER);
 
@@ -3906,6 +3882,7 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("CALCULO DE PLANILLA");
         Page.getCurrent().setTitle("Sopdi - CALCULO DE PLANILLA");
     }
 }

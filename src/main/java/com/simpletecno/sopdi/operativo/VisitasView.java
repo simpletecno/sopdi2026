@@ -190,18 +190,9 @@ public class VisitasView extends VerticalLayout implements View {
 
         marginInfo = new MarginInfo(true, true, false, true);
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Visitas y reuniones.");
-        titleLbl.addStyleName(ValoTheme.LABEL_H3);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h3_custom");
-        titleLbl.setContentMode(ContentMode.HTML);
-
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
-
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_LEFT);
 
         inicioDt = new DateField("DEL:");
         inicioDt.setDateFormat("dd/MM/yyyy");
@@ -1227,6 +1218,8 @@ System.out.println("\n\n"+queryString);
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setContentMode(ContentMode.HTML);
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " Visitas y reuniones.");
         // TODO Auto-generated method stub
         Page.getCurrent().setTitle("Sopdi - Visitas/Reuniones");
     }

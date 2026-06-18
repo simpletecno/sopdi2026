@@ -78,16 +78,8 @@ public class CostCenterView extends VerticalLayout implements View {
         
         marginInfo = new MarginInfo(true,true,false,true); 
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Centros de costo");
-        titleLbl.addStyleName(ValoTheme.LABEL_H1);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-        
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setWidth("100%");
-        
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl,  Alignment.TOP_LEFT);
 
         Button refreshBtn = new Button("Actualizar");
         refreshBtn.setIcon(FontAwesome.REFRESH);
@@ -499,6 +491,7 @@ System.out.println("\nQuery CentrosCosto=" + queryString);
         
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " Centros de costo");
         // TODO Auto-generated method stub
         Page.getCurrent().setTitle("Sopdi - Centros de costo");
     }

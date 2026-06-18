@@ -109,20 +109,6 @@ public class EmpleadoView extends VerticalLayout implements View {
         marginInfo = new MarginInfo(true, false, false, false);
         setSpacing(true);
 
-        Label h1 = new Label(empresaId + " " + empresaNombre + " Empleados ");
-        h1.addStyleName("h3");
-        h1.setWidth("100%");
-
-        HorizontalLayout filterLayout = new HorizontalLayout();
-        filterLayout.setSpacing(true);
-        filterLayout.addComponent(h1);
-        filterLayout.setMargin(false);
-        filterLayout.setWidth("100%");
-        filterLayout.addStyleName("rcorners2");
-
-        addComponent(filterLayout);
-        setComponentAlignment(filterLayout, Alignment.TOP_CENTER);
-
         mainLayout.setSpacing(true);
         mainLayout.setSizeFull();
 
@@ -835,6 +821,7 @@ System.out.println("empleado queryString = " + queryString);
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " EMPLEADOS");
         Page.getCurrent().setTitle("Sopdi - EMPLEADOS");
     }
 

@@ -82,21 +82,6 @@ public final class ProgramaTrabajoEmpleadosView extends VerticalLayout implement
 
         addComponent(mainLayout);
 
-        Label titleLbl = new Label(((SopdiUI) mainUI).sessionInformation.getStrProjectName() + " -- EMPLEADOS -- ");
-        titleLbl.addStyleName(ValoTheme.LABEL_H4);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
-        titleLayout.setWidth("100%");
-        titleLayout.setMargin(false);
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_LEFT);
-
-        mainLayout.addComponent(titleLayout);
-        mainLayout.setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         exportExcelBtn = new Button("Exportar a Excel");
         exportExcelBtn.setIcon(FontAwesome.FILE_EXCEL_O);
         exportExcelBtn.addStyleName(ValoTheme.BUTTON_LINK);
@@ -585,6 +570,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "\n\n" + queryString
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(((SopdiUI) mainUI).sessionInformation.getStrProjectName() + " -- EMPLEADOS -- ");
         // TODO Auto-generated method stub
 
     }

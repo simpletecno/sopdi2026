@@ -77,21 +77,6 @@ public class FacturasPendientesPagosView extends VerticalLayout implements View 
         setMargin(false);
         setSpacing(true);
 
-        HorizontalLayout layoutTitle = new HorizontalLayout();
-        layoutTitle.setSpacing(true);
-        layoutTitle.setMargin(new MarginInfo(false, true, false, true));
-        layoutTitle.setWidth("100%");
-
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " FACTURAS Y LIQUIDACIONES PENDIENTES DE PAGO");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(titleLbl);
-        layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
-
-        addComponent(layoutTitle);
-
         crearGridLiquidaciones();
         crearGridAnticipos();
         buscarLiquidacionesPendientes();
@@ -592,6 +577,7 @@ container.addContainerProperty(DESCRIPCION_PROPERTY, String.class, null);
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " FACTURAS Y LIQUIDACIONES PENDIENTES DE PAGO");
         Page.getCurrent().setTitle("Sopdi - Facturas y Liquidaciones pendientes");
     }
 }

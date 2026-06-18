@@ -74,16 +74,8 @@ public class DocumentosPorLiquidarView extends VerticalLayout implements View {
             llenarGridDocumentos();
         });
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " DOCUMENTOS POR LIQUIDAR");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h2_custom");
-
         layoutTitle.addComponent(tipoDocumentoOg);
         layoutTitle.setComponentAlignment(tipoDocumentoOg, Alignment.MIDDLE_LEFT);
-
-        layoutTitle.addComponent(titleLbl);
-        layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
 
         addComponent(layoutTitle);
 
@@ -356,6 +348,7 @@ public class DocumentosPorLiquidarView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " DOCUMENTOS POR LIQUIDAR");
         Page.getCurrent().setTitle("Sopdi - Documentos Por Liquidar");
     }
 

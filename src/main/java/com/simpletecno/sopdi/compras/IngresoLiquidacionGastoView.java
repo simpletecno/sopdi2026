@@ -110,29 +110,6 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
         setSpacing(true);
         setMargin(true);
 
-        Label iconLbl = new Label(FontAwesome.MONEY.getHtml(), ContentMode.HTML);
-        iconLbl.setSizeUndefined();
-
-        Label titleLbl = new Label(empresaNombre);
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.addStyleName(ValoTheme.LABEL_BOLD);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h2_custom");
-
-        Label subtitleLbl = new Label("— Liquidaciones de Caja Chica");
-        subtitleLbl.addStyleName(ValoTheme.LABEL_H3);
-        subtitleLbl.addStyleName(ValoTheme.LABEL_COLORED);
-        subtitleLbl.setSizeUndefined();
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setSpacing(true);
-        titleLayout.setWidth("100%");
-        titleLayout.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
-        titleLayout.addComponents(iconLbl, titleLbl, subtitleLbl);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_LEFT);
-
         crearTablaLiquidaciones();
         createTablaFacturasYPartidas();
 
@@ -922,6 +899,7 @@ public class IngresoLiquidacionGastoView extends VerticalLayout implements View 
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaNombre);
         Page.getCurrent().setTitle("Sopdi - Liquidaciones caja chica");
     }
 }

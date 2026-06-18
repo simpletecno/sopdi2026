@@ -31,9 +31,6 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
     VerticalLayout mainLayout;
     UI mainUI;
 
-    HorizontalLayout layoutTitle;
-    Label titleLbl;
-
     Button generarBtn;
     Button guardarBtn;
 
@@ -84,21 +81,6 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
         mainLayout = new VerticalLayout();
         mainLayout.setSpacing(true);
         mainLayout.setResponsive(true);
-
-        layoutTitle = new HorizontalLayout();
-        layoutTitle.setSpacing(true);
-        layoutTitle.setMargin(true);
-        layoutTitle.setWidth("100%");
-
-        titleLbl = new Label(empresaId + " " + empresaNombre + " PAGO DOCUMENTO VENTAS CON ENGANCHES");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h2_custom");
-
-        layoutTitle.addComponent(titleLbl);
-        layoutTitle.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
-
-        mainLayout.addComponent(layoutTitle);
 
         addComponent(mainLayout);
 
@@ -866,6 +848,7 @@ public class PagoDocumentoVentaEnganchesView extends VerticalLayout implements V
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " PAGO DOCUMENTO VENTAS CON ENGANCHES");
         Page.getCurrent().setTitle("Sopdi - Pago doc venta anticipos");
     }
 }

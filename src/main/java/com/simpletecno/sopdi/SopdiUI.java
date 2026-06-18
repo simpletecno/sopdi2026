@@ -107,6 +107,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
 
     public ThemeResource projectLogo = new ThemeResource("img/logo_nisa.png");
     public Embedded projectCover = new Embedded(null, projectLogo);
+    public Label lblEmpresaYFormulario = new Label("Mi calendario de eventos");
 
     public CssLayout getMenuItemsLayout() {
         return menuItemsLayout;
@@ -669,11 +670,15 @@ public class SopdiUI extends UI implements Button.ClickListener {
         projectCover.setHeight("40px");
 
         // Espaciador que empuja el menú de usuario hacia la derecha.
-        Label spacer = new Label();
-        spacer.setWidth("100%");
 
-        header.addComponents(menuToggle, projectCover, spacer);
-        header.setExpandRatio(spacer, 1);
+        lblEmpresaYFormulario.addStyleName("v-label-h3");
+        lblEmpresaYFormulario.addStyleName("v-label-h3-bold");
+        lblEmpresaYFormulario.addStyleName("v-label-h3-bold-italic");
+        lblEmpresaYFormulario.setWidth("100%");
+
+        header.addComponents(menuToggle, projectCover, lblEmpresaYFormulario);
+        header.setExpandRatio(lblEmpresaYFormulario, 1);
+        header.setComponentAlignment(lblEmpresaYFormulario, Alignment.MIDDLE_CENTER);
 
         if (userSettings != null) {
             header.addComponent(userSettings);
@@ -770,7 +775,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
         showMenu.setIcon(FontAwesome.LIST);
         mainMenuLayout.addComponent(showMenu);
 
-        empresaProyecto = "<strong>" + sessionInformation.getStrAccountingCompanySmallName() + "<br></strong><strong>" + sessionInformation.getStrProjectName() + "</strong></br>";
+        empresaProyecto = "<strong>(" + sessionInformation.getStrAccountingCompanyId() + ") " + sessionInformation.getStrAccountingCompanySmallName() + "<br></strong><strong>" + sessionInformation.getStrProjectName() + "</strong></br>";
 
         Label title = new Label(empresaProyecto,
                 ContentMode.HTML);
@@ -837,7 +842,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
                 selectEmpresa.center();
             }
             if (selectedItem.getId() == 10) {
-                getNavigator().navigateTo("ErrorView");
+                getNavigator().navigateTo("calendarView");
 /*
                 String basePath = VaadinService.getCurrent()
                         .getBaseDirectory().getAbsolutePath();
@@ -888,7 +893,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
         userSettingsItem.addSeparator();
         userSettingsItem.addItem("Elegir empresa", FontAwesome.CC, mycommand).setDescription("Elegir empresa"); //8
         userSettingsItem.addSeparator();
-        userSettingsItem.addItem("Ayuda", FontAwesome.BOOK, mycommand).setDescription("Ayuda del sistema."); //12
+        userSettingsItem.addItem("Calendario", FontAwesome.BOOK, mycommand).setDescription("Calendario."); //12
         userSettingsItem.addSeparator();
         userSettingsItem.addItem("Salir", FontAwesome.SIGN_OUT, mycommand).setDescription("Salir (logout) del sistema."); //10
         // userSettings ahora se coloca en el header superior (ver buildHeader()).

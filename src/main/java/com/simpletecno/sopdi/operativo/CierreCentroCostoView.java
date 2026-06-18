@@ -99,11 +99,6 @@ public class CierreCentroCostoView extends VerticalLayout implements View {
 
         enviromentsVars = new EnvironmentVars();
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Cierre Centro Costo");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
         empresaCbx = new ComboBox("Empresa:");
         empresaCbx.setWidth("95%");
         empresaCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
@@ -124,9 +119,8 @@ public class CierreCentroCostoView extends VerticalLayout implements View {
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
+        titleLayout.addComponents(empresaCbx);
         titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
         addComponent(titleLayout);
@@ -1028,6 +1022,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY IDEX PENDIENT
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event
     ) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " Cierre Centro Costo");
         Page.getCurrent().setTitle("Sopdi - Factura venta CC DIC");
     }
 }

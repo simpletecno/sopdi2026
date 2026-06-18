@@ -95,21 +95,6 @@ public class InvBodegasView extends VerticalLayout implements View {
         setMargin(false);
         setSpacing(true);
 
-        Label titleLbl = new Label("INVENTARIO DE BODEGAS");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
-        titleLayout.setWidth("100%");
-        titleLayout.setMargin(new MarginInfo(false, true, false, true));
-        titleLayout.addComponent(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_RIGHT);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         createBodegasGrid();
         createVisitasTabSheet();
 
@@ -764,6 +749,7 @@ public class InvBodegasView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("INVENTARIO DE BODEGAS");
         Page.getCurrent().setTitle("Sopdi - Inventario de Bodegas");
     }
 }

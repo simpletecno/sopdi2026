@@ -50,11 +50,6 @@ public class OrdenTrabajoView extends VerticalLayout implements View {
         setWidth("100%");
         setSpacing(true);
 
-        Label titleLbl = new Label("ORDENES DE TRABAJO");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h2_custom");
-
         crearButtonEmpresa();
 
         HorizontalLayout titleLayout = new HorizontalLayout();
@@ -63,9 +58,8 @@ public class OrdenTrabajoView extends VerticalLayout implements View {
         titleLayout.setMargin(new MarginInfo(false, true, false, false));
         titleLayout.setWidth("100%");
 
-        titleLayout.addComponents(empresaCbx, titleLbl);
+        titleLayout.addComponents(empresaCbx);
         titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.BOTTOM_RIGHT);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
         addComponent(titleLayout);
@@ -279,6 +273,7 @@ System.out.println(queryString);
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("ORDENES DE TRABAJO");
         Page.getCurrent().setTitle("Sopdi - Orden de Compra");
     }
 }

@@ -50,22 +50,6 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
     public CuentasContablesBancosView() {
         this.mainUI = UI.getCurrent();
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Cuentas contables de Bancos");
-        titleLbl.addStyleName(ValoTheme.LABEL_H1);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setMargin(true);
-        titleLayout.setSpacing(true);
-        titleLayout.setWidth("100%");
-
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_LEFT);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         Responsive.makeResponsive(this);
         setMargin(true);
         setSpacing(true);
@@ -263,6 +247,7 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " Cuentas contables de Bancos");
         Page.getCurrent().setTitle("Sopdi - Cuentas Banco");
     }
 }

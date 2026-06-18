@@ -98,14 +98,6 @@ public final class CierreMensualView extends VerticalLayout implements View {
         addComponent(contentLayout);
         setExpandRatio(contentLayout, 1.0f);
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " CIERRE CONTABLE MENSUAL");
-        titleLbl.addStyleName(ValoTheme.LABEL_H3);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        contentLayout.addComponents(titleLbl);
-        contentLayout.setComponentAlignment(titleLbl, Alignment.TOP_CENTER);
-
         mesCbx = new ComboBox("Mes a cerrar :");
         mesCbx.setWidth("15em");
         llenarComboMes();
@@ -663,6 +655,7 @@ public final class CierreMensualView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " CIERRE CONTABLE MENSUAL");
         Page.getCurrent().setTitle("Sopdi - Cierre mensual");
     }
 }

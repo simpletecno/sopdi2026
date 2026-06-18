@@ -53,22 +53,6 @@ public class DetalleItemsCostosView extends VerticalLayout implements View {
         this.mainUI = UI.getCurrent();
         this.setHeightUndefined();
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Detalle Items Costos PLU Proveedor");
-        titleLbl.addStyleName(ValoTheme.LABEL_H1);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setMargin(new MarginInfo(false, true, false, true));
-        titleLayout.setSpacing(true);
-        titleLayout.setWidth("100%");
-
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_LEFT);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         Responsive.makeResponsive(this);
         setMargin(true);
         setSpacing(true);
@@ -347,6 +331,7 @@ public class DetalleItemsCostosView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " Detalle Items Costos PLU Proveedor");
         Page.getCurrent().setTitle("Sopdi - Catalogo Productos DetalleItemsCostos");
     }
 

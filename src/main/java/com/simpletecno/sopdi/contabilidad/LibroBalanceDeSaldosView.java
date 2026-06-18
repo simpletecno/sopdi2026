@@ -91,23 +91,6 @@ public class LibroBalanceDeSaldosView extends VerticalLayout implements View {
         setMargin(true);
         setHeightUndefined();
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " BALANCE SALDOS");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-//        titleLbl.addStyleName("h2_custom");
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
-        titleLayout.setSpacing(true);
-        titleLayout.setWidth("100%");
-        titleLayout.setMargin(false);
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
-        titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         crearGridBalanceSaldos();
     }
 
@@ -555,6 +538,7 @@ public class LibroBalanceDeSaldosView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " BALANCE SALDOS");
         Page.getCurrent().setTitle("Sopdi - Libro balance de saldos");
     }
 

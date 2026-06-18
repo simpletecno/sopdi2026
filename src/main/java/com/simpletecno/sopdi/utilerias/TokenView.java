@@ -74,14 +74,8 @@ public class TokenView extends VerticalLayout implements View {
 
         llenarComboEmpresa();
 
-        Label titleLbl = new Label("TOKENS DE AUTORIZACIÓN");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        titleLayout.addComponents(empresaCbx, titleLbl);
+        titleLayout.addComponents(empresaCbx);
         titleLayout.setComponentAlignment(empresaCbx, Alignment.BOTTOM_CENTER);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.BOTTOM_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
         addComponent(titleLayout);
@@ -305,6 +299,7 @@ public class TokenView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("TOKENS DE AUTORIZACIÓN");
         Page.getCurrent().setTitle("Sopdi - Token");
     }
 

@@ -89,22 +89,6 @@ public class LibroMayorView extends VerticalLayout implements View {
         setMargin(false);
         setHeightUndefined();
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " LIBRO MAYOR");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
-        titleLayout.setSpacing(true);
-        titleLayout.setWidth("100%");
-        titleLayout.setMargin(false);
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
-        titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         crearTablaLibroMayor();
     }
 
@@ -606,6 +590,7 @@ System.out.println("querySaldoPartidApertura = " + queryString);
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " LIBRO MAYOR");
         Page.getCurrent().setTitle("Sopdi - Libro Mayor");
     }
 }

@@ -114,14 +114,6 @@ public class EstimacionesView extends VerticalLayout implements View {
 
         marginInfo = new MarginInfo(true, true, false, true);
 
-        Label titleLbl = new Label("Estimaciones");
-        titleLbl.addStyleName(ValoTheme.LABEL_H3);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h2_custom");
-
-        addComponents(titleLbl);
-        setComponentAlignment(titleLbl, Alignment.TOP_LEFT);
-
         empresaLbl = new Label("");
         empresaLbl.setWidth("310px");
         empresaLbl.addStyleName(ValoTheme.LABEL_H3);
@@ -644,6 +636,7 @@ System.out.println("\nQueryEstimacion="+queryString);
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("Estimaciones");
         // TODO Auto-generated method stub
         Page.getCurrent().setTitle("Sopdi - Estimaciones");
     }

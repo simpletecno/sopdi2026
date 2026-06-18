@@ -143,13 +143,6 @@ public class FacturaVentaView extends VerticalLayout implements View {
 
     public void createTitleLayout() {
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Facturas Venta");
-        titleLbl.addStyleName(ValoTheme.LABEL_H3);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        addComponent(titleLbl);
-
     }
 
     private void createFiltrosLayout() {
@@ -1666,6 +1659,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY llenarTablaCC
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event
     ) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " Facturas Venta");
         Page.getCurrent().setTitle("Sopdi - Factura venta");
     }
 

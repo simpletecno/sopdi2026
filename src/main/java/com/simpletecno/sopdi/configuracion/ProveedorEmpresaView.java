@@ -36,6 +36,7 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
     ResultSet rsRecords = null;
 
     String idEmpresa = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String nombreEmpresa = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public ProveedorEmpresaView() {
         setSizeFull();
@@ -48,8 +49,6 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
     }
 
     private void buildUI() {
-        Label title = new Label("Proveedores, Clientes y Otros");
-        title.addStyleName(ValoTheme.LABEL_H2);
 
         chkInhabilitados = new CheckBox("Ver inhabilitados");
         chkInhabilitados.addValueChangeListener(e -> loadData());
@@ -221,8 +220,6 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
         // Reaccionar a selección en "Mis Proveedores" para habilitar Editar/Quitar
         gridMis.addSelectionListener(e -> refreshButtonsState());
 
-        addComponent(title);
-        setComponentAlignment(title, Alignment.TOP_CENTER);
         addComponent(gridsRow);
         addComponent(bottomButtons);
         setComponentAlignment(bottomButtons, Alignment.BOTTOM_RIGHT);
@@ -434,10 +431,12 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
         }
         return false;
     }
-        @Override
+
+    @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
         // TODO Auto-generated method stub
         Page.getCurrent().setTitle("Sopdi - Mis proveedores");
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("Mis proveedores, clientes y otros");
     }
 
     public class Proveedor  {

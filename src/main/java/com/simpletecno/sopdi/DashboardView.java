@@ -44,11 +44,6 @@ public class DashboardView extends VerticalLayout implements View {
         setMargin(new MarginInfo(false, false, false, false));
         setDefaultComponentAlignment(Alignment.TOP_LEFT);
 
-        Label titleLbl = new Label("Dashboard");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h2_custom");
-
         refrescarBtn.setIcon(FontAwesome.REFRESH);
         refrescarBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
 
@@ -56,8 +51,7 @@ public class DashboardView extends VerticalLayout implements View {
         titleLayout.setMargin(new MarginInfo(true, true, false, true));
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
-        titleLayout.addComponents(titleLbl, refrescarBtn);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_LEFT);
+        titleLayout.addComponents(refrescarBtn);
         titleLayout.setComponentAlignment(refrescarBtn, Alignment.MIDDLE_RIGHT);
 
         addComponent(titleLayout);
@@ -442,6 +436,7 @@ public class DashboardView extends VerticalLayout implements View {
  */
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("Dashboard");
         Page.getCurrent().setTitle("Sopdi - Dashboard");
     }
 

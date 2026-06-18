@@ -96,13 +96,6 @@ public class ChangeOrdersView extends VerticalLayout implements View {
         
         marginInfo = new MarginInfo(true,true,false,true); 
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Ordenes de cambio");
-        titleLbl.addStyleName(ValoTheme.LABEL_H1);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-        
-        addComponent(titleLbl);
-        
         buildReport();
         
     }
@@ -425,6 +418,7 @@ System.out.println("\n\n"+queryString);
     
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " Ordenes de cambio");
         // TODO Auto-generated method stub
         Page.getCurrent().setTitle("Sopdi - Visitas por inspección");
     }

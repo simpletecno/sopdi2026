@@ -67,21 +67,6 @@ public class EmpleadoAsistenciaView extends VerticalLayout implements View {
         setMargin(false);
         setSpacing(true);
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " ASISTENCIA DIARIA PLAN DE TRABAJO");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
-        titleLayout.setWidth("100%");
-        titleLayout.setMargin(false);
-        titleLayout.addComponent(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_RIGHT);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         createComboRazonAusencia();
 
         createDetailsGrid();
@@ -642,6 +627,7 @@ public class EmpleadoAsistenciaView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " ASISTENCIA DIARIA PLAN DE TRABAJO");
         Page.getCurrent().setTitle("Sopdi - ASISTENCIA DIARIA TRABAJO");
     }
 }

@@ -68,21 +68,8 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
         empresaLayout.setSpacing(true);
         empresaLayout.setWidth("100%");
 
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
-        titleLayout.setSpacing(false);
-        titleLayout.setWidth("100%");
-
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " FACTURA LIQUIDACION MOBIL");
-        titleLbl.addStyleName(ValoTheme.LABEL_H4);
-        titleLbl.setWidth("100%");
-        titleLbl.addStyleName("h2_custom");
-
-        titleLayout.addComponent(titleLbl);
-
-        addComponents(empresaLayout,titleLayout);
+        addComponents(empresaLayout);
         setComponentAlignment(empresaLayout, Alignment.TOP_CENTER);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
 
         fechaDt.setDateFormat("dd/MM/yyyy");
         fechaDt.setWidth("100%");
@@ -958,6 +945,7 @@ public class FacturaLiquidacionMobilView extends VerticalLayout implements View 
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " FACTURA LIQUIDACION MOBIL");
         Page.getCurrent().setTitle("Sopdi - Fact Liqui Mobil");
     }
 }

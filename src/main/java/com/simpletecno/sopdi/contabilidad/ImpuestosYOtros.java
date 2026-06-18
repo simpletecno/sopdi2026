@@ -58,24 +58,6 @@ public class ImpuestosYOtros extends VerticalLayout implements View {
         
         addComponent(mainLayout);
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " IMPUESTOS/IGSS");
-        //   titleLbl.setWidth("10%");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-        //  titleLbl.addStyleName("h2_custom");
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
-        titleLayout.setSpacing(true);
-        titleLayout.setWidth("100%");
-        titleLayout.setMargin(false);
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
-        titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
-
-        mainLayout.addComponent(titleLayout);
-        mainLayout.setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         createTable();
         fillData();
     }
@@ -348,6 +330,7 @@ public class ImpuestosYOtros extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " IMPUESTOS/IGSS");
         Page.getCurrent().setTitle("Sopdi - Impuestos");
     }
 

@@ -63,21 +63,6 @@ public class EmpresaCuentaEquivalenteView extends VerticalLayout implements View
         setSpacing(true);
         this.mainUI = UI.getCurrent();
 
-        Label titleLbl = new Label("Cuentas Equivalentes por Empresa");
-        titleLbl.addStyleName(ValoTheme.LABEL_H1);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setMargin(true);
-        titleLayout.setSpacing(true);
-        titleLayout.setWidth("100%");
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_LEFT);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         createTablaCuentasContables();
         llenarTablaCuentas();
 
@@ -413,6 +398,7 @@ public class EmpresaCuentaEquivalenteView extends VerticalLayout implements View
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("Cuentas Equivalentes por Empresa");
         Page.getCurrent().setTitle("Sopdi - Cuentas contables");
     }
 

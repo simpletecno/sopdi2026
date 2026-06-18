@@ -43,22 +43,6 @@ public class ClasificacionCuentasCostoView extends VerticalLayout implements Vie
 
     public ClasificacionCuentasCostoView() {
         this.mainUI = UI.getCurrent();
-        Label titleLbl = new Label("CLASIFICACION DE CENTRO DE CUENTAS COSTO");
-        titleLbl.addStyleName(ValoTheme.LABEL_H1);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setMargin(true);
-        titleLayout.setSpacing(true);
-
-        titleLayout.setWidth("100%");
-
-        titleLayout.addComponents(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_LEFT);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
 
         Responsive.makeResponsive(this);
         setMargin(true);
@@ -203,7 +187,7 @@ public class ClasificacionCuentasCostoView extends VerticalLayout implements Vie
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
-
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("CLASIFICACION DE CENTRO DE CUENTAS COSTO");
     }
 
 }

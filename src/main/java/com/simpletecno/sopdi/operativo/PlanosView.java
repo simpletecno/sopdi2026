@@ -53,11 +53,6 @@ public class PlanosView extends VerticalLayout implements View {
 
         environmentsVars = new EnvironmentVars();
 
-        Label titleLbl = new Label("Planos");
-        titleLbl.addStyleName(ValoTheme.LABEL_H1);
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
         consultarBtn = new Button("Consultar");
         consultarBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
         consultarBtn.setIcon(FontAwesome.SEARCH);
@@ -73,8 +68,7 @@ public class PlanosView extends VerticalLayout implements View {
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
 
-        titleLayout.addComponents(titleLbl, consultarBtn);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_LEFT);
+        titleLayout.addComponents(consultarBtn);
         titleLayout.setComponentAlignment(consultarBtn, Alignment.BOTTOM_CENTER);
 
         addComponent(titleLayout);
@@ -417,6 +411,7 @@ public class PlanosView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("Planos");
         Page.getCurrent().setTitle("Sopdi - Planos");
     }
 }

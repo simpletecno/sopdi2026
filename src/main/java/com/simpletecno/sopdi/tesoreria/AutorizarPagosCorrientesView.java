@@ -114,13 +114,6 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         mainLayout.setSpacing(true);
         mainLayout.setWidth("100%");
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " Autorizar Pagos Corrientes");
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-//        titleLbl.addStyleName("h2_custom");
-
-        mainLayout.addComponent(titleLbl);
-
         addComponent(mainLayout);
 
         createGridCuentasBancos();
@@ -1393,6 +1386,7 @@ System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event
     ) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " Autorizar Pagos Corrientes");
         Page.getCurrent().setTitle("Sopdi - Pagos corrientes");
     }
 }

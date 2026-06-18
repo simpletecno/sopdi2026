@@ -44,13 +44,6 @@ public class ResumenCalificacionEmpleadoView extends VerticalLayout implements V
         setSpacing(true);
         setResponsive(true);
 
-        Label titleLbl = new Label("VERIFICAR TAREAS");
-        if (mainUI.getPage().getBrowserWindowWidth() >= 736) {
-            titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        }
-        titleLbl.setSizeUndefined();
-        titleLbl.addStyleName("h1_custom");
-
         empresaCbx = new ComboBox("Empresa:");
         if (mainUI.getPage().getBrowserWindowWidth() >= 736) {
             empresaCbx.setWidth("400px");
@@ -72,9 +65,8 @@ public class ResumenCalificacionEmpleadoView extends VerticalLayout implements V
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
-        titleLayout.addComponents(empresaCbx, titleLbl);
+        titleLayout.addComponents(empresaCbx);
         titleLayout.setComponentAlignment(empresaCbx, Alignment.MIDDLE_CENTER);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
 
         addComponent(titleLayout);
@@ -234,6 +226,7 @@ public class ResumenCalificacionEmpleadoView extends VerticalLayout implements V
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent viewChangeEvent) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("VERIFICAR TAREAS");
         Page.getCurrent().setTitle("Sopdi - Calificacion Empleados");
     }
 }

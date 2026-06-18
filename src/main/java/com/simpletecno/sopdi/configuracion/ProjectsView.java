@@ -343,6 +343,7 @@ public class ProjectsView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue("Proyectos");
         Page.getCurrent().setTitle("Cian - Proyectos");
     }
 

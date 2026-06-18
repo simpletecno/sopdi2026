@@ -131,23 +131,6 @@ public class HistorialPagoView extends VerticalLayout implements View {
             }
         });
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " HISTORIAL DE PAGOS");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setResponsive(true);
-        titleLayout.setSpacing(true);
-        titleLayout.setWidth("100%");
-        titleLayout.setMargin(false);
-        titleLayout.addComponents(titleLbl, excelBtn);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
-        titleLayout.setComponentAlignment(excelBtn, Alignment.MIDDLE_CENTER);
-        titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
-
-        addComponent(titleLayout);
-        setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-
         agregarHistorialPagos();
         llenarGridHistorialPagos();
     }
@@ -213,11 +196,12 @@ public class HistorialPagoView extends VerticalLayout implements View {
             }
         });
 
-        filtrosLayout.addComponents(inicioDt, finDt, consultarBtn, descargarTxt);
+        filtrosLayout.addComponents(inicioDt, finDt, consultarBtn, descargarTxt, excelBtn);
         filtrosLayout.setComponentAlignment(inicioDt, Alignment.BOTTOM_CENTER);
         filtrosLayout.setComponentAlignment(finDt, Alignment.BOTTOM_CENTER);
         filtrosLayout.setComponentAlignment(consultarBtn, Alignment.BOTTOM_CENTER);
         filtrosLayout.setComponentAlignment(descargarTxt, Alignment.BOTTOM_CENTER);
+        filtrosLayout.setComponentAlignment(excelBtn, Alignment.BOTTOM_CENTER);
 
         historialPagosLayout.addComponent(filtrosLayout);
         historialPagosLayout.setComponentAlignment(filtrosLayout, Alignment.TOP_CENTER);
@@ -693,6 +677,7 @@ public class HistorialPagoView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " HISTORIAL DE PAGOS");
         Page.getCurrent().setTitle("Sopdi - Historial Pagos");
     }
 }

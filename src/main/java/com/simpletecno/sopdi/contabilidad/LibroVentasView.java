@@ -110,18 +110,13 @@ public class LibroVentasView extends VerticalLayout implements View {
         buscarBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
         buscarBtn.addClickListener((Button.ClickListener) event -> llenarGridLibroVentas());
 
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " LIBRO IVA VENTAS");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.setSizeUndefined();
-
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setResponsive(true);
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
         titleLayout.setMargin(false);
 
-        titleLayout.addComponents(titleLbl, monthDt, buscarBtn);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.MIDDLE_CENTER);
+        titleLayout.addComponents(monthDt, buscarBtn);
         titleLayout.setComponentAlignment(monthDt, Alignment.MIDDLE_CENTER);
         titleLayout.setComponentAlignment(buscarBtn, Alignment.MIDDLE_LEFT);
         titleLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
@@ -522,6 +517,7 @@ public class LibroVentasView extends VerticalLayout implements View {
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " LIBRO IVA VENTAS");
         Page.getCurrent().setTitle("Sopdi - Libro IVA ventas");
     }
 }
