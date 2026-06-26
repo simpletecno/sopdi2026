@@ -959,8 +959,8 @@ public class EditarIngresoDocumentos extends Window {
 
         estatusPartidaEdit = "INGRESADO";
 
-        queryString = " SELECT * from contabilidad_partida";
-        queryString += " where CodigoPartida = '" + codigoPartidaEdit + "'";
+        queryString = " SELECT * FROM contabilidad_partida";
+        queryString += " WHERE CodigoPartida = '" + codigoPartidaEdit + "'";
 
         try {
             int contador = 0;

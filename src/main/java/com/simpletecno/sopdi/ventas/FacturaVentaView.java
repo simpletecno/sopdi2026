@@ -691,7 +691,7 @@ public class FacturaVentaView extends VerticalLayout implements View {
 
                 queryString = "SELECT * FROM contabilidad_partida ";
                 queryString += "WHERE CodigoCC = '" + facturasVentaContainer.getContainerProperty(facturasVentaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue() + "' ";
-                queryString += "AND CodigoPatida != '" + facturasVentaContainer.getContainerProperty(facturasVentaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue() + "' ";
+                queryString += "AND CodigoPartida != '" + facturasVentaContainer.getContainerProperty(facturasVentaGrid.getSelectedRow(), CODIGO_PROPERTY).getValue() + "' ";
                 queryString += "AND IdNomenclatura In (" + ((SopdiUI) mainUI).cuentasContablesDefault.getIsrGasto() + "," + ((SopdiUI) mainUI).cuentasContablesDefault.getIsrOpcionalMensualPorPagar() + ") ";
                 queryString += "AND IdEmpresa =" + empresaId;
 //                queryString += " AND TipoDocumento = 'CONSTANCIA ISR VENTA'";
