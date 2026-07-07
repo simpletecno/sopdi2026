@@ -1205,7 +1205,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
                 proveedoresInstitucionales.setIgss(rsRecords.getString("IGSS"));
             }
 
-            Logger.getLogger(this.getClass().getName()).log(Level.INFO,"Proveedores Institucionales| sat: " + proveedoresInstitucionales.getSat() + ", : " + proveedoresInstitucionales.getIgss());
+           // Logger.getLogger(this.getClass().getName()).log(Level.INFO,"Proveedores Institucionales| sat: " + proveedoresInstitucionales.getSat() + ", : " + proveedoresInstitucionales.getIgss());
 
         } catch (Exception ex1) {
             Logger.getLogger(this.getClass().getName()).log(Level.INFO,"Error al leer tabla proveedor_uso_recurrente:  " + ex1.getMessage());

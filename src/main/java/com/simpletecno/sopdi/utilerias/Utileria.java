@@ -1138,7 +1138,16 @@ public class Utileria {
         validarTipoUnDigito(tipo);
 
         // Convertimos Date -> LocalDate -> "YYYYMMDD" (para el código y para la tabla CHAR(8))
-        LocalDate ld = fecha.toInstant().atZone(ZONE_GT).toLocalDate();
+        LocalDate ld;
+
+        if (fecha instanceof java.sql.Date) {
+            ld = ((java.sql.Date) fecha).toLocalDate();
+        } else {
+            ld = fecha.toInstant()
+                    .atZone(ZONE_GT)
+                    .toLocalDate();
+        }
+
         String fecha8 = ld.format(FMT_BASICO);
 
         try (PreparedStatement ps = conn.prepareStatement(
@@ -1201,12 +1210,21 @@ public class Utileria {
      * @throws RuntimeException         si ocurre un error SQL o si el correlativo excede 999.
      *                                  dc
      */
-    public static String[] nextCodigosPartida(Connection conn, String idEmpresa, java.util.Date fecha, int tipo, int cantidad) {
+    public static String[] nextCodigosPartida(Connection conn, String idEmpresa, Date fecha, int tipo, int cantidad) {
         if (fecha == null) throw new IllegalArgumentException("fecha null");
         if (cantidad <= 0) throw new IllegalArgumentException("cantidad debe ser > 0");
         validarTipoUnDigito(tipo);
 
-        LocalDate ld = fecha.toInstant().atZone(ZONE_GT).toLocalDate();
+        LocalDate ld;
+
+        if (fecha instanceof java.sql.Date) {
+            ld = ((java.sql.Date) fecha).toLocalDate();
+        } else {
+            ld = fecha.toInstant()
+                    .atZone(ZONE_GT)
+                    .toLocalDate();
+        }
+
         String fecha8 = ld.format(FMT_BASICO);
 
         try (PreparedStatement psEnsure = conn.prepareStatement(

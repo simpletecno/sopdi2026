@@ -13,6 +13,7 @@ import com.vaadin.server.Page;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.CheckBox;
 import com.vaadin.ui.ComboBox;
 import com.vaadin.ui.FormLayout;
 import com.vaadin.ui.HorizontalLayout;
@@ -64,6 +65,7 @@ public class UserForm extends Window {
     TextField horarioInicioTxt;
     TextField horarioFinTxt;
     TextField ipsAutorizadasTxt;
+    CheckBox veTodosCalendariosChk;
 
     UI mainUI;
     
@@ -77,7 +79,9 @@ public class UserForm extends Window {
         marginInfo = new MarginInfo(true,true,false,true);
         
         Page.getCurrent().setTitle("SOPDI - Usuario");
-        
+
+        asegurarColumnaVeTodosCalendarios();
+
         companyCbx = new ComboBox("Empresa :");
         fillCompanyCombo();
         
@@ -158,6 +162,11 @@ public class UserForm extends Window {
         ipsAutorizadasTxt.setInputPrompt("192.168.1.10, 200.30.40.0/24");
         ipsAutorizadasTxt.setDescription("IPs o rangos CIDR separados por coma. Vacío = sin restricción por IP.");
 
+        veTodosCalendariosChk = new CheckBox("Ve todos los calendarios");
+        veTodosCalendariosChk.addStyleName(ValoTheme.CHECKBOX_LARGE);
+        veTodosCalendariosChk.setDescription("Permite ver y gestionar el calendario de cualquier usuario.");
+        veTodosCalendariosChk.setValue(false);
+
         estatusCbx = new ComboBox("Estatus : ");
         estatusCbx.setNewItemsAllowed(false);
         estatusCbx.setInvalidAllowed(false);
@@ -208,6 +217,7 @@ public class UserForm extends Window {
         userForm.addComponent(horarioInicioTxt);
         userForm.addComponent(horarioFinTxt);
         userForm.addComponent(ipsAutorizadasTxt);
+        userForm.addComponent(veTodosCalendariosChk);
         userForm.addComponent(estatusCbx);
         userForm.addComponent(buttonsLayout);
         userForm.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
@@ -234,6 +244,35 @@ public class UserForm extends Window {
         setContent(contentLayout);
     }    
  
+    /**
+     * Agrega la columna usuario.VeTodosCalendarios si aún no existe.
+     * MySQL no soporta "ADD COLUMN IF NOT EXISTS", por lo que primero se
+     * consulta information_schema y solo entonces se ejecuta el ALTER.
+     */
+    private void asegurarColumnaVeTodosCalendarios() {
+        String existeSql = "SELECT COUNT(*) FROM information_schema.COLUMNS "
+                + " WHERE TABLE_SCHEMA = DATABASE() "
+                + " AND TABLE_NAME = 'usuario' "
+                + " AND COLUMN_NAME = 'VeTodosCalendarios'";
+        String ddl = "ALTER TABLE usuario "
+                + " ADD COLUMN VeTodosCalendarios TINYINT(1) NOT NULL DEFAULT 0";
+        Statement st = null;
+        try {
+            st = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+            ResultSet rs = st.executeQuery(existeSql);
+            boolean existe = rs.next() && rs.getInt(1) > 0;
+            rs.close();
+            if (!existe) {
+                st.executeUpdate(ddl);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(UserForm.class.getName()).log(Level.WARNING,
+                    "No se pudo asegurar la columna usuario.VeTodosCalendarios: {0}", ex.getMessage());
+        } finally {
+            try { if (st != null) st.close(); } catch (Exception ignored) { }
+        }
+    }
+
     public void fillCompanyCombo() {
         String queryString = "";
         
@@ -292,6 +331,7 @@ public class UserForm extends Window {
                 horarioFinTxt.setValue(ControlAcceso.timeAHhmm(rsRecords.getTime("HorarioAccesoFin")));
                 String ips = rsRecords.getString("IpsAutorizadas");
                 ipsAutorizadasTxt.setValue(ips == null ? "" : ips);
+                veTodosCalendariosChk.setValue("1".equals(rsRecords.getString("VeTodosCalendarios")));
                 estatusCbx.select(rsRecords.getString("Estatus"));
             }
             
@@ -362,7 +402,7 @@ public class UserForm extends Window {
                     usuarioTxt.focus();
                     return;
                 }
-                queryString =  "Insert Into usuario (Usuario, Nombre, Clave, Email, Telefono, Perfil, CodigoEspecial, Estatus, IdEmpresa, Division, HorarioAccesoInicio, HorarioAccesoFin, IpsAutorizadas)";
+                queryString =  "Insert Into usuario (Usuario, Nombre, Clave, Email, Telefono, Perfil, CodigoEspecial, Estatus, IdEmpresa, Division, HorarioAccesoInicio, HorarioAccesoFin, IpsAutorizadas, VeTodosCalendarios)";
                 queryString += " Values (";
                 queryString += "'"   + usuarioTxt.getValue() + "'";
                 queryString += ",'"  + nombreTxt.getValue()  + "'";
@@ -384,6 +424,7 @@ public class UserForm extends Window {
                 queryString += ","  + horaInicioSql;
                 queryString += ","  + horaFinSql;
                 queryString += ","  + ipsSql;
+                queryString += ","  + (veTodosCalendariosChk.getValue() ? "1" : "0");
                 queryString += ")";
             }
             else {
@@ -407,6 +448,7 @@ public class UserForm extends Window {
                 queryString += ",HorarioAccesoInicio = " + horaInicioSql;
                 queryString += ",HorarioAccesoFin = "    + horaFinSql;
                 queryString += ",IpsAutorizadas = "      + ipsSql;
+                queryString += ",VeTodosCalendarios = "  + (veTodosCalendariosChk.getValue() ? "1" : "0");
                 queryString += " Where IdUsuario = " + idUsuario;
             }
 

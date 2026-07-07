@@ -26,7 +26,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -105,7 +107,7 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
     IndexedContainer porPagarContainer = new IndexedContainer();
     Grid porPagarGrid;
 
-    Button autorizarBtn;
+    Button agregarBtn = new Button("Autorizar pago");
     boolean darkModeActive = false;
 
     NumberField saldoFacturaTxt;
@@ -128,6 +130,10 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
     /** Almacena el saldo remanente de cada anticipo (CodigoCC → saldo) tras su aplicación parcial o total. */
     Map<String, Double> anticiposOcupadosMap = new HashMap<>();
 
+    /** Anticipos de cliente seleccionados para devolución (tipo DEVOLUCION ANTICIPO CLIENTE). */
+    List<SeleccionAnticiposDevolucionForm.DevolucionItem> devolucionesSeleccionadas = new ArrayList<>();
+    double totalDevolucion = 0.00;
+
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
     static DecimalFormat numberFormat2 = new DecimalFormat("######0.00");
 
@@ -144,11 +150,10 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
         mainLayout.setSpacing(true);
         mainLayout.setWidth("100%");
 
-        crearComboTipoPago();
-
         addComponent(mainLayout);
 
         createGridCuentasBancos();
+        crearComboTipoPagoYProveedorCliente();
         crearLayoutCamposPago();
         crearGridPorPagar();
         crearBotones();
@@ -162,9 +167,26 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
      * Crea el combo de elección con los tipos de pago especial y lo coloca al
      * inicio de la vista, debajo del título.
      */
-    private void crearComboTipoPago() {
+    private void crearComboTipoPagoYProveedorCliente() {
+        proveedorCbx = new ComboBox("Proveedor/Cliente : ");
+        proveedorCbx.setFilteringMode(FilteringMode.CONTAINS);
+        proveedorCbx.setDescription("Seleccione el tipo de pago especial");
+        proveedorCbx.setWidth("35em");
+        proveedorCbx.setRequired(true);
+        proveedorCbx.setRequiredError("Debe seleccionar un tipo de pago especial");
+        proveedorCbx.setNullSelectionAllowed(false);
+        proveedorCbx.setNewItemsAllowed(false);
+        proveedorCbx.setInvalidAllowed(false);
+        proveedorCbx.setTextInputAllowed(false);
+        proveedorCbx.setImmediate(true);
+        llenarComboProveedor();
+
         tipoPagoCbx = new ComboBox("Tipo de pago especial :");
-        tipoPagoCbx.setWidth("22em");
+        tipoPagoCbx.setWidth("25em");
+        tipoPagoCbx.setDescription("Seleccione el tipo de pago especial");
+        tipoPagoCbx.setRequired(true);
+        tipoPagoCbx.setRequiredError("Debe seleccionar un tipo de pago especial");
+        tipoPagoCbx.addStyleName("apc-combobox");
         tipoPagoCbx.setNullSelectionAllowed(false);
         tipoPagoCbx.setNewItemsAllowed(false);
         tipoPagoCbx.setInvalidAllowed(false);
@@ -175,9 +197,68 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
         for (String tipo : TIPOS_PAGO_ESPECIAL) {
             tipoPagoCbx.addItem(tipo);
         }
+//        tipoPagoCbx.select(TIPOS_PAGO_ESPECIAL[0]);
 
-        mainLayout.addComponent(tipoPagoCbx);
-        mainLayout.setComponentAlignment(tipoPagoCbx, Alignment.TOP_LEFT);
+        // Al elegir DEVOLUCION ANTICIPO CLIENTE se abre el formulario de selección
+        // de anticipos; para cualquier otro tipo se limpia la selección previa.
+        tipoPagoCbx.addValueChangeListener(event -> {
+            if(proveedorCbx.getValue() == null) {
+                Notification.show("Debe seleccionar un proveedor/cliente", Notification.Type.WARNING_MESSAGE);
+                return;
+            }
+            if (DEVOLUCION_ANTICIPO_CLIENTE.equals(tipoPagoCbx.getValue())) {
+                abrirSeleccionAnticiposDevolucion();
+            } else {
+                limpiarDevolucion();
+            }
+        });
+
+        HorizontalLayout tipoPagoLayout = new HorizontalLayout();
+        tipoPagoLayout.setSpacing(false);
+        tipoPagoLayout.setMargin(false);
+        tipoPagoLayout.setWidth("100%");
+        tipoPagoLayout.addComponents(proveedorCbx, tipoPagoCbx);
+
+        mainLayout.addComponent(tipoPagoLayout);
+        mainLayout.setComponentAlignment(tipoPagoLayout, Alignment.TOP_LEFT);
+    }
+
+    /**
+     * Abre el formulario de selección de anticipos de cliente a devolver. Al aceptar,
+     * guarda la selección, suma los montos escritos y precarga los campos del cheque
+     * (proveedor, nombre y monto).
+     */
+    private void abrirSeleccionAnticiposDevolucion() {
+        String idProveedorFiltro = proveedorCbx.getValue() == null ? null : String.valueOf(proveedorCbx.getValue());
+        SeleccionAnticiposDevolucionForm form = new SeleccionAnticiposDevolucionForm((items, total) -> {
+            devolucionesSeleccionadas = items;
+            totalDevolucion = total;
+
+            if (!items.isEmpty()) {
+                String idProveedor = items.get(0).idProveedor;
+                String nombreProveedor = items.get(0).nombreProveedor;
+
+                if (proveedorCbx.containsId(idProveedor)) {
+                    proveedorCbx.select(idProveedor);
+                }
+                if (nombreChequeTxt != null) {
+                    nombreChequeTxt.setReadOnly(false);
+                    nombreChequeTxt.setValue(nombreProveedor);
+                }
+            }
+            montoTxt.setValue(total);
+        }, idProveedorFiltro);
+        UI.getCurrent().addWindow(form);
+        form.center();
+    }
+
+    /** Descarta la selección de devolución y restablece el monto. */
+    private void limpiarDevolucion() {
+        devolucionesSeleccionadas = new ArrayList<>();
+        totalDevolucion = 0.00;
+        if (montoTxt != null) {
+            montoTxt.setValue(0d);
+        }
     }
 
     /**
@@ -200,11 +281,6 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
         fechaDt.setWidth("100%");
         fechaDt.setValue(new java.util.Date());
         fechaDt.setReadOnly(true);
-
-        proveedorCbx = new ComboBox("Proveedor : ");
-        proveedorCbx.setFilteringMode(FilteringMode.CONTAINS);
-        proveedorCbx.setWidth("100%");
-        llenarComboProveedor();
 
         tasaCambioTxt = new NumberField("T. Cambio");
         tasaCambioTxt.setDecimalAllowed(true);
@@ -243,6 +319,11 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
         descripcionTxt = new TextField("Descripción del pago");
         descripcionTxt.setWidth("100%");
 
+        agregarBtn.addClickListener(event -> {
+           // agregar al grid porPagarContainer
+            llenarGridPorPagar();
+        });
+
         // Al cambiar el proveedor, sugerir su nombre para el cheque/nota
         proveedorCbx.addValueChangeListener(event -> {
             if (nombreChequeTxt == null) return;
@@ -258,15 +339,13 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
         camposPagoLayout.setSpacing(true);
         camposPagoLayout.setMargin(false);
         camposPagoLayout.setWidth("100%");
-        camposPagoLayout.addComponents(medioCbx, documentoTxt, fechaDt, proveedorCbx,
-                tasaCambioTxt, montoTxt);
+        camposPagoLayout.addComponents(medioCbx, documentoTxt, fechaDt, tasaCambioTxt, montoTxt);
         for (int i = 0; i < camposPagoLayout.getComponentCount(); i++) {
             camposPagoLayout.setComponentAlignment(camposPagoLayout.getComponent(i), Alignment.BOTTOM_LEFT);
         }
         camposPagoLayout.setExpandRatio(medioCbx, 1f);
         camposPagoLayout.setExpandRatio(documentoTxt, 1f);
         camposPagoLayout.setExpandRatio(fechaDt, 1f);
-        camposPagoLayout.setExpandRatio(proveedorCbx, 2f);
         camposPagoLayout.setExpandRatio(tasaCambioTxt, 0.5f);
         camposPagoLayout.setExpandRatio(montoTxt, 1.0f);
 
@@ -274,7 +353,7 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
         camposPagoLayout2.setSpacing(true);
         camposPagoLayout2.setMargin(false);
         camposPagoLayout2.setWidth("100%");
-        camposPagoLayout2.addComponents(nombreChequeTxt, descripcionTxt);
+        camposPagoLayout2.addComponents(nombreChequeTxt, descripcionTxt, agregarBtn);
         for (int i = 0; i < camposPagoLayout2.getComponentCount(); i++) {
             camposPagoLayout2.setComponentAlignment(camposPagoLayout2.getComponent(i), Alignment.BOTTOM_LEFT);
         }
@@ -612,6 +691,10 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
         btnAutorizarPagos.setIcon(FontAwesome.CHECK_SQUARE_O);
         btnAutorizarPagos.setWidth("15em");
         btnAutorizarPagos.addClickListener((Button.ClickListener) event -> {
+            if (DEVOLUCION_ANTICIPO_CLIENTE.equals(tipoPagoCbx.getValue())) {
+                aplicarDevolucionAnticipoCliente();
+                return;
+            }
             double porLiquidar = 0.00;
             for(Object itemId : porPagarContainer.getItemIds()) {
                 porLiquidar+= Double.parseDouble(String.valueOf(porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).getValue()));
@@ -703,7 +786,7 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
                     cuentasBancosContainer.getContainerProperty(itemId, NUEVO_SALDO_PROPERTY).setValue(numberFormat.format(dSaldoContable));
                     cuentasBancosContainer.getContainerProperty(itemId, NUEVO_SALDOSF_PROPERTY).setValue(String.valueOf(dSaldoContable));
                     cuentasBancosContainer.getContainerProperty(itemId, ULTIMO_CHEQUE_PROPERTY).setValue(obtenerUltimoCheque(rsRecords.getString("IdCuentaBanco")));
-                    cuentasBancosContainer.getContainerProperty(itemId, ID_NOMENCLATURA_PROPERTY).setValue(rsRecords.getString("IdCuentaBanco"));
+                    cuentasBancosContainer.getContainerProperty(itemId, ID_NOMENCLATURA_PROPERTY).setValue(rsRecords.getString("ban.IdNomenclatura"));
 
                 } while (rsRecords.next());
             }
@@ -873,6 +956,213 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
         }
         cuentasBancosGrid.setReadOnly(false);
         porPagarGrid.setReadOnly(false);
+    }
+
+    // =========================================================================
+    //  DEVOLUCION ANTICIPO CLIENTE
+    // =========================================================================
+
+    /**
+     * Aplica la devolución de anticipos de cliente seleccionados en
+     * {@link SeleccionAnticiposDevolucionForm}.
+     *
+     * Genera una sola partida contable (un cheque / nota de débito) con:
+     *   - Una línea DEBE por cada anticipo seleccionado, en la cuenta contable del
+     *     anticipo y con su propio CodigoCC (así la partida incluye los CodigoCC de
+     *     los anticipos devueltos).
+     *   - Una línea HABER en la cuenta bancaria por el total devuelto.
+     *
+     * Todo se ejecuta en una transacción; si el medio es CHEQUE, se toma el
+     * siguiente número de la chequera y se actualiza al confirmar.
+     */
+    private void aplicarDevolucionAnticipoCliente() {
+
+        if (devolucionesSeleccionadas == null || devolucionesSeleccionadas.isEmpty() || totalDevolucion <= 0.00) {
+            Notification.show("Seleccione los anticipos a devolver (combo DEVOLUCION ANTICIPO CLIENTE).", Notification.Type.WARNING_MESSAGE);
+            return;
+        }
+
+        String moneda = devolucionesSeleccionadas.get(0).moneda;
+
+        // Buscar la cuenta bancaria seleccionada de la misma moneda
+        Object bancoItemId = null;
+        for (Object itemId : cuentasBancosGrid.getSelectedRows()) {
+            if (nvlC(cuentasBancosContainer.getContainerProperty(itemId, MONEDA_PROPERTY).getValue()).equalsIgnoreCase(moneda)) {
+                bancoItemId = itemId;
+                break;
+            }
+        }
+        if (bancoItemId == null) {
+            Notification.show("Seleccione una cuenta bancaria de la misma moneda del anticipo (" + moneda + ").", Notification.Type.WARNING_MESSAGE);
+            return;
+        }
+
+        String medio = nvlC(medioCbx.getValue());
+        String idCuentaBanco = nvlC(cuentasBancosContainer.getContainerProperty(bancoItemId, ID_CUENTABANCO_PROPERTY).getValue());
+
+        // Determinar número de documento / cheque
+        String noCheque;
+        boolean esCheque = "CHEQUE".equalsIgnoreCase(medio);
+        if (esCheque) {
+            String ultimo = obtenerUltimoCheque(idCuentaBanco);
+            if (ultimo == null || ultimo.trim().isEmpty()) {
+                Notification.show("No se pudo obtener el último cheque de la cuenta bancaria. Revise la chequera.", Notification.Type.WARNING_MESSAGE);
+                return;
+            }
+            int siguiente = Integer.parseInt(ultimo.trim()) + 1;
+            if (!numeroChequeEnChequera(siguiente, idCuentaBanco)) {
+                Notification.show("No hay cheques disponibles en la chequera. Revise cuentas bancarias y chequera.", Notification.Type.WARNING_MESSAGE);
+                return;
+            }
+            noCheque = String.valueOf(siguiente);
+        } else {
+            noCheque = nvlC(documentoTxt.getValue());
+            if (noCheque.isEmpty()) {
+                Notification.show("Ingrese el # de documento (nota de débito).", Notification.Type.WARNING_MESSAGE);
+                return;
+            }
+        }
+
+        double tipoCambio = "DOLARES".equalsIgnoreCase(moneda)
+                ? parseMontoSF(tasaCambioTxt.getValue())
+                : 1.00;
+        if (tipoCambio <= 0.00) tipoCambio = 1.00;
+
+        // Cuenta contable (IdNomenclatura) de la cuenta bancaria seleccionada en el grid
+        String cuentaBanco = nvlC(cuentasBancosContainer.getContainerProperty(bancoItemId, ID_NOMENCLATURA_PROPERTY).getValue());
+        if (cuentaBanco.isEmpty()) {
+            Notification.show("La cuenta bancaria seleccionada no tiene nomenclatura contable asociada.", Notification.Type.WARNING_MESSAGE);
+            return;
+        }
+
+        String idProveedor = devolucionesSeleccionadas.get(0).idProveedor;
+        String nombreProveedor = devolucionesSeleccionadas.get(0).nombreProveedor.replace("'", "");
+        String nombreCheque = nvlC(nombreChequeTxt.getValue()).replace("'", "");
+        if (nombreCheque.isEmpty()) nombreCheque = nombreProveedor;
+        String descripcion = ("DEVOLUCION ANTICIPO " + nombreProveedor + " " + medio + "." + noCheque).replace("'", "").trim();
+
+        final String COLS =
+            " (IdEmpresa, CodigoPartida, CodigoCC, TipoDocumento, IdNomenclatura, " +
+            "  SerieDocumento, NumeroDocumento, Fecha, MonedaDocumento, MontoDocumento," +
+            "  Debe, Haber, TipoCambio, DebeQuetzales, HaberQuetzales, Estatus," +
+            "  Descripcion, TipoDoca, NoDoca, IdProveedor, NombreProveedor, Nombrecheque," +
+            "  CreadoPor, FechaYHoraCreado) VALUES ";
+
+        cuentasBancosGrid.setReadOnly(true);
+
+        try {
+            ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(false);
+            Statement st = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+
+            String codigoPartida = Utileria.nextCodigoPartida(
+                    ((SopdiUI) mainUI).databaseProvider.getCurrentConnection(), empresaId, new java.util.Date(), 3);
+
+            String usuario = ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+            StringBuilder sql = new StringBuilder("INSERT INTO contabilidad_partida " + COLS);
+
+            // Una línea DEBE por cada anticipo devuelto (con su propio CodigoCC)
+            for (SeleccionAnticiposDevolucionForm.DevolucionItem item : devolucionesSeleccionadas) {
+                double montoDevolver = item.montoDevolver;
+                double montoQ = montoDevolver * tipoCambio;
+
+                sql.append("(");
+                sql.append(empresaId);
+                sql.append(",'").append(codigoPartida).append("'");           // CodigoPartida
+                sql.append(",'").append(item.codigoCC).append("'");           // CodigoCC del anticipo
+                sql.append(",'CHEQUE'");                                       // TipoDocumento
+                sql.append(",").append(item.idNomenclatura);                  // IdNomenclatura del anticipo
+                sql.append(",''");                                             // SerieDocumento
+                sql.append(",'").append(noCheque).append("'");                // NumeroDocumento
+                sql.append(",current_date");
+                sql.append(",'").append(moneda).append("'");
+                sql.append(",").append(montoDevolver);                        // MontoDocumento
+                sql.append(",").append(montoDevolver);                        // Debe
+                sql.append(",0");                                              // Haber
+                sql.append(",").append(tipoCambio);
+                sql.append(",").append(montoQ);                               // DebeQuetzales
+                sql.append(",0");                                             // HaberQuetzales
+                sql.append(",'PAGADO'");
+                sql.append(",'").append(descripcion).append("'");
+                sql.append(",'").append(item.tipo.replace("'", "")).append("'");
+                sql.append(",'").append(noCheque).append("'");
+                sql.append(",").append(idProveedor);
+                sql.append(",'").append(nombreProveedor).append("'");
+                sql.append(",'").append(nombreCheque).append("'");
+                sql.append(",").append(usuario);
+                sql.append(",current_timestamp");
+                sql.append("),");
+            }
+
+            // Línea HABER en la cuenta bancaria por el total devuelto
+            double totalQ = totalDevolucion * tipoCambio;
+            sql.append("(");
+            sql.append(empresaId);
+            sql.append(",'").append(codigoPartida).append("'");
+            sql.append(",'").append(codigoPartida).append("'");               // CodigoCC = partida
+            sql.append(",'CHEQUE'");
+            sql.append(",").append(cuentaBanco);                              // IdNomenclatura banco
+            sql.append(",''");
+            sql.append(",'").append(noCheque).append("'");
+            sql.append(",current_date");
+            sql.append(",'").append(moneda).append("'");
+            sql.append(",").append(totalDevolucion);                          // MontoDocumento
+            sql.append(",0");                                                 // Debe
+            sql.append(",").append(totalDevolucion);                          // Haber
+            sql.append(",").append(tipoCambio);
+            sql.append(",0");                                                 // DebeQuetzales
+            sql.append(",").append(totalQ);                                   // HaberQuetzales
+            sql.append(",'PAGADO'");
+            sql.append(",'").append(descripcion).append("'");
+            sql.append(",''");
+            sql.append(",'").append(noCheque).append("'");
+            sql.append(",").append(idProveedor);
+            sql.append(",'").append(nombreProveedor).append("'");
+            sql.append(",'").append(nombreCheque).append("'");
+            sql.append(",").append(usuario);
+            sql.append(",current_timestamp");
+            sql.append(")");
+
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "INSERT devolucion anticipo cliente : {0}", sql.toString());
+            st.executeUpdate(sql.toString());
+
+            // Actualizar chequera si fue cheque
+            if (esCheque) {
+                String updChequera = " UPDATE contabilidad_cuentas_bancos_chequera SET "
+                        + " UltimoUtilizado = " + noCheque
+                        + " WHERE IdCuentaBanco = " + idCuentaBanco
+                        + " AND IdEmpresa = " + empresaId
+                        + " AND Del <= " + noCheque
+                        + " AND Al  >= " + noCheque;
+                st.executeUpdate(updChequera);
+            }
+
+            ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().commit();
+            ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(true);
+
+            Notification notif = new Notification("Devolución de anticipo aplicada y partida generada.", Notification.Type.HUMANIZED_MESSAGE);
+            notif.setDelayMsec(2000);
+            notif.setPosition(Position.MIDDLE_CENTER);
+            notif.setIcon(FontAwesome.CHECK);
+            notif.show(Page.getCurrent());
+
+            limpiarDevolucion();
+            llenarGridBancos();
+
+        } catch (Exception ex) {
+            try {
+                ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().rollback();
+                ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(true);
+            } catch (SQLException rollbackEx) {
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error en rollback", rollbackEx);
+            }
+            Notification notif = new Notification("Error al aplicar devolución: " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
+            notif.setDelayMsec(3000);
+            notif.setPosition(Position.MIDDLE_CENTER);
+            notif.setIcon(FontAwesome.WARNING);
+            notif.show(Page.getCurrent());
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error en aplicarDevolucionAnticipoCliente", ex);
+        }
+        cuentasBancosGrid.setReadOnly(false);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

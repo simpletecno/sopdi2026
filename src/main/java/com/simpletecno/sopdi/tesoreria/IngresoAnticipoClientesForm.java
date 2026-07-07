@@ -7,6 +7,7 @@ package com.simpletecno.sopdi.tesoreria;
 
 import com.simpletecno.sopdi.utilerias.MyEmailMessanger;
 import com.simpletecno.sopdi.SopdiUI;
+import com.simpletecno.sopdi.contabilidad.EmpresaCuentasEquivalentesHelper;
 import com.simpletecno.sopdi.utilerias.Utileria;
 import com.simpletecno.sopdi.utilerias.ValidarTokenForm;
 import com.vaadin.data.Property;
@@ -156,16 +157,18 @@ public class IngresoAnticipoClientesForm extends Window {
         proveedorCbx.setFilteringMode(FilteringMode.CONTAINS);
         proveedorCbx.addValueChangeListener((Property.ValueChangeEvent event) -> {
             if (proveedorCbx.getValue() != null) {
-                if(cuentaContable2Cbx != null){
+                EmpresaCuentasEquivalentesHelper helper =
+                        ((SopdiUI) mainUI).sessionInformation.getEmpresaCuentasEquivalentesHelper();
+                if(cuentaContable2Cbx != null && helper != null){
                     Object idProveedor = proveedorCbx.getValue();
 
                     if(cuentaContableModificada){
-                        ((SopdiUI) mainUI).sessionInformation.getEmpresaCuentasEquivalentesHelper().restoreAll(cuentaContable2Cbx);
+                        helper.restoreAll(cuentaContable2Cbx);
                         cuentaContableModificada = false;
                     }
-                    Set<Long> set = ((SopdiUI)mainUI).sessionInformation.getEmpresaCuentasEquivalentesHelper().getNomenclaturas_e(idProveedor);
+                    Set<Long> set = helper.getNomenclaturas_e(idProveedor);
                     if(!set.isEmpty() && !cuentaContableModificada) {
-                        ((SopdiUI) mainUI).sessionInformation.getEmpresaCuentasEquivalentesHelper().change(
+                        helper.change(
                                 cuentaContable2Cbx,
                                 set
                         );

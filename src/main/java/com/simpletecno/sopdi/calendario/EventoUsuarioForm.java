@@ -38,6 +38,7 @@ public class EventoUsuarioForm extends Window {
 
     private final Runnable onSaved;
     private final UsuarioEvento evento; // null => nuevo evento
+    private final String idUsuarioDestino; // usuario dueño del evento (por defecto, el de sesión)
 
     private final TextField tituloTxt = new TextField("Título : ");
     private final TextArea descripcionTxt = new TextArea("Descripción : ");
@@ -52,12 +53,25 @@ public class EventoUsuarioForm extends Window {
      * @param evento       evento existente a editar, o null para crear uno nuevo.
      * @param defaultStart fecha/hora de inicio por defecto (para creación).
      * @param defaultEnd   fecha/hora de fin por defecto (para creación).
+     * @param idUsuarioDestino usuario dueño del evento; null/"" para usar el usuario en sesión.
+     * @param nombreUsuarioDestino nombre del usuario destino (para el título, cuando no es el propio).
      */
-    public EventoUsuarioForm(Runnable onSaved, UsuarioEvento evento, Date defaultStart, Date defaultEnd) {
+    public EventoUsuarioForm(Runnable onSaved, UsuarioEvento evento, Date defaultStart, Date defaultEnd,
+                             String idUsuarioDestino, String nombreUsuarioDestino) {
         this.onSaved = onSaved;
         this.evento = evento;
+        String idSesion = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
+        this.idUsuarioDestino = (idUsuarioDestino != null && !idUsuarioDestino.isEmpty())
+                ? idUsuarioDestino
+                : idSesion;
 
-        setCaption(evento == null ? "Nuevo evento" : "Editar evento");
+        String caption = (evento == null ? "Nuevo evento" : "Editar evento");
+        // Si el evento pertenece a otro usuario, indicarlo en el título.
+        if (!this.idUsuarioDestino.equals(idSesion)
+                && nombreUsuarioDestino != null && !nombreUsuarioDestino.trim().isEmpty()) {
+            caption += " — Calendario de " + nombreUsuarioDestino;
+        }
+        setCaption(caption);
         setModal(true);
         setResizable(false);
         setWidth("420px");
@@ -194,7 +208,7 @@ public class EventoUsuarioForm extends Window {
                         + " VALUES (?,?,?,?,?,?,?,?, 'ACTIVO')";
                 ps = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection()
                         .prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-                ps.setInt(1, Integer.parseInt(((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId()));
+                ps.setInt(1, Integer.parseInt(idUsuarioDestino));
                 ps.setString(2, tituloTxt.getValue().trim());
                 ps.setString(3, descripcionTxt.getValue());
                 ps.setString(4, lugarTxt.getValue());
@@ -222,7 +236,7 @@ public class EventoUsuarioForm extends Window {
                 ps.setInt(6, todoElDiaChk.getValue() ? 1 : 0);
                 ps.setString(7, String.valueOf(colorCbx.getValue()));
                 ps.setInt(8, evento.getIdEvento());
-                ps.setInt(9, Integer.parseInt(((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId()));
+                ps.setInt(9, Integer.parseInt(idUsuarioDestino));
                 ps.executeUpdate();
             }
 
@@ -249,7 +263,7 @@ public class EventoUsuarioForm extends Window {
                     + " WHERE IdEvento = ? AND IdUsuario = ?";
             PreparedStatement ps = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().prepareStatement(sql);
             ps.setInt(1, evento.getIdEvento());
-            ps.setInt(2, Integer.parseInt(((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId()));
+            ps.setInt(2, Integer.parseInt(idUsuarioDestino));
             ps.executeUpdate();
 
             Notification.show("Evento eliminado.", Notification.Type.HUMANIZED_MESSAGE);

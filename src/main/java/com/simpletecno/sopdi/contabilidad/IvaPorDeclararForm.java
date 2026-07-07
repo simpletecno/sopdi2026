@@ -466,7 +466,7 @@ public class IvaPorDeclararForm extends Window {
             queryString += " AND IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getIvaPorPagar(); // iva por pagar
             queryString += " AND TipoDocumento IN ('FACTURA VENTA', 'NOTA DE CREDITO COMPRA', 'CONSTANCIA RETENCION IVA')";
             queryString += " AND PagadoIVa = 'NO'";
-            queryString += " AND Prv.IdEmpresa = " + empresaId;
+            queryString += " AND Prov.IdEmpresa = " + empresaId;
             queryString += " AND UPPER(Estatus) <> 'ANULADO'";
 
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -992,7 +992,7 @@ public class IvaPorDeclararForm extends Window {
         // redondeo
         if (montoTxt.getDoubleValueDoNotThrow() > 0 && (montoTxt.getDoubleValueDoNotThrow() != ivaDiferencia)) {
             queryString += ",(";
-            queryString += empresaNombre;
+            queryString += empresaId;
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartida + "'";
             queryString += ",'" + codigoPartida + "'"; //codigoCC

@@ -6,7 +6,6 @@ import com.vaadin.server.StreamResource;
 import com.vaadin.server.VaadinService;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.*;
-import com.vaadin.ui.themes.Runo;
 import com.vaadin.ui.themes.ValoTheme;
 
 import java.io.*;
@@ -39,6 +38,7 @@ public class EmpresasContablesForm extends Window {
     MarginInfo marginInfo;
 
     FormLayout mainForm;
+    FormLayout felForm;
 
     NumberField idEmpresaTxt;
 
@@ -56,6 +56,9 @@ public class EmpresasContablesForm extends Window {
     Button guardarBtn;
     Button salirBtn;
 
+    Button cargarRtuBtn;
+    Table obligacionesTable;
+
     MultiFileUpload singleUpload;
     Image logoImage;
     public File file;
@@ -65,8 +68,8 @@ public class EmpresasContablesForm extends Window {
         this.mainUI = UI.getCurrent();
         setResponsive(true);
         setModal(true);
-        setWidth("500px");
-        setHeight("90%");
+        setWidth("750px");
+        setHeight("95%");
         center();
 
         marginInfo = new MarginInfo(true, true, false, true);
@@ -140,6 +143,7 @@ public class EmpresasContablesForm extends Window {
         });
 
         guardarBtn = new Button("Guardar");
+        guardarBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
         guardarBtn.setIcon(FontAwesome.SAVE);
         guardarBtn.addClickListener(new Button.ClickListener() {
             @Override
@@ -148,17 +152,24 @@ public class EmpresasContablesForm extends Window {
             }
         });
 
+        // Datos generales -> mainForm
         mainForm.addComponent(idEmpresaTxt);
         mainForm.addComponent(nombreTxt);
         mainForm.addComponent(nombreCortoTxt);
         mainForm.addComponent(nitTxt);
         mainForm.addComponent(ultimaLiquidacionTxt);
-        mainForm.addComponent(recibeEnganchesCheck);
-        mainForm.addComponent(usuarioFELTxt);
-        mainForm.addComponent(claveFELTxt);
-        mainForm.addComponent(tokenFELTxt);
         mainForm.addComponent(regimenCbx);
-        mainForm.addComponent(codigoProductoExcelFELTxt);
+        mainForm.addComponent(recibeEnganchesCheck);
+
+        // Facturación electrónica (FEL) -> felForm
+        felForm = new FormLayout();
+        felForm.setWidth("100%");
+        felForm.setMargin(true);
+        felForm.setSpacing(true);
+        felForm.addComponent(usuarioFELTxt);
+        felForm.addComponent(claveFELTxt);
+        felForm.addComponent(tokenFELTxt);
+        felForm.addComponent(codigoProductoExcelFELTxt);
 
         HorizontalLayout logoImgLayout = new HorizontalLayout();
         logoImgLayout.addStyleName(ValoTheme.LAYOUT_COMPONENT_GROUP);
@@ -254,41 +265,109 @@ public class EmpresasContablesForm extends Window {
 
         logoImgLayout.addComponent(singleUpload);
 
-        mainForm.addComponent(logoImgLayout);
+        // ================= TAB 1: Datos generales =================
+        Label logoLbl = new Label("Logo");
+        logoLbl.addStyleName(ValoTheme.LABEL_H4);
+        logoLbl.addStyleName(ValoTheme.LABEL_BOLD);
 
+        VerticalLayout datosTabLayout = new VerticalLayout();
+        datosTabLayout.setWidth("100%");
+        datosTabLayout.setMargin(true);
+        datosTabLayout.setSpacing(true);
+        datosTabLayout.addComponent(mainForm);
+        datosTabLayout.addComponent(logoLbl);
+        datosTabLayout.addComponent(logoImgLayout);
+
+        Panel datosTabPanel = new Panel();
+        datosTabPanel.setSizeFull();
+        datosTabPanel.setContent(datosTabLayout);
+
+        // ================= TAB 2: Facturación electrónica (FEL) =================
+        VerticalLayout felTabLayout = new VerticalLayout();
+        felTabLayout.setWidth("100%");
+        felTabLayout.setMargin(true);
+        felTabLayout.setSpacing(true);
+        felTabLayout.addComponent(felForm);
+
+        Panel felTabPanel = new Panel();
+        felTabPanel.setSizeFull();
+        felTabPanel.setContent(felTabLayout);
+
+        // ================= TAB 3: Obligaciones fiscales =================
+        Label obligTitleLbl = new Label("Obligaciones fiscales según la Constancia RTU de la SAT");
+        obligTitleLbl.addStyleName(ValoTheme.LABEL_H4);
+        obligTitleLbl.addStyleName(ValoTheme.LABEL_BOLD);
+
+        cargarRtuBtn = new Button("Cargar RTU (PDF)", FontAwesome.FILE_PDF_O);
+        cargarRtuBtn.addStyleName(ValoTheme.BUTTON_FRIENDLY);
+        cargarRtuBtn.setDescription("Leer las obligaciones fiscales desde la Constancia RTU de la SAT (PDF)");
+        cargarRtuBtn.addClickListener(new Button.ClickListener() {
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                if (idEmpresaEdit.equals("0")) {
+                    Notification.show("Guarde primero la empresa para poder cargar sus obligaciones.",
+                            Notification.Type.WARNING_MESSAGE);
+                    return;
+                }
+                UI.getCurrent().addWindow(new ImportarObligacionesRtuForm(
+                        idEmpresaEdit, nombreTxt.getValue(),
+                        EmpresasContablesForm.this::cargarObligaciones));
+            }
+        });
+
+        obligacionesTable = new Table();
+        obligacionesTable.setSizeFull();
+        obligacionesTable.addContainerProperty("Impuesto", String.class, "");
+        obligacionesTable.addContainerProperty("No.", String.class, "");
+        obligacionesTable.addContainerProperty("Frecuencia", String.class, "");
+        obligacionesTable.addContainerProperty("Obligación", String.class, "");
+        obligacionesTable.addContainerProperty("Formulario", String.class, "");
+        obligacionesTable.setColumnWidth("Impuesto", 55);
+        obligacionesTable.setColumnWidth("No.", 35);
+        obligacionesTable.setColumnWidth("Frecuencia", 90);
+        obligacionesTable.setColumnExpandRatio("Obligación", 1);
+        obligacionesTable.setColumnExpandRatio("Formulario", 2);
+
+        HorizontalLayout obligToolbar = new HorizontalLayout(cargarRtuBtn);
+        obligToolbar.setSpacing(true);
+
+        VerticalLayout obligTabLayout = new VerticalLayout();
+        obligTabLayout.setSizeFull();
+        obligTabLayout.setMargin(true);
+        obligTabLayout.setSpacing(true);
+        obligTabLayout.addComponent(obligTitleLbl);
+        obligTabLayout.addComponent(obligToolbar);
+        obligTabLayout.addComponent(obligacionesTable);
+        obligTabLayout.setExpandRatio(obligacionesTable, 1);
+
+        // ================= TabSheet =================
+        TabSheet tabSheet = new TabSheet();
+        tabSheet.setSizeFull();
+        tabSheet.addTab(datosTabPanel, "Datos generales", FontAwesome.BUILDING);
+        tabSheet.addTab(felTabPanel, "Facturación electrónica (FEL)", FontAwesome.FILE_CODE_O);
+        tabSheet.addTab(obligTabLayout, "Obligaciones fiscales", FontAwesome.FILE_TEXT_O);
+
+        // ----- Botones (siempre visibles al pie) -----
         HorizontalLayout buttonsLayout = new HorizontalLayout();
         buttonsLayout.setSpacing(true);
-        buttonsLayout.addComponents(salirBtn,guardarBtn);
-        buttonsLayout.setComponentAlignment(salirBtn, Alignment.BOTTOM_LEFT);
-        buttonsLayout.setComponentAlignment(guardarBtn, Alignment.BOTTOM_CENTER);
+        buttonsLayout.addComponents(salirBtn, guardarBtn);
 
-        mainForm.addComponent(buttonsLayout);
-        mainForm.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setWidth("100%");
-        titleLayout.setMargin(true);
-
-        Label titleLbl = new Label("Empresa contable.");
-        titleLbl.addStyleName(Runo.LABEL_H2);
+        Label titleLbl = new Label("Empresa contable");
+        titleLbl.addStyleName(ValoTheme.LABEL_H2);
         titleLbl.setSizeUndefined();
 
-        titleLayout.addComponent(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_CENTER);
-
         VerticalLayout contentLayout = new VerticalLayout();
-        contentLayout.setWidth("100%");
-        contentLayout.setHeightUndefined();
-        contentLayout.addComponent(titleLayout);
-        contentLayout.setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-        contentLayout.addComponent(mainForm);
-        contentLayout.setComponentAlignment(mainForm, Alignment.TOP_CENTER);
+        contentLayout.setSizeFull();
+        contentLayout.setMargin(true);
+        contentLayout.setSpacing(true);
+        contentLayout.addComponent(titleLbl);
+        contentLayout.addComponent(tabSheet);
+        contentLayout.addComponent(buttonsLayout);
+        contentLayout.setComponentAlignment(titleLbl, Alignment.TOP_CENTER);
+        contentLayout.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
+        contentLayout.setExpandRatio(tabSheet, 1);
 
-        Panel scrollPanel = new Panel();
-        scrollPanel.setSizeFull();
-        scrollPanel.setContent(contentLayout);
-
-        setContent(scrollPanel);
+        setContent(contentLayout);
 
     }
 
@@ -335,9 +414,47 @@ public class EmpresasContablesForm extends Window {
                 logoImage.setSource(logoStreamResource);
 
             }
+
+            cargarObligaciones();
+
         } catch (SQLException ex) {
             System.out.println("Error al llenar Campos " + ex);
             ex.printStackTrace();
+        }
+    }
+
+    /** Carga en la tabla las obligaciones fiscales registradas para la empresa en edición. */
+    public void cargarObligaciones() {
+        if (obligacionesTable == null) {
+            return;
+        }
+        obligacionesTable.removeAllItems();
+        if (idEmpresaEdit.equals("0")) {
+            return;
+        }
+        try {
+            ImportarObligacionesRtuForm.crearTablaSiNoExiste(
+                    ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection());
+
+            String query = " SELECT Impuesto, Numero, Frecuencia, NombreObligacion, CodigoFormulario"
+                    + " FROM contabilidad_empresa_obligacion"
+                    + " WHERE IdEmpresa = " + idEmpresaEdit + " AND Estatus = 'ACTIVO'"
+                    + " ORDER BY Impuesto, Numero";
+
+            Statement st = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
+            ResultSet rs = st.executeQuery(query);
+            int i = 1;
+            while (rs.next()) {
+                obligacionesTable.addItem(new Object[]{
+                        rs.getString("Impuesto"),
+                        rs.getString("Numero"),
+                        rs.getString("Frecuencia"),
+                        rs.getString("NombreObligacion"),
+                        rs.getString("CodigoFormulario")}, i++);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(EmpresasContablesForm.class.getName()).log(Level.WARNING,
+                    "Error al cargar obligaciones: {0}", ex.getMessage());
         }
     }
 

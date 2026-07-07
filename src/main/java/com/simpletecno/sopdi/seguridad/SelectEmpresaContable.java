@@ -632,19 +632,18 @@ public class SelectEmpresaContable extends Window {
             stQuery   = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
 
-            if (rsRecords.next()) {
-                List<Object[]> relaciones = new java.util.ArrayList<>();
-                do {
-                    Object nom  = rsRecords.getObject("IdNomenclatura");
-                    Object emp1 = rsRecords.getObject("IdProveedor_1");
-                    Object nom1 = rsRecords.getObject("IdNomenclatura_1");
-                    relaciones.add(new Object[]{nom, emp1, nom1});
-                } while (rsRecords.next());
-
-                EmpresaCuentasEquivalentesHelper helper = new EmpresaCuentasEquivalentesHelper(relaciones);
-                System.out.println(helper);
-                ((SopdiUI) mainUI).sessionInformation.setEmpresaCuentasEquivalentesHelper(helper);
+            // Siempre se inicializa el helper (aunque no existan cuentas equivalentes)
+            // para evitar NullPointerException al consultarlo desde los formularios.
+            List<Object[]> relaciones = new java.util.ArrayList<>();
+            while (rsRecords.next()) {
+                Object nom  = rsRecords.getObject("IdNomenclatura");
+                Object emp1 = rsRecords.getObject("IdProveedor_1");
+                Object nom1 = rsRecords.getObject("IdNomenclatura_1");
+                relaciones.add(new Object[]{nom, emp1, nom1});
             }
+
+            EmpresaCuentasEquivalentesHelper helper = new EmpresaCuentasEquivalentesHelper(relaciones);
+            ((SopdiUI) mainUI).sessionInformation.setEmpresaCuentasEquivalentesHelper(helper);
         } catch (Exception ex) {
             System.out.println("Error al listar tabla empresas empresa_cuenta_equivalente: " + ex);
             ex.printStackTrace();

@@ -47,7 +47,6 @@ public class EmpresasContablesView extends VerticalLayout implements View {
     public EmpresasContablesView() {
         this.mainUI = UI.getCurrent();
 
-        Responsive.makeResponsive(this);
         setMargin(true);
         setSpacing(true);
 
@@ -59,11 +58,11 @@ public class EmpresasContablesView extends VerticalLayout implements View {
 
     public void createTablaCuentasContables() {
 
-        HorizontalLayout reportLayout = new HorizontalLayout();
-        reportLayout.setWidth("75%");
-        reportLayout.addStyleName("rcorners2");
-        reportLayout.setResponsive(true);
-        reportLayout.setMargin(true);
+        HorizontalLayout mainLayout = new HorizontalLayout();
+        mainLayout.setWidth("90%");
+        mainLayout.addStyleName("rcorners2");
+        mainLayout.setResponsive(true);
+        mainLayout.setMargin(true);
 
         container.addContainerProperty(ID_EMPRESA_PROPERTY, String.class, null);
         container.addContainerProperty(NOMBRE_PROPERTY, String.class, null);
@@ -83,11 +82,11 @@ public class EmpresasContablesView extends VerticalLayout implements View {
         empresasGrid.setResponsive(true);
         empresasGrid.setEditorBuffered(false);
 
-        reportLayout.addComponent(empresasGrid);
-        reportLayout.setComponentAlignment(empresasGrid, Alignment.MIDDLE_CENTER);
+        mainLayout.addComponent(empresasGrid);
+        mainLayout.setComponentAlignment(empresasGrid, Alignment.MIDDLE_CENTER);
 
-        addComponent(reportLayout);
-        setComponentAlignment(reportLayout, Alignment.TOP_CENTER);
+        addComponent(mainLayout);
+        setComponentAlignment(mainLayout, Alignment.TOP_CENTER);
     }
 
     private void createButtons() {
