@@ -94,9 +94,10 @@ public class PagoCuotasEspecialForm extends Window {
     }
 
     private void llenarProveedores(){
-        queryString = "SELECT * FROM proveedor ";
+        queryString = "SELECT * FROM proveedor_empresa ";
         queryString += "WHERE N0 IN (1, 2, 3, 4) ";
         queryString += "AND Inhabilitado = 0 ";
+        queryString += "AND IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId() + " ";
         queryString += "ORDER BY IdProveedor";
 
         Object itemId;

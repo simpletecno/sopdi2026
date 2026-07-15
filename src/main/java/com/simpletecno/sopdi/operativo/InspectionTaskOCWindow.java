@@ -870,12 +870,13 @@ public class InspectionTaskOCWindow extends Window {
             queryString += " DIC.Idex, DIC.Unidad, DIC.Moneda, Lote, ";
             queryString += " SUM(DIC.Total / DIC.Cantidad) PrecioTotal, SUM(DIC.Cantidad) CantidadTotal, SUM(DIC.Total) TotalTotal";
             queryString += " FROM  DetalleItemsCostos DIC";
-            queryString += " INNER JOIN proveedor Prov ON Prov.IdProveedor = DIC.IdProveedor";
+            queryString += " INNER JOIN proveedor_Empresa Prov ON Prov.IdProveedor = DIC.IdProveedor";
             queryString += " INNER JOIN centro_costo_cuenta CCC ON CCC.CodigoCuentaCentroCosto = DIC.NoCuenta";
             queryString += " INNER JOIN area On area.IdArea = DIC.IdArea";
             queryString += " WHERE DIC.IdProject In (Select PRJ.Numero From project PRJ WHERE PRJ.Estatus = 'ACTIVO')";
             queryString += " AND DIC.Tipo In ('INTINI', 'DOCA')";
             queryString += " AND DIC.IdCC = '" + idcc + "'";
+            queryString += " AND Prov.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
             queryString += " GROUP BY DIC.IdProject, DIC.NoCuenta, DIC.IdEmpresa, DIC.IdProveedor, DIC.Idex, DIC.Lote";
             queryString += " ORDER BY DIC.IdProject, DIC.Idex, DIC.NoCuenta ";
 
@@ -1188,10 +1189,11 @@ public class InspectionTaskOCWindow extends Window {
             queryString += " DIC.Idex, DIC.Unidad, DIC.Moneda, Lote, ";
             queryString += " DIC.Cantidad, DIC.Precio, DIC.Total";
             queryString += " FROM  visita_inspeccion_tarea_oc_detalle DIC";
-            queryString += " INNER JOIN proveedor Prov ON Prov.IdProveedor = DIC.IdProveedor";
+            queryString += " INNER JOIN proveedor_empresa Prov ON Prov.IdProveedor = DIC.IdProveedor";
             queryString += " INNER JOIN centro_costo_cuenta CCC ON CCC.CodigoCuentaCentroCosto = DIC.NoCuenta";
             queryString += " WHERE DIC.IdVisitaInspeccionTareaOC = " + ocContainer.getContainerProperty(ocGrid.getSelectedRow(), IDOC_PROPERTY).getValue();
             queryString += " AND DIC.IdCC = '" + idcc + "'";
+            queryString += " AND Prov.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
 
             rsRecords2 = stQuery2.executeQuery(queryString);
 

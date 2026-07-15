@@ -226,11 +226,13 @@ public class PagosCuotasNuevaForm extends Window {
 
 
     private void llenarProveedores(){
-        queryString = "SELECT * FROM proveedor p ";
+        queryString = "SELECT * FROM proveedor_empresa p ";
         queryString += "INNER JOIN cuotas_unidad_cuenta cuc ON p.IDProveedor = cuc.IdUnidad ";
         queryString += "AND cuc.IdCuenta = " + idProveedor + " ";
-        queryString += "WHERE p.N0 IN (5) ";
+//        queryString += "WHERE p.N0 IN (5) ";
+        queryString += "WHERE p.EsCliente=1 ";
         queryString += "AND p.Inhabilitado = 0 ";
+        queryString += "AND p.IdEmpresa = " + ((SopdiUI)mainUI).sessionInformation.getStrAccountingCompanyId() + " ";
         queryString += "ORDER BY p.IdProveedor";
 
         Object itemId;
