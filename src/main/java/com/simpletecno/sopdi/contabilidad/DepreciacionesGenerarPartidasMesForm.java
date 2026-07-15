@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 public class DepreciacionesGenerarPartidasMesForm extends Window {
 
     private static final String IDDEPRECIACION = "IdDepreciacion";
+    private static final String CODIGOPARTIDA = "CodigoPartida";
     private static final String CUENTA = "NoCuenta";
     private static final String N5 = "Cuenta";
     private static final String IDNOMENCLATURA = "IdNomenclatura";
@@ -132,6 +133,7 @@ public class DepreciacionesGenerarPartidasMesForm extends Window {
     private void crearGridPartidas() {
 
         partidasContainer.addContainerProperty(IDDEPRECIACION, String.class, null);
+        partidasContainer.addContainerProperty(CODIGOPARTIDA, String.class, null);
         partidasContainer.addContainerProperty(CUENTA, String.class, null);
         partidasContainer.addContainerProperty(N5, String.class, null);
         partidasContainer.addContainerProperty(DESCRIPCION, String.class, null);
@@ -153,6 +155,8 @@ public class DepreciacionesGenerarPartidasMesForm extends Window {
 
         partidasGrid.getColumn(IDDEPRECIACION).setHidden(true);
         partidasGrid.getColumn(IDDEPRECIACION).setHidable(true);
+        partidasGrid.getColumn(CODIGOPARTIDA).setHidden(true);
+        partidasGrid.getColumn(CODIGOPARTIDA).setHidable(true);
         partidasGrid.getColumn(CUENTA).setHidden(true);
         partidasGrid.getColumn(CUENTA). setHidable(true);
         partidasGrid.getColumn(IDNOMENCLATURA).setHidden(true);
@@ -231,7 +235,7 @@ public class DepreciacionesGenerarPartidasMesForm extends Window {
         Logger.getLogger(DepreciacionesGenerarPartidasMesForm.class.getName()).log(Level.INFO, "Cargando datos de depreciación para " + mes + " / " + año);
 
         String query =
-                "SELECT " +
+                "SELECT a.CodigoPartida, " +
                 "ad.Id, ad.CodigoActivo, ad.CodigoDepreciacion, ad.Valor, ad.FechaCreado, ad.CodigoPartida, " +
                 "p.IdProveedor, p.Nombre, p.NIT, a.Descripcion AS DescripcionActivo, cc.CodigoCentroCosto, " +
                 "td.IdNomenclaturaDebe, td.IdNomenclaturaHaber, " +
@@ -267,6 +271,7 @@ public class DepreciacionesGenerarPartidasMesForm extends Window {
                 idsDepreciacionesGeneradas.put(rs.getString("Id"), ""); // Guardamos los IDs de depreciaciones para usarlos en la generación de partidas
 
                 String idDepreciacion = rs.getString("Id");
+                String codigoPartida = rs.getString("CodigoPartida");
                 String codigoActivo = rs.getString("CodigoActivo");
                 BigDecimal valor = rs.getBigDecimal("Valor");
                 String descripcionActivo = rs.getString("DescripcionActivo");
@@ -284,10 +289,11 @@ public class DepreciacionesGenerarPartidasMesForm extends Window {
                 if (cuentaDebe != null) {
                     agregarPartida(
                             idDepreciacion,
+                            codigoPartida,
                             cuentaDebe != null ? cuentaDebe : "N/A",
                             n5Debe != null ? n5Debe : "N/A",
                             idNomenclaturaDebe,
-                            "Depreciación - " + descripcionActivo + " " + codigoActivo,
+                            "Depreciación - " + descripcionActivo + "-" + codigoActivo,
                             codigoDepreciacion,
                             valor,
                             BigDecimal.ZERO,
@@ -311,6 +317,7 @@ public class DepreciacionesGenerarPartidasMesForm extends Window {
                 if (cuentaHaber != null) {
                     agregarPartida(
                             idDepreciacion,
+                            codigoPartida,
                             cuentaHaber != null ? cuentaHaber : "N/A",
                             n5Haber != null ? n5Haber : "N/A",
                             idNomenclaturaHaber,
@@ -366,11 +373,12 @@ public class DepreciacionesGenerarPartidasMesForm extends Window {
     /**
      * Agrega una partida al grid
      */
-    private void agregarPartida(String idDepreciacion, String cuenta, String n5, String idNomenclatura, String descripcion,
+    private void agregarPartida(String idDepreciacion, String codigoPartida, String cuenta, String n5, String idNomenclatura, String descripcion,
                                 String codigoDepreciacion, BigDecimal debe, BigDecimal haber,
                                 String activo, String idProveedor, String nombreProveedor, String nitProveedor, String centroCosto) {
         Object itemId = partidasContainer.addItem();
         partidasContainer.getContainerProperty(itemId, IDDEPRECIACION).setValue(idDepreciacion);
+        partidasContainer.getContainerProperty(itemId, CODIGOPARTIDA).setValue(codigoPartida);
         partidasContainer.getContainerProperty(itemId, CUENTA).setValue(cuenta);
         partidasContainer.getContainerProperty(itemId, N5).setValue(n5);
         partidasContainer.getContainerProperty(itemId, IDNOMENCLATURA).setValue(idNomenclatura); //usamos n5 como id nomenclatura para simplificar
@@ -426,7 +434,7 @@ public class DepreciacionesGenerarPartidasMesForm extends Window {
             queryString += String.valueOf(empresa);
             queryString += ",'INGRESADO'";
             queryString += ",'" + codigoPartidas[indexPartida] + "'";
-            queryString += ",'" + codigoPartidas[indexPartida] + "'";
+            queryString += ",'" + partidasContainer.getContainerProperty(itemId, CODIGOPARTIDA).getValue() + "'";
             queryString += ",'TRANSACCION ESPECIAL'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fecha) + "'";
             queryString += "," + String.valueOf(partidasContainer.getContainerProperty(itemId, IDPROVEEDOR).getValue());

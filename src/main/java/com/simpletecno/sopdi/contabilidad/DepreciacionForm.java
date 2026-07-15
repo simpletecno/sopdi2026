@@ -14,12 +14,15 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.renderers.DateRenderer;
 import com.vaadin.ui.renderers.NumberRenderer;
 import com.vaadin.ui.themes.ValoTheme;
+import org.atmosphere.interceptor.AtmosphereResourceStateRecovery;
 import org.vaadin.ui.NumberField;
+import org.vaadin.dialogs.ConfirmDialog;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -39,8 +42,8 @@ public class DepreciacionForm extends Window {
     private final NumberField nfValor = new NumberField("Valor inicial:");
     private final NumberField nfReduccion = new NumberField("Reducción:");
     private final NumberField nfValorResidual = new NumberField("Valor residual:");
-    private final PopupDateField dfFechaInicio = new PopupDateField("Fecha Inicio Depreciación:");
-    private final PopupDateField dfFechaFin = new PopupDateField("Fecha Fin Depreciación:");
+    private final PopupDateField dfFechaInicio = new PopupDateField("Fecha Inicio:");
+    private final PopupDateField dfFechaFin = new PopupDateField("Fecha Fin:");
     private final PopupDateField dfFechaInicioBusquedaPartidas = new PopupDateField("Del:");
     private final PopupDateField dfFechaFinBusquedaPartidas = new PopupDateField("Al:");
 
@@ -59,6 +62,9 @@ public class DepreciacionForm extends Window {
     private static final String DESCRIPCION = "Descripcion";
     private static final String SERIE_NUMERO = "Serie | Numero";
     private static final String MONTO = "Monto";
+    private static final String MONTO_SIN_IVA = "Monto Sin IVA";
+    private static final String ACTIVOS_SUM = "Depreciaciones";
+    private static final String COUNT_AMORTIZACIONES = "Amortizaciones";
     
     private final IndexedContainer historialContainer = new IndexedContainer();
     private final Grid historialGrid = new Grid();
@@ -85,8 +91,25 @@ public class DepreciacionForm extends Window {
     ResultSet rsRecords1;
     String queryString;
 
-
     VerticalLayout formLayout;
+    
+    // Variables para manejar múltiples activos por factura
+    private final List<ActivoDistribucion> activosACrear = new ArrayList<>();
+    
+    // Clase interna para representar cada activo a crear
+    private static class ActivoDistribucion {
+        String nombre;
+        BigDecimal valor;
+        String numero;
+        String serie;
+        
+        ActivoDistribucion(String nombre, BigDecimal valor, String numero, String serie) {
+            this.nombre = nombre;
+            this.valor = valor;
+            this.numero = numero;
+            this.serie = serie;
+        }
+    }
 
     public DepreciacionForm(List<DepreciacionesView.TipoDepreciacion> tipos) {
         super("Depreciación - Formulario");
@@ -175,10 +198,40 @@ public class DepreciacionForm extends Window {
         tfSerie.setEnabled(false);
 
         nfValor.setWidth("100%");
+        nfValor.addValueChangeListener(event -> {
+            if (nfValor.getValue() != null && tipoDepreciacionSeleccionado != null) {
+                BigDecimal valor = new BigDecimal(nfValor.getValue());
+                int meses = tipoDepreciacionSeleccionado.meses;
+                BigDecimal reduccion = valor.divide(new BigDecimal(meses), 2, RoundingMode.HALF_UP);
+                BigDecimal sobrante = valor.subtract(reduccion.multiply(new BigDecimal(meses)));
+                nfReduccion.setValue(reduccion.toString());
+                nfValorResidual.setValue(sobrante.toString());
+                cargarHistorialDepreciacion();
+            } else {
+                nfReduccion.setValue("");
+                nfValorResidual.setValue("");
+            }
+        });
 
         nfReduccion.setWidth("100%");
+        nfReduccion.addValueChangeListener(event -> {
+            if (nfReduccion.getValue() != null && nfValor.getValue() != null && tipoDepreciacionSeleccionado != null) {
+                BigDecimal valor = new BigDecimal(nfValor.getValue());
+                BigDecimal reduccion = new BigDecimal(nfReduccion.getValue());
+                int meses = tipoDepreciacionSeleccionado.meses;
+                BigDecimal sobrante = valor.subtract(reduccion.multiply(new BigDecimal(meses)));
+                nfValorResidual.setValue(sobrante.toString());
+                cargarHistorialDepreciacion();
+            }
+        });
 
         nfValorResidual.setWidth("100%");
+        nfValorResidual.addValueChangeListener(event -> {
+            // Al modificar residual, solo actualizar tabla
+            if (nfValorResidual.getValue() != null) {
+                cargarHistorialDepreciacion();
+            }
+        });
 
         dfFechaInicio.setAssistiveText("Seleccione la fecha de alta del activo");
         dfFechaInicio.setDateFormat("dd/MM/yyyy");
@@ -337,6 +390,9 @@ public class DepreciacionForm extends Window {
         partidaContainer.addContainerProperty(SERIE_NUMERO, String.class, "|");
         partidaContainer.addContainerProperty(DESCRIPCION, String.class, null);
         partidaContainer.addContainerProperty(MONTO, BigDecimal.class, 0);
+        partidaContainer.addContainerProperty(MONTO_SIN_IVA, BigDecimal.class, 0);
+        partidaContainer.addContainerProperty(ACTIVOS_SUM, BigDecimal.class, new BigDecimal("0.00"));
+        partidaContainer.addContainerProperty(COUNT_AMORTIZACIONES, Integer.class, 0);
         partidaContainer.addContainerProperty(FECHA, Date.class, new Date());
 
         partidasGrid.setContainerDataSource(partidaContainer);
@@ -349,9 +405,14 @@ public class DepreciacionForm extends Window {
         partidasGrid.getColumn(CODIGO_PARTIDA).setHidable(true);
         partidasGrid.getColumn(IDPROVEEDOR).setHidden(true);
         partidasGrid.getColumn(IDPROVEEDOR).setHidable(true);
+        partidasGrid.getColumn(MONTO).setHidden(true);
+        partidasGrid.getColumn(MONTO).setHidable(true);
 
         partidasGrid.getColumn(FECHA).setRenderer(new DateRenderer("%1$td/%1$tm/%1$tY"));
         partidasGrid.getColumn(MONTO).setRenderer(new NumberRenderer("Q. %1$.2f"));
+        partidasGrid.getColumn(MONTO_SIN_IVA).setRenderer(new NumberRenderer("Q. %1$.2f"));
+        partidasGrid.getColumn(ACTIVOS_SUM).setRenderer(new NumberRenderer("Q. %1$.2f"));
+        partidasGrid.getColumn(COUNT_AMORTIZACIONES).setRenderer(new NumberRenderer("%1$d"));
 
         Grid.HeaderRow filterRow = partidasGrid.appendHeaderRow();
 
@@ -364,17 +425,9 @@ public class DepreciacionForm extends Window {
         partidasGrid.addItemClickListener(event -> {
             Object itemId = event.getItemId();
             if (itemId != null) {
-                String codigoPartida = ((String) partidaContainer.getContainerProperty(itemId, CODIGO_PARTIDA).getValue());
-                if(tieneDepreciacion(codigoPartida)) {
-                    Notification notif = new Notification("Este activo ya tiene una depreciación asociadad", Notification.Type.WARNING_MESSAGE);
-                    notif.setDelayMsec(2500);
-                    notif.setPosition(Position.MIDDLE_CENTER);
-                    notif.setIcon(FontAwesome.WARNING);
-                    notif.show(Page.getCurrent());
-                    return;
-                }
                 updateCombo(itemId);
                 cargarHistorialDepreciacion();
+
             }
         });
 
@@ -496,14 +549,7 @@ public class DepreciacionForm extends Window {
         queryString += "AND cp.Fecha BETWEEN '" + Utileria.getFechaYYYYMMDD_1(dfFechaInicioBusquedaPartidas.getValue()) + "' ";
         queryString += "AND '" + Utileria.getFechaYYYYMMDD_1(dfFechaFinBusquedaPartidas.getValue()) + "' ";
         queryString += "AND cp.IdEmpresa = " + empresaId + " ";
-        queryString += "AND cp.IdLiquidacion = 0 ";
         queryString += "AND cn.ID2 = 2 ";
-        queryString += "AND NOT EXISTS ( ";
-        queryString += "    SELECT 1 ";
-        queryString += "    FROM activos a ";
-        queryString += "    WHERE a.CodigoPartida = cp.CodigoPartida ";
-        queryString += "    AND a.IdEmpresa = cp.IdEmpresa ";
-        queryString += ") ";
         queryString += "GROUP BY cp.CodigoPartida ";
         queryString += "ORDER BY cp.Fecha, cp.IdNomenclatura DESC ";
 
@@ -517,12 +563,22 @@ public class DepreciacionForm extends Window {
             if (rsRecords.next()) {
                 do {
                     Object itemId = partidaContainer.addItem();
-                    partidaContainer.getContainerProperty(itemId, CODIGO_PARTIDA).setValue(rsRecords.getString("CodigoPartida"));
+                    String codigoPartida = rsRecords.getString("CodigoPartida");
+                    BigDecimal montoDocumento = rsRecords.getBigDecimal("MontoDocumento");
+                    BigDecimal montoSinIVA = montoDocumento.divide(BigDecimal.valueOf(1.12), 2, RoundingMode.HALF_UP);
+                    
+                    partidaContainer.getContainerProperty(itemId, CODIGO_PARTIDA).setValue(codigoPartida);
                     partidaContainer.getContainerProperty(itemId, IDPROVEEDOR).setValue(rsRecords.getString("IdProveedor"));
                     partidaContainer.getContainerProperty(itemId, PROVEEDOR).setValue(rsRecords.getString("NombreProveedor"));
                     partidaContainer.getContainerProperty(itemId, DESCRIPCION).setValue(rsRecords.getString("Descripcion"));
                     partidaContainer.getContainerProperty(itemId, SERIE_NUMERO).setValue(rsRecords.getString("SerieDocumento") + " | " + rsRecords.getString("NumeroDocumento"));
-                    partidaContainer.getContainerProperty(itemId, MONTO).setValue(rsRecords.getBigDecimal("MontoDocumento"));
+                    partidaContainer.getContainerProperty(itemId, MONTO).setValue(montoDocumento);
+                    partidaContainer.getContainerProperty(itemId, MONTO_SIN_IVA).setValue(montoSinIVA);
+                    
+                    // Obtener info de activos y depreciación
+                    BigDecimal activosInfo = obtenerInfoActivosPartida(codigoPartida);
+                    partidaContainer.getContainerProperty(itemId, ACTIVOS_SUM).setValue(activosInfo);
+                    
                     partidaContainer.getContainerProperty(itemId, FECHA).setValue(rsRecords.getDate("Fecha"));
 
                 } while (rsRecords.next());
@@ -552,20 +608,20 @@ public class DepreciacionForm extends Window {
         historialContainer.removeAllItems();
 
         // Usar directamente los meses del tipo seleccionado
-        int meses = tipoDepreciacionSeleccionado.meses;
+        int meses = tipoDepreciacionSeleccionado.meses + 1; // +1 para incluir el mes inicial
 
         // Generar historial de depreciación
         BigDecimal reduccionAcumulado = new BigDecimal(0);
-        for(int i = 0; i < meses; i++){
+        for(int i = 1; i < meses; i++){
             Object itemId = historialContainer.addItem();
-            historialContainer.getContainerProperty(itemId, ID).setValue((long) i + 1);
+            historialContainer.getContainerProperty(itemId, ID).setValue((long) i);
 
             Date mesFecha = Utileria.getInicioMesDate(new Date(dfFechaInicio.getValue().getTime() + (long) i * 30L * 24L * 60L * 60L * 1000L));
 
             historialContainer.getContainerProperty(itemId, FECHA).setValue(mesFecha);
 
             BigDecimal depreciacion = new BigDecimal(nfReduccion.getValue());
-            if((i+1) == meses) depreciacion = depreciacion.add(new BigDecimal(nfValorResidual.getValue()));
+            if(i == meses - 1) depreciacion = depreciacion.add(new BigDecimal(nfValorResidual.getValue()));
             reduccionAcumulado = reduccionAcumulado.add(depreciacion);
             historialContainer.getContainerProperty(itemId, DEPRECIACION).setValue(depreciacion);
 
@@ -583,7 +639,9 @@ public class DepreciacionForm extends Window {
         tfSerie.setValue(serieNumero[0].trim());
         
         // Llenar el valor inicial con el monto de la partida seleccionada
-        BigDecimal monto = (BigDecimal) partidaContainer.getContainerProperty(itemId, MONTO).getValue();
+        BigDecimal montoSinIVA = (BigDecimal) partidaContainer.getContainerProperty(itemId, MONTO_SIN_IVA).getValue();
+        BigDecimal depreciacionAcumulada = (BigDecimal) partidaContainer.getContainerProperty(itemId, ACTIVOS_SUM).getValue();
+        BigDecimal monto = montoSinIVA.subtract(depreciacionAcumulada);
         nfValor.setValue(String.valueOf(monto));
         
         // Si hay un tipo de depreciación seleccionado, llenar el resto de datos
@@ -594,9 +652,27 @@ public class DepreciacionForm extends Window {
 
     private boolean guardarActivo() {
         try {
+            if(tipoDepreciacionSeleccionado == null) {
+                Notification.show("Por favor seleccione un tipo de depreciación", Notification.Type.WARNING_MESSAGE);
+                return false;
+            }
+            if(partidasGrid.getSelectedRow() == null) {
+                Notification.show("Por favor seleccione un documento de la lista", Notification.Type.WARNING_MESSAGE);
+                return false;
+            }
+            Object selectedRow = partidasGrid.getSelectedRow();
+            BigDecimal montoSinIVA = (BigDecimal) partidaContainer.getContainerProperty(selectedRow, MONTO_SIN_IVA).getValue();
+            BigDecimal depreciacionAcumulada = (BigDecimal) partidaContainer.getContainerProperty(selectedRow, ACTIVOS_SUM).getValue();
+            BigDecimal monto = montoSinIVA.subtract(depreciacionAcumulada).subtract(new BigDecimal(nfValor.getValue()));
+            if (monto.compareTo(BigDecimal.ZERO) < 0) {
+                Notification.show("Este activo supera el monto disponible de la factura seleccionada",
+                        Notification.Type.WARNING_MESSAGE);
+                return false;
+            }
+
             // Validaciones básicas
             if (tfNombre.isEmpty() || tipoDepreciacionSeleccionado == null || dfFechaInicio.getValue() == null ||
-                nfValor.isEmpty() || nfReduccion.isEmpty() || empresaId == null) {
+                    nfValor.isEmpty() || nfReduccion.isEmpty() || empresaId == null) {
                 Notification.show("Por favor complete todos los campos requeridos", Notification.Type.WARNING_MESSAGE);
                 return false;
             }
@@ -661,6 +737,7 @@ public class DepreciacionForm extends Window {
             // Obtener los meses del tipo de depreciación para insertar en activos_depreciacion
             int mesesDepreciacion = tipoDepreciacionSeleccionado.meses;
 
+            int cantidadDepreciaciones = obtenerCantidadDepreciaciones(codigoPartida);
 
             // Insertar registros en activos_depreciacion (uno por cada mes de depreciación)
             for (int i = 0; i < mesesDepreciacion; i++) {
@@ -672,7 +749,7 @@ public class DepreciacionForm extends Window {
 
                 String numeroDocumetoPartida = ((String) partidaContainer.getContainerProperty(
                         partidasGrid.getSelectedRow(), SERIE_NUMERO).getValue()
-                        ).split("\\|")[1].trim();
+                ).split("\\|")[1].trim();
 
                 // Calcular la fecha para este mes
                 GregorianCalendar fechaMes = new GregorianCalendar();
@@ -686,7 +763,7 @@ public class DepreciacionForm extends Window {
                         .append("IdEmpresa, CodigoActivo, CodigoDepreciacion, Valor, Mes, Año, FechaPartida, FechaCreado) VALUES (")
                         .append(idEmpresa).append(", '")
                         .append(codigoActivo).append("', '")
-                        .append(numeroDocumetoPartida).append(String.format("%03d", i + 1)).append("', ")
+                        .append(numeroDocumetoPartida).append(String.format("%03d", i + cantidadDepreciaciones)).append("', ")
                         .append(depreciacionMes).append(", ")
                         .append(String.format("%02d", mes)).append(", ")
                         .append(año).append(", ")
@@ -717,15 +794,16 @@ public class DepreciacionForm extends Window {
     }
 
     private String generarCodigoActivo() {
-        String cuenta = tipoDepreciacionSeleccionado.numeroCuentaActivo;
+        int cuenta = tipoDepreciacionSeleccionado.id;
         String idEmpresa = empresaId;
         String timestamp = (new Utileria()).getFechaSinFormato(dfFechaInicio.getValue());
         int count = 0;
+        String fecha = Utileria.getFechaYYYYMMDD_1(dfFechaInicio.getValue());
         try {
             queryString = "SELECT COUNT(*) FROM activos " +
                     "WHERE idEmpresa = " + idEmpresa + " " +
-                    "AND idTipoDepreciacion LIKE '" + cuenta + "%'" +
-                    "AND MesInicio LIKE '" + dfFechaInicio.getValue() + "%'";
+                    "AND idTipoDepreciacion = " + cuenta + " " +
+                    "AND MesInicio = '" + fecha + "'";
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
             if (rsRecords.next()) {
@@ -736,8 +814,9 @@ public class DepreciacionForm extends Window {
             ex.printStackTrace();
         }
 
-        String autonumerico = String.format("%04d", count + 1); // Formatear con ceros a la izquierda
-        return cuenta + idEmpresa + timestamp + autonumerico;
+        String autonumerico = String.format("%04d", count + 1); // Autonumerico de 6 dígitos (4 + 2 dígitos extra)
+        //      3     +     8     +     8     +       4   =     23 caracteres
+        return idEmpresa + cuenta + timestamp + autonumerico;
     }
     
 
@@ -913,6 +992,63 @@ public class DepreciacionForm extends Window {
     }
     
     /**
+     * Obtiene información de activos y depreciación total para una partida
+     */
+    private BigDecimal obtenerInfoActivosPartida(String codigoPartida) {
+        try {
+            String query = "SELECT IFNULL(SUM(a.Valor), 0) as depreciacionTotal " +
+                    "FROM activos a " +
+                    "WHERE a.CodigoPartida = '" + codigoPartida + "' " +
+                    "AND a.IdEmpresa = " + empresaId;
+            
+            Statement stmt = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+            ResultSet rs = stmt.executeQuery(query);
+            
+            if (rs.next()) {
+                BigDecimal depreciacitotal = rs.getBigDecimal("depreciacionTotal");
+                return depreciacitotal;
+            }
+            
+            rs.close();
+            stmt.close();
+            
+        } catch (Exception ex) {
+            System.out.println("Error al obtener info de activos para partida: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+        
+        return BigDecimal.ZERO;
+    }
+
+    /**
+     * Obtiene cuantas depreciaciones/amortizacones estan asociadas a una factura/partida
+     */
+    private int obtenerCantidadDepreciaciones(String codigoPartida) {
+        try {
+            String query = "SELECT COUNT(*) as cantidad " +
+                    "FROM activos a " +
+                    "INNER JOIN activos_depreciacion ad ON a.CodigoActivo = ad.CodigoActivo " +
+                    "WHERE a.CodigoPartida = '" + codigoPartida + "' " +
+                    "AND a.IdEmpresa = " + empresaId;
+
+            Statement stmt = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+            ResultSet rs = stmt.executeQuery(query);
+
+            if (rs.next()) {
+                return rs.getInt("cantidad") + 1;
+            }
+
+            rs.close();
+            stmt.close();
+
+        } catch (Exception ex) {
+            System.out.println("Error al obtener cantidad de depreciaciones para partida: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+
+        return 1;
+    }
+    /**
      * Llena todos los datos del formulario cuando documento y tipo de depreciación están seleccionados
      */
     private void llenarDatosCompletos(Object itemId) {
@@ -931,7 +1067,9 @@ public class DepreciacionForm extends Window {
         Date fechaFin = Utileria.getUltimoFechaDelMes(new Date(dfFechaInicio.getValue().getTime() + mesMillis));
         dfFechaFin.setValue(fechaFin);
 
-        BigDecimal monto = (BigDecimal) partidaContainer.getContainerProperty(itemId, MONTO).getValue();
+        BigDecimal montoSinIVA = (BigDecimal) partidaContainer.getContainerProperty(itemId, MONTO_SIN_IVA).getValue();
+        BigDecimal depreciacionAcumulada = (BigDecimal) partidaContainer.getContainerProperty(itemId, ACTIVOS_SUM).getValue();
+        BigDecimal monto = montoSinIVA.subtract(depreciacionAcumulada);
         nfValor.setValue(String.valueOf(monto));
         BigDecimal reduccion = monto.divide(BigDecimal.valueOf(meses), 2, RoundingMode.HALF_UP);
         BigDecimal sobrante = monto.subtract(reduccion.multiply(BigDecimal.valueOf(meses)));
@@ -945,17 +1083,17 @@ public class DepreciacionForm extends Window {
         queryString = "SELECT COUNT(*) as hay " +
                 "FROM contabilidad_partida cp " +
                 "INNER JOIN activos a ON cp.CodigoPartida = a.CodigoPartida " +
-                "WHERE cp.CodigoPartida = " + codigoPartida ;
+                "WHERE cp.CodigoPartida = '" + codigoPartida + "'";
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
 
             while (rsRecords.next()) {
-               return (rsRecords.getInt("hay") > 0);
+                return (rsRecords.getInt("hay") > 0);
             }
             return false;
         } catch (Exception ex) {
-            Notification.show("Error al buscar si exite activo asociado: " + ex.getMessage(),
+            Notification.show("Error al buscar si existe activo asociado: " + ex.getMessage(),
                     Notification.Type.ERROR_MESSAGE);
             ex.printStackTrace();
             return false;

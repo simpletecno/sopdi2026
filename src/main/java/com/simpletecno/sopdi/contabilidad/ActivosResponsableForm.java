@@ -52,7 +52,6 @@ public class ActivosResponsableForm extends Window {
     private ComboBox cbResponsable;
     private PopupDateField dfFechaInicio;
     private Button btnGuardar;
-    private Button btnCancelar;
 
     private Table tableResponsables;
     private IndexedContainer responsablesContainer;
@@ -90,12 +89,8 @@ public class ActivosResponsableForm extends Window {
         
         // Grid de responsables actuales
         VerticalLayout gridLayout = crearGridResponsables();
-        
-        // Botones de acción
-        HorizontalLayout botonesLayout = crearBotonesAccion();
-        
-        mainLayout.addComponents(seleccionLayout, gridLayout, botonesLayout);
-        mainLayout.setComponentAlignment(botonesLayout, Alignment.BOTTOM_RIGHT);
+
+        mainLayout.addComponents(seleccionLayout, gridLayout);
         mainLayout.setExpandRatio(seleccionLayout, 1);
         mainLayout.setExpandRatio(gridLayout, 2);
         
@@ -125,7 +120,22 @@ public class ActivosResponsableForm extends Window {
         dfFechaInicio.setRequired(true);
         dfFechaInicio.setValue(new Date());
 
-        layout.addComponents(cbResponsable, dfFechaInicio);
+
+        HorizontalLayout horizontalLayout = new HorizontalLayout();
+        horizontalLayout.setSpacing(true);
+        horizontalLayout.setMargin(false);
+        horizontalLayout.setWidth("100%");
+
+        btnGuardar = new Button("Asignar");
+        btnGuardar.setIcon(FontAwesome.SAVE);
+        btnGuardar.setStyleName(ValoTheme.BUTTON_PRIMARY);
+        btnGuardar.addClickListener(event -> guardarResponsable());
+
+        horizontalLayout.addComponents(dfFechaInicio, btnGuardar);
+        horizontalLayout.setComponentAlignment(dfFechaInicio, Alignment.BOTTOM_LEFT);
+        horizontalLayout.setComponentAlignment(btnGuardar, Alignment.BOTTOM_RIGHT);
+
+        layout.addComponents(cbResponsable, horizontalLayout);
 
         return layout;
     }
@@ -146,7 +156,7 @@ public class ActivosResponsableForm extends Window {
         tableResponsables = new Table("Historial de Responsables:");
         tableResponsables.setContainerDataSource(responsablesContainer);
         tableResponsables.setWidth("100%");
-        tableResponsables.setPageLength(6);
+        tableResponsables.setPageLength(8);
         tableResponsables.setSelectable(false);
         tableResponsables.setImmediate(true);
 
@@ -225,25 +235,6 @@ public class ActivosResponsableForm extends Window {
         return layout;
     }
 
-
-    private HorizontalLayout crearBotonesAccion() {
-        HorizontalLayout layout = new HorizontalLayout();
-        layout.setSpacing(true);
-        layout.setMargin(false);
-
-        btnGuardar = new Button("Asignar");
-        btnGuardar.setIcon(FontAwesome.SAVE);
-        btnGuardar.setStyleName(ValoTheme.BUTTON_PRIMARY);
-        btnGuardar.addClickListener(event -> guardarResponsable());
-
-        btnCancelar = new Button("Cerrar");
-        btnCancelar.setIcon(FontAwesome.TIMES);
-        btnCancelar.addClickListener(event -> close());
-
-        layout.addComponents(btnGuardar, btnCancelar);
-        
-        return layout;
-    }
 
     private void llenarComboResponsables() {
         // Traer proveedores de la base de datos
