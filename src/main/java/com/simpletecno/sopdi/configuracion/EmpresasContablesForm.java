@@ -347,6 +347,11 @@ public class EmpresasContablesForm extends Window {
         tabSheet.addTab(felTabPanel, "Facturación electrónica (FEL)", FontAwesome.FILE_CODE_O);
         tabSheet.addTab(obligTabLayout, "Obligaciones fiscales", FontAwesome.FILE_TEXT_O);
 
+        // La administración de API Keys solo es visible para el perfil ADMINISTRADOR.
+        if ("ADMINISTRADOR".equals(((SopdiUI) mainUI).sessionInformation.getStrUserProfile())) {
+            tabSheet.addTab(construirApiKeysTab(), "API Keys", FontAwesome.KEY);
+        }
+
         // ----- Botones (siempre visibles al pie) -----
         HorizontalLayout buttonsLayout = new HorizontalLayout();
         buttonsLayout.setSpacing(true);
@@ -369,6 +374,45 @@ public class EmpresasContablesForm extends Window {
 
         setContent(contentLayout);
 
+    }
+
+    /**
+     * Pestaña para administrar las API Keys de esta empresa. Solo se agrega para
+     * usuarios con perfil ADMINISTRADOR. Las claves son por empresa; la ventana de
+     * administración se abre con la empresa actual como alcance.
+     */
+    private VerticalLayout construirApiKeysTab() {
+        Label apiTitleLbl = new Label("API Keys para el consumo del API REST de esta empresa");
+        apiTitleLbl.addStyleName(ValoTheme.LABEL_H4);
+        apiTitleLbl.addStyleName(ValoTheme.LABEL_BOLD);
+
+        Label apiInfoLbl = new Label("Cada clave se envía en el header X-API-Key. "
+                + "Puede crearlas, activarlas/desactivarlas y asignarles fecha de vencimiento o dejarlas permanentes.");
+
+        Button adminApiKeysBtn = new Button("Administrar API Keys", FontAwesome.KEY);
+        adminApiKeysBtn.addStyleName(ValoTheme.BUTTON_FRIENDLY);
+        adminApiKeysBtn.setDescription("Crear, activar/desactivar y eliminar API Keys de esta empresa.");
+        adminApiKeysBtn.addClickListener(new Button.ClickListener() {
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
+                if (idEmpresaEdit.equals("0")) {
+                    Notification.show("Guarde primero la empresa para poder administrar sus API Keys.",
+                            Notification.Type.WARNING_MESSAGE);
+                    return;
+                }
+                UI.getCurrent().addWindow(
+                        new com.simpletecno.sopdi.api.ApiKeysForm(idEmpresaEdit, nombreTxt.getValue()));
+            }
+        });
+
+        VerticalLayout apiTabLayout = new VerticalLayout();
+        apiTabLayout.setSizeFull();
+        apiTabLayout.setMargin(true);
+        apiTabLayout.setSpacing(true);
+        apiTabLayout.addComponent(apiTitleLbl);
+        apiTabLayout.addComponent(apiInfoLbl);
+        apiTabLayout.addComponent(adminApiKeysBtn);
+        return apiTabLayout;
     }
 
     public void llenarCampos() {

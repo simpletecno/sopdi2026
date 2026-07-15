@@ -1,6 +1,7 @@
 package com.simpletecno.sopdi.api.resource;
 
 import com.simpletecno.sopdi.api.DbHelper;
+import com.simpletecno.sopdi.api.ApiKeyFilter;
 import com.simpletecno.sopdi.api.model.ContabilidadPartida;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -14,6 +15,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import javax.ws.rs.*;
+import javax.ws.rs.container.ContainerRequestContext;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.sql.*;
@@ -54,7 +57,15 @@ public class ContabilidadPartidaResource {
             @QueryParam("fechaHasta") String fechaHasta,
             @QueryParam("codigoCC")   String codigoCC,
             @QueryParam("pagina")  @DefaultValue("1")  int pagina,
-            @QueryParam("tamano")  @DefaultValue("50") int tamano) {
+            @QueryParam("tamano")  @DefaultValue("50") int tamano,
+            @Context ContainerRequestContext reqCtx) {
+
+        // Si la clave está asociada a una empresa, se ignora el parámetro y se
+        // fuerza el alcance a esa empresa.
+        Long keyEmpresa = keyEmpresa(reqCtx);
+        if (keyEmpresa != null) {
+            idEmpresa = keyEmpresa;
+        }
 
         if (pagina < 1) pagina = 1;
         if (tamano < 1 || tamano > 500) tamano = 50;
@@ -120,14 +131,24 @@ public class ContabilidadPartidaResource {
             @ApiResponse(responseCode = "404", description = "No encontrada")
         }
     )
-    public Response getById(@PathParam("id") long id) {
+    public Response getById(@PathParam("id") long id,
+                            @Context ContainerRequestContext reqCtx) {
+        Long keyEmpresa = keyEmpresa(reqCtx);
         try (Connection conn = DbHelper.getConnection();
              PreparedStatement ps = conn.prepareStatement(
                      "SELECT * FROM contabilidad_partida WHERE IdPartida = ?")) {
 
             ps.setLong(1, id);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return Response.ok(mapRow(rs)).build();
+                if (rs.next()) {
+                    ContabilidadPartida cp = mapRow(rs);
+                    // La clave con empresa no puede leer partidas de otra empresa.
+                    if (keyEmpresa != null && !keyEmpresa.equals(cp.getIdEmpresa())) {
+                        return Response.status(Response.Status.NOT_FOUND)
+                                .entity("{\"error\":\"Partida no encontrada\"}").build();
+                    }
+                    return Response.ok(cp).build();
+                }
             }
             return Response.status(Response.Status.NOT_FOUND)
                     .entity("{\"error\":\"Partida no encontrada\"}").build();
@@ -149,10 +170,17 @@ public class ContabilidadPartidaResource {
             @ApiResponse(responseCode = "400", description = "Datos inválidos")
         }
     )
-    public Response crear(ContabilidadPartida cp) {
+    public Response crear(ContabilidadPartida cp,
+                          @Context ContainerRequestContext reqCtx) {
         if (cp == null || cp.getCodigoPartida() == null || cp.getCodigoPartida().isBlank()) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity("{\"error\":\"El campo codigoPartida es obligatorio\"}").build();
+        }
+
+        // La clave con empresa fija el IdEmpresa; se ignora el que venga en el body.
+        Long keyEmpresa = keyEmpresa(reqCtx);
+        if (keyEmpresa != null) {
+            cp.setIdEmpresa(keyEmpresa);
         }
 
         String sql = "INSERT INTO contabilidad_partida " +
@@ -192,11 +220,18 @@ public class ContabilidadPartidaResource {
             @ApiResponse(responseCode = "404", description = "No encontrada")
         }
     )
-    public Response actualizar(@PathParam("id") long id, ContabilidadPartida cp) {
+    public Response actualizar(@PathParam("id") long id, ContabilidadPartida cp,
+                               @Context ContainerRequestContext reqCtx) {
+        Long keyEmpresa = keyEmpresa(reqCtx);
+
         String sql = "UPDATE contabilidad_partida SET " +
                 "Estatus = ?, MontoAutorizadoPagar = ?, MontoAplicarAnticipo = ?, " +
                 "Referencia = ?, NombreProveedor = ?, Debe = ?, Haber = ?, " +
                 "DebeQuetzales = ?, HaberQuetzales = ? WHERE IdPartida = ?";
+        // La clave con empresa solo puede actualizar partidas de su propia empresa.
+        if (keyEmpresa != null) {
+            sql += " AND IdEmpresa = ?";
+        }
 
         try (Connection conn = DbHelper.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -211,6 +246,9 @@ public class ContabilidadPartidaResource {
             ps.setDouble(8, dbl(cp.getDebeQuetzales()));
             ps.setDouble(9, dbl(cp.getHaberQuetzales()));
             ps.setLong(10, id);
+            if (keyEmpresa != null) {
+                ps.setLong(11, keyEmpresa);
+            }
 
             int rows = ps.executeUpdate();
             if (rows == 0) {
@@ -279,6 +317,12 @@ public class ContabilidadPartidaResource {
         ps.setDouble(18, dbl(cp.getMontoDocumento()));
         ps.setDouble(19, dbl(cp.getMontoAutorizadoPagar()));
         ps.setDouble(20, dbl(cp.getMontoAplicarAnticipo()));
+    }
+
+    /** IdEmpresa asociado a la API Key del request (null = clave global sin restricción). */
+    private Long keyEmpresa(ContainerRequestContext ctx) {
+        Object v = ctx.getProperty(ApiKeyFilter.EMPRESA_PROPERTY);
+        return (v instanceof Long) ? (Long) v : null;
     }
 
     private String nvl(String s)  { return s == null ? "" : s; }
