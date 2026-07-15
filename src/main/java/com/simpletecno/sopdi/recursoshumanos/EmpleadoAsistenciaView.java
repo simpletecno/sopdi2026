@@ -294,6 +294,8 @@ public class EmpleadoAsistenciaView extends VerticalLayout implements View {
         botonesLayout.setComponentAlignment(printAsistenciaBtn, Alignment.BOTTOM_LEFT);
         botonesLayout.addComponent(printAsistenciaIdexBtn);
         botonesLayout.setComponentAlignment(printAsistenciaIdexBtn, Alignment.BOTTOM_LEFT);
+        botonesLayout.addComponent(exportAsistenciaBtn);
+        botonesLayout.setComponentAlignment(exportAsistenciaBtn, Alignment.BOTTOM_LEFT);
         addComponent(detalleLayout);
         setComponentAlignment(detalleLayout, Alignment.MIDDLE_CENTER);
 
