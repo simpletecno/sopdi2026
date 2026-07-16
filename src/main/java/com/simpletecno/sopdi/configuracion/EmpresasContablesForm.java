@@ -53,6 +53,15 @@ public class EmpresasContablesForm extends Window {
     ComboBox regimenCbx;
     TextField codigoProductoExcelFELTxt;
 
+    // ── Parámetros generales (montos y porcentajes) ──────────────────────────
+    NumberField porcentajeIvaTxt;
+    NumberField montoMaximoFacturaCfTxt;
+    NumberField montoInicialRetencionIsrTxt;
+    NumberField montoMaximoBaseIsrPrimerTxt;
+    NumberField primerPorcentajeIsrTxt;
+    NumberField montoInicialBaseIsrSegundoTxt;
+    NumberField segundoPorcentajeIsrTxt;
+
     Button guardarBtn;
     Button salirBtn;
 
@@ -64,11 +73,12 @@ public class EmpresasContablesForm extends Window {
     public File file;
     StreamResource logoStreamResource = null;
 
-    public EmpresasContablesForm() {        
+    public EmpresasContablesForm() {
         this.mainUI = UI.getCurrent();
+        asegurarColumnasParametros();
         setResponsive(true);
         setModal(true);
-        setWidth("750px");
+        setWidth("90%");
         setHeight("95%");
         center();
 
@@ -344,6 +354,7 @@ public class EmpresasContablesForm extends Window {
         TabSheet tabSheet = new TabSheet();
         tabSheet.setSizeFull();
         tabSheet.addTab(datosTabPanel, "Datos generales", FontAwesome.BUILDING);
+        tabSheet.addTab(construirParametrosTab(), "Parámetros generales", FontAwesome.PERCENT);
         tabSheet.addTab(felTabPanel, "Facturación electrónica (FEL)", FontAwesome.FILE_CODE_O);
         tabSheet.addTab(obligTabLayout, "Obligaciones fiscales", FontAwesome.FILE_TEXT_O);
 
@@ -415,6 +426,111 @@ public class EmpresasContablesForm extends Window {
         return apiTabLayout;
     }
 
+    /**
+     * Pestaña de parámetros generales de la empresa (montos y porcentajes usados
+     * en cálculos fiscales: IVA, factura CF, retención de ISR por tramos).
+     *
+     * Diseñada para crecer: para agregar un parámetro nuevo basta con declarar el
+     * NumberField, agregar la columna en {@link #asegurarColumnasParametros()} y
+     * leerlo/guardarlo en {@link #llenarCampos()} e {@link #insertarEmpresaContable()}.
+     */
+    private Panel construirParametrosTab() {
+        porcentajeIvaTxt            = crearCampoDecimal("Porcentaje del IVA (%) :");
+        montoMaximoFacturaCfTxt     = crearCampoDecimal("Monto máximo factura CF :");
+        montoInicialRetencionIsrTxt = crearCampoDecimal("Monto inicial para retener ISR :");
+        montoMaximoBaseIsrPrimerTxt = crearCampoDecimal("Monto máximo base ISR (1er porcentaje) :");
+        primerPorcentajeIsrTxt      = crearCampoDecimal("Primer porcentaje ISR (%) :");
+        montoInicialBaseIsrSegundoTxt = crearCampoDecimal("Monto inicial base ISR (2do porcentaje) :");
+        segundoPorcentajeIsrTxt     = crearCampoDecimal("Segundo porcentaje ISR (%) :");
+
+        Label titleLbl = new Label("Parámetros generales (montos y porcentajes)");
+        titleLbl.addStyleName(ValoTheme.LABEL_H4);
+        titleLbl.addStyleName(ValoTheme.LABEL_BOLD);
+
+        FormLayout paramForm = new FormLayout();
+        paramForm.setWidth("100%");
+        paramForm.setMargin(true);
+        paramForm.setSpacing(true);
+        paramForm.addComponent(porcentajeIvaTxt);
+        paramForm.addComponent(montoMaximoFacturaCfTxt);
+        paramForm.addComponent(montoInicialRetencionIsrTxt);
+        paramForm.addComponent(montoMaximoBaseIsrPrimerTxt);
+        paramForm.addComponent(primerPorcentajeIsrTxt);
+        paramForm.addComponent(montoInicialBaseIsrSegundoTxt);
+        paramForm.addComponent(segundoPorcentajeIsrTxt);
+
+        VerticalLayout paramTabLayout = new VerticalLayout();
+        paramTabLayout.setWidth("100%");
+        paramTabLayout.setMargin(true);
+        paramTabLayout.setSpacing(true);
+        paramTabLayout.addComponent(titleLbl);
+        paramTabLayout.addComponent(paramForm);
+
+        Panel paramTabPanel = new Panel();
+        paramTabPanel.setSizeFull();
+        paramTabPanel.setContent(paramTabLayout);
+        return paramTabPanel;
+    }
+
+    /** Valor numérico de un NumberField apto para SQL; 0 si está vacío/nulo. */
+    private String num(NumberField field) {
+        return field.getValue() == null ? "0" : String.valueOf(field.getValue());
+    }
+
+    /** Crea un NumberField configurado para montos/porcentajes con 2 decimales. */
+    private NumberField crearCampoDecimal(String caption) {
+        NumberField nf = new NumberField(caption);
+        nf.setWidth("10em");
+        nf.setDecimalAllowed(true);
+        nf.setDecimalPrecision(2);
+        nf.setMinimumFractionDigits(2);
+        nf.setDecimalSeparator('.');
+        nf.setDecimalSeparatorAlwaysShown(true);
+        nf.setGroupingUsed(true);
+        nf.setGroupingSeparator(',');
+        nf.setGroupingSize(3);
+        nf.setValue(0d);
+        nf.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
+        return nf;
+    }
+
+    /**
+     * Agrega a contabilidad_empresa las columnas de parámetros generales que aún
+     * no existan. MySQL/MariaDB no soporta "ADD COLUMN IF NOT EXISTS" en todas
+     * las versiones, por lo que se consulta information_schema antes de cada ALTER.
+     *
+     * Para agregar un parámetro nuevo, basta con añadir una fila a este arreglo.
+     */
+    private void asegurarColumnasParametros() {
+        String[][] columnas = {
+                {"PorcentajeIva",                        "DECIMAL(6,2)  NULL DEFAULT 0"},
+                {"MontoMaximoFacturaCf",                 "DECIMAL(14,2) NULL DEFAULT 0"},
+                {"MontoInicialRetencionIsr",             "DECIMAL(14,2) NULL DEFAULT 0"},
+                {"MontoMaximoBaseIsrPrimerPorcentaje",   "DECIMAL(14,2) NULL DEFAULT 0"},
+                {"PrimerPorcentajeIsr",                  "DECIMAL(6,2)  NULL DEFAULT 0"},
+                {"MontoInicialBaseIsrSegundoPorcentaje", "DECIMAL(14,2) NULL DEFAULT 0"},
+                {"SegundoPorcentajeIsr",                 "DECIMAL(6,2)  NULL DEFAULT 0"},
+        };
+        for (String[] col : columnas) {
+            String existeSql = "SELECT COUNT(*) FROM information_schema.COLUMNS "
+                    + " WHERE TABLE_SCHEMA = DATABASE() "
+                    + " AND TABLE_NAME = 'contabilidad_empresa' "
+                    + " AND COLUMN_NAME = '" + col[0] + "'";
+            try {
+                Statement st = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+                ResultSet rs = st.executeQuery(existeSql);
+                boolean existe = rs.next() && rs.getInt(1) > 0;
+                rs.close();
+                if (!existe) {
+                    st.executeUpdate("ALTER TABLE contabilidad_empresa ADD COLUMN " + col[0] + " " + col[1]);
+                }
+            } catch (Exception ex) {
+                Logger.getLogger(EmpresasContablesForm.class.getName()).log(Level.WARNING,
+                        "No se pudo asegurar la columna contabilidad_empresa." + col[0] + ": {0}", ex.getMessage());
+            }
+        }
+    }
+
     public void llenarCampos() {
         try {
 
@@ -442,6 +558,15 @@ public class EmpresasContablesForm extends Window {
                 tokenFELTxt.setValue(rsRecords.getString("TokenFEL"));
                 regimenCbx.select(rsRecords.getString("Regimen"));
                 codigoProductoExcelFELTxt.setValue(rsRecords.getString("CodigoProductoExentoFel"));
+
+                // Parámetros generales (montos y porcentajes)
+                porcentajeIvaTxt.setValue(rsRecords.getDouble("PorcentajeIva"));
+                montoMaximoFacturaCfTxt.setValue(rsRecords.getDouble("MontoMaximoFacturaCf"));
+                montoInicialRetencionIsrTxt.setValue(rsRecords.getDouble("MontoInicialRetencionIsr"));
+                montoMaximoBaseIsrPrimerTxt.setValue(rsRecords.getDouble("MontoMaximoBaseIsrPrimerPorcentaje"));
+                primerPorcentajeIsrTxt.setValue(rsRecords.getDouble("PrimerPorcentajeIsr"));
+                montoInicialBaseIsrSegundoTxt.setValue(rsRecords.getDouble("MontoInicialBaseIsrSegundoPorcentaje"));
+                segundoPorcentajeIsrTxt.setValue(rsRecords.getDouble("SegundoPorcentajeIsr"));
 
                 final byte[] docBytes = rsRecords.getBytes("Logo");
                 StreamResource logoStreamResource = null;
@@ -523,7 +648,10 @@ public class EmpresasContablesForm extends Window {
             if (idEmpresaEdit.equals("0")) {
                 queryString = "INSERT INTO contabilidad_empresa (IdEmpresa, Empresa, NombreCorto, Nit, " +
                         "IdUltimaLiquidacion, RecibeEnganches, UsuarioFEL, ClaveFEL, UsuarioToken, " +
-                        "Regimen, CodigoProductoExentoFel, Logo)";
+                        "Regimen, CodigoProductoExentoFel, " +
+                        "PorcentajeIva, MontoMaximoFacturaCf, MontoInicialRetencionIsr, " +
+                        "MontoMaximoBaseIsrPrimerPorcentaje, PrimerPorcentajeIsr, " +
+                        "MontoInicialBaseIsrSegundoPorcentaje, SegundoPorcentajeIsr, Logo)";
                 queryString += " VALUES (";
                 queryString += " " + idEmpresaTxt.getValue();
                 queryString += ",'" + nombreTxt.getValue() + "'";
@@ -540,6 +668,13 @@ public class EmpresasContablesForm extends Window {
                 queryString += ", '" + tokenFELTxt.getValue() + "'";
                 queryString += ", '" + regimenCbx.getValue() + "'";
                 queryString += ", '" + codigoProductoExcelFELTxt.getValue() + "'";
+                queryString += ", " + num(porcentajeIvaTxt);
+                queryString += ", " + num(montoMaximoFacturaCfTxt);
+                queryString += ", " + num(montoInicialRetencionIsrTxt);
+                queryString += ", " + num(montoMaximoBaseIsrPrimerTxt);
+                queryString += ", " + num(primerPorcentajeIsrTxt);
+                queryString += ", " + num(montoInicialBaseIsrSegundoTxt);
+                queryString += ", " + num(segundoPorcentajeIsrTxt);
                 queryString += ",?";
                 queryString += ")";
             } else {
@@ -558,6 +693,13 @@ public class EmpresasContablesForm extends Window {
                 queryString += ", TokenFEL = '" + tokenFELTxt.getValue() + "'";
                 queryString += ", Regimen = '" + regimenCbx.getValue() + "'";
                 queryString += ", CodigoProductoExentoFel = '" + codigoProductoExcelFELTxt.getValue() + "'";
+                queryString += ", PorcentajeIva = " + num(porcentajeIvaTxt);
+                queryString += ", MontoMaximoFacturaCf = " + num(montoMaximoFacturaCfTxt);
+                queryString += ", MontoInicialRetencionIsr = " + num(montoInicialRetencionIsrTxt);
+                queryString += ", MontoMaximoBaseIsrPrimerPorcentaje = " + num(montoMaximoBaseIsrPrimerTxt);
+                queryString += ", PrimerPorcentajeIsr = " + num(primerPorcentajeIsrTxt);
+                queryString += ", MontoInicialBaseIsrSegundoPorcentaje = " + num(montoInicialBaseIsrSegundoTxt);
+                queryString += ", SegundoPorcentajeIsr = " + num(segundoPorcentajeIsrTxt);
                 queryString += ", Logo = ?";
                 queryString += " WHERE IdEmpresa = " + idEmpresaEdit;
             }
