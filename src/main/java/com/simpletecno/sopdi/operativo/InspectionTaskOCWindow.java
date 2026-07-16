@@ -870,7 +870,7 @@ public class InspectionTaskOCWindow extends Window {
             queryString += " DIC.Idex, DIC.Unidad, DIC.Moneda, Lote, ";
             queryString += " SUM(DIC.Total / DIC.Cantidad) PrecioTotal, SUM(DIC.Cantidad) CantidadTotal, SUM(DIC.Total) TotalTotal";
             queryString += " FROM  DetalleItemsCostos DIC";
-            queryString += " INNER JOIN proveedor_Empresa Prov ON Prov.IdProveedor = DIC.IdProveedor";
+            queryString += " INNER JOIN proveedor_empresa Prov ON Prov.IdProveedor = DIC.IdProveedor";
             queryString += " INNER JOIN centro_costo_cuenta CCC ON CCC.CodigoCuentaCentroCosto = DIC.NoCuenta";
             queryString += " INNER JOIN area On area.IdArea = DIC.IdArea";
             queryString += " WHERE DIC.IdProject In (Select PRJ.Numero From project PRJ WHERE PRJ.Estatus = 'ACTIVO')";
