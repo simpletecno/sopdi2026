@@ -8,7 +8,6 @@ import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.shared.Position;
-import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 
@@ -47,7 +46,7 @@ public class AsistenciaCambioRazonView extends VerticalLayout implements View {
     public AsistenciaCambioRazonView() {
 
         this.mainUI = UI.getCurrent();
-        setWidth("100%");
+        setSizeFull();
         setMargin(false);
         setSpacing(true);
 
@@ -62,12 +61,12 @@ public class AsistenciaCambioRazonView extends VerticalLayout implements View {
     public void createDetailsGrid() {
 
         VerticalLayout detalleLayout = new VerticalLayout();
-        detalleLayout.setWidth("100%");
+        detalleLayout.setSizeFull();
         detalleLayout.addStyleName("rcorners2");
         detalleLayout.setSpacing(true);
 
         HorizontalLayout idexYEmpleadosLayout = new HorizontalLayout();
-        idexYEmpleadosLayout.setWidth("100%");
+        idexYEmpleadosLayout.setSizeFull();
         idexYEmpleadosLayout.addStyleName("rcorners3");
         idexYEmpleadosLayout.setSpacing(true);
 
@@ -91,6 +90,7 @@ public class AsistenciaCambioRazonView extends VerticalLayout implements View {
         fechaLayout.setComponentAlignment(fechaDt, Alignment.BOTTOM_CENTER);
 
         detalleLayout.addComponents(fechaLayout, idexYEmpleadosLayout, botonesLayout);
+        detalleLayout.setExpandRatio(idexYEmpleadosLayout, 1.0f);
 
         groupBitacoraContainer.addContainerProperty(IDBITACORA_PROPERTY, String.class, null);
         groupBitacoraContainer.addContainerProperty(IDEMPLEADO_PROPERTY, String.class, null);
@@ -102,9 +102,6 @@ public class AsistenciaCambioRazonView extends VerticalLayout implements View {
         groupBitacoraGrid = new Grid("BITACORA DEL  : " + Utileria.getFechaDDMMYYYY(new java.util.Date()), groupBitacoraContainer);
         groupBitacoraGrid.setImmediate(true);
         groupBitacoraGrid.setSelectionMode(Grid.SelectionMode.NONE);
-        groupBitacoraGrid.setHeightMode(HeightMode.ROW);
-        groupBitacoraGrid.setHeightByRows(15);
-        groupBitacoraGrid.setWidth("100%");
         groupBitacoraGrid.setResponsive(true);
         groupBitacoraGrid.setEditorBuffered(false);
         groupBitacoraGrid.setSizeFull();
@@ -150,6 +147,7 @@ public class AsistenciaCambioRazonView extends VerticalLayout implements View {
                     queryString = "UPDATE proveedor_empresa SET ";
                     queryString += " Razon   = '" + groupBitacoraContainer.getContainerProperty(objectItem, RAZON_PROPERTY).getValue() + "'";
                     queryString += " WHERE IdProveedor = " + groupBitacoraContainer.getContainerProperty(objectItem, IDEMPLEADO_PROPERTY).getValue();
+                    queryString += " AND IdEmpresa = " + empresaId;
 
                     stQuery.executeUpdate(queryString);
 
@@ -198,7 +196,8 @@ public class AsistenciaCambioRazonView extends VerticalLayout implements View {
         botonesLayout.addComponent(printAsistenciaBtn);
         botonesLayout.setComponentAlignment(printAsistenciaBtn, Alignment.BOTTOM_LEFT);
         addComponent(detalleLayout);
-        setComponentAlignment(detalleLayout, Alignment.MIDDLE_CENTER);
+        setExpandRatio(detalleLayout, 1.0f);
+        setComponentAlignment(detalleLayout, Alignment.TOP_CENTER);
 
     }
 

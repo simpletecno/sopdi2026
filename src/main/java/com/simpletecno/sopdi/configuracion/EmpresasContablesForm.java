@@ -438,9 +438,9 @@ public class EmpresasContablesForm extends Window {
         porcentajeIvaTxt            = crearCampoDecimal("Porcentaje del IVA (%) :");
         montoMaximoFacturaCfTxt     = crearCampoDecimal("Monto máximo factura CF :");
         montoInicialRetencionIsrTxt = crearCampoDecimal("Monto inicial para retener ISR :");
-        montoMaximoBaseIsrPrimerTxt = crearCampoDecimal("Monto máximo base ISR (1er porcentaje) :");
+        montoMaximoBaseIsrPrimerTxt = crearCampoDecimal("Monto máximo base ISR (1er %) :");
         primerPorcentajeIsrTxt      = crearCampoDecimal("Primer porcentaje ISR (%) :");
-        montoInicialBaseIsrSegundoTxt = crearCampoDecimal("Monto inicial base ISR (2do porcentaje) :");
+        montoInicialBaseIsrSegundoTxt = crearCampoDecimal("Monto inicial base ISR (2do %) :");
         segundoPorcentajeIsrTxt     = crearCampoDecimal("Segundo porcentaje ISR (%) :");
 
         Label titleLbl = new Label("Parámetros generales (montos y porcentajes)");

@@ -542,6 +542,15 @@ public class SelectEmpresaContable extends Window {
             ((SopdiUI) mainUI).sessionInformation.setStrAccountingCompanyBillingDirection(rsRecords.getString("DireccionFactura"));
             ((SopdiUI) mainUI).sessionInformation.setStrAccountingCompanyFelCodProdExento(rsRecords.getString("CodigoProductoExentoFel"));
 
+            // Parámetros fiscales de la empresa contable (IVA / ISR)
+            ((SopdiUI) mainUI).sessionInformation.setDblPorcentajeIva(rsRecords.getDouble("PorcentajeIva"));
+            ((SopdiUI) mainUI).sessionInformation.setDblMontoMaximoFacturaCf(rsRecords.getDouble("MontoMaximoFacturaCf"));
+            ((SopdiUI) mainUI).sessionInformation.setDblMontoInicialRetencionIsr(rsRecords.getDouble("MontoInicialRetencionIsr"));
+            ((SopdiUI) mainUI).sessionInformation.setDblMontoMaximoBaseIsrPrimerPorcentaje(rsRecords.getDouble("MontoMaximoBaseIsrPrimerPorcentaje"));
+            ((SopdiUI) mainUI).sessionInformation.setDblPrimerPorcentajeIsr(rsRecords.getDouble("PrimerPorcentajeIsr"));
+            ((SopdiUI) mainUI).sessionInformation.setDblMontoInicialBaseIsrSegundoPorcentaje(rsRecords.getDouble("MontoInicialBaseIsrSegundoPorcentaje"));
+            ((SopdiUI) mainUI).sessionInformation.setDblSegundoPorcentajeIsr(rsRecords.getDouble("SegundoPorcentajeIsr"));
+
             Emisor emisor = new Emisor(
                     rsRecords.getString("Nit"),
                     rsRecords.getString("Empresa"),

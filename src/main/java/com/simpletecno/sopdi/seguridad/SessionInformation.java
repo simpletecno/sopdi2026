@@ -54,6 +54,15 @@ public class SessionInformation {
     private Emisor emisor = null;
     public EmpresaCuentasEquivalentesHelper empresaCuentasEquivalentesHelper;
 
+    // Parámetros fiscales de la empresa contable (tabla contabilidad_empresa)
+    private double dblPorcentajeIva;
+    private double dblMontoMaximoFacturaCf;
+    private double dblMontoInicialRetencionIsr;
+    private double dblMontoMaximoBaseIsrPrimerPorcentaje;
+    private double dblPrimerPorcentajeIsr;
+    private double dblMontoInicialBaseIsrSegundoPorcentaje;
+    private double dblSegundoPorcentajeIsr;
+
     /**
      * @return the strSessionId
      */
@@ -501,4 +510,60 @@ public class SessionInformation {
 
     public void setEmpresaCuentasEquivalentesHelper (EmpresaCuentasEquivalentesHelper helper) {this.empresaCuentasEquivalentesHelper = helper;}
     public EmpresaCuentasEquivalentesHelper getEmpresaCuentasEquivalentesHelper() {return this.empresaCuentasEquivalentesHelper;}
+
+    public double getDblPorcentajeIva() {
+        return dblPorcentajeIva;
+    }
+
+    public void setDblPorcentajeIva(double dblPorcentajeIva) {
+        this.dblPorcentajeIva = dblPorcentajeIva;
+    }
+
+    public double getDblMontoMaximoFacturaCf() {
+        return dblMontoMaximoFacturaCf;
+    }
+
+    public void setDblMontoMaximoFacturaCf(double dblMontoMaximoFacturaCf) {
+        this.dblMontoMaximoFacturaCf = dblMontoMaximoFacturaCf;
+    }
+
+    public double getDblMontoInicialRetencionIsr() {
+        return dblMontoInicialRetencionIsr;
+    }
+
+    public void setDblMontoInicialRetencionIsr(double dblMontoInicialRetencionIsr) {
+        this.dblMontoInicialRetencionIsr = dblMontoInicialRetencionIsr;
+    }
+
+    public double getDblMontoMaximoBaseIsrPrimerPorcentaje() {
+        return dblMontoMaximoBaseIsrPrimerPorcentaje;
+    }
+
+    public void setDblMontoMaximoBaseIsrPrimerPorcentaje(double dblMontoMaximoBaseIsrPrimerPorcentaje) {
+        this.dblMontoMaximoBaseIsrPrimerPorcentaje = dblMontoMaximoBaseIsrPrimerPorcentaje;
+    }
+
+    public double getDblPrimerPorcentajeIsr() {
+        return dblPrimerPorcentajeIsr;
+    }
+
+    public void setDblPrimerPorcentajeIsr(double dblPrimerPorcentajeIsr) {
+        this.dblPrimerPorcentajeIsr = dblPrimerPorcentajeIsr;
+    }
+
+    public double getDblMontoInicialBaseIsrSegundoPorcentaje() {
+        return dblMontoInicialBaseIsrSegundoPorcentaje;
+    }
+
+    public void setDblMontoInicialBaseIsrSegundoPorcentaje(double dblMontoInicialBaseIsrSegundoPorcentaje) {
+        this.dblMontoInicialBaseIsrSegundoPorcentaje = dblMontoInicialBaseIsrSegundoPorcentaje;
+    }
+
+    public double getDblSegundoPorcentajeIsr() {
+        return dblSegundoPorcentajeIsr;
+    }
+
+    public void setDblSegundoPorcentajeIsr(double dblSegundoPorcentajeIsr) {
+        this.dblSegundoPorcentajeIsr = dblSegundoPorcentajeIsr;
+    }
 }

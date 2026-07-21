@@ -71,7 +71,7 @@ public class ProveedorEmpresaForm extends Window {
     CheckBox esAbastosCheck = new CheckBox("Es Abastos");
     CheckBox esRelacionadaCheck = new CheckBox("Es Relacionada");
     CheckBox esEncargadoCuentaCheck = new CheckBox("Es Encargado de Cuenta");
-    CheckBox esRecidenteCheck = new CheckBox("Es Residente");
+    CheckBox esResidenteCheck = new CheckBox("Es Residente");
 
     ComboBox cargoCbx = new ComboBox("Cargo");
     ComboBox usuarioCbx = new ComboBox("Usuario");
@@ -229,7 +229,7 @@ public class ProveedorEmpresaForm extends Window {
         esAgenteRetenedorIVACheck.setValue(false);
         esBancoCheck.setValue(false);
         esEncargadoCuentaCheck.setValue(false);
-        esRecidenteCheck.setValue(false);
+        esResidenteCheck.setValue(false);
 
         inabilitadoCbk.addItem("NO");
         inabilitadoCbk.addItem("SI");
@@ -256,7 +256,7 @@ public class ProveedorEmpresaForm extends Window {
         layoutEs.addComponents(esAgenteRetenedorISRCheck, esAgenteRetenedorIVACheck);
         layoutEs.addComponents(esBancoCheck, esLiquidadorCheck, esComiteCheck, esPlanillaCheck);
         layoutEs.addComponents(esJefeCheck, esContactoObraCheck, esVisitaResponsableCheck, esAutorizadoPagarCheck);
-        layoutEs.addComponents(esAbastosCheck, esRelacionadaCheck, esEncargadoCuentaCheck, esRecidenteCheck);
+        layoutEs.addComponents(esAbastosCheck, esRelacionadaCheck, esEncargadoCuentaCheck, esResidenteCheck);
         layoutEs.addComponents(cargoCbx, usuarioCbx, inabilitadoCbk);
 
         mainLayout.addComponent(formLayout);
@@ -304,7 +304,7 @@ public class ProveedorEmpresaForm extends Window {
      * por lo que se consulta information_schema antes de cada ALTER.
      */
     private void asegurarColumnas() {
-        String[] columnas = {"EsEncargadoCuenta", "EsRecidente"};
+        String[] columnas = {"EsEncargadoCuenta", "EsResidente"};
         for (String columna : columnas) {
             String existeSql = "SELECT COUNT(*) FROM information_schema.COLUMNS "
                     + " WHERE TABLE_SCHEMA = DATABASE() "
@@ -387,7 +387,7 @@ public class ProveedorEmpresaForm extends Window {
                     esAbastosCheck.setValue(rsRecords.getString("EsAbastos").equals("1"));
                     esRelacionadaCheck.setValue(rsRecords.getString("EsRelacionada").equals("1"));
                     esEncargadoCuentaCheck.setValue("1".equals(rsRecords.getString("EsEncargadoCuenta")));
-                    esRecidenteCheck.setValue("1".equals(rsRecords.getString("EsRecidente")));
+                    esResidenteCheck.setValue("1".equals(rsRecords.getString("EsResidente")));
 
                     inabilitadoCbk.setValue(rsRecords.getString("Inhabilitado").equals("0") ? "NO" : "SI");
 
@@ -452,7 +452,7 @@ public class ProveedorEmpresaForm extends Window {
             queryString +=  "EsProveedor, EsCliente, EsBanco, EsAgenteRetenedorISR, EsAgenteRetenedorIVA, ";
             queryString += " EsInstitucionFiscal, EsInstitucionSeguroSocial, EsSujetoRetencionDefinitivaISR, ";
             queryString += " EsLiquidador, EsComite, EsJefe, EsPlanilla, EsContactoObra, EsVisitaResponsable, ";
-            queryString += " EsAutorizadoPagar, EsRelacionada, EsAbastos, EsEncargadoCuenta, EsRecidente, Cargo, IdUsuario, Inhabilitado)";
+            queryString += " EsAutorizadoPagar, EsRelacionada, EsAbastos, EsEncargadoCuenta, EsResidente, Cargo, IdUsuario, Inhabilitado)";
             queryString += " VALUES (";
             queryString +=  ((SopdiUI)UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
             queryString += ",'" + codigoTxt.getValue() + "'";
@@ -491,7 +491,7 @@ public class ProveedorEmpresaForm extends Window {
             queryString += ", " + (esRelacionadaCheck.getValue() ? "1" : "0");
             queryString += ", " + (esAbastosCheck.getValue() ? "1" : "0");
             queryString += ", " + (esEncargadoCuentaCheck.getValue() ? "1" : "0");
-            queryString += ", " + (esRecidenteCheck.getValue() ? "1" : "0");
+            queryString += ", " + (esResidenteCheck.getValue() ? "1" : "0");
             queryString += ",'" + cargoCbx.getValue() + "'";
             queryString += ", " + usuarioCbx.getValue();
             queryString += ", " + (Objects.equals(inabilitadoCbk.getValue(), "NO") ? "0" : "1");
@@ -532,7 +532,7 @@ public class ProveedorEmpresaForm extends Window {
             queryString += ",EsRelacionada = " + (esRelacionadaCheck.getValue() ? "1" : "0");
             queryString += ",EsAbastos = " + (esAbastosCheck.getValue() ? "1" : "0");
             queryString += ",EsEncargadoCuenta = " + (esEncargadoCuentaCheck.getValue() ? "1" : "0");
-            queryString += ",EsRecidente = " + (esRecidenteCheck.getValue() ? "1" : "0");
+            queryString += ",EsResidente = " + (esResidenteCheck.getValue() ? "1" : "0");
             queryString += ",Cargo = '" + cargoCbx.getValue() + "'";
             queryString += ",IdUsuario = " + usuarioCbx.getValue();
             queryString += ",InHabilitado = " + (Objects.equals(inabilitadoCbk.getValue(), "NO") ? "0" : "1");

@@ -18,7 +18,6 @@ import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
 import com.vaadin.server.Sizeable;
 import com.vaadin.shared.ui.MarginInfo;
-import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Grid.HeaderCell;
 import com.vaadin.ui.Grid.HeaderRow;
@@ -58,6 +57,8 @@ public class EmpleadoView extends VerticalLayout implements View {
     Button salarioBtn;
     Button vacacionesBtn;
     Button deleteBtn;
+
+    CheckBox mostrarInhabilitadosChb = new CheckBox("Mostrar inhabilitados");
 
     ComboBox generoCbx = new ComboBox("Género : ");
     ComboBox cargoCbx = new ComboBox("Cargo/Plaza : ");
@@ -108,11 +109,13 @@ public class EmpleadoView extends VerticalLayout implements View {
 
         marginInfo = new MarginInfo(true, false, false, false);
         setSpacing(true);
+        setSizeFull();
 
         mainLayout.setSpacing(true);
         mainLayout.setSizeFull();
 
         addComponent(mainLayout);
+        setExpandRatio(mainLayout, 1.0f);
 
         createLeftContent();
         createRightContent();
@@ -131,17 +134,26 @@ public class EmpleadoView extends VerticalLayout implements View {
 
         empleadosContainer.addContainerProperty("id", String.class, null);
         empleadosContainer.addContainerProperty("nombre", String.class, null);
+        empleadosContainer.addContainerProperty("inhabilitado", Boolean.class, false);
 
         empleadosGrid = new Grid("Empleados", empleadosContainer);
         empleadosGrid.setWidth("100%");
+        empleadosGrid.setHeight("100%");
         empleadosGrid.setImmediate(true);
         empleadosGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
         empleadosGrid.setDescription("Seleccione un registro.");
-        empleadosGrid.setHeightMode(HeightMode.ROW);
-        empleadosGrid.setHeightByRows(20);
         empleadosGrid.setResponsive(true);
+        empleadosGrid.removeColumn("inhabilitado");
         empleadosGrid.getColumn("id").setExpandRatio(1);
         empleadosGrid.getColumn("nombre").setExpandRatio(2);
+
+        empleadosGrid.setRowStyleGenerator(new Grid.RowStyleGenerator() {
+            @Override
+            public String getStyle(Grid.RowReference row) {
+                Object inhabilitado = row.getItem().getItemProperty("inhabilitado").getValue();
+                return Boolean.TRUE.equals(inhabilitado) ? "inhabilitado" : null;
+            }
+        });
 
         empleadosGrid.addSelectionListener(new SelectionListener() {
             @Override
@@ -174,8 +186,31 @@ public class EmpleadoView extends VerticalLayout implements View {
         });
         cell.setComponent(filterField);
 
+        HeaderCell idCell = filterRow.getCell("id");
+
+        TextField idFilterField = new TextField();
+        idFilterField.addStyleName(ValoTheme.TEXTFIELD_TINY);
+        idFilterField.setInputPrompt("Filtrar");
+        idFilterField.setColumns(8);
+
+        idFilterField.addTextChangeListener(change -> {
+            empleadosContainer.removeContainerFilters("id");
+
+            // (Re)create the filter if necessary
+            if (!change.getText().isEmpty()) {
+                empleadosContainer.addContainerFilter(
+                        new SimpleStringFilter("id",
+                                change.getText(), true, false));
+            }
+        });
+        idCell.setComponent(idFilterField);
+
+        mostrarInhabilitadosChb.setDescription("Mostrar empleados inhabilitados");
+        mostrarInhabilitadosChb.addValueChangeListener(event -> fillGridEmpleados());
+
         fillGridEmpleados();
 
+        leftLayout.addComponent(mostrarInhabilitadosChb);
         leftLayout.addComponent(empleadosGrid);
 
         HorizontalLayout buttonsLayout = new HorizontalLayout();
@@ -310,6 +345,7 @@ public class EmpleadoView extends VerticalLayout implements View {
 
         leftLayout.addComponent(buttonsLayout);
 
+        leftLayout.setExpandRatio(empleadosGrid, 1.0f);
         leftLayout.setComponentAlignment(empleadosGrid,Alignment.TOP_CENTER);
         leftLayout.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
 
@@ -321,8 +357,10 @@ public class EmpleadoView extends VerticalLayout implements View {
         empleadosContainer.removeAllItems();
 
         String queryString = " SELECT * FROM proveedor_empresa ";
-        queryString += " WHERE Inhabilitado = 0 ";
-        queryString += " AND EsPlanilla = 1";
+        queryString += " WHERE EsPlanilla = 1";
+        if (!mostrarInhabilitadosChb.getValue()) {
+            queryString += " AND Inhabilitado = 0 ";
+        }
         queryString += " AND IdEmpresa = " + empresaId;
         queryString += " ORDER BY Nombre ";
 
@@ -339,6 +377,7 @@ public class EmpleadoView extends VerticalLayout implements View {
                 System.out.println(empleadosContainer.getContainerPropertyIds());
                 System.out.println(empleadosContainer.getContainerProperty(itemId, "id"));
                 empleadosContainer.getContainerProperty(itemId, "id").setValue(rsRecords.getString("IdProveedor"));
+                empleadosContainer.getContainerProperty(itemId, "inhabilitado").setValue("1".equals(rsRecords.getString("Inhabilitado")));
                 if(rsRecords.getString("PrimerNombre").equals("")){
                     empleadosContainer.getContainerProperty(itemId, "nombre").setValue(rsRecords.getString("Nombre"));
                 }else{
@@ -432,6 +471,8 @@ public class EmpleadoView extends VerticalLayout implements View {
         fechaIngresoDt.setDateFormat("dd/MM/yyyy");
         fechaEgresoDt.setDateFormat("dd/MM/yyyy");
 
+        inhabilitadoChb.addValueChangeListener(event -> aplicarEstiloInhabilitado(inhabilitadoChb.getValue()));
+
 
         idLiquidacion.setCaption("Planilla Liquidación No.");
 
@@ -463,6 +504,14 @@ public class EmpleadoView extends VerticalLayout implements View {
         buttonsLayout.addComponent(saveBtn);
         buttonsLayout.setComponentAlignment(saveBtn,Alignment.MIDDLE_CENTER);
 
+    }
+
+    private void aplicarEstiloInhabilitado(Boolean inhabilitado) {
+        if (Boolean.TRUE.equals(inhabilitado)) {
+            rightLayout.addStyleName("rightform-inhabilitado");
+        } else {
+            rightLayout.removeStyleName("rightform-inhabilitado");
+        }
     }
 
     private void completarNombre() {
@@ -502,6 +551,7 @@ public class EmpleadoView extends VerticalLayout implements View {
         obraAsignadaChb.setValue(false);
         esLiquidador.setValue(false);
         inhabilitadoChb.setValue(false);
+        aplicarEstiloInhabilitado(false);
         correlativoTxt.setValue("0");
         fechaEgresoDt.setValue(null);
         fechaIngresoDt.setValue(new Date());
@@ -558,6 +608,7 @@ public class EmpleadoView extends VerticalLayout implements View {
                 }
                 correlativoTxt.setValue(rsRecords.getString("IdCorrFinal"));
                 inhabilitadoChb.setValue(rsRecords.getString("Inhabilitado").equals("1"));
+                aplicarEstiloInhabilitado(inhabilitadoChb.getValue());
                 aplicaIndemnizacion.setValue(rsRecords.getString("AplicaIndemnizacion").equals("1"));
 
                 idLiquidacion.setValue(rsRecords.getString("IdPlanillaLiquidacion"));

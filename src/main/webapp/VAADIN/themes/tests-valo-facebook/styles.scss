@@ -17,6 +17,12 @@
         color: blue;
     }
 
+    /* Combo con texto azul en negrita (p. ej. proveedorCbx y tipoOrdenCompraCbx en OrdenCompraForm) */
+    .v-filterselect.combo-azul-bold .v-filterselect-input {
+        color: blue;
+        font-weight: bold;
+    }
+
     .v-select-twincol-options-caption-mybigcaption {
         color : #2c9720;
         font-weight: bold;
@@ -668,6 +674,29 @@
     .v-grid-row.red .v-grid-cell {
         color: #b42318;
         background: #fff1f1;
+    }
+
+    /* Empleados inhabilitados */
+    .v-grid-row.inhabilitado .v-grid-cell {
+        color: #b42318;
+        background: #fdecec;
+        font-style: italic;
+    }
+
+    .v-grid-row-selected.inhabilitado .v-grid-cell {
+        color: #7a1710;
+        background: linear-gradient(180deg, #f9c9c4 0%, #f3b0a8 100%);
+    }
+
+    /* Panel/formulario derecho cuando el empleado está inhabilitado */
+    .rightform-inhabilitado {
+        background: #fdecec !important;
+        border: 2px solid #e08a82 !important;
+    }
+
+    .rightform-inhabilitado .v-panel,
+    .rightform-inhabilitado .v-csslayout-card {
+        background: #fdecec !important;
     }
 
     /* Tables legacy */

@@ -211,6 +211,7 @@ public class OrdenCompraForm extends Window {
         tipoOrdenCompraCbx.setWidth("100%");
         tipoOrdenCompraCbx.setInputPrompt("Tipo orden de compra");
         tipoOrdenCompraCbx.setFilteringMode(FilteringMode.CONTAINS);
+        tipoOrdenCompraCbx.addStyleName("combo-azul-bold");
         tipoOrdenCompraCbx.addValueChangeListener((Property.ValueChangeListener) event -> {
             if (tipoOrdenCompraCbx.getValue() != null) {
                 if(idccGrid != null) {
@@ -255,6 +256,9 @@ public class OrdenCompraForm extends Window {
         proveedorCbx.setInputPrompt("Proveedor");
         proveedorCbx.setWidth("100%");
         proveedorCbx.setFilteringMode(FilteringMode.CONTAINS);
+        proveedorCbx.addStyleName(ValoTheme.COMBOBOX_LARGE);
+        proveedorCbx.addStyleName("combo-azul-bold");
+
         proveedorCbx.addValueChangeListener(new Property.ValueChangeListener() {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
@@ -749,15 +753,17 @@ public class OrdenCompraForm extends Window {
         diferencia = 0;
         retencionIsr = 0;
 
+        double porcentajeIva = ((SopdiUI)mainUI).sessionInformation.getDblPorcentajeIva()/100;
+
         //calcular base imponible, iva y retencion isr si aplica
         baseImponibleTxt.setReadOnly(false);
-        baseImponibleTxt.setValue(Double.parseDouble(new DecimalFormat("#######.##").format((montoTxt.getDoubleValueDoNotThrow() / 1.12))));
+        baseImponibleTxt.setValue(Double.parseDouble(new DecimalFormat("#######.##").format((montoTxt.getDoubleValueDoNotThrow() / (1+porcentajeIva)))));
         baseImponibleTxt.setReadOnly(true);
 
         baseImponible = baseImponibleTxt.getDoubleValueDoNotThrow();
 
         ivaTxt.setReadOnly(false);
-        ivaTxt.setValue(Double.parseDouble(new DecimalFormat("#######.##").format((baseImponibleTxt.getDoubleValueDoNotThrow() * 0.12))));
+        ivaTxt.setValue(Double.parseDouble(new DecimalFormat("#######.##").format((baseImponibleTxt.getDoubleValueDoNotThrow() * porcentajeIva))));
         ivaTxt.setReadOnly(true);
 
         if( proveedorCbx.getValue() == null ) {
@@ -765,18 +771,28 @@ public class OrdenCompraForm extends Window {
         }
 
         if (proveedorCbx.getItem(proveedorCbx.getValue()).getItemProperty("Regimen").getValue().toString().equals("SUJETO A RETENCION ISR")) {
-            if (baseImponibleTxt.getDoubleValueDoNotThrow() <= 30000) {
-                retencionIsr = baseImponible * 0.05;
+            if (baseImponibleTxt.getDoubleValueDoNotThrow() <= ((SopdiUI)mainUI).sessionInformation.getDblMontoMaximoBaseIsrPrimerPorcentaje()) {
+                retencionIsr = baseImponible * ((SopdiUI)mainUI).sessionInformation.getDblPrimerPorcentajeIsr()/100;
             } else {
-                diferencia = baseImponible - 30000;
-                retencionIsr = (30000 * 0.05) + (diferencia * 0.07);
+                diferencia = baseImponible - ((SopdiUI)mainUI).sessionInformation.getDblMontoMaximoBaseIsrPrimerPorcentaje();
+                retencionIsr = (((SopdiUI)mainUI).sessionInformation.getDblMontoMaximoBaseIsrPrimerPorcentaje() * ((SopdiUI)mainUI).sessionInformation.getDblPrimerPorcentajeIsr()/100) + (diferencia * ((SopdiUI)mainUI).sessionInformation.getDblSegundoPorcentajeIsr()/100);
             }
+            // Redondear a 2 decimales con HALF_UP (consistente con el resto de la clase) para evitar diferencias de 0.01
+            retencionIsr = redondear(retencionIsr);
             retencionIsrTxt.setReadOnly(false);
-            retencionIsrTxt.setValue(Double.parseDouble(new DecimalFormat("#######.##").format(retencionIsr)));
+            retencionIsrTxt.setValue(retencionIsr);
             retencionIsrTxt.setReadOnly(true);
 
-            anticipoTxt.setValue(Double.parseDouble(new DecimalFormat("#######.##").format(((montoTxt.getDoubleValueDoNotThrow() - retencionIsr) * (porcentajeAnticipo / 100)))));
+            anticipoTxt.setValue(redondear((montoTxt.getDoubleValueDoNotThrow() - retencionIsr) * (porcentajeAnticipo / 100)));
         }
+    }
+
+    /**
+     * Redondea a 2 decimales usando HALF_UP, criterio consistente con el resto
+     * de los montos de la clase (BigDecimal HALF_UP) y con lo esperado en el ISR.
+     */
+    private double redondear(double valor) {
+        return new BigDecimal(Double.toString(valor)).setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
 
     private void setTotal() {
@@ -1420,7 +1436,7 @@ public class OrdenCompraForm extends Window {
 //            }
             // validacion de anticipo vs retencion isr solo cuando el proveedor es del regimen normal
             if(proveedorCbx.getItem(proveedorCbx.getValue()).getItemProperty("Regimen").getValue() != null) {
-                if(montoTxt.getDoubleValueDoNotThrow() > 2500) {
+                if(montoTxt.getDoubleValueDoNotThrow() > ((SopdiUI)mainUI).sessionInformation.getDblMontoInicialRetencionIsr()) {
                     if (proveedorCbx.getItem(proveedorCbx.getValue()).getItemProperty("Regimen").getValue().toString().equals("SUJETO A RETENCION ISR")) {
                         if (retencionIsrTxt.getDoubleValueDoNotThrow() > 0) {
                             if (anticipoTxt.getDoubleValueDoNotThrow() > (montoTxt.getDoubleValueDoNotThrow() - retencionIsrTxt.getDoubleValueDoNotThrow())) {

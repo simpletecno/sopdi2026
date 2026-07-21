@@ -143,6 +143,7 @@ public class EmpleadoAsistenciaTabletView extends VerticalLayout implements View
                         queryString += " EstatusTrabajo = 'PRESENTE'";
                         queryString += ",Razon = ''";
                         queryString += " WHERE IdProveedor = " + String.valueOf(planbBitacoraContainer.getContainerProperty(event.getItemId(), IDEMPLEADO_PROPERTY).getValue());
+                        queryString += " AND IdEmpresa = " + empresaId;
 
                         stQuery.executeUpdate(queryString);
 
