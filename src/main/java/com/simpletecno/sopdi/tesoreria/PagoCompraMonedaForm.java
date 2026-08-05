@@ -1025,10 +1025,10 @@ public class PagoCompraMonedaForm extends Window {
 
     public void actualizarCompraMonedas() {
 
-        if (monedaGrid.getSelectedRow() == null) {
-            Notification.show("Por favor seleccione un registro de la tabla. ", Notification.Type.ERROR_MESSAGE);
-            return;
-        }
+//        if (monedaGrid.getSelectedRow() == null) {
+//            Notification.show("Por favor seleccione un registro de la tabla. ", Notification.Type.ERROR_MESSAGE);
+//            return;
+//        }
 
         try {
 

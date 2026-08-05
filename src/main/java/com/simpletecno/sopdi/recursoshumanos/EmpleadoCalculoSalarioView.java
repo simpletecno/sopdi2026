@@ -156,9 +156,9 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
 
     MultiFileUpload singleUpload;
     public File planillaFile;
-//    public XSSFWorkbook workbook;
+    //    public XSSFWorkbook workbook;
     public HSSFWorkbook workbook;
-//    public XSSFSheet sheet, sheet2;
+    //    public XSSFSheet sheet, sheet2;
     public HSSFSheet sheet;
     private FileInputStream fileInputStream;
 
@@ -206,7 +206,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
 
         addComponent(titleLayout);
         setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-        
+
         addComponent(mainLayout);
         setComponentAlignment(mainLayout, Alignment.TOP_CENTER);
 
@@ -508,7 +508,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
             @Override
             public void valueChange(Property.ValueChangeEvent event) {
                 if(   String.valueOf(tipoPlanillaCbx.getValue()).contains("Anticipo")
-                   || String.valueOf(tipoPlanillaCbx.getValue()).contains("Solo provisión") ) {
+                        || String.valueOf(tipoPlanillaCbx.getValue()).contains("Solo provisión") ) {
                     fechaFinDt.setValue(new java.util.Date().from(Utileria.getUltimoDiaDelMes().toInstant().minus(16,ChronoUnit.DAYS)));
                 }
                 else {
@@ -544,47 +544,47 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
             public void buttonClick(Button.ClickEvent event) {
                 ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de guardar los datos de planilla ?, tome en cuenta que los datos de la planilla serán eliminados y vueltos a crear.",
                         "SI", "NO", new ConfirmDialog.Listener() {
-                    public void onClose(ConfirmDialog dialog) {
-                        if (dialog.isConfirmed()) {
-                            if (fechaInicioDt.getValue() == null) {
-                                Notification.show("Por favor seleccione la fecha inicial...", Notification.Type.WARNING_MESSAGE);
-                                fechaInicioDt.focus();
-                                return;
-                            }
-                            if (fechaFinDt.getValue() == null) {
-                                Notification.show("Por favor seleccione la fecha final...", Notification.Type.WARNING_MESSAGE);
-                                fechaFinDt.focus();
-                                return;
-                            }
-                            if (fechaFinDt.getValue().before(fechaInicioDt.getValue())) {
-                                Notification.show("La fecha final no puede ser menor a la fecha inicial, revise por favor...", Notification.Type.WARNING_MESSAGE);
-                                fechaFinDt.focus();
-                                return;
-                            }
+                            public void onClose(ConfirmDialog dialog) {
+                                if (dialog.isConfirmed()) {
+                                    if (fechaInicioDt.getValue() == null) {
+                                        Notification.show("Por favor seleccione la fecha inicial...", Notification.Type.WARNING_MESSAGE);
+                                        fechaInicioDt.focus();
+                                        return;
+                                    }
+                                    if (fechaFinDt.getValue() == null) {
+                                        Notification.show("Por favor seleccione la fecha final...", Notification.Type.WARNING_MESSAGE);
+                                        fechaFinDt.focus();
+                                        return;
+                                    }
+                                    if (fechaFinDt.getValue().before(fechaInicioDt.getValue())) {
+                                        Notification.show("La fecha final no puede ser menor a la fecha inicial, revise por favor...", Notification.Type.WARNING_MESSAGE);
+                                        fechaFinDt.focus();
+                                        return;
+                                    }
 
-                            if (descripcionPlanillaTxt.getValue() == null || descripcionPlanillaTxt.getValue().isEmpty()) {
-                                Notification.show("Por favor escriba la descripción..", Notification.Type.WARNING_MESSAGE);
-                                descripcionPlanillaTxt.focus();
-                            }
+                                    if (descripcionPlanillaTxt.getValue() == null || descripcionPlanillaTxt.getValue().isEmpty()) {
+                                        Notification.show("Por favor escriba la descripción..", Notification.Type.WARNING_MESSAGE);
+                                        descripcionPlanillaTxt.focus();
+                                    }
 
-                            if(nuevaPlanilla) {
-                                crearPlanilla();
-                            }
-                            else {
-                                if(String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), ESTATUS_PLANILLA).getValue()).equals("AUTORIAZADA")){
-                                    //
-                                }
-                                guardarPlanilla(
-                                        Integer.valueOf(
-                                                String.valueOf(
-                                                        planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), ID_PLANILLA).getValue())));
-                            }
+                                    if(nuevaPlanilla) {
+                                        crearPlanilla();
+                                    }
+                                    else {
+                                        if(String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), ESTATUS_PLANILLA).getValue()).equals("AUTORIAZADA")){
+                                            //
+                                        }
+                                        guardarPlanilla(
+                                                Integer.valueOf(
+                                                        String.valueOf(
+                                                                planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), ID_PLANILLA).getValue())));
+                                    }
 
-                            planillaDatosLayout.setVisible(false);
+                                    planillaDatosLayout.setVisible(false);
 
-                        }//if dialog is confirmed
-                    } // on close
-                }); // confirm dialog
+                                }//if dialog is confirmed
+                            } // on close
+                        }); // confirm dialog
             }
         }); //add listener
 
@@ -935,7 +935,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
         singleUpload.getSmartUpload().setUploadButtonCaptions("Cargar archivo (Excel xls)", "");
 
         JavaScript.getCurrent().execute("document.getElementsByClassName('gwt-FileUpload')[0].setAttribute('accept', '.xls')");
- //       JavaScript.getCurrent().execute("document.getElementsByClassName('gwt-FileUpload')[0].setAttribute('accept', '.xlsx')");
+        //       JavaScript.getCurrent().execute("document.getElementsByClassName('gwt-FileUpload')[0].setAttribute('accept', '.xlsx')");
 
         List<String> acceptedMimeTypes = new ArrayList();
 //        acceptedMimeTypes.add("application/octet-stream");
@@ -1039,6 +1039,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
         boolean aplicaAnticipo;
 
         planillaDetalleContainer.removeAllItems();
+        totalEmpleados = 0;
 
         try {
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -1143,10 +1144,10 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
                     queryString += " AND pla.Tipo = '" + tipoPlanillaCbx.getValue() + "'";
                     queryString += " AND pla.Estatus <> 'EN PROCESO'";
 
-                     rsRecords1 = stQuery1.executeQuery(queryString);
+                    rsRecords1 = stQuery1.executeQuery(queryString);
 
                     if(rsRecords1.next()) {
-System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecords1.getString("Nombre"));
+                        System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecords1.getString("Nombre"));
                         continue;
                     }
 
@@ -1259,7 +1260,7 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
                             }
                             else {
                                 if(    !String.valueOf(tipoPlanillaCbx.getValue()).contains("Anticipo")
-                                    && !String.valueOf(tipoPlanillaCbx.getValue()).contains("Solo")) {
+                                        && !String.valueOf(tipoPlanillaCbx.getValue()).contains("Solo")) {
                                     if(rsRecords1.getString("IdNomenclatura").equals(((SopdiUI)mainUI).cuentasContablesDefault.getBonificacionDCTO07_2001())){
                                         bonificaciones[0] = rsRecords1.getDouble("Valor");
                                     }
@@ -1288,16 +1289,10 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
                         }
 
                         if(aplicaAnticipo) {
-                            bonificaciones[2] = liquidoRecibir; //EL ANTICIPO
+                            bonificaciones[2] = liquidoRecibir; // EL ANTICIPO
                         }
                         else {
-                            liquidoRecibir = 0.00;
-                        }
-
-                        if(aplicaAnticipo) {
-                            bonificaciones[2] = liquidoRecibir; //EL ANTICIPO
-                        }
-                        else {
+                            bonificaciones[2] = 0.00;
                             liquidoRecibir = 0.00;
                         }
 
@@ -1384,7 +1379,60 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
 
                     }
 
-                    bonificaciones[4] = eventos * valorEvento; //BONO5
+                    // EVENTOS siempre forma parte de los ingresos.
+                    bonificaciones[4] = Utileria.round(eventos * valorEvento); // BONO5
+
+                    // En "Salario + provisión" se paga también el Bono 14/Aguinaldo,
+                    // pero se mantiene todo el cálculo normal de salario.
+                    if (String.valueOf(tipoPlanillaCbx.getValue()).equals("Salario + provisión")) {
+                        if (bono14Chb.getValue()) {
+                            bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.BONO14, salarioBase);
+                        }
+                        if (aguinaldoChb.getValue()) {
+                            bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.AGUINALDO, salarioBase);
+                        }
+                    }
+
+                    boolean esAnticipo = String.valueOf(tipoPlanillaCbx.getValue()).contains("Anticipo");
+                    boolean esSoloProvision = String.valueOf(tipoPlanillaCbx.getValue()).equals("Solo provisión");
+                    double salarioDevengadoParaTotal = (esAnticipo || esSoloProvision) ? 0.00 : ordinario;
+
+                    // Los totales se construyen siempre con las mismas columnas visibles.
+                    totalIngresos = Utileria.round(
+                            salarioDevengadoParaTotal
+                                    + extraOrdinario
+                                    + bonificaciones[0]
+                                    + bonificaciones[1]
+                                    + bonificaciones[2]
+                                    + bonificaciones[3]
+                                    + bonificaciones[4]
+                    );
+
+                    if (!esAnticipo && !esSoloProvision) {
+                        descuentos[0] = Utileria.round(
+                                (salarioDevengadoParaTotal + extraOrdinario)
+                                        * (porcentajeCuotaLaboralIGSS / 100)
+                        );
+
+                        if (((totalIngresos - descuentos[0]) - montoBaseRetenerISR) > 0) {
+                            descuentos[2] = Utileria.round(
+                                    ((totalIngresos - descuentos[0]) - montoBaseRetenerISR) * 0.05
+                            );
+                        } else {
+                            descuentos[2] = 0.00;
+                        }
+
+                        descuentos[3] = anticipoPrevio(fechaInicioDt.getValue());
+                    }
+
+                    totalEgresos = Utileria.round(
+                            descuentos[0]
+                                    + descuentos[1]
+                                    + descuentos[2]
+                                    + descuentos[3]
+                                    + descuentos[4]
+                    );
+                    liquidoRecibir = Utileria.round(totalIngresos - totalEgresos);
 
                     //System.out.println("Empleado=[" + idProveedor + "] liquidoRecibir=[" + liquidoRecibir + "]");
 
@@ -1398,7 +1446,7 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
                     planillaDetalleContainer.getContainerProperty(itemId, LICENCIAS).setValue(diasAusenciaSinPago);
                     // INGRESOS
                     if(   String.valueOf(tipoPlanillaCbx.getValue()).contains("Anticipo")
-                       || String.valueOf(tipoPlanillaCbx.getValue()).contains("Solo")) {
+                            || String.valueOf(tipoPlanillaCbx.getValue()).contains("Solo")) {
                         planillaDetalleContainer.getContainerProperty(itemId, SALARIO_DEVENGADO).setValue(0.00);
                     }
                     else {
@@ -1427,7 +1475,7 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
 //                    planillaDetalleContainer.getContainerProperty(itemId, LIQUIDO).setValue(new BigDecimal(liquidoRecibir).setScale(2, RoundingMode.HALF_UP).doubleValue());
                     // PROVISIONES
                     if (    String.valueOf(tipoPlanillaCbx.getValue()).contains("Anticipo")
-                         || String.valueOf(tipoPlanillaCbx.getValue()).contains("Solo")) {
+                            || String.valueOf(tipoPlanillaCbx.getValue()).contains("Solo")) {
                         planillaDetalleContainer.getContainerProperty(itemId, PROVISION1).setValue(0.00); // CUOTA PATRONAL IGSS
                         planillaDetalleContainer.getContainerProperty(itemId, PROVISION2).setValue(0.00); //AGINALDO
                         planillaDetalleContainer.getContainerProperty(itemId, PROVISION3).setValue(0.00); //BONO14
@@ -1439,15 +1487,19 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
                     }
                     planillaDetalleContainer.getContainerProperty(itemId, PROVISION4).setValue(0.00);
                     planillaDetalleContainer.getContainerProperty(itemId, PROVISION5).setValue(0.00);
-                    planillaDetalleContainer.getContainerProperty(itemId, PROVISIONADO).setValue(0.00);
+
+                    double provisionadoItem = Utileria.round(
+                            (double) planillaDetalleContainer.getContainerProperty(itemId, PROVISION1).getValue()
+                                    + (double) planillaDetalleContainer.getContainerProperty(itemId, PROVISION2).getValue()
+                                    + (double) planillaDetalleContainer.getContainerProperty(itemId, PROVISION3).getValue()
+                                    + (double) planillaDetalleContainer.getContainerProperty(itemId, PROVISION4).getValue()
+                                    + (double) planillaDetalleContainer.getContainerProperty(itemId, PROVISION5).getValue()
+                    );
+                    planillaDetalleContainer.getContainerProperty(itemId, PROVISIONADO).setValue(provisionadoItem);
 
                     totalEmpleados++;
-
-                    totalPagado+= liquidoRecibir;
-                    totalProvisionado+= (double)planillaDetalleContainer.getContainerProperty(itemId, PROVISION2).getValue();
-                    totalProvisionado+= (double)planillaDetalleContainer.getContainerProperty(itemId, PROVISION3).getValue();
-                    totalProvisionado+= (double)planillaDetalleContainer.getContainerProperty(itemId, PROVISION4).getValue();
-                    totalProvisionado+= (double)planillaDetalleContainer.getContainerProperty(itemId, PROVISION5).getValue();
+                    totalPagado += Utileria.round(liquidoRecibir);
+                    totalProvisionado += provisionadoItem;
 
                 } while (rsRecords.next());
 
@@ -1478,6 +1530,7 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
             guardarPlanilla(Integer.valueOf(String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), ID_PLANILLA).getValue())));
 
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+            stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
             //0 leer datos de planilla
             queryString = "SELECT *";
@@ -1605,17 +1658,20 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
                     totalIngresos = 0.00;
                     totalEgresos = 0.00;
                     liquidoRecibir = 0.00;
-                    bonificaciones[0] = (double)item.getItemProperty(BONO1).getValue();
-                    bonificaciones[1] = (double)item.getItemProperty(BONO2).getValue();
-                    bonificaciones[2] = (double)item.getItemProperty(BONO3).getValue();
-                    bonificaciones[3] = (double)item.getItemProperty(BONO4).getValue();
-                    bonificaciones[4] = (double)item.getItemProperty(BONO5).getValue();
+                    // Campos automáticos: se vuelven a calcular.
+                    bonificaciones[0] = 0.00; // 37-2001
+                    bonificaciones[3] = 0.00; // AGUI / B14
+                    bonificaciones[4] = 0.00; // EVENTOS
 
-                    descuentos[0] = Utileria.round((double)item.getItemProperty(DESCUENTO1).getValue());
-                    descuentos[1] = Utileria.round((double)item.getItemProperty(DESCUENTO2).getValue());
-                    descuentos[2] = Utileria.round((double)item.getItemProperty(DESCUENTO3).getValue());
-                    descuentos[3] = Utileria.round((double)item.getItemProperty(DESCUENTO4).getValue());
-                    descuentos[4] = Utileria.round((double)item.getItemProperty(DESCUENTO5).getValue());
+                    // Excepciones manuales: CALCULAR debe conservar exactamente el valor actual.
+                    bonificaciones[1] = Utileria.round((double)item.getItemProperty(BONO2).getValue()); // 78-89
+                    bonificaciones[2] = Utileria.round((double)item.getItemProperty(BONO3).getValue()); // Otros ingresos
+
+                    descuentos[0] = 0.00; // IGSS, automático
+                    descuentos[1] = Utileria.round((double)item.getItemProperty(DESCUENTO2).getValue()); // Descto1 manual
+                    descuentos[2] = 0.00; // ISR, automático
+                    descuentos[3] = 0.00; // Anticipo anterior, automático
+                    descuentos[4] = 0.00;
 
 //                    if(String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), TIPO_PLANILLA).getValue()).equals("Anticipo")) {
 
@@ -1681,13 +1737,12 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
                             }
                             else {
                                 if(    !String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), TIPO_PLANILLA).getValue()).contains("Anticipo")
-                                    && !String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), TIPO_PLANILLA).getValue()).contains("Solo")) {
+                                        && !String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), TIPO_PLANILLA).getValue()).contains("Solo")) {
                                     if(rsRecords1.getString("IdNomenclatura").equals(((SopdiUI)mainUI).cuentasContablesDefault.getBonificacionDCTO07_2001())){
                                         bonificaciones[0] = rsRecords1.getDouble("Valor");
                                     }
-                                    if(rsRecords1.getString("IdNomenclatura").equals(((SopdiUI)mainUI).cuentasContablesDefault.getBonificacionDCTO78_89())){
-                                        bonificaciones[1] = rsRecords1.getDouble("Valor");
-                                    }
+                                    // 78-89 es editable manualmente. En CALCULAR no se vuelve
+                                    // a leer desde empleado_salario ni se reemplaza su valor actual.
                                 }
                             }
                         } while(rsRecords1.next());
@@ -1710,7 +1765,7 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
 
                         long dateBeforeInMs = dateBefore.getTimeInMillis();
                         long dateAfterInMs = dateAfter.getTimeInMillis();
-                                              // 31/10/2023    23/01/2023
+                        // 31/10/2023    23/01/2023
                         long timeDiff = Math.abs(dateAfterInMs - dateBeforeInMs);
 
                         daysDiff = 1 + TimeUnit.DAYS.convert(timeDiff, TimeUnit.MILLISECONDS);
@@ -1745,9 +1800,12 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
                         }
 
                         if(aplicaAnticipo) {
-                            bonificaciones[2] = liquidoRecibir; //EL ANTICIPO
+                            // BONO3 contiene el valor guardado de Otros Ingresos/Anticipo.
+                            // CALCULAR lo conserva para no borrar ajustes manuales.
+                            liquidoRecibir = bonificaciones[2];
                         }
                         else {
+                            bonificaciones[2] = 0.00;
                             liquidoRecibir = 0.00;
                         }
 
@@ -1764,11 +1822,15 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
                     }
                     else {
 
+                        if(daysDiff < diasPlanilla) {
+                            diasLaborados = (int)daysDiff;
+                        }
+
                         if(diasLaborados < 0) {
                             diasLaborados = 0;
                         }
 
-                        if(String.valueOf(tipoPlanillaCbx.getValue()).toUpperCase().contains("PROVIS")) {
+                        if(String.valueOf(tipoPlanillaCbx.getValue()).equals("Solo provisión")) {
                             //BONO14 O AGUINALDO
                             if(bono14Chb.getValue()) {
                                 bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.BONO14, salarioBase);
@@ -1781,22 +1843,17 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
                         }
                         else {
 
-                            //diasLaborados ya viene con factorDiasMes
-                            // En el que el mes sea febrero y no hay trabajado nada, pagarle nada
-                            if((dateOfJournal.getActualMaximum(GregorianCalendar.DAY_OF_MONTH) - diasAusenciaSinPago) == 0) {
-                                diasLaborados = 0;
-                            } else {
-                                diasLaborados -= diasAusenciaSinPago;
+                            // Mismas reglas usadas al crear la planilla.
+                            if(dateOfJournal.get(GregorianCalendar.MONTH) == 1) { // febrero
+                                diasLaborados = dateOfJournal.getActualMaximum(GregorianCalendar.DAY_OF_MONTH);
                             }
-
-
-                            //System.out.println("dateOfJournal.get(GregorianCalendar.MONTH)=" + dateOfJournal.get(GregorianCalendar.MONTH) + " diasLaborados=" + diasLaborados + " diasPlanilla=" + diasPlanilla);
+                            diasLaborados -= diasAusenciaSinPago;
 
                             if(diasLaborados < 0) {
                                 diasLaborados = 0;
                             }
 
-                            if((diasAusenciaSinPago == 0) && (daysDiff == 0)) {
+                            if(diasAusenciaSinPago == 0) {
                                 diasLaborados = getDiasTrabajados();
                             }
 
@@ -1807,15 +1864,33 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
 
                             ordinario = Utileria.round(((ordinario / factorDiasMes) * diasLaborados)); //DEVENGADO
 
-                            bonificaciones[0] = (Utileria.round(bonificaciones[0] * ((double)diasLaborados / factorDiasMes)));
-                            bonificaciones[1] = (Utileria.round(bonificaciones[1] * ((double)diasLaborados / factorDiasMes)));
+                            bonificaciones[0] = Utileria.round(
+                                    bonificaciones[0] * ((double)diasLaborados / factorDiasMes)
+                            );
+                            // 78-89 se conserva tal como quedó guardado o modificado manualmente.
                             //                        bonificaciones[2] = ((bonificaciones[2] / factorDiasMes) * diasLaborados); se respeta lo ingresado como bonificación especial no sujeta a dias laborados
                             //                        bonificaciones[2] = LA ESPECIAL CARGADA POR EXCEL
 
-                            bonificaciones[4] = eventos * valorEvento; //BONO5
+                            bonificaciones[4] = Utileria.round(eventos * valorEvento); // BONO5
 
-                            totalIngresos = Utileria.round((ordinario + extraOrdinario));
-                            totalIngresos += Utileria.round((bonificaciones[0] + bonificaciones[1] + bonificaciones[2] + bonificaciones[3] + bonificaciones[4]));
+                            if (String.valueOf(tipoPlanillaCbx.getValue()).equals("Salario + provisión")) {
+                                if (bono14Chb.getValue()) {
+                                    bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.BONO14, salarioBase);
+                                }
+                                if (aguinaldoChb.getValue()) {
+                                    bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.AGUINALDO, salarioBase);
+                                }
+                            }
+
+                            totalIngresos = Utileria.round(
+                                    ordinario
+                                            + extraOrdinario
+                                            + bonificaciones[0]
+                                            + bonificaciones[1]
+                                            + bonificaciones[2]
+                                            + bonificaciones[3]
+                                            + bonificaciones[4]
+                            );
 
                             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "CALCULANDO PLANILLA EMPLEADOS: " + idProveedor + " " + totalIngresos);
 
@@ -1837,6 +1912,60 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
 
                     }
 
+                    // EVENTOS siempre se recalcula; los campos manuales permanecen intactos.
+                    bonificaciones[4] = Utileria.round(eventos * valorEvento);
+
+                    boolean esAnticipo = String.valueOf(tipoPlanillaCbx.getValue()).contains("Anticipo");
+                    boolean esSoloProvision = String.valueOf(tipoPlanillaCbx.getValue()).equals("Solo provisión");
+
+                    // En "Salario + provisión" se paga provisión sin perder el salario normal.
+                    if (String.valueOf(tipoPlanillaCbx.getValue()).equals("Salario + provisión")) {
+                        if (bono14Chb.getValue()) {
+                            bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.BONO14, salarioBase);
+                        }
+                        if (aguinaldoChb.getValue()) {
+                            bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.AGUINALDO, salarioBase);
+                        }
+                    }
+
+                    double salarioDevengadoParaTotal = (esAnticipo || esSoloProvision) ? 0.00 : ordinario;
+
+                    totalIngresos = Utileria.round(
+                            salarioDevengadoParaTotal
+                                    + extraOrdinario
+                                    + bonificaciones[0]
+                                    + bonificaciones[1]
+                                    + bonificaciones[2]
+                                    + bonificaciones[3]
+                                    + bonificaciones[4]
+                    );
+
+                    if (!esAnticipo && !esSoloProvision) {
+                        descuentos[0] = Utileria.round(
+                                (salarioDevengadoParaTotal + extraOrdinario)
+                                        * (porcentajeCuotaLaboralIGSS / 100)
+                        );
+
+                        if (((totalIngresos - descuentos[0]) - montoBaseRetenerISR) > 0) {
+                            descuentos[2] = Utileria.round(
+                                    ((totalIngresos - descuentos[0]) - montoBaseRetenerISR) * 0.05
+                            );
+                        } else {
+                            descuentos[2] = 0.00;
+                        }
+
+                        descuentos[3] = anticipoPrevio(fechaInicioDt.getValue());
+                    }
+
+                    totalEgresos = Utileria.round(
+                            descuentos[0]
+                                    + descuentos[1]
+                                    + descuentos[2]
+                                    + descuentos[3]
+                                    + descuentos[4]
+                    );
+                    liquidoRecibir = Utileria.round(totalIngresos - totalEgresos);
+
                     // Proposito Visual unicamente, los calculos se hacen sobre 30 dias.
                     if(dateOfJournal.get(GregorianCalendar.MONTH) == 1 && diasLaborados > 29) { // febrero
                         diasLaborados = dateOfJournal.getActualMaximum(GregorianCalendar.DAY_OF_MONTH) - diasAusenciaSinPago;
@@ -1853,7 +1982,7 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
                     item.getItemProperty(LICENCIAS).setValue(diasAusenciaSinPago);
                     // INGRESOS
                     if(    String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), TIPO_PLANILLA).getValue()).contains("Anticipo")
-                        || String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), TIPO_PLANILLA).getValue()).contains("Solo")) {
+                            || String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), TIPO_PLANILLA).getValue()).contains("Solo")) {
                         item.getItemProperty(SALARIO_DEVENGADO).setValue(0.00);
                     }
                     else {
@@ -1881,7 +2010,7 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
 //                    item.getItemProperty(LIQUIDO).setValue(new BigDecimal(liquidoRecibir).setScale(2, RoundingMode.HALF_UP).doubleValue());
                     // PROVISIONES
                     if(   String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), TIPO_PLANILLA).getValue()).contains("Anticipo")
-                       || String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), TIPO_PLANILLA).getValue()).contains("Solo")) {
+                            || String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), TIPO_PLANILLA).getValue()).contains("Solo")) {
                         item.getItemProperty(PROVISION1).setValue(0.00); //CUOTA PATRONAL IGSS
                         item.getItemProperty(PROVISION2).setValue(0.00); //AGUINALDO
                         item.getItemProperty(PROVISION3).setValue(0.00); //BONO14
@@ -1895,16 +2024,13 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
                     item.getItemProperty(PROVISION5).setValue(0.00);
                     item.getItemProperty(PROVISIONADO).setValue(
                             (double)item.getItemProperty(PROVISION1).getValue()
-                            + (double)item.getItemProperty(PROVISION2).getValue()
-                            + (double)item.getItemProperty(PROVISION3).getValue()
-                            + (double)item.getItemProperty(PROVISION4).getValue()
-                            + (double)item.getItemProperty(PROVISION5).getValue()
-                            );
-                    totalPagado+= liquidoRecibir;
-                    totalProvisionado+= (double)item.getItemProperty(PROVISION2).getValue();
-                    totalProvisionado+= (double)item.getItemProperty(PROVISION2).getValue();
-                    totalProvisionado+= (double)item.getItemProperty(PROVISION2).getValue();
-                    totalProvisionado+= (double)item.getItemProperty(PROVISION2).getValue();
+                                    + (double)item.getItemProperty(PROVISION2).getValue()
+                                    + (double)item.getItemProperty(PROVISION3).getValue()
+                                    + (double)item.getItemProperty(PROVISION4).getValue()
+                                    + (double)item.getItemProperty(PROVISION5).getValue()
+                    );
+                    totalPagado += Utileria.round(liquidoRecibir);
+                    totalProvisionado += (double)item.getItemProperty(PROVISIONADO).getValue();
 
                 } // no encontro al proveedor/empleado
             } //endfor
@@ -2077,27 +2203,27 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
     private double anticipoPrevio(java.util.Date fechaPlanilla) {
         double montoAnticipo = 0.00;
 /***
-        try {
-            queryString = "SELECT plade.LiquidoRecibir";
-            queryString += " FROM planilla_encabezado pla ";
-            queryString += " INNER JOIN planilla_detalle plade ON plade.IdPlanilla = pla.Id";
-            queryString += " WHERE plade.IdEmpleado = " + rsRecords.getString("IdProveedor");
-            queryString += " AND pla.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
-            queryString += " AND pla.AnioMes = " + String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), MES_PLANILLA).getValue());
-            queryString += " AND pla.Tipo = 'Anticipo'";
-            queryString += " AND pla.Estatus <> 'EN PROCESO'";
+ try {
+ queryString = "SELECT plade.LiquidoRecibir";
+ queryString += " FROM planilla_encabezado pla ";
+ queryString += " INNER JOIN planilla_detalle plade ON plade.IdPlanilla = pla.Id";
+ queryString += " WHERE plade.IdEmpleado = " + rsRecords.getString("IdProveedor");
+ queryString += " AND pla.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+ queryString += " AND pla.AnioMes = " + String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), MES_PLANILLA).getValue());
+ queryString += " AND pla.Tipo = 'Anticipo'";
+ queryString += " AND pla.Estatus <> 'EN PROCESO'";
 
-            rsRecords1 = stQuery1.executeQuery(queryString);
+ rsRecords1 = stQuery1.executeQuery(queryString);
 
-            if(rsRecords1.next()) {
-                montoAnticipo = rsRecords1.getDouble("LiquidoRecibir");
-            }
-        } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error al buscar anticipo de planilla de empleado : " + ex);
-            ex.printStackTrace();
-            Notification.show("ERROR DE BASE DE DATOS : " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
-        }
-***/
+ if(rsRecords1.next()) {
+ montoAnticipo = rsRecords1.getDouble("LiquidoRecibir");
+ }
+ } catch (Exception ex) {
+ Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error al buscar anticipo de planilla de empleado : " + ex);
+ ex.printStackTrace();
+ Notification.show("ERROR DE BASE DE DATOS : " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
+ }
+ ***/
         try {
             queryString = "SELECT Debe";
             queryString += " FROM contabilidad_partida ";
@@ -2130,7 +2256,21 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
 
         try {
 
+            totalEmpleados = planillaDetalleContainer.size();
+            totalPagado = 0.00;
+            totalProvisionado = 0.00;
+
+            for (Object itemObject : planillaDetalleContainer.getItemIds()) {
+                Item item = planillaDetalleContainer.getItem(itemObject);
+                totalPagado += ((Number)item.getItemProperty(LIQUIDO).getValue()).doubleValue();
+                totalProvisionado += ((Number)item.getItemProperty(PROVISIONADO).getValue()).doubleValue();
+            }
+
+            totalPagado = Utileria.round(totalPagado);
+            totalProvisionado = Utileria.round(totalProvisionado);
+
             ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().setAutoCommit(false);
+            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
             queryString = "UPDATE planilla_encabezado SET";
             queryString += "  Tipo = '" + tipoPlanillaCbx.getValue() + "'";
@@ -2140,6 +2280,9 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
             queryString += ", Descripcion = '" + descripcionPlanillaTxt.getValue() + "'";
             queryString += ", IncluyeAguinaldo = '" + (aguinaldoChb.getValue() ? "S" : "N") + "'";
             queryString += ", IncluyeBono14 = '" + (bono14Chb.getValue() ? "S" : "N") + "'";
+            queryString += ", TotalEmpleados = " + totalEmpleados;
+            queryString += ", TotalPagado = " + Utileria.round(totalPagado);
+            queryString += ", TotalProvisionado = " + Utileria.round(totalProvisionado);
             queryString += " WHERE IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
             queryString += " AND Id = " + planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), ID_PLANILLA).getValue();
 
@@ -2299,6 +2442,43 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
                 queryString += " Descripcion, CreadoUsuario, CreadoFechaYHora, IdCentroCosto, CodigoCentroCosto, SueldoOrdinario)";
                 queryString += " VALUES ";
 
+                //CHEQUE BANCOS
+                queryString += " (";
+                queryString += ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+                queryString += ",'INGRESADO'";
+                queryString += ",'" + codigoPartida + "'";
+                queryString += ",'" + codigoCC + "'";
+                queryString += ",'CHEQUE'";
+                queryString += ",'" + fecha + "'";
+                queryString += "," + item.getItemProperty(IDEMPLEADO).getValue();
+                queryString += ",''";//nitproveedor
+                queryString += ",'" + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
+                queryString += ",'" + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
+                queryString += "," + item.getItemProperty(LIQUIDO).getValue();
+                queryString += ",'" + String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CORRELATIVO_PLANILLA).getValue()) + "'";  //serie documento
+                queryString += ",'" + String.valueOf(correlativoCheque)+ "'"; //numero
+                queryString += ",''"; //tipodoca
+                queryString += ",''"; //doca
+                queryString += "," + ((SopdiUI) mainUI).cuentasContablesDefault.getBancosMonedaLocal(); //BANCOS
+                queryString += ",'QUETZALES'";
+                queryString += ",0.00"; // DEBE
+                queryString += "," + item.getItemProperty(LIQUIDO).getValue(); // HABER
+                queryString += ",0.00"; //DEBE Q.
+                queryString += "," + item.getItemProperty(LIQUIDO).getValue();
+                queryString += ",1.0";
+                queryString += "," + item.getItemProperty(LIQUIDO).getValue();
+                if((double)item.getItemProperty(BONO4).getValue() > 0.00) { //ANTICIPO + AGUINALDO O BONO 14
+                    queryString += ",'ANTICIPO QUINCENA + AGUINALDO " + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
+                }
+                else {
+                    queryString += ",'ANTICIPO QUINCENA " + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
+                }
+                queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+                queryString += ",current_timestamp";
+                queryString += ",0";
+                queryString += ",'0'";
+                queryString += ", " + null + ")";
+
                 if((double)item.getItemProperty(BONO4).getValue() > 0.00) { //AGUINALDO O BONO 14
 
                     //la fecha de las partidas de planilla por pagar (sueldos por pagar) debe ser 1 dia antes de la fecha de cheque...
@@ -2395,43 +2575,6 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
                     queryString += ",'0'";
                     queryString += ", " + null + ")";
                 }
-
-                //CHEQUE BANCOS
-                queryString += " (";
-                queryString += ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
-                queryString += ",'INGRESADO'";
-                queryString += ",'" + codigoPartida + "'";
-                queryString += ",'" + codigoCC + "'";
-                queryString += ",'CHEQUE'";
-                queryString += ",'" + fecha + "'";
-                queryString += "," + item.getItemProperty(IDEMPLEADO).getValue();
-                queryString += ",''";//nitproveedor
-                queryString += ",'" + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
-                queryString += ",'" + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
-                queryString += "," + item.getItemProperty(LIQUIDO).getValue();
-                queryString += ",'" + String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CORRELATIVO_PLANILLA).getValue()) + "'";  //serie documento
-                queryString += ",'" + String.valueOf(correlativoCheque)+ "'"; //numero
-                queryString += ",''"; //tipodoca
-                queryString += ",''"; //doca
-                queryString += "," + ((SopdiUI) mainUI).cuentasContablesDefault.getBancosMonedaLocal(); //BANCOS
-                queryString += ",'QUETZALES'";
-                queryString += ",0.00"; // DEBE
-                queryString += "," + item.getItemProperty(LIQUIDO).getValue(); // HABER
-                queryString += ",0.00"; //DEBE Q.
-                queryString += "," + item.getItemProperty(LIQUIDO).getValue();
-                queryString += ",1.0";
-                queryString += "," + item.getItemProperty(LIQUIDO).getValue();
-                if((double)item.getItemProperty(BONO4).getValue() > 0.00) { //ANTICIPO + AGUINALDO O BONO 14
-                    queryString += ",'ANTICIPO QUINCENA + AGUINALDO " + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
-                }
-                else {
-                    queryString += ",'ANTICIPO QUINCENA " + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
-                }
-                queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
-                queryString += ",current_timestamp";
-                queryString += ",0";
-                queryString += ",'0'";
-                queryString += ", " + null + ")";
 
                 if((double)item.getItemProperty(BONO4).getValue() > 0.00) { //ANTICIPO + AGUINALDO O BONO 14
                     //ANTICIPO
@@ -3369,7 +3512,7 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
                 if (rsRecords.next()) { //  encontrado
 //                01234567890123
 //                22202311308000
-                        ultimoEncontado = rsRecords.getString("CodigoPartida").substring(12, 15);
+                    ultimoEncontado = rsRecords.getString("CodigoPartida").substring(12, 15);
 
                     codigoPartida += String.format("%03d", (Integer.valueOf(ultimoEncontado) + 1));
 
@@ -3708,7 +3851,7 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
 //       return new BigDecimal(value).setScale(2, RoundingMode.UP);
         //Summary of Rounding Operations Under Different Rounding Modes
         //Result of rounding input to one digit with the given rounding mode
-   //Number	   UP	DOWN	CEILING	FLOOR	HALF_UP	HALF_DOWN	HALF_EVEN	UNNECESSARY
+        //Number	   UP	DOWN	CEILING	FLOOR	HALF_UP	HALF_DOWN	HALF_EVEN	UNNECESSARY
         //5.5	6	5	6	5	6	5	6	throw ArithmeticException
         //2.5	3	2	3	2	3	2	2	throw ArithmeticException
         //1.6	2	1	2	1	2	2	2	throw ArithmeticException
@@ -3813,7 +3956,7 @@ System.out.println("Empleado fuera de planilla : " + idProveedor + " " + rsRecor
             // El caso en el que entre y salga en el mismo mes
             if (fechaIngreso != null && dateAfter != null ) {
                 if (dateAfter.get(java.util.Calendar.MONTH) == fechaIngreso.getMonth()
-                    && dateAfter.get(java.util.Calendar.YEAR) == fechaIngreso.getYear()) {
+                        && dateAfter.get(java.util.Calendar.YEAR) == fechaIngreso.getYear()) {
 
                     long diffInMillies = Math.abs(dateAfter.getTimeInMillis() - fechaIngreso.getTime());
                     long dias = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS) + 1;
