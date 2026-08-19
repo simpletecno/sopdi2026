@@ -456,7 +456,7 @@ public class InspectionTaskOCForm extends Window {
         queryString += " FROM proveedor_empresa";
         queryString += " WHERE Inhabilitado = '0'";
         queryString += " AND (EsProveedor = '1' Or EsRelacionada = '1')" ;
-        queryString += " AND (IdEmpresa = '" + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND IdEmpresa = '" + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + "'";
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
