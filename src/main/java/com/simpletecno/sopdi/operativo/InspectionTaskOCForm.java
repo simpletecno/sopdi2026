@@ -20,6 +20,7 @@ import org.vaadin.ui.NumberField;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
@@ -456,7 +457,7 @@ public class InspectionTaskOCForm extends Window {
         queryString += " FROM proveedor_empresa";
         queryString += " WHERE Inhabilitado = '0'";
         queryString += " AND (EsProveedor = '1' Or EsRelacionada = '1')" ;
-        queryString += " AND (IdEmpresa = '" + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
 
         try {
             stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
@@ -609,6 +610,12 @@ System.out.println("2 " + queryString);
 
             if (idVisitaInspeccionTareaOcDetalle.equals("0")) {
 
+                if (idOC == null || idOC.trim().isEmpty() || idOC.trim().equalsIgnoreCase("null") || idOC.trim().equals("0")) {
+                    Notification.show("Debe crear o seleccionar una orden de cambio antes de agregar detalle.", Notification.Type.ERROR_MESSAGE);
+                    saveBtn.setEnabled(true);
+                    return;
+                }
+
                 if (idexCbx.getValue() == null || idexCbx.getValue().equals("<<ELIJA>>")) {
                     Notification.show("Por favor elija un IDEX!", Notification.Type.ERROR_MESSAGE);
                     idexCbx.focus();
@@ -680,9 +687,16 @@ System.out.println("2 " + queryString);
                 stPreparedQuery.executeUpdate();
                 rsRecords = stPreparedQuery.getGeneratedKeys();
 
-                rsRecords.next();
-
-                idVisitaInspeccionTareaOcDetalle = rsRecords.getString(1);
+                if (rsRecords.next()) {
+                    idVisitaInspeccionTareaOcDetalle = rsRecords.getString(1);
+                } else {
+                    rsRecords = stQuery.executeQuery("SELECT LAST_INSERT_ID() AS insert_id");
+                    if (rsRecords.next()) {
+                        idVisitaInspeccionTareaOcDetalle = rsRecords.getString("insert_id");
+                    } else {
+                        throw new SQLException("No se obtuvo el ID generado para visita_inspeccion_tarea_oc_detalle.");
+                    }
+                }
             }
             else {
                 stQuery.executeUpdate(queryString);
