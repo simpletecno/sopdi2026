@@ -22,121 +22,138 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * CRUD de Cargos y Puestos (tabla empleado_cargo).
- * Altas, bajas y cambios desde una sola pantalla.
+ * CRUD de Departamentos (tabla empleado_departamento).
+ * Auto-crea la tabla y la columna Departamento en proveedor_empresa si no existen.
  */
-public class CargosPuestosView extends VerticalLayout implements View {
+public class DepartamentosPuestosView extends VerticalLayout implements View {
 
-    Statement stQuery = null;
     ResultSet rsRecords = null;
     UI mainUI;
 
-    // Container & grid
-    static final String ID_PROPERTY = "Id";
-    static final String CARGO_PROPERTY = "Cargo / Puesto";
-    static final String DESCRIPCION_PROPERTY = "Descripción";
-    static final String EMPLEADOS_PROPERTY = "Empleados";
+    static final String ID_PROPERTY          = "Id";
+    static final String DEPARTAMENTO_PROPERTY = "Departamento";
+    static final String DESCRIPCION_PROPERTY  = "Descripción";
+    static final String EMPLEADOS_PROPERTY    = "Empleados";
 
-    IndexedContainer cargoContainer = new IndexedContainer();
-    Grid cargoGrid;
+    IndexedContainer deptoContainer = new IndexedContainer();
+    Grid deptoGrid;
 
-    // Form
-    TextField cargoTxt = new TextField("Cargo / Puesto");
-    TextArea descripcionTxt = new TextArea("Descripción");
+    TextField departamentoTxt = new TextField("Departamento");
+    TextArea  descripcionTxt  = new TextArea("Descripción");
 
-    // Buttons
     Button nuevoBtn;
     Button guardarBtn;
     Button eliminarBtn;
 
-    /** null = nuevo registro; != null = Id del cargo que se está editando */
     private String idEditando = null;
 
-    String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+    String empresaId     = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
-    public CargosPuestosView() {
+    public DepartamentosPuestosView() {
         this.mainUI = UI.getCurrent();
         setWidth("100%");
         setSpacing(true);
         setMargin(new MarginInfo(true, true, true, true));
 
-        //crearHeader();
+        asegurarEstructura();
         crearGrid();
         crearFormulario();
-
         llenar();
     }
 
-    // ── Header ───────────────────────────────────────────────────────────────
+    // ── Auto-estructura ──────────────────────────────────────────────────────
 
-    private void crearHeader() {
-        Label titleLbl = new Label(empresaId + " " + empresaNombre + " — CARGOS Y PUESTOS");
-        titleLbl.addStyleName(ValoTheme.LABEL_H2);
-        titleLbl.addStyleName(ValoTheme.LABEL_COLORED);
+    /**
+     * Crea la tabla empleado_departamento y la columna Departamento en
+     * proveedor_empresa si aún no existen (idempotente).
+     */
+    private void asegurarEstructura() {
+        try {
+            Statement st = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
-        addComponent(titleLbl);
-        setComponentAlignment(titleLbl, Alignment.TOP_LEFT);
+            // Tabla empleado_departamento
+            st.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS empleado_departamento ("
+                + " Id INT AUTO_INCREMENT PRIMARY KEY,"
+                + " IdEmpresa INT NOT NULL,"
+                + " Departamento VARCHAR(100) NOT NULL,"
+                + " Descripcion VARCHAR(1024),"
+                + " UNIQUE KEY ux_emp_dpto (IdEmpresa, Departamento)"
+                + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            // Columna Departamento en proveedor_empresa
+            String checkCol = "SELECT COUNT(*) FROM information_schema.COLUMNS"
+                    + " WHERE TABLE_SCHEMA = DATABASE()"
+                    + " AND TABLE_NAME = 'proveedor_empresa'"
+                    + " AND COLUMN_NAME = 'Departamento'";
+            ResultSet rs = st.executeQuery(checkCol);
+            boolean existe = rs.next() && rs.getInt(1) > 0;
+            rs.close();
+            if (!existe) {
+                st.executeUpdate(
+                    "ALTER TABLE proveedor_empresa ADD COLUMN Departamento VARCHAR(100) DEFAULT ''");
+            }
+            st.close();
+        } catch (Exception ex) {
+            Logger.getLogger(DepartamentosPuestosView.class.getName())
+                    .log(Level.WARNING, "asegurarEstructura: {0}", ex.getMessage());
+        }
     }
 
     // ── Grid ─────────────────────────────────────────────────────────────────
 
     private void crearGrid() {
-        cargoContainer.addContainerProperty(ID_PROPERTY, String.class, "");
-        cargoContainer.addContainerProperty(CARGO_PROPERTY, String.class, "");
-        cargoContainer.addContainerProperty(DESCRIPCION_PROPERTY, String.class, "");
-        cargoContainer.addContainerProperty(EMPLEADOS_PROPERTY, Integer.class, 0);
+        deptoContainer.addContainerProperty(ID_PROPERTY,           String.class,  "");
+        deptoContainer.addContainerProperty(DEPARTAMENTO_PROPERTY, String.class,  "");
+        deptoContainer.addContainerProperty(DESCRIPCION_PROPERTY,  String.class,  "");
+        deptoContainer.addContainerProperty(EMPLEADOS_PROPERTY,    Integer.class, 0);
 
-        cargoGrid = new Grid("Cargos registrados", cargoContainer);
-        cargoGrid.setWidth("100%");
-        cargoGrid.setHeightMode(HeightMode.ROW);
-        cargoGrid.setHeightByRows(8);
-        cargoGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
-        cargoGrid.setImmediate(true);
+        deptoGrid = new Grid("Departamentos registrados", deptoContainer);
+        deptoGrid.setWidth("100%");
+        deptoGrid.setHeightMode(HeightMode.ROW);
+        deptoGrid.setHeightByRows(8);
+        deptoGrid.setSelectionMode(Grid.SelectionMode.SINGLE);
+        deptoGrid.setImmediate(true);
 
-        cargoGrid.getColumn(ID_PROPERTY).setHidden(true);
-        cargoGrid.getColumn(CARGO_PROPERTY).setExpandRatio(2);
-        cargoGrid.getColumn(DESCRIPCION_PROPERTY).setExpandRatio(4);
-        cargoGrid.getColumn(EMPLEADOS_PROPERTY).setWidth(110);
+        deptoGrid.getColumn(ID_PROPERTY).setHidden(true);
+        deptoGrid.getColumn(DEPARTAMENTO_PROPERTY).setExpandRatio(2);
+        deptoGrid.getColumn(DESCRIPCION_PROPERTY).setExpandRatio(4);
+        deptoGrid.getColumn(EMPLEADOS_PROPERTY).setWidth(110);
 
-        cargoGrid.setCellStyleGenerator(cell -> {
+        deptoGrid.setCellStyleGenerator(cell -> {
             if (EMPLEADOS_PROPERTY.equals(cell.getPropertyId())) return "centeralign";
             return null;
         });
 
-        // Filtro en la cabecera del grid
-        HeaderRow filterRow = cargoGrid.appendHeaderRow();
-        HeaderCell filterCell = filterRow.getCell(CARGO_PROPERTY);
+        HeaderRow filterRow = deptoGrid.appendHeaderRow();
+        HeaderCell filterCell = filterRow.getCell(DEPARTAMENTO_PROPERTY);
         TextField filterField = new TextField();
         filterField.addStyleName(ValoTheme.TEXTFIELD_TINY);
         filterField.setInputPrompt("Filtrar...");
         filterField.setColumns(12);
         filterField.addTextChangeListener(e -> {
-            cargoContainer.removeContainerFilters(CARGO_PROPERTY);
+            deptoContainer.removeContainerFilters(DEPARTAMENTO_PROPERTY);
             if (!e.getText().isEmpty()) {
-                cargoContainer.addContainerFilter(
-                        new SimpleStringFilter(CARGO_PROPERTY, e.getText(), true, false));
+                deptoContainer.addContainerFilter(
+                        new SimpleStringFilter(DEPARTAMENTO_PROPERTY, e.getText(), true, false));
             }
         });
         filterCell.setComponent(filterField);
 
-        // Al seleccionar fila → cargar en el formulario
-        cargoGrid.addSelectionListener(e -> {
-            Object selected = cargoGrid.getSelectedRow();
-            if (selected != null) {
-                cargarEnFormulario(selected);
-            }
+        deptoGrid.addSelectionListener(e -> {
+            Object selected = deptoGrid.getSelectedRow();
+            if (selected != null) cargarEnFormulario(selected);
         });
 
-        // Clic en la columna "Empleados" → ventana con listado de empleados del cargo
-        cargoGrid.addItemClickListener(event -> {
+        deptoGrid.addItemClickListener(event -> {
             if (EMPLEADOS_PROPERTY.equals(event.getPropertyId())) {
-                int count = (Integer) cargoContainer.getContainerProperty(event.getItemId(), EMPLEADOS_PROPERTY).getValue();
-                String cargo = nvl(cargoContainer.getContainerProperty(event.getItemId(), CARGO_PROPERTY).getValue());
+                int count = (Integer) deptoContainer.getContainerProperty(event.getItemId(), EMPLEADOS_PROPERTY).getValue();
+                String depto = nvl(deptoContainer.getContainerProperty(event.getItemId(), DEPARTAMENTO_PROPERTY).getValue());
                 if (count > 0) {
-                    abrirVentanaEmpleados(cargo);
+                    abrirVentanaEmpleados(depto);
                 } else {
-                    Notification.show("El cargo \"" + cargo + "\" no tiene empleados asignados.",
+                    Notification.show("El departamento \"" + depto + "\" no tiene empleados asignados.",
                             Notification.Type.HUMANIZED_MESSAGE);
                 }
             }
@@ -145,18 +162,16 @@ public class CargosPuestosView extends VerticalLayout implements View {
         Panel gridPanel = new Panel();
         gridPanel.setWidth("100%");
         gridPanel.addStyleName("rcorners3");
-        gridPanel.setContent(cargoGrid);
-
+        gridPanel.setContent(deptoGrid);
         addComponent(gridPanel);
     }
 
     // ── Formulario ───────────────────────────────────────────────────────────
 
     private void crearFormulario() {
-
-        cargoTxt.setWidth("20em");
-        cargoTxt.setRequired(true);
-        cargoTxt.setMaxLength(100);
+        departamentoTxt.setWidth("20em");
+        departamentoTxt.setRequired(true);
+        departamentoTxt.setMaxLength(100);
 
         descripcionTxt.setWidth("40em");
         descripcionTxt.setHeight("5em");
@@ -183,13 +198,13 @@ public class CargosPuestosView extends VerticalLayout implements View {
         FormLayout formLayout = new FormLayout();
         formLayout.setMargin(new MarginInfo(true, true, true, true));
         formLayout.setSpacing(true);
-        formLayout.addComponents(cargoTxt, descripcionTxt);
+        formLayout.addComponents(departamentoTxt, descripcionTxt);
 
         VerticalLayout panelContent = new VerticalLayout();
         panelContent.setSpacing(true);
         panelContent.setMargin(new MarginInfo(true, true, true, true));
 
-        Label formTitleLbl = new Label("Datos del cargo");
+        Label formTitleLbl = new Label("Datos del departamento");
         formTitleLbl.addStyleName(ValoTheme.LABEL_H3);
         panelContent.addComponent(formTitleLbl);
         panelContent.addComponent(formLayout);
@@ -199,7 +214,6 @@ public class CargosPuestosView extends VerticalLayout implements View {
         formPanel.setWidth("100%");
         formPanel.addStyleName("rcorners3");
         formPanel.setContent(panelContent);
-
         addComponent(formPanel);
     }
 
@@ -207,120 +221,105 @@ public class CargosPuestosView extends VerticalLayout implements View {
 
     private void prepararNuevo() {
         idEditando = null;
-        cargoGrid.deselectAll();
-        cargoTxt.setReadOnly(false);
-        cargoTxt.setValue("");
+        deptoGrid.deselectAll();
+        departamentoTxt.setReadOnly(false);
+        departamentoTxt.setValue("");
         descripcionTxt.setValue("");
         eliminarBtn.setEnabled(false);
-        cargoTxt.focus();
+        departamentoTxt.focus();
     }
 
     private void cargarEnFormulario(Object itemId) {
-        idEditando = nvl(cargoContainer.getContainerProperty(itemId, ID_PROPERTY).getValue());
-        cargoTxt.setReadOnly(false);
-        cargoTxt.setValue(nvl(cargoContainer.getContainerProperty(itemId, CARGO_PROPERTY).getValue()));
-        descripcionTxt.setValue(nvl(cargoContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).getValue()));
-
-        int empleados = (Integer) cargoContainer.getContainerProperty(itemId, EMPLEADOS_PROPERTY).getValue();
+        idEditando = nvl(deptoContainer.getContainerProperty(itemId, ID_PROPERTY).getValue());
+        departamentoTxt.setReadOnly(false);
+        departamentoTxt.setValue(nvl(deptoContainer.getContainerProperty(itemId, DEPARTAMENTO_PROPERTY).getValue()));
+        descripcionTxt.setValue(nvl(deptoContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).getValue()));
+        int empleados = (Integer) deptoContainer.getContainerProperty(itemId, EMPLEADOS_PROPERTY).getValue();
         eliminarBtn.setEnabled(empleados == 0);
     }
 
     private void guardar() {
-        String cargo = cargoTxt.getValue().trim();
-        if (cargo.isEmpty()) {
-            Notification.show("Ingrese el nombre del cargo.", Notification.Type.WARNING_MESSAGE);
-            cargoTxt.focus();
+        String depto = departamentoTxt.getValue().trim();
+        if (depto.isEmpty()) {
+            Notification.show("Ingrese el nombre del departamento.", Notification.Type.WARNING_MESSAGE);
+            departamentoTxt.focus();
             return;
         }
-
         try {
             if (idEditando == null) {
-                // INSERT
-                String sql = "INSERT INTO empleado_cargo (IdEmpresa, Cargo, Descripcion) VALUES (?, ?, ?)";
-                PreparedStatement ps = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection()
-                        .prepareStatement(sql);
+                String sql = "INSERT INTO empleado_departamento (IdEmpresa, Departamento, Descripcion) VALUES (?, ?, ?)";
+                PreparedStatement ps = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(sql);
                 ps.setString(1, empresaId);
-                ps.setString(2, cargo);
+                ps.setString(2, depto);
                 ps.setString(3, descripcionTxt.getValue().trim());
                 ps.executeUpdate();
                 ps.close();
-                mostrarExito("Cargo registrado exitosamente.");
+                mostrarExito("Departamento registrado exitosamente.");
             } else {
-                // UPDATE — el cargo (nombre) solo se permite cambiar si no tiene empleados
-                Object selectedRow = cargoGrid.getSelectedRow();
+                Object selectedRow = deptoGrid.getSelectedRow();
                 int empleados = selectedRow != null
-                        ? (Integer) cargoContainer.getContainerProperty(selectedRow, EMPLEADOS_PROPERTY).getValue()
+                        ? (Integer) deptoContainer.getContainerProperty(selectedRow, EMPLEADOS_PROPERTY).getValue()
                         : 0;
-
                 String sql;
                 PreparedStatement ps;
                 if (empleados > 0) {
-                    // Solo actualizar descripción
-                    sql = "UPDATE empleado_cargo SET Descripcion = ? WHERE Id = ? AND IdEmpresa = ?";
+                    sql = "UPDATE empleado_departamento SET Descripcion = ? WHERE Id = ? AND IdEmpresa = ?";
                     ps = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(sql);
                     ps.setString(1, descripcionTxt.getValue().trim());
                     ps.setString(2, idEditando);
                     ps.setString(3, empresaId);
                 } else {
-                    sql = "UPDATE empleado_cargo SET Cargo = ?, Descripcion = ? WHERE Id = ? AND IdEmpresa = ?";
+                    sql = "UPDATE empleado_departamento SET Departamento = ?, Descripcion = ? WHERE Id = ? AND IdEmpresa = ?";
                     ps = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(sql);
-                    ps.setString(1, cargo);
+                    ps.setString(1, depto);
                     ps.setString(2, descripcionTxt.getValue().trim());
                     ps.setString(3, idEditando);
                     ps.setString(4, empresaId);
                 }
                 ps.executeUpdate();
                 ps.close();
-                mostrarExito("Cargo actualizado exitosamente.");
+                mostrarExito("Departamento actualizado exitosamente.");
             }
-
             llenar();
             prepararNuevo();
-
         } catch (Exception ex) {
-            Logger.getLogger(CargosPuestosView.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DepartamentosPuestosView.class.getName()).log(Level.SEVERE, null, ex);
             Notification.show("Error al guardar: " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
         }
     }
 
     private void eliminar() {
-        Object itemId = cargoGrid.getSelectedRow();
+        Object itemId = deptoGrid.getSelectedRow();
         if (itemId == null) {
-            Notification.show("Seleccione un cargo para eliminar.", Notification.Type.WARNING_MESSAGE);
+            Notification.show("Seleccione un departamento para eliminar.", Notification.Type.WARNING_MESSAGE);
             return;
         }
-
-        int empleados = (Integer) cargoContainer.getContainerProperty(itemId, EMPLEADOS_PROPERTY).getValue();
+        int empleados = (Integer) deptoContainer.getContainerProperty(itemId, EMPLEADOS_PROPERTY).getValue();
         if (empleados > 0) {
-            Notification.show("No se puede eliminar: el cargo tiene " + empleados + " empleado(s) asignado(s).",
+            Notification.show("No se puede eliminar: el departamento tiene " + empleados + " empleado(s) asignado(s).",
                     Notification.Type.WARNING_MESSAGE);
             return;
         }
-
-        String id = nvl(cargoContainer.getContainerProperty(itemId, ID_PROPERTY).getValue());
+        String id = nvl(deptoContainer.getContainerProperty(itemId, ID_PROPERTY).getValue());
         try {
-            String sql = "DELETE FROM empleado_cargo WHERE Id = ? AND IdEmpresa = ?";
-            PreparedStatement ps = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(sql);
+            PreparedStatement ps = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection()
+                    .prepareStatement("DELETE FROM empleado_departamento WHERE Id = ? AND IdEmpresa = ?");
             ps.setString(1, id);
             ps.setString(2, empresaId);
             ps.executeUpdate();
             ps.close();
-
-            mostrarExito("Cargo eliminado.");
+            mostrarExito("Departamento eliminado.");
             llenar();
             prepararNuevo();
-
         } catch (Exception ex) {
-            Logger.getLogger(CargosPuestosView.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DepartamentosPuestosView.class.getName()).log(Level.SEVERE, null, ex);
             Notification.show("Error al eliminar: " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
         }
     }
 
-    // ── Ventana de empleados por cargo ────────────────────────────────────────
+    // ── Ventana de empleados por departamento ─────────────────────────────────
 
-    private void abrirVentanaEmpleados(String cargo) {
-
-        // Container del listado
+    private void abrirVentanaEmpleados(String departamento) {
         final String COD  = "Código";
         final String NOM  = "Nombre";
         final String ESTA = "Estado";
@@ -332,11 +331,11 @@ public class CargosPuestosView extends VerticalLayout implements View {
 
         String sql = "SELECT pe.IdProveedor, pe.Nombre, pe.Inhabilitado"
                 + " FROM proveedor_empresa pe"
-                + " WHERE pe.Cargo = ? AND pe.IdEmpresa = ? AND pe.EsPlanilla = 1"
+                + " WHERE pe.Departamento = ? AND pe.IdEmpresa = ? AND pe.EsPlanilla = 1"
                 + " ORDER BY pe.Nombre";
         try {
             PreparedStatement ps = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(sql);
-            ps.setString(1, cargo);
+            ps.setString(1, departamento);
             ps.setString(2, empresaId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -349,13 +348,12 @@ public class CargosPuestosView extends VerticalLayout implements View {
             rs.close();
             ps.close();
         } catch (Exception ex) {
-            Logger.getLogger(CargosPuestosView.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DepartamentosPuestosView.class.getName()).log(Level.SEVERE, null, ex);
             Notification.show("Error al obtener empleados: " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
             return;
         }
 
-        // Grid de empleados
-        Grid empGrid = new Grid("Empleados con cargo: " + cargo, empContainer);
+        Grid empGrid = new Grid("Empleados del departamento: " + departamento, empContainer);
         empGrid.setWidth("100%");
         empGrid.setHeightMode(HeightMode.ROW);
         empGrid.setHeightByRows(Math.min(empContainer.size(), 12));
@@ -363,27 +361,19 @@ public class CargosPuestosView extends VerticalLayout implements View {
         empGrid.getColumn(COD).setWidth(90);
         empGrid.getColumn(NOM).setExpandRatio(1);
         empGrid.getColumn(ESTA).setWidth(110);
-        empGrid.setCellStyleGenerator(cell -> {
-            if (ESTA.equals(cell.getPropertyId())) {
-                Object v = cell.getValue();
-                return (v != null && v.toString().equals("Inhabilitado")) ? "v-label-danger" : null;
-            }
-            return null;
-        });
 
-        // Window
+        Button cerrarBtn = new Button("Cerrar");
+        cerrarBtn.setIcon(FontAwesome.TIMES);
+        cerrarBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+
         Window win = new Window();
-        win.setCaption("Cargo: " + cargo + "  (" + empContainer.size() + " empleado(s))");
+        win.setCaption("Departamento: " + departamento + "  (" + empContainer.size() + " empleado(s))");
         win.addStyleName("proveedor-window");
         win.setWidth("55%");
         win.setHeightUndefined();
         win.setModal(true);
         win.center();
-        win.setResizable(true);
 
-        Button cerrarBtn = new Button("Cerrar");
-        cerrarBtn.setIcon(FontAwesome.TIMES);
-        cerrarBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
         cerrarBtn.addClickListener(e -> win.close());
 
         VerticalLayout content = new VerticalLayout();
@@ -400,33 +390,31 @@ public class CargosPuestosView extends VerticalLayout implements View {
     // ── Carga de datos ────────────────────────────────────────────────────────
 
     public void llenar() {
-        cargoContainer.removeAllItems();
-
-        String sql = "SELECT ec.Id, ec.Cargo, ec.Descripcion, COUNT(pe.IdProveedor) AS Empleados"
-                + " FROM empleado_cargo ec"
-                + " LEFT JOIN proveedor_empresa pe ON ec.Cargo = pe.Cargo AND ec.IdEmpresa = pe.IdEmpresa AND pe.EsPlanilla = 1"
-                + " WHERE ec.IdEmpresa = ?"
-                + " GROUP BY ec.Id, ec.Cargo, ec.Descripcion"
-                + " ORDER BY ec.Cargo ASC";
+        deptoContainer.removeAllItems();
+        String sql = "SELECT d.Id, d.Departamento, d.Descripcion, COUNT(pe.IdProveedor) AS Empleados"
+                + " FROM empleado_departamento d"
+                + " LEFT JOIN proveedor_empresa pe ON d.Departamento = pe.Departamento"
+                + "   AND d.IdEmpresa = pe.IdEmpresa AND pe.EsPlanilla = 1"
+                + " WHERE d.IdEmpresa = ?"
+                + " GROUP BY d.Id, d.Departamento, d.Descripcion"
+                + " ORDER BY d.Departamento";
         try {
             PreparedStatement ps = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(sql);
             ps.setString(1, empresaId);
             rsRecords = ps.executeQuery();
-
             while (rsRecords.next()) {
-                Object itemId = cargoContainer.addItem();
-                cargoContainer.getContainerProperty(itemId, ID_PROPERTY).setValue(rsRecords.getString("Id"));
-                cargoContainer.getContainerProperty(itemId, CARGO_PROPERTY).setValue(rsRecords.getString("Cargo"));
-                cargoContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).setValue(
+                Object itemId = deptoContainer.addItem();
+                deptoContainer.getContainerProperty(itemId, ID_PROPERTY).setValue(rsRecords.getString("Id"));
+                deptoContainer.getContainerProperty(itemId, DEPARTAMENTO_PROPERTY).setValue(rsRecords.getString("Departamento"));
+                deptoContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).setValue(
                         rsRecords.getString("Descripcion") != null ? rsRecords.getString("Descripcion") : "");
-                cargoContainer.getContainerProperty(itemId, EMPLEADOS_PROPERTY).setValue(rsRecords.getInt("Empleados"));
+                deptoContainer.getContainerProperty(itemId, EMPLEADOS_PROPERTY).setValue(rsRecords.getInt("Empleados"));
             }
             rsRecords.close();
             ps.close();
-
         } catch (Exception ex) {
-            Logger.getLogger(CargosPuestosView.class.getName()).log(Level.SEVERE, null, ex);
-            Notification.show("Error al cargar cargos: " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
+            Logger.getLogger(DepartamentosPuestosView.class.getName()).log(Level.SEVERE, null, ex);
+            Notification.show("Error al cargar departamentos: " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
         }
     }
 
@@ -447,7 +435,7 @@ public class CargosPuestosView extends VerticalLayout implements View {
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
         ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(
-                empresaId + " " + empresaNombre + " — Cargos y Puestos");
-        Page.getCurrent().setTitle("Sopdi - Cargos y Puestos");
+                empresaId + " " + empresaNombre + " — Departamentos");
+        Page.getCurrent().setTitle("Sopdi - Departamentos");
     }
 }

@@ -71,6 +71,7 @@ public class EmpleadoView extends VerticalLayout implements View {
 
     ComboBox generoCbx = new ComboBox("Género");
     ComboBox cargoCbx = new ComboBox("Cargo / plaza");
+    ComboBox departamentoCbx = new ComboBox("Departamento");
     TextField idEmpleadoTxt =  new TextField("ID empleado");
     TextField primerNombreTxt =  new TextField("Primer nombre");
     TextField segundoNombreTxt =  new TextField("Segundo nombre");
@@ -475,6 +476,26 @@ public class EmpleadoView extends VerticalLayout implements View {
         cargoCbx.setNewItemsAllowed(false);
         cargoCbx.select("");
 
+        departamentoCbx.setWidth("95%");
+        departamentoCbx.addItem("");
+        try (PreparedStatement deptPs = ((SopdiUI) UI.getCurrent()).databaseProvider
+                .getCurrentConnection().prepareStatement(
+                        "SELECT Departamento FROM empleado_departamento WHERE IdEmpresa = ? ORDER BY Departamento")) {
+            deptPs.setString(1, empresaId);
+            try (ResultSet deptRs = deptPs.executeQuery()) {
+                while (deptRs.next()) {
+                    departamentoCbx.addItem(deptRs.getString("Departamento"));
+                }
+            }
+        } catch (Exception ex1) {
+            Logger.getLogger(EmpleadoView.class.getName()).log(Level.SEVERE, "Error al listar departamentos", ex1);
+        }
+        departamentoCbx.setNullSelectionAllowed(false);
+        departamentoCbx.setInvalidAllowed(false);
+        departamentoCbx.setTextInputAllowed(false);
+        departamentoCbx.setNewItemsAllowed(false);
+        departamentoCbx.select("");
+
         direccionTxt.setWidth("100%");
         direccionTxt.setHeight("5em");
 
@@ -516,7 +537,7 @@ public class EmpleadoView extends VerticalLayout implements View {
                 primerApellidoTxt, segundoApellidoTxt, apellidoCasadaTxt, nombreCompletoTxt,
                 nacionalidadTxt, direccionTxt, telefonoTxt, telefonoEmergenciaTxt);
 
-        datosLaboralesForm.addComponents(cargoCbx, nitTxt, dpiTxt, afiliacionIgssTxt,
+        datosLaboralesForm.addComponents(cargoCbx, departamentoCbx, nitTxt, dpiTxt, afiliacionIgssTxt,
                 codigoOcupacionTxt, condicionLaboralTxt, cuentaBancariaTxt, correlativoTxt,
                 fechaIngresoDt, fechaEgresoDt, aplicaIndemnizacion, aplicaAnticipoChb,
                 obraAsignadaChb, esLiquidador, inhabilitadoChb);
@@ -609,6 +630,7 @@ public class EmpleadoView extends VerticalLayout implements View {
         idEmpleadoTxt.setReadOnly(false);
         idEmpleadoTxt.setValue("");
         cargoCbx.setValue("");
+        departamentoCbx.setValue("");
         generoCbx.setValue("Masculino");
         primerNombreTxt.setValue("");
         segundoNombreTxt.setValue("");
@@ -659,6 +681,7 @@ public class EmpleadoView extends VerticalLayout implements View {
                 idEmpleadoTxt.setValue(idEmpleadoOriginal);
                 idEmpleadoTxt.setReadOnly(true);
                 cargoCbx.setValue(valueOrEmpty(records.getString("Cargo")));
+                try { departamentoCbx.setValue(valueOrEmpty(records.getString("Departamento"))); } catch (Exception ignored) {}
                 generoCbx.setValue(valueOrDefault(records.getString("Genero"), "Masculino"));
                 primerNombreTxt.setValue(valueOrEmpty(records.getString("PrimerNombre")));
                 segundoNombreTxt.setValue(valueOrEmpty(records.getString("SegundoNombre")));
@@ -867,11 +890,11 @@ public class EmpleadoView extends VerticalLayout implements View {
 
     private void insertarEmpleado(Connection connection) throws SQLException {
         String sql = "INSERT INTO proveedor_empresa (IDProveedor, IdEmpresa, Nombre, NIT, DPI, Regimen, "
-                + "EsPlanilla, Cargo, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, ApellidoCasada, "
+                + "EsPlanilla, Cargo, Departamento, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, ApellidoCasada, "
                 + "Banco, BancoCuenta, Nacionalidad, Direccion, Telefono, TelefonoEmergencia, Genero, TituloAcademico, "
                 + "AfiliacionIgss, FechaIngreso, FechaEgreso, CodigoOcupacion, CondicionLaboral, AplicaAnticipoSalario, "
                 + "AsignadoObra, IdCorrFinal, AplicaIndemnizacion, DiasVacacionesDerecho, DiasVacacionesGozados, "
-                + "EsLiquidador, Inhabilitado) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                + "EsLiquidador, Inhabilitado) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             int index = 1;
             statement.setString(index++, idEmpleadoTxt.getValue().trim());
@@ -882,6 +905,7 @@ public class EmpleadoView extends VerticalLayout implements View {
             statement.setString(index++, "NORMAL");
             statement.setBoolean(index++, true);
             statement.setString(index++, String.valueOf(cargoCbx.getValue()));
+            statement.setString(index++, String.valueOf(departamentoCbx.getValue()));
             statement.setString(index++, primerNombreTxt.getValue().trim());
             statement.setString(index++, segundoNombreTxt.getValue().trim());
             statement.setString(index++, primerApellidoTxt.getValue().trim());
@@ -920,7 +944,7 @@ public class EmpleadoView extends VerticalLayout implements View {
                 + "SegundoNombre=?, PrimerApellido=?, SegundoApellido=?, ApellidoCasada=?, BancoCuenta=?, "
                 + "Nacionalidad=?, Direccion=?, Telefono=?, TelefonoEmergencia=?, Genero=?, AfiliacionIgss=?, "
                 + "FechaIngreso=?, FechaEgreso=?, CodigoOcupacion=?, CondicionLaboral=?, AplicaAnticipoSalario=?, "
-                + "AsignadoObra=?, EsLiquidador=?, IdCorrFinal=?, Inhabilitado=?, Cargo=?, AplicaIndemnizacion=?, "
+                + "AsignadoObra=?, EsLiquidador=?, IdCorrFinal=?, Inhabilitado=?, Cargo=?, Departamento=?, AplicaIndemnizacion=?, "
                 + "DiasVacacionesDerecho=?, DiasVacacionesGozados=? WHERE IdProveedor=? AND IdEmpresa=?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             int index = 1;
@@ -950,6 +974,7 @@ public class EmpleadoView extends VerticalLayout implements View {
             statement.setString(index++, valueOrDefault(correlativoTxt.getValue(), "0").trim());
             statement.setBoolean(index++, inhabilitadoChb.getValue());
             statement.setString(index++, String.valueOf(cargoCbx.getValue()));
+            statement.setString(index++, String.valueOf(departamentoCbx.getValue()));
             statement.setBoolean(index++, aplicaIndemnizacion.getValue());
             statement.setDouble(index++, Double.parseDouble(vacacionesDiasDerechoTxt.getValue()));
             statement.setDouble(index++, Double.parseDouble(vacacionesDiasGozadosTxt.getValue()));

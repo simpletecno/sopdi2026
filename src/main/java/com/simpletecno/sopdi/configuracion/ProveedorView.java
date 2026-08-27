@@ -99,10 +99,10 @@ public class ProveedorView extends VerticalLayout implements View {
         editarBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                if (!((SopdiUI) mainUI).sessionInformation.getStrUserProfile().equals("ADMINISTRADOR")) {
-                    Notification.show("Usuario no tiene permiso para esta operación", Notification.Type.WARNING_MESSAGE);
-                    return;
-                }
+//                if (!((SopdiUI) mainUI).sessionInformation.getStrUserProfile().equals("ADMINISTRADOR")) {
+//                    Notification.show("Usuario no tiene permiso para esta operación", Notification.Type.WARNING_MESSAGE);
+//                    return;
+//                }
                 if (containerProveedor.size() > 0) {
                     if (proveedorGrid.getSelectedRow() != null) {
                         ProveedorForm formProveedor =
@@ -140,10 +140,10 @@ public class ProveedorView extends VerticalLayout implements View {
         deleteBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-//                if (!((SopdiUI) mainUI).sessionInformation.getStrUserProfile().equals("ADMINISTRADOR")) {
-//                    Notification.show("Usuario no tiene permiso para esta operación.", Notification.Type.WARNING_MESSAGE);
-//                    return;
-//                }
+                if (!((SopdiUI) mainUI).sessionInformation.getStrUserProfile().equals("ADMINISTRADOR")) {
+                    Notification.show("Usuario no tiene permiso para esta operación.", Notification.Type.WARNING_MESSAGE);
+                    return;
+                }
                 if (containerProveedor.size() > 0) {
                     if (proveedorGrid.getSelectedRow() != null) {
 
