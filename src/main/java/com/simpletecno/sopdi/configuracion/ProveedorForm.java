@@ -73,8 +73,9 @@ public class ProveedorForm extends Window {
         this.idProveedor = idProveedor;
         this.mainUI = UI.getCurrent();
 
-        setWidth("70%");
+        setWidth("95%");
         setHeightUndefined();
+        addStyleName("proveedor-window");
 
         mainLayout = new VerticalLayout();
         mainLayout.setMargin(new MarginInfo(true, true, false, true));
@@ -82,7 +83,7 @@ public class ProveedorForm extends Window {
 
         setContent(mainLayout);
 
-        setCaption("!!MAESTRO DE PROVEEDORES!!");
+        setCaption("MAESTRO DE PROVEEDORES");
 
         marginInfo = new MarginInfo(true, true, true, true);
 
@@ -100,13 +101,13 @@ public class ProveedorForm extends Window {
 
     private void crearFormulario() {
 
+        // ── Columna izquierda: campos de texto y combos ──────────────────────
         FormLayout formLayout = new FormLayout();
         formLayout.setWidth("100%");
         formLayout.setMargin(false);
         formLayout.setSpacing(true);
 
         codigoTxt.setWidth("10em");
-//        codigoTxt.setReadOnly(true);
 
         codigoAnteriorTxt.setReadOnly(false);
         codigoAnteriorTxt.setWidth("10em");
@@ -162,6 +163,22 @@ public class ProveedorForm extends Window {
                 "El email no es válido"
         ));
 
+        codigoAnteriorTxt.setVisible(false);
+        generoCbx.setVisible(false);
+        primerNombreTxt.setVisible(false);
+        segundoNombreTxt.setVisible(false);
+        primerApellidoTxt.setVisible(false);
+        segundoApellidoTxt.setVisible(false);
+        apellidoDeCasadaTxt.setVisible(false);
+        nacionalidadTxt.setVisible(false);
+        dpiTxt.setVisible(false);
+
+        formLayout.addComponents(codigoTxt, codigoAnteriorTxt, nitTxt, tipoPersonaCbx, generoCbx);
+        formLayout.addComponents(nombreTxt, primerNombreTxt, segundoNombreTxt, primerApellidoTxt, segundoApellidoTxt, apellidoDeCasadaTxt);
+        formLayout.addComponents(nacionalidadTxt, dpiTxt, regimenCbx);
+        formLayout.addComponents(direccionTxt, telefonoTxt, telefonoEmergenciaTxt, emailTxt);
+
+        // ── Columna derecha: checkboxes ──────────────────────────────────────
         esProveedorCheck.setValue(false);
         esClienteCheck.setValue(false);
         esSujetoARetencionDefinitivaISRCheck.setValue(false);
@@ -170,29 +187,43 @@ public class ProveedorForm extends Window {
         esAgenteRetenedorISRCheck.setValue(false);
         esAgenteRetenedorIVACheck.setValue(false);
         esBancoCheck.setValue(false);
-
-        formLayout.addComponents(codigoTxt, codigoAnteriorTxt, codigoAnteriorTxt, nitTxt, tipoPersonaCbx, generoCbx);
-        formLayout.addComponents(nombreTxt, primerNombreTxt, segundoNombreTxt, primerApellidoTxt, segundoApellidoTxt, apellidoDeCasadaTxt);
-        formLayout.addComponents(nacionalidadTxt, dpiTxt, regimenCbx);
-        formLayout.addComponents(direccionTxt, telefonoTxt, telefonoEmergenciaTxt, emailTxt);
-
-        GridLayout layoutEs = new GridLayout(4, 3);
-        layoutEs.setSpacing(true);
-        layoutEs.setMargin(false);
-        layoutEs.setWidth("100%");
-        layoutEs.setHeight("100%");
-        layoutEs.addStyleName("rcorners3");
-
         esInabilitadoCheck.setValue(false);
-        layoutEs.addComponents(esProveedorCheck, esClienteCheck, esSujetoARetencionDefinitivaISRCheck);
-        layoutEs.addComponents(esInstitucionFiscalCheck, esInstitucionSeguroSocialCheck);
-        layoutEs.addComponents(esAgenteRetenedorISRCheck, esAgenteRetenedorIVACheck);
-        layoutEs.addComponents(esBancoCheck, esInabilitadoCheck);
 
-        mainLayout.addComponent(formLayout);
-        mainLayout.setComponentAlignment(formLayout, Alignment.TOP_CENTER);
-        mainLayout.addComponent(layoutEs);
-        mainLayout.setComponentAlignment(layoutEs, Alignment.TOP_CENTER);
+        Label checkboxTitle = new Label("Clasificaciones");
+        checkboxTitle.addStyleName(ValoTheme.LABEL_H3);
+        checkboxTitle.addStyleName(ValoTheme.LABEL_COLORED);
+
+        GridLayout checkboxGrid = new GridLayout(2, 5);
+        checkboxGrid.setSpacing(true);
+        checkboxGrid.setMargin(new MarginInfo(true, true, true, true));
+        checkboxGrid.setWidth("100%");
+        checkboxGrid.addComponents(
+                esProveedorCheck,               esClienteCheck,
+                esInstitucionFiscalCheck,       esInstitucionSeguroSocialCheck,
+                esAgenteRetenedorISRCheck,      esAgenteRetenedorIVACheck,
+                esSujetoARetencionDefinitivaISRCheck, esBancoCheck
+        );
+        // ToggleSwitch Habilitado/Inhabilitado ocupa las 2 columnas
+        checkboxGrid.addComponent(esInabilitadoCheck, 0, 4, 1, 4);
+
+        VerticalLayout checkboxPanel = new VerticalLayout();
+        checkboxPanel.setSpacing(true);
+        checkboxPanel.setMargin(false);
+        checkboxPanel.addStyleName("rcorners3");
+        checkboxPanel.addComponents(checkboxTitle, checkboxGrid);
+
+        // ── Layout de dos columnas ───────────────────────────────────────────
+        HorizontalLayout columnsLayout = new HorizontalLayout();
+        columnsLayout.setWidth("100%");
+        columnsLayout.setSpacing(true);
+        columnsLayout.addComponent(formLayout);
+        columnsLayout.addComponent(checkboxPanel);
+        columnsLayout.setExpandRatio(formLayout, 1.5f);
+        columnsLayout.setExpandRatio(checkboxPanel, 1f);
+        columnsLayout.setComponentAlignment(checkboxPanel, Alignment.TOP_LEFT);
+
+        mainLayout.addComponent(columnsLayout);
+        mainLayout.setComponentAlignment(columnsLayout, Alignment.TOP_CENTER);
 
         saveBtn = new Button("Guardar");
         saveBtn.setIcon(FontAwesome.SAVE);
@@ -267,7 +298,8 @@ public class ProveedorForm extends Window {
                     direccionTxt.setValue(rsRecords.getString("Direccion"));
                     telefonoTxt.setValue(rsRecords.getString("Telefono"));
                     telefonoEmergenciaTxt.setValue(rsRecords.getString("TelefonoEmergencia"));
-                    emailTxt.setValue(rsRecords.getString("Email"));
+                    String emailVal = rsRecords.getString("Email");
+                    emailTxt.setValue(emailVal == null || emailVal.equals("null") ? "" : emailVal);
 
                     esProveedorCheck.setValue(rsRecords.getString("EsProveedor").equals("1"));
                     esClienteCheck.setValue(rsRecords.getString("EsCliente").equals("1"));

@@ -124,10 +124,10 @@ public class ProveedorView extends VerticalLayout implements View {
         nuevoBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                if (!((SopdiUI) mainUI).sessionInformation.getStrUserProfile().equals("ADMINISTRADOR")) {
-                    Notification.show("Usuario no tiene permiso para esta operación.", Notification.Type.WARNING_MESSAGE);
-                    return;
-                }
+//                if (!((SopdiUI) mainUI).sessionInformation.getStrUserProfile().equals("ADMINISTRADOR")) {
+//                    Notification.show("Usuario no tiene permiso para esta operación.", Notification.Type.WARNING_MESSAGE);
+//                    return;
+//                }
                 ProveedorForm formProveedor = new ProveedorForm("0");
                 mainUI.addWindow(formProveedor);
                 formProveedor.center();
@@ -140,10 +140,10 @@ public class ProveedorView extends VerticalLayout implements View {
         deleteBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                if (!((SopdiUI) mainUI).sessionInformation.getStrUserProfile().equals("ADMINISTRADOR")) {
-                    Notification.show("Usuario no tiene permiso para esta operación.", Notification.Type.WARNING_MESSAGE);
-                    return;
-                }
+//                if (!((SopdiUI) mainUI).sessionInformation.getStrUserProfile().equals("ADMINISTRADOR")) {
+//                    Notification.show("Usuario no tiene permiso para esta operación.", Notification.Type.WARNING_MESSAGE);
+//                    return;
+//                }
                 if (containerProveedor.size() > 0) {
                     if (proveedorGrid.getSelectedRow() != null) {
 
@@ -295,6 +295,23 @@ public class ProveedorView extends VerticalLayout implements View {
             }
         });
         cellProId.setComponent(filterFieldProId);
+
+        HeaderCell cellNit = filterRow.getCell(NIT_PROPERTY);
+
+        TextField filterFieldNit = new TextField();
+        filterFieldNit.addStyleName(ValoTheme.TEXTFIELD_TINY);
+        filterFieldNit.setInputPrompt("Filtrar");
+        filterFieldNit.setColumns(10);
+
+        filterFieldNit.addTextChangeListener(change -> {
+            containerProveedor.removeContainerFilters(NIT_PROPERTY);
+            if (!change.getText().isEmpty()) {
+                containerProveedor.addContainerFilter(
+                        new SimpleStringFilter(NIT_PROPERTY,
+                                change.getText(), true, true));
+            }
+        });
+        cellNit.setComponent(filterFieldNit);
 
         proveedorLayout = new VerticalLayout();
         proveedorLayout.addStyleName("rcorners3");

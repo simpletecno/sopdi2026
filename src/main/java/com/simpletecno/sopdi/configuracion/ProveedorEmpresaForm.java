@@ -89,7 +89,7 @@ public class ProveedorEmpresaForm extends Window {
 
         asegurarColumnas();
 
-        setWidth("70%");
+        setWidth("95%");
         setHeightUndefined();
 
         mainLayout = new VerticalLayout();
@@ -239,30 +239,61 @@ public class ProveedorEmpresaForm extends Window {
         inabilitadoCbk.setTextInputAllowed(false);
         inabilitadoCbk.setNullSelectionAllowed(false);
 
+        generoCbx.setVisible(false);
+        primerNombreTxt.setVisible(false);
+        segundoNombreTxt.setVisible(false);
+        primerApellidoTxt.setVisible(false);
+        segundoApellidoTxt.setVisible(false);
+        apellidoDeCasadaTxt.setVisible(false);
+        nacionalidadTxt.setVisible(false);
+        dpiTxt.setVisible(false);
+
         formLayout.addComponents(codigoTxt, nitTxt, tipoPersonaCbx, generoCbx);
         formLayout.addComponents(nombreTxt, primerNombreTxt, segundoNombreTxt, primerApellidoTxt, segundoApellidoTxt, apellidoDeCasadaTxt);
         formLayout.addComponents(nacionalidadTxt, dpiTxt, regimenCbx);
         formLayout.addComponents(direccionTxt, telefonoTxt, telefonoEmergenciaTxt, emailTxt);
+        formLayout.addComponents(cargoCbx, usuarioCbx, inabilitadoCbk);
 
-        GridLayout layoutEs = new GridLayout(4, 6);
-        layoutEs.setSpacing(true);
-        layoutEs.setMargin(false);
-        layoutEs.setWidth("100%");
-        layoutEs.setHeight("100%");
-        layoutEs.addStyleName("rcorners3");
+        // ── Columna derecha: checkboxes ──────────────────────────────────────
+        Label checkboxTitle = new Label("Clasificaciones");
+        checkboxTitle.addStyleName(ValoTheme.LABEL_H3);
+        checkboxTitle.addStyleName(ValoTheme.LABEL_COLORED);
 
-        layoutEs.addComponents(esProveedorCheck, esClienteCheck, esSujetoARetencionDefinitivaISRCheck);
-        layoutEs.addComponents(esInstitucionFiscalCheck, esInstitucionSeguroSocialCheck);
-        layoutEs.addComponents(esAgenteRetenedorISRCheck, esAgenteRetenedorIVACheck);
-        layoutEs.addComponents(esBancoCheck, esLiquidadorCheck, esComiteCheck, esPlanillaCheck);
-        layoutEs.addComponents(esJefeCheck, esContactoObraCheck, esVisitaResponsableCheck, esAutorizadoPagarCheck);
-        layoutEs.addComponents(esAbastosCheck, esRelacionadaCheck, esEncargadoCuentaCheck, esResidenteCheck);
-        layoutEs.addComponents(cargoCbx, usuarioCbx, inabilitadoCbk);
+        GridLayout checkboxGrid = new GridLayout(2, 10);
+        checkboxGrid.setSpacing(true);
+        checkboxGrid.setMargin(new MarginInfo(true, true, true, true));
+        checkboxGrid.setWidth("100%");
+        checkboxGrid.addComponents(
+                esProveedorCheck,                    esClienteCheck,
+                esInstitucionFiscalCheck,            esInstitucionSeguroSocialCheck,
+                esAgenteRetenedorISRCheck,           esAgenteRetenedorIVACheck,
+                esSujetoARetencionDefinitivaISRCheck, esBancoCheck,
+                esLiquidadorCheck,                   esComiteCheck,
+                esPlanillaCheck,                     esJefeCheck,
+                esContactoObraCheck,                 esVisitaResponsableCheck,
+                esAutorizadoPagarCheck,              esAbastosCheck,
+                esRelacionadaCheck,                  esEncargadoCuentaCheck,
+                esResidenteCheck,                    new Label()
+        );
 
-        mainLayout.addComponent(formLayout);
-        mainLayout.setComponentAlignment(formLayout, Alignment.TOP_CENTER);
-        mainLayout.addComponent(layoutEs);
-        mainLayout.setComponentAlignment(layoutEs, Alignment.TOP_CENTER);
+        VerticalLayout checkboxPanel = new VerticalLayout();
+        checkboxPanel.setSpacing(true);
+        checkboxPanel.setMargin(false);
+        checkboxPanel.addStyleName("rcorners3");
+        checkboxPanel.addComponents(checkboxTitle, checkboxGrid);
+
+        // ── Layout de dos columnas ───────────────────────────────────────────
+        HorizontalLayout columnsLayout = new HorizontalLayout();
+        columnsLayout.setWidth("100%");
+        columnsLayout.setSpacing(true);
+        columnsLayout.addComponent(formLayout);
+        columnsLayout.addComponent(checkboxPanel);
+        columnsLayout.setExpandRatio(formLayout, 1.5f);
+        columnsLayout.setExpandRatio(checkboxPanel, 1f);
+        columnsLayout.setComponentAlignment(checkboxPanel, Alignment.TOP_LEFT);
+
+        mainLayout.addComponent(columnsLayout);
+        mainLayout.setComponentAlignment(columnsLayout, Alignment.TOP_CENTER);
 
         saveBtn = new Button("Guardar");
         saveBtn.setIcon(FontAwesome.SAVE);

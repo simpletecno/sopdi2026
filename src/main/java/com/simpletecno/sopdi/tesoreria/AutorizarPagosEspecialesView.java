@@ -820,10 +820,10 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
         return dSaldoContable;
     }
 
-    /*
-        Metodo para obtener el ultimo cheque de una cuenta bancaria.
-        Tabla  : contabilidad_cuentas_bancos_chequera de la chequera donde Del != UltimoUtilizado.
-        Return : UltimoUtilizado.
+    /**
+     * Devuelve UltimoUtilizado de la chequera activa (con cheques disponibles).
+     * Activa = UltimoUtilizado < Al. El siguiente cheque es UltimoUtilizado + 1.
+     * UltimoUtilizado se inicializa en Del-1; al usar el primer cheque pasa a Del.
      */
     private String obtenerUltimoCheque(String idCuentaBanco) {
         String ultimoCheque = "";
@@ -832,7 +832,8 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
         queryString += " FROM contabilidad_cuentas_bancos_chequera ";
         queryString += " WHERE IdCuentaBanco = " + idCuentaBanco;
         queryString += " AND IdEmpresa = " + empresaId;
-        queryString += " AND Del <> UltimoUtilizado";
+        queryString += " AND UltimoUtilizado < Al";
+        queryString += " ORDER BY Del ASC LIMIT 1";
 
         try {
             stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

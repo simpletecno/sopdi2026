@@ -501,7 +501,7 @@ public class InspectionTaskForm extends Window {
                 queryString = "INSERT INTO visita_inspeccion_tarea (IdVisitaInspeccion, CodigoTarea, Rubro, ";
                 queryString += " Descripcion, Instruccion, Responsable, Ejecutor, ";
                 queryString += " EsTarea, Garantia, Presupuesto, AutorizadoTipo, IdCentroCosto, EquipoDibujo, ";
-                queryString += " VisibleParaCliente, Estatus, FechaUltimoEstatus, DiasHabiles) ";
+                queryString += " VisibleParaCliente, Estatus, FechaUltimoEstatus, DiasHabiles)";
                 queryString += " VALUES (";
                 queryString += "  " + idVisita;
                 queryString += ",'" + codigoTarea + "'";

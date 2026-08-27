@@ -1,6 +1,7 @@
 package com.simpletecno.sopdi.calendario;
 
 import com.simpletecno.sopdi.SopdiUI;
+import com.simpletecno.sopdi.operativo.RecordatorioEventoService;
 import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.MarginInfo;
@@ -46,6 +47,7 @@ public class EventoUsuarioForm extends Window {
     private final PopupDateField inicioDt = new PopupDateField("Inicio : ");
     private final PopupDateField finDt = new PopupDateField("Fin : ");
     private final CheckBox todoElDiaChk = new CheckBox("Todo el día");
+    private final CheckBox realizadoChk = new CheckBox("Realizado");
     private final ComboBox colorCbx = new ComboBox("Color : ");
 
     /**
@@ -148,7 +150,13 @@ public class EventoUsuarioForm extends Window {
         VerticalLayout layout = new VerticalLayout();
         layout.setMargin(new MarginInfo(true, true, true, true));
         layout.setSpacing(true);
-        layout.addComponents(tituloTxt, descripcionTxt, lugarTxt, todoElDiaChk, inicioDt, finDt, colorCbx, buttons);
+        layout.addComponents(tituloTxt, descripcionTxt, lugarTxt, todoElDiaChk, inicioDt, finDt, colorCbx);
+        // El check "Realizado" solo aplica al editar un evento existente.
+        if (evento != null) {
+            realizadoChk.setDescription("Marque cuando el evento ya se atendió; deja de aparecer en los recordatorios.");
+            layout.addComponent(realizadoChk);
+        }
+        layout.addComponent(buttons);
         layout.setComponentAlignment(buttons, Alignment.BOTTOM_RIGHT);
 
         setContent(layout);
@@ -168,6 +176,27 @@ public class EventoUsuarioForm extends Window {
             if (evento.getStyleName() != null && !evento.getStyleName().isEmpty()) {
                 colorCbx.select(evento.getStyleName());
             }
+            cargarRealizado();
+        }
+    }
+
+    /**
+     * Asegura la columna Realizado y carga su valor actual para el evento en edición.
+     */
+    private void cargarRealizado() {
+        try {
+            java.sql.Connection cnx = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection();
+            new RecordatorioEventoService().asegurarColumnas(cnx);
+            PreparedStatement ps = cnx.prepareStatement(
+                    "SELECT Realizado FROM usuario_evento WHERE IdEvento = ?");
+            ps.setInt(1, evento.getIdEvento());
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                realizadoChk.setValue(rs.getInt("Realizado") == 1);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(EventoUsuarioForm.class.getName()).log(Level.WARNING,
+                    "No se pudo cargar el estado Realizado del evento: " + ex.getMessage());
         }
     }
 
@@ -225,7 +254,7 @@ public class EventoUsuarioForm extends Window {
                 }
             } else {
                 String sql = "UPDATE usuario_evento SET "
-                        + " Titulo = ?, Descripcion = ?, Lugar = ?, FechaInicio = ?, FechaFin = ?, TodoElDia = ?, Color = ? "
+                        + " Titulo = ?, Descripcion = ?, Lugar = ?, FechaInicio = ?, FechaFin = ?, TodoElDia = ?, Color = ?, Realizado = ? "
                         + " WHERE IdEvento = ? AND IdUsuario = ?";
                 ps = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().prepareStatement(sql);
                 ps.setString(1, tituloTxt.getValue().trim());
@@ -235,8 +264,9 @@ public class EventoUsuarioForm extends Window {
                 ps.setTimestamp(5, new Timestamp(finDt.getValue().getTime()));
                 ps.setInt(6, todoElDiaChk.getValue() ? 1 : 0);
                 ps.setString(7, String.valueOf(colorCbx.getValue()));
-                ps.setInt(8, evento.getIdEvento());
-                ps.setInt(9, Integer.parseInt(idUsuarioDestino));
+                ps.setInt(8, realizadoChk.getValue() ? 1 : 0);
+                ps.setInt(9, evento.getIdEvento());
+                ps.setInt(10, Integer.parseInt(idUsuarioDestino));
                 ps.executeUpdate();
             }
 

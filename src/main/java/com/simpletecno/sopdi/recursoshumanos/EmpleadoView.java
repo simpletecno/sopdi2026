@@ -738,6 +738,7 @@ public class EmpleadoView extends VerticalLayout implements View {
             connection.setAutoCommit(false);
 
             if (esNuevo) {
+                insertarProveedor(connection);
                 insertarEmpleado(connection);
             } else {
                 actualizarEmpleado(connection);
@@ -822,6 +823,46 @@ public class EmpleadoView extends VerticalLayout implements View {
         Notification.show(mensaje, Notification.Type.ERROR_MESSAGE);
         campo.focus();
         return false;
+    }
+
+    private void insertarProveedor(Connection connection) throws SQLException {
+        String sql = "INSERT INTO proveedor (Codigo, CodigoAnterior, Nit, TipoPersona, Regimen, "
+                + "Genero, Nombre, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, ApellidoCasada, "
+                + "Nacionalidad, Dpi, Direccion, Telefono, TelefonoEmergencia, Email, "
+                + "EsProveedor, EsCliente, EsBanco, EsAgenteRetenedorISR, EsAgenteRetenedorIVA, "
+                + "EsInstitucionFiscal, EsInstitucionSeguroSocial, EsSujetoRetencionDefinitivaISR, Inhabilitado) "
+                + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            int index = 1;
+            statement.setString(index++, idEmpleadoTxt.getValue().trim());       // Codigo
+            statement.setString(index++, "");                                     // CodigoAnterior
+            statement.setString(index++, nitTxt.getValue().trim());               // Nit
+            statement.setString(index++, "INDIVIDUAL");                           // TipoPersona
+            statement.setString(index++, "Opcional Simplificado");               // Regimen
+            statement.setString(index++, String.valueOf(generoCbx.getValue()));   // Genero
+            statement.setString(index++, nombreCompletoTxt.getValue().trim());    // Nombre
+            statement.setString(index++, primerNombreTxt.getValue().trim());      // PrimerNombre
+            statement.setString(index++, segundoNombreTxt.getValue().trim());     // SegundoNombre
+            statement.setString(index++, primerApellidoTxt.getValue().trim());    // PrimerApellido
+            statement.setString(index++, segundoApellidoTxt.getValue().trim());   // SegundoApellido
+            statement.setString(index++, apellidoCasadaTxt.getValue().trim());    // ApellidoCasada
+            statement.setString(index++, nacionalidadTxt.getValue().trim());      // Nacionalidad
+            statement.setString(index++, dpiTxt.getValue().trim());               // Dpi
+            statement.setString(index++, direccionTxt.getValue().trim());         // Direccion
+            statement.setString(index++, telefonoTxt.getValue().trim());          // Telefono
+            statement.setString(index++, telefonoEmergenciaTxt.getValue().trim()); // TelefonoEmergencia
+            statement.setString(index++, "");                                     // Email
+            statement.setBoolean(index++, false);  // EsProveedor
+            statement.setBoolean(index++, false);  // EsCliente
+            statement.setBoolean(index++, false);  // EsBanco
+            statement.setBoolean(index++, false);  // EsAgenteRetenedorISR
+            statement.setBoolean(index++, false);  // EsAgenteRetenedorIVA
+            statement.setBoolean(index++, false);  // EsInstitucionFiscal
+            statement.setBoolean(index++, false);  // EsInstitucionSeguroSocial
+            statement.setBoolean(index++, false);  // EsSujetoRetencionDefinitivaISR
+            statement.setBoolean(index,   false);  // Inhabilitado
+            statement.executeUpdate();
+        }
     }
 
     private void insertarEmpleado(Connection connection) throws SQLException {

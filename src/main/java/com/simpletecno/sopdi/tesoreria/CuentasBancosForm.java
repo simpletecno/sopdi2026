@@ -518,8 +518,10 @@ public class CuentasBancosForm extends Window {
             return;
         }
 
+        // UltimoUtilizado se inicializa en Del-1: ningún cheque entregado aún.
+        // Así el primer cheque disponible es Del (= UltimoUtilizado + 1).
         String ultimoUsado = (ultimoTxt.getValue() == null || ultimoTxt.getValue().trim().isEmpty())
-                ? del
+                ? String.valueOf(Long.parseLong(del) - 1)
                 : ultimoTxt.getValue().trim();
 
         try {
@@ -628,7 +630,7 @@ Logger.getLogger(CuentasBancosForm.class.getName()).log(Level.INFO, "queryString
             long nUltimo = Long.parseLong(ultimoUtilizado.replaceAll("[^0-9]", ""));
 
             if (nUltimo >= nAl) return "AGOTADA";
-            if (nUltimo <= nDel) return "NUEVA";
+            if (nUltimo < nDel)  return "NUEVA";   // UltimoUtilizado = Del-1: ningún cheque usado
             return "EN USO";
         } catch (NumberFormatException ex) {
             return "";

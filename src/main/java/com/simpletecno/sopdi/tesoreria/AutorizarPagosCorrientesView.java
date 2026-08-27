@@ -39,6 +39,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
 
     VerticalLayout mainLayout;
 
+    // --- Cuentas bancarias ---
     static final String ID_CUENTABANCO_PROPERTY = "IdCuentaBanco";
     static final String CUENTA_BANCARIA_PROPERTY = "Cuenta Bancaria";
     static final String BANCO_PROPERTY = "Banco";
@@ -51,6 +52,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
     static final String PAGOSSF_PROPERTY = "PagosSF";
     static final String ID_NOMENCLATURA_PROPERTY = "IdNomenclatura";
 
+    // --- Por pagar (Tab 1) ---
     static final String TIPO_DOCUMENTO_PROPERTY = "Tipo";
     static final String ID_PROVEEDOR_PROPERTY = "IdProveedor";
     static final String PROVEEDOR_PROPERTY = "Proveedor";
@@ -70,10 +72,28 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
     static final String NOMBRE_PROVEEDOR_PROPERTY = "NombreProveedor";
     static final String TOTAL_SALDO_QUETZALES_PROPERTY = "TotalSaldoQtz";
 
+    // --- Anticipos OC (Tab 2) ---
+    static final String OC_ID_PROPERTY = "OC_ID";
+    static final String OC_NOC_PROPERTY = "NOC";
+    static final String OC_TIPO_PROPERTY = "Tipo";
+    static final String OC_PROVEEDOR_OC_PROPERTY = "Proveedor";
+    static final String OC_FECHA_OC_PROPERTY = "Fecha";
+    static final String OC_MONEDA_OC_PROPERTY = "Moneda";
+    static final String OC_ANTICIPO_OC_PROPERTY = "Anticipo";
+    static final String OC_ANTICIPO_SF_OC_PROPERTY = "AnticipoSFOC";
+    static final String OC_IDPROVEEDOR_OC_PROPERTY = "OC_IdProveedor";
+    static final String OC_CHEQUE_OC_PROPERTY = "# Cheque";
+    static final String OC_RESPONSABLE_OC_PROPERTY = "Responsable";
+    static final String OC_RAZON_OC_PROPERTY = "Razon";
+    static final String OC_ESTADO_OC_PROPERTY = "Estado";
+    static final String OC_NOMBRE_PROVEEDOR_OC_PROPERTY = "OC_NombreProveedor";
+
     IndexedContainer cuentasBancosContainer = new IndexedContainer();
     Grid cuentasBancosGrid;
     IndexedContainer porPagarContainer = new IndexedContainer();
     Grid porPagarGrid;
+    IndexedContainer anticiposOCContainer = new IndexedContainer();
+    Grid anticiposOCGrid;
 
     Button autorizarBtn;
     boolean darkModeActive = false;
@@ -118,11 +138,13 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
 
         createGridCuentasBancos();
         crearGridPorPagar();
+        crearGridAnticipOC();
+        crearTabSheet();
         crearBotones();
 
         llenarGridBancos();
         llenarGridPorPagar();
-
+        llenarGridAnticipOC();
     }
 
     public void createGridCuentasBancos() {
@@ -155,10 +177,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         cuentasBancosGrid.getColumn(CUENTA_BANCARIA_PROPERTY).setExpandRatio(1);
         cuentasBancosGrid.getColumn(BANCO_PROPERTY).setExpandRatio(2);
         cuentasBancosGrid.setCellStyleGenerator((Grid.CellReference cellReference) -> {
-
             if (SALDO_PROPERTY.equals(cellReference.getPropertyId())) {
-                return "rightalign";
-            } else if (SALDO_PROPERTY.equals(cellReference.getPropertyId())) {
                 return "rightalign";
             } else if (NUEVO_SALDO_PROPERTY.equals(cellReference.getPropertyId())) {
                 return "rightalign";
@@ -167,10 +186,8 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             } else {
                 return null;
             }
-
         });
 
-        //Validar que solamente una cuenta banco puede ser seleccionada de la misma moneda
         cuentasBancosGrid.addSelectionListener((SelectionListener) event -> {
             if (event.getAdded().isEmpty()) return;
             Object newItemId = event.getAdded().iterator().next();
@@ -233,7 +250,6 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         porPagarGrid.getColumn(NOMBRE_PROVEEDOR_PROPERTY).setHidable(true).setHidden(true);
         porPagarGrid.getColumn(TOTAL_SALDO_QUETZALES_PROPERTY).setHidable(true).setHidden(true);
 
-        // Anchos de columna: Proveedor reducido para que las demás sean visibles
         porPagarGrid.getColumn(TIPO_DOCUMENTO_PROPERTY).setWidth(100);
         porPagarGrid.getColumn(PROVEEDOR_PROPERTY).setWidth(180);
         porPagarGrid.getColumn(FECHA_PROPERTY).setWidth(95);
@@ -245,10 +261,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         porPagarGrid.getColumn(ANTIGUEDAD_PROPERTY).setWidth(70);
 
         porPagarGrid.setCellStyleGenerator((Grid.CellReference cellReference) -> {
-
             if (SALDO_PROPERTY.equals(cellReference.getPropertyId())) {
-                return "rightalign";
-            } else if (SALDO_PROPERTY.equals(cellReference.getPropertyId())) {
                 return "rightalign";
             } else if (A_LIQUIDAR_PROPERTY.equals(cellReference.getPropertyId())) {
                 return "rightalign";
@@ -263,10 +276,8 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             } else {
                 return null;
             }
-
         });
 
-        // Columna con botón embebido para abrir Cuenta Corriente
         porPagarGrid.getColumn(A_LIQUIDAR_PROPERTY)
                 .setRenderer(new ButtonRenderer(this::onALiquidarButtonClick))
                 .setWidth(120);
@@ -274,55 +285,43 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         HeaderRow filterRow = porPagarGrid.appendHeaderRow();
 
         HeaderCell cell = filterRow.getCell(PROVEEDOR_PROPERTY);
-
         TextField filterField = new TextField();
         filterField.addStyleName(ValoTheme.TEXTFIELD_TINY);
         filterField.setInputPrompt("Filtrar");
         filterField.setColumns(10);
-
         filterField.addTextChangeListener(change -> {
             porPagarContainer.removeContainerFilters(PROVEEDOR_PROPERTY);
-
-            // (Re)create the filter if necessary
             if (!change.getText().isEmpty()) {
                 porPagarContainer.addContainerFilter(
-                        new SimpleStringFilter(PROVEEDOR_PROPERTY,
-                                change.getText(), true, false));
+                        new SimpleStringFilter(PROVEEDOR_PROPERTY, change.getText(), true, false));
             }
         });
         cell.setComponent(filterField);
 
         HeaderCell cell0 = filterRow.getCell(NUMERO_FACTURA_PROPERTY);
-
         TextField filterField0 = new TextField();
         filterField0.addStyleName(ValoTheme.TEXTFIELD_TINY);
         filterField0.setInputPrompt("Filtrar");
         filterField0.setColumns(8);
-
         filterField0.addTextChangeListener(change -> {
             porPagarContainer.removeContainerFilters(NUMERO_FACTURA_PROPERTY);
-
-            // (Re)create the filter if necessary
             if (!change.getText().isEmpty()) {
                 porPagarContainer.addContainerFilter(
-                        new SimpleStringFilter(NUMERO_FACTURA_PROPERTY,
-                                change.getText(), true, false));
+                        new SimpleStringFilter(NUMERO_FACTURA_PROPERTY, change.getText(), true, false));
             }
         });
-
         cell0.setComponent(filterField0);
 
         HeaderCell cell1 = filterRow.getCell(MONEDA_PROPERTY);
-
         TextField filterField1 = new TextField();
         filterField1.addStyleName(ValoTheme.TEXTFIELD_TINY);
         filterField1.setInputPrompt("Filtrar");
         filterField1.setColumns(6);
-
         filterField1.addTextChangeListener(change -> {
             porPagarContainer.removeContainerFilters(MONEDA_PROPERTY);
             if (!change.getText().isEmpty()) {
-                porPagarContainer.addContainerFilter(new SimpleStringFilter(MONEDA_PROPERTY, change.getText(), true, false));
+                porPagarContainer.addContainerFilter(
+                        new SimpleStringFilter(MONEDA_PROPERTY, change.getText(), true, false));
             }
         });
         cell1.setComponent(filterField1);
@@ -341,51 +340,236 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         saldoFacturaTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
         saldoFacturaTxt.setWidth("8em");
         saldoFacturaTxt.setReadOnly(false);
+        // porPagarGrid se agrega al TabSheet en crearTabSheet()
+    }
 
-        mainLayout.addComponent(porPagarGrid);
-        mainLayout.setComponentAlignment(porPagarGrid, Alignment.TOP_CENTER);
-/**
- cuentaCorrienteBtn = new Button("Cuenta corriente");
- cuentaCorrienteBtn.setWidth("10em");
- cuentaCorrienteBtn.addClickListener(new Button.ClickListener() {
-@Override public void buttonClick(Button.ClickEvent event) {
-if(porPagarGrid.getSelectedRow() == null) {
-Notification.show("Por favor elija un documento y vuelva a intentar.", Notification.Type.WARNING_MESSAGE);
-return;
-}
-CuentaCorrienteDocumentoForm ccForm =
-new CuentaCorrienteDocumentoForm(String.valueOf(porPagarContainer.getContainerProperty(porPagarGrid.getSelectedRow(), CODIGO_CC_PROPERTY).getValue()));
-mainUI.addWindow(ccForm);
-ccForm.center();
-}
-});
+    private void crearGridAnticipOC() {
 
- HorizontalLayout buttonsLayout = new HorizontalLayout();
- buttonsLayout.setMargin(new MarginInfo(false, true, false, true));
- buttonsLayout.setSpacing(true);
- buttonsLayout.setWidth("100%");
+        anticiposOCContainer.addContainerProperty(OC_ID_PROPERTY, String.class, "");
+        anticiposOCContainer.addContainerProperty(OC_NOC_PROPERTY, String.class, "");
+        anticiposOCContainer.addContainerProperty(OC_TIPO_PROPERTY, String.class, "");
+        anticiposOCContainer.addContainerProperty(OC_PROVEEDOR_OC_PROPERTY, String.class, "");
+        anticiposOCContainer.addContainerProperty(OC_FECHA_OC_PROPERTY, String.class, "");
+        anticiposOCContainer.addContainerProperty(OC_MONEDA_OC_PROPERTY, String.class, "");
+        anticiposOCContainer.addContainerProperty(OC_ANTICIPO_OC_PROPERTY, String.class, "0.00");
+        anticiposOCContainer.addContainerProperty(OC_ANTICIPO_SF_OC_PROPERTY, String.class, "0.00");
+        anticiposOCContainer.addContainerProperty(OC_IDPROVEEDOR_OC_PROPERTY, String.class, "");
+        anticiposOCContainer.addContainerProperty(OC_CHEQUE_OC_PROPERTY, String.class, "");
+        anticiposOCContainer.addContainerProperty(OC_RESPONSABLE_OC_PROPERTY, String.class, "");
+        anticiposOCContainer.addContainerProperty(OC_RAZON_OC_PROPERTY, String.class, "");
+        anticiposOCContainer.addContainerProperty(OC_ESTADO_OC_PROPERTY, String.class, "");
+        anticiposOCContainer.addContainerProperty(OC_NOMBRE_PROVEEDOR_OC_PROPERTY, String.class, "");
 
- buttonsLayout.addComponents(cuentaCorrienteBtn, saldoFacturaTxt);
- buttonsLayout.setComponentAlignment(cuentaCorrienteBtn, Alignment.TOP_LEFT);
- buttonsLayout.setComponentAlignment(saldoFacturaTxt, Alignment.TOP_RIGHT);
+        anticiposOCGrid = new Grid("Solicitudes de Anticipos OC", anticiposOCContainer);
+        anticiposOCGrid.setWidth("100%");
+        anticiposOCGrid.setImmediate(true);
+        anticiposOCGrid.setDescription("Haga clic en el monto de anticipo para asignar cheque.");
+        anticiposOCGrid.setHeightMode(HeightMode.ROW);
+        anticiposOCGrid.setHeightByRows(7);
 
- mainLayout.addComponent(documentosLayout);
- mainLayout.setComponentAlignment(documentosLayout, Alignment.TOP_CENTER);
+        anticiposOCGrid.getColumn(OC_ID_PROPERTY).setHidable(true).setHidden(true);
+        anticiposOCGrid.getColumn(OC_ANTICIPO_SF_OC_PROPERTY).setHidable(true).setHidden(true);
+        anticiposOCGrid.getColumn(OC_IDPROVEEDOR_OC_PROPERTY).setHidable(true).setHidden(true);
+        anticiposOCGrid.getColumn(OC_NOMBRE_PROVEEDOR_OC_PROPERTY).setHidable(true).setHidden(true);
 
- mainLayout.addComponent(buttonsLayout);
- mainLayout.setComponentAlignment(buttonsLayout, Alignment.TOP_RIGHT);
- **/
+        anticiposOCGrid.getColumn(OC_NOC_PROPERTY).setWidth(90);
+        anticiposOCGrid.getColumn(OC_TIPO_PROPERTY).setWidth(120);
+        anticiposOCGrid.getColumn(OC_PROVEEDOR_OC_PROPERTY).setWidth(200);
+        anticiposOCGrid.getColumn(OC_FECHA_OC_PROPERTY).setWidth(90);
+        anticiposOCGrid.getColumn(OC_MONEDA_OC_PROPERTY).setWidth(90);
+        anticiposOCGrid.getColumn(OC_ANTICIPO_OC_PROPERTY).setWidth(120);
+        anticiposOCGrid.getColumn(OC_CHEQUE_OC_PROPERTY).setWidth(80);
+        anticiposOCGrid.getColumn(OC_RESPONSABLE_OC_PROPERTY).setWidth(130);
+        anticiposOCGrid.getColumn(OC_ESTADO_OC_PROPERTY).setWidth(90);
+
+        anticiposOCGrid.setCellStyleGenerator((Grid.CellReference cellReference) -> {
+            if (OC_ANTICIPO_OC_PROPERTY.equals(cellReference.getPropertyId())) {
+                return "rightalign";
+            } else if (OC_CHEQUE_OC_PROPERTY.equals(cellReference.getPropertyId())) {
+                return "centeralign";
+            } else {
+                return null;
+            }
+        });
+
+        // Botón en columna Anticipo para asignar cheque (monto total, sin parcial)
+        anticiposOCGrid.getColumn(OC_ANTICIPO_OC_PROPERTY)
+                .setRenderer(new ButtonRenderer(this::onAsignarChequeOCButtonClick))
+                .setWidth(120);
+        // anticiposOCGrid se agrega al TabSheet en crearTabSheet()
+    }
+
+    private void crearTabSheet() {
+        TabSheet tabSheet = new TabSheet();
+        tabSheet.setWidth("100%");
+
+        VerticalLayout tab1Layout = new VerticalLayout();
+        tab1Layout.setWidth("100%");
+        tab1Layout.setSpacing(true);
+        tab1Layout.addComponent(porPagarGrid);
+
+        VerticalLayout tab2Layout = new VerticalLayout();
+        tab2Layout.setWidth("100%");
+        tab2Layout.setSpacing(true);
+        tab2Layout.addComponent(anticiposOCGrid);
+
+        Label tab2Hint = new Label("Haga clic en el monto de Anticipo para asignar cheque. El cheque cubre el total del anticipo.");
+        tab2Hint.addStyleName(ValoTheme.LABEL_SMALL);
+        tab2Layout.addComponent(tab2Hint);
+
+        tabSheet.addTab(tab1Layout, "Cuentas por pagar", FontAwesome.FILE_TEXT_O);
+        tabSheet.addTab(tab2Layout, "Solicitudes de Anticipos OC", FontAwesome.SHOPPING_CART);
+
+        mainLayout.addComponent(tabSheet);
+        mainLayout.setComponentAlignment(tabSheet, Alignment.TOP_CENTER);
+    }
+
+    /**
+     * Asigna automáticamente el próximo cheque de la cuenta bancaria seleccionada
+     * al anticipo OC. El monto es el total del anticipo sin posibilidad de parcial.
+     */
+    private void onAsignarChequeOCButtonClick(ClickableRenderer.RendererClickEvent event) {
+
+        String monedaOC = nvlC(anticiposOCContainer.getContainerProperty(event.getItemId(), OC_MONEDA_OC_PROPERTY).getValue());
+
+        // Buscar cuenta bancaria seleccionada de la misma moneda
+        boolean cuentaEncontrada = false;
+        Object cuentaItemId = null;
+        for (Object itemId : cuentasBancosContainer.getItemIds()) {
+            if (itemId == null) continue;
+            if (cuentasBancosGrid.isSelected(itemId)) {
+                String monedaBanco = nvlC(cuentasBancosContainer.getContainerProperty(itemId, MONEDA_PROPERTY).getValue());
+                if (monedaBanco.equalsIgnoreCase(monedaOC)) {
+                    cuentaEncontrada = true;
+                    cuentaItemId = itemId;
+                    break;
+                }
+            }
+        }
+        if (!cuentaEncontrada) {
+            Notification.show("Seleccione una cuenta bancaria de la misma moneda.", Notification.Type.WARNING_MESSAGE);
+            return;
+        }
+
+        // Si ya tiene cheque asignado, des-asignar y restaurar saldo
+        String chequeActual = nvlC(anticiposOCContainer.getContainerProperty(event.getItemId(), OC_CHEQUE_OC_PROPERTY).getValue());
+        if (!chequeActual.isEmpty()) {
+            double montoAnticipo = parseMontoSF(anticiposOCContainer.getContainerProperty(event.getItemId(), OC_ANTICIPO_SF_OC_PROPERTY).getValue());
+            double saldoBco = parseMontoSF(cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDOSF_PROPERTY).getValue());
+            double pagos = parseMontoSF(cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOSSF_PROPERTY).getValue());
+            cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDO_PROPERTY).setValue(numberFormat.format(saldoBco + montoAnticipo));
+            cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDOSF_PROPERTY).setValue(numberFormat2.format(saldoBco + montoAnticipo));
+            cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOS_PROPERTY).setValue(numberFormat.format(Math.max(0, pagos - montoAnticipo)));
+            cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOSSF_PROPERTY).setValue(numberFormat2.format(Math.max(0, pagos - montoAnticipo)));
+            anticiposOCContainer.getContainerProperty(event.getItemId(), OC_CHEQUE_OC_PROPERTY).setValue("");
+            return;
+        }
+
+        String ultimoChequeStr = nvlC(cuentasBancosContainer.getContainerProperty(cuentaItemId, ULTIMO_CHEQUE_PROPERTY).getValue());
+        if (ultimoChequeStr.isEmpty()) {
+            Notification.show("La cuenta bancaria seleccionada no tiene chequera activa.", Notification.Type.WARNING_MESSAGE);
+            return;
+        }
+        int ultimoCheque = Integer.parseInt(ultimoChequeStr);
+
+        // Reusar cheque si el mismo proveedor ya tiene un cheque asignado en otros anticipos OC
+        String idProveedorOC = nvlC(anticiposOCContainer.getContainerProperty(event.getItemId(), OC_IDPROVEEDOR_OC_PROPERTY).getValue());
+        String chequeExistente = "";
+        for (Object itemId2 : anticiposOCContainer.getItemIds()) {
+            if (itemId2 == null || itemId2.equals(event.getItemId())) continue;
+            if (nvlC(anticiposOCContainer.getContainerProperty(itemId2, OC_IDPROVEEDOR_OC_PROPERTY).getValue()).equals(idProveedorOC)) {
+                String ch = nvlC(anticiposOCContainer.getContainerProperty(itemId2, OC_CHEQUE_OC_PROPERTY).getValue());
+                if (!ch.isEmpty()) {
+                    chequeExistente = ch;
+                    break;
+                }
+            }
+        }
+
+        String noCheque;
+        if (!chequeExistente.isEmpty()) {
+            noCheque = chequeExistente;
+        } else {
+            if (!numeroChequeEnChequera(ultimoCheque + 1,
+                    nvlC(cuentasBancosContainer.getContainerProperty(cuentaItemId, ID_CUENTABANCO_PROPERTY).getValue()))) {
+                Notification.show("No hay cheques disponibles en chequera. Por favor revise cuentas bancarias y chequera en el sistema.",
+                        Notification.Type.WARNING_MESSAGE);
+                return;
+            }
+            noCheque = String.valueOf(ultimoCheque + 1);
+            cuentasBancosContainer.getContainerProperty(cuentaItemId, ULTIMO_CHEQUE_PROPERTY).setValue(noCheque);
+        }
+
+        anticiposOCContainer.getContainerProperty(event.getItemId(), OC_CHEQUE_OC_PROPERTY).setValue(noCheque);
+
+        // Descontar del saldo del banco
+        double montoAnticipo = parseMontoSF(anticiposOCContainer.getContainerProperty(event.getItemId(), OC_ANTICIPO_SF_OC_PROPERTY).getValue());
+        double saldoBco = parseMontoSF(cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDOSF_PROPERTY).getValue());
+        double pagos = parseMontoSF(cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOSSF_PROPERTY).getValue());
+
+        cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDO_PROPERTY).setValue(numberFormat.format(saldoBco - montoAnticipo));
+        cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDOSF_PROPERTY).setValue(numberFormat2.format(saldoBco - montoAnticipo));
+        cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOS_PROPERTY).setValue(numberFormat.format(pagos + montoAnticipo));
+        cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOSSF_PROPERTY).setValue(numberFormat2.format(pagos + montoAnticipo));
+    }
+
+    public void llenarGridAnticipOC() {
+        anticiposOCContainer.removeAllItems();
+
+        try {
+
+            // orden_compra.Anticipo se alias explícitamente para evitar ambigüedad con columnas
+            // homónimas que puedan existir en las tablas del JOIN (proveedor_empresa, empresa).
+            queryString = " SELECT orden_compra.Id AS OC_Id, orden_compra.NOC AS OC_NOC,";
+            queryString += " orden_compra.IdProveedor AS OC_IdProveedor,";
+            queryString += " orden_compra.Fecha AS OC_Fecha, orden_compra.Moneda AS OC_Moneda,";
+            queryString += " orden_compra.Total AS OC_Total, orden_compra.Anticipo AS OC_Anticipo,";
+            queryString += " orden_compra.Responsable AS OC_Responsable, orden_compra.Razon AS OC_Razon,";
+            queryString += " orden_compra.Estado AS OC_Estado,";
+            queryString += " proveedor_empresa.Nombre AS ProveedorNombre,";
+            queryString += " tipo_orden_compra.Descripcion AS TipoOrdenCompra";
+            queryString += " FROM orden_compra";
+            queryString += " LEFT JOIN empresa ON orden_compra.IdEmpresa = empresa.IdEmpresa";
+            queryString += " LEFT JOIN proveedor_empresa ON orden_compra.IdProveedor = proveedor_empresa.IdProveedor";
+            queryString += " LEFT JOIN tipo_orden_compra ON orden_compra.IdTipoOrdenCompra = tipo_orden_compra.Id";
+            queryString += " WHERE orden_compra.CodigoCCAnticipo = '' AND orden_compra.CodigoCCDocumento = ''";
+            queryString += " AND   orden_compra.IdEmpresa =" + empresaId;
+            queryString += " AND   proveedor_empresa.IdEmpresa = " + empresaId;
+
+            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+            rsRecords = stQuery.executeQuery(queryString);
+
+            if (rsRecords.next()) {
+                do {
+                    Object itemId = anticiposOCContainer.addItem();
+                    anticiposOCContainer.getContainerProperty(itemId, OC_ID_PROPERTY).setValue(rsRecords.getString("OC_Id"));
+                    anticiposOCContainer.getContainerProperty(itemId, OC_NOC_PROPERTY).setValue(rsRecords.getString("OC_NOC"));
+                    anticiposOCContainer.getContainerProperty(itemId, OC_TIPO_PROPERTY).setValue(rsRecords.getString("TipoOrdenCompra"));
+                    anticiposOCContainer.getContainerProperty(itemId, OC_PROVEEDOR_OC_PROPERTY).setValue(rsRecords.getString("ProveedorNombre"));
+                    anticiposOCContainer.getContainerProperty(itemId, OC_FECHA_OC_PROPERTY).setValue(Utileria.getFechaDDMMYYYY(rsRecords.getDate("OC_Fecha")));
+                    anticiposOCContainer.getContainerProperty(itemId, OC_MONEDA_OC_PROPERTY).setValue(rsRecords.getString("OC_Moneda"));
+                    anticiposOCContainer.getContainerProperty(itemId, OC_ANTICIPO_OC_PROPERTY).setValue(numberFormat.format(rsRecords.getDouble("OC_Anticipo")));
+                    anticiposOCContainer.getContainerProperty(itemId, OC_ANTICIPO_SF_OC_PROPERTY).setValue(rsRecords.getString("OC_Anticipo"));
+                    anticiposOCContainer.getContainerProperty(itemId, OC_IDPROVEEDOR_OC_PROPERTY).setValue(rsRecords.getString("OC_IdProveedor"));
+                    anticiposOCContainer.getContainerProperty(itemId, OC_CHEQUE_OC_PROPERTY).setValue("");
+                    anticiposOCContainer.getContainerProperty(itemId, OC_RESPONSABLE_OC_PROPERTY).setValue(rsRecords.getString("OC_Responsable"));
+                    anticiposOCContainer.getContainerProperty(itemId, OC_RAZON_OC_PROPERTY).setValue(rsRecords.getString("OC_Razon"));
+                    anticiposOCContainer.getContainerProperty(itemId, OC_ESTADO_OC_PROPERTY).setValue(rsRecords.getString("OC_Estado"));
+                    anticiposOCContainer.getContainerProperty(itemId, OC_NOMBRE_PROVEEDOR_OC_PROPERTY).setValue(rsRecords.getString("ProveedorNombre"));
+                } while (rsRecords.next());
+            }
+
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+            Notification.show("Error al listar anticipos de ordenes de compra: " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
+        }
     }
 
     /**
      * Manejador del click en el botón de la columna "A liquidar" del grid porPagar.
-     * Valida que haya una cuenta bancaria seleccionada de la misma moneda del documento,
-     * luego abre la ventana PagoProveedorWindow y al confirmar actualiza los montos
-     * de anticipo y cheque tanto en porPagarContainer como en cuentasBancosContainer.
      */
     private void onALiquidarButtonClick(ClickableRenderer.RendererClickEvent event) {
 
-        // Buscar cuenta bancaria seleccionada con la misma moneda que el documento
         boolean cuentaMonedaSeleccionada = false;
         Object cuentaMonedaItemId = null;
         for (Object itemId : cuentasBancosContainer.getItemIds()) {
@@ -404,14 +588,12 @@ ccForm.center();
             return;
         }
 
-        // Preparar datos del documento
         double saldoDoc = Double.parseDouble(String.valueOf(
                 porPagarContainer.getContainerProperty(event.getItemId(), SALDOSF_PROPERTY).getValue()));
         double saldoAnticipos = getAnticiposProveedor(
                 String.valueOf(porPagarContainer.getContainerProperty(event.getItemId(), ID_PROVEEDOR_PROPERTY).getValue()),
                 String.valueOf(porPagarContainer.getContainerProperty(event.getItemId(), MONEDA_PROPERTY).getValue()));
 
-        // Construir y configurar la ventana de pago
         PagoProveedorWindow win = new PagoProveedorWindow();
         win.setCaption("Pagar a proveedor : " +
                 porPagarContainer.getContainerProperty(event.getItemId(), PROVEEDOR_PROPERTY).getValue());
@@ -428,7 +610,6 @@ ccForm.center();
             win.setMontoCheque(Double.parseDouble(numberFormat2.format(saldoDoc - saldoAnticipos)));
         }
 
-        // Al confirmar en la ventana, actualizar containers
         final Object finalCuentaMonedaItemId = cuentaMonedaItemId;
         win.getAceptarBtn().addClickListener(event1 -> {
             porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_PROPERTY)
@@ -442,8 +623,8 @@ ccForm.center();
             porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY)
                     .setValue(numberFormat2.format(win.getMontoCheque()));
 
-            int ultimoCheque = Integer.parseInt(String.valueOf(
-                    cuentasBancosContainer.getContainerProperty(finalCuentaMonedaItemId, ULTIMO_CHEQUE_PROPERTY).getValue()));
+            String uckStr = nvlC(cuentasBancosContainer.getContainerProperty(finalCuentaMonedaItemId, ULTIMO_CHEQUE_PROPERTY).getValue());
+            int ultimoCheque = uckStr.isEmpty() ? 0 : Integer.parseInt(uckStr);
 
             if (win.getMontoCheque() > 0) {
                 double saldoBco = Double.parseDouble(String.valueOf(
@@ -451,8 +632,6 @@ ccForm.center();
                 double pagos = Double.parseDouble(String.valueOf(
                         cuentasBancosContainer.getContainerProperty(finalCuentaMonedaItemId, PAGOSSF_PROPERTY).getValue()));
 
-
-                // Reusar cheque si el proveedor ya tiene otro documento con cheque asignado
                 for (Object itemId2 : porPagarContainer.getItemIds()) {
                     if (itemId2 == null || itemId2.equals(event.getItemId())) continue;
                     if (String.valueOf(porPagarContainer.getContainerProperty(itemId2, ID_PROVEEDOR_PROPERTY).getValue())
@@ -507,9 +686,7 @@ ccForm.center();
         Button btnClear = new Button("Limpiar");
         btnClear.setIcon(FontAwesome.ERASER);
         btnClear.setWidth("10em");
-        btnClear.addClickListener((Button.ClickListener) event -> {
-            limpiar();
-        });
+        btnClear.addClickListener((Button.ClickListener) event -> limpiar());
 
         Button btnAutorizarPagos = new Button("Autorizar pagos");
         btnAutorizarPagos.addStyleName(ValoTheme.BUTTON_PRIMARY);
@@ -517,15 +694,19 @@ ccForm.center();
         btnAutorizarPagos.setWidth("15em");
         btnAutorizarPagos.addClickListener((Button.ClickListener) event -> {
             double porLiquidar = 0.00;
-            for(Object itemId : porPagarContainer.getItemIds()) {
-                porLiquidar+= Double.parseDouble(String.valueOf(porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_ANTICIPOSSF_PROPERTY).getValue()));
-                porLiquidar+= Double.parseDouble(String.valueOf(porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).getValue()));
+            for (Object itemId : porPagarContainer.getItemIds()) {
+                porLiquidar += Double.parseDouble(String.valueOf(porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_ANTICIPOSSF_PROPERTY).getValue()));
+                porLiquidar += Double.parseDouble(String.valueOf(porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).getValue()));
             }
-            if(porLiquidar == 0) {
+            for (Object itemId : anticiposOCContainer.getItemIds()) {
+                if (!nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_CHEQUE_OC_PROPERTY).getValue()).isEmpty()) {
+                    porLiquidar += parseMontoSF(anticiposOCContainer.getContainerProperty(itemId, OC_ANTICIPO_SF_OC_PROPERTY).getValue());
+                }
+            }
+            if (porLiquidar == 0) {
                 Notification.show("No hay pagos por aplicar.", Notification.Type.WARNING_MESSAGE);
-            }
-            else {
-                if(cuentasBancosGrid.getSelectedRows().isEmpty()) {
+            } else {
+                if (cuentasBancosGrid.getSelectedRows().isEmpty()) {
                     Notification.show("Seleccione al menos una cuenta bancaria.", Notification.Type.WARNING_MESSAGE);
                     return;
                 }
@@ -558,8 +739,7 @@ ccForm.center();
     }
 
     private void limpiar() {
-        //Iterar grid por cada item y limpiar los campos
-        for(Object itemId : porPagarContainer.getItemIds()) {
+        for (Object itemId : porPagarContainer.getItemIds()) {
             porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_PROPERTY).setValue("0.00");
             porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_ANTICIPOS_PROPERTY).setValue("0.00");
             porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_MONTO_CHEQUE_PROPERTY).setValue("0.00");
@@ -567,7 +747,10 @@ ccForm.center();
             porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).setValue("0.00");
             porPagarContainer.getContainerProperty(itemId, CHEQUE_PROPERTY).setValue("");
         }
-        for(Object itemId : cuentasBancosContainer.getItemIds()) {
+        for (Object itemId : anticiposOCContainer.getItemIds()) {
+            anticiposOCContainer.getContainerProperty(itemId, OC_CHEQUE_OC_PROPERTY).setValue("");
+        }
+        for (Object itemId : cuentasBancosContainer.getItemIds()) {
             cuentasBancosContainer.getContainerProperty(itemId, PAGOS_PROPERTY).setValue("0.00");
             cuentasBancosContainer.getContainerProperty(itemId, PAGOSSF_PROPERTY).setValue("0.00");
             cuentasBancosContainer.getContainerProperty(itemId, NUEVO_SALDO_PROPERTY).setValue("0.00");
@@ -575,6 +758,7 @@ ccForm.center();
             cuentasBancosContainer.getContainerProperty(itemId, ULTIMO_CHEQUE_PROPERTY).setValue(obtenerUltimoCheque(String.valueOf(cuentasBancosContainer.getContainerProperty(itemId, ID_CUENTABANCO_PROPERTY).getValue())));
         }
     }
+
     public void llenarGridBancos() {
 
         cuentasBancosContainer.removeAllItems();
@@ -594,7 +778,7 @@ ccForm.center();
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
 
-            if (rsRecords.next()) { //  encontrado
+            if (rsRecords.next()) {
                 Object itemId;
                 double dSaldoContable = 0.00;
                 do {
@@ -605,7 +789,6 @@ ccForm.center();
                     cuentasBancosContainer.getContainerProperty(itemId, BANCO_PROPERTY).setValue(rsRecords.getString("prov.Nombre"));
                     cuentasBancosContainer.getContainerProperty(itemId, MONEDA_PROPERTY).setValue(rsRecords.getString("Moneda"));
 
-//                    dSaldoContable = getSaldoContable(rsRecords.getString("IdNomenclatura"), rsRecords.getString("Moneda"));
                     dSaldoContable = rsRecords.getDouble("Saldo");
                     cuentasBancosContainer.getContainerProperty(itemId, SALDO_CONTABLE_PROPERTY).setValue(numberFormat.format(dSaldoContable));
                     cuentasBancosContainer.getContainerProperty(itemId, NUEVO_SALDO_PROPERTY).setValue(numberFormat.format(dSaldoContable));
@@ -634,21 +817,27 @@ ccForm.center();
         try {
             stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords1 = stQuery1.executeQuery(queryString);
-            if(rsRecords1.next()) {
+            if (rsRecords1.next()) {
                 dSaldoContable = rsRecords1.getDouble("SALDOCONTABLE");
             }
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
             Notification.show("Error al obtener saldo contable de cuentas bancarias : " + ex.getMessage(), Notification.Type.WARNING_MESSAGE);
         }
         return dSaldoContable;
     }
 
-    /*
-        Metodo para obtener el ultimo cheque de una cuenta bancaria.
-        Tabla  : contabilidad_cuentas_bancos_chequera de la chequera donde Del != UltimoUtilizado.
-        Return : UltimoUtilizado.
+    /**
+     * Devuelve el UltimoUtilizado de la chequera activa (con cheques disponibles).
+     * Una chequera está activa cuando UltimoUtilizado < Al.
+     * El siguiente cheque a usar es siempre UltimoUtilizado + 1.
+     *
+     * Diseño de la tabla:
+     *   Del             = primer número de la chequera (inclusive)
+     *   Al              = último número de la chequera (inclusive)
+     *   UltimoUtilizado = último cheque entregado; se inicializa en Del-1 (ninguno usado)
+     *
+     * Retorna "" si no hay chequera activa (ninguna o todas agotadas).
      */
     private String obtenerUltimoCheque(String idCuentaBanco) {
         String ultimoCheque = "";
@@ -657,16 +846,16 @@ ccForm.center();
         queryString += " FROM contabilidad_cuentas_bancos_chequera ";
         queryString += " WHERE IdCuentaBanco = " + idCuentaBanco;
         queryString += " AND IdEmpresa = " + empresaId;
-        queryString += " AND Del <> UltimoUtilizado";
+        queryString += " AND UltimoUtilizado < Al";
+        queryString += " ORDER BY Del ASC LIMIT 1";
 
         try {
             stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords1 = stQuery1.executeQuery(queryString);
-            if(rsRecords1.next()) {
+            if (rsRecords1.next()) {
                 ultimoCheque = rsRecords1.getString("UltimoUtilizado");
             }
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
             Notification.show("Error al obtener ultimo cheque de cuenta bancaria : " + ex.getMessage(), Notification.Type.WARNING_MESSAGE);
         }
@@ -682,15 +871,14 @@ ccForm.center();
         queryString += " AND IdEmpresa = " + empresaId;
         queryString += " AND " + numeroCheque + " >= Del";
         queryString += " AND " + numeroCheque + " <= Al";
-Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de cheque en chequera : {0}", queryString);
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de cheque en chequera : {0}", queryString);
         try {
             stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords1 = stQuery1.executeQuery(queryString);
-            if(rsRecords1.next()) {
+            if (rsRecords1.next()) {
                 numeroChequeEnChequera = true;
             }
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
             Notification.show("Error al obtener ultimo cheque de cuenta bancaria : " + ex.getMessage(), Notification.Type.WARNING_MESSAGE);
         }
@@ -698,13 +886,6 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
         return numeroChequeEnChequera;
     }
 
-    /**
-     * Obttiene el total de saldos de anticipos pendientes de liquidar del proveedor
-     * Debe tomar en cuenta lo ya ocupado en otros documentos porPagarContainer
-     * @param proveedorSeleccionado
-     * @param tipoMonedaSeleccionado
-     * @return totalMontoAnticipo
-     */
     public double getAnticiposProveedor(String proveedorSeleccionado, String tipoMonedaSeleccionado) {
 
         double totalSaldoAnticipo = 0.00;
@@ -735,12 +916,10 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
                 } while (rsRecords.next());
             }
 
-            //Recorrer porPagarContainer para sumar los montos ya ocupados de anticipos del proveedor
-            //Y descontarlo del totalSandoAnticipo para que realmente retorne un saldo actualizado en memoria.
             double anticipoPrevio = 0.00;
             for (Object itemId : porPagarContainer.getItemIds()) {
-                if(porPagarContainer.getContainerProperty(itemId, ID_PROVEEDOR_PROPERTY).getValue().equals(proveedorSeleccionado)) {
-                    anticipoPrevio+= parseMontoSF(porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_ANTICIPOSSF_PROPERTY).getValue());
+                if (porPagarContainer.getContainerProperty(itemId, ID_PROVEEDOR_PROPERTY).getValue().equals(proveedorSeleccionado)) {
+                    anticipoPrevio += parseMontoSF(porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_ANTICIPOSSF_PROPERTY).getValue());
                 }
             }
             totalSaldoAnticipo -= anticipoPrevio;
@@ -777,7 +956,6 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
         queryString += " ORDER by contabilidad_partida.IdProveedor, contabilidad_partida.Fecha";
 
         try {
-
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
             stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -795,8 +973,6 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
                     queryString += " AND CodigoCC = '" + rsRecords.getString("CodigoCC") + "'";
                     queryString += " AND contabilidad_partida.IdNomenclatura = " + rsRecords.getString("IdNomenclatura");
                     queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
-
-//                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
 
                     rsRecords1 = stQuery1.executeQuery(queryString);
 
@@ -822,7 +998,6 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
                                 totalSaldoDolares = totalSaldoDolares + rsRecords1.getDouble("TOTALSALDO");
                             }
                             porPagarContainer.getContainerProperty(itemId, SALDO_PROPERTY).setValue(monedaSimbolo + numberFormat.format(rsRecords1.getDouble("TOTALSALDO")));
-                            //calcular los dias antigueead del documento entre Fecha y hoy
                             int antiguedad = Utileria.antiguedad(rsRecords.getDate("Fecha"));
                             porPagarContainer.getContainerProperty(itemId, ANTIGUEDAD_PROPERTY).setValue(String.valueOf(antiguedad));
                             porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_PROPERTY).setValue(monedaSimbolo + numberFormat.format(rsRecords.getDouble("MontoAplicarAnticipo")));
@@ -832,8 +1007,8 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
                             porPagarContainer.getContainerProperty(itemId, SALDOSF_PROPERTY).setValue(rsRecords1.getString("TOTALSALDO"));
                             porPagarContainer.getContainerProperty(itemId, NOMBRE_PROVEEDOR_PROPERTY).setValue(rsRecords.getString("NombreProveedor"));
                             porPagarContainer.getContainerProperty(itemId, TOTAL_SALDO_QUETZALES_PROPERTY).setValue(rsRecords1.getString("TOTALSALDOQ"));
-                        } // saldo = 0.00
-                    }//no tiene cuenta corriente
+                        }
+                    }
 
                 } while (rsRecords.next());
             }
@@ -846,27 +1021,20 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
 
     // =========================================================================
     //  APLICAR PAGOS CORRIENTES
-    //  ─────────────────────────────────────────────────────────────────────
-    //  Flujo transaccional de 4 pasos que se ejecutan en una sola transacción:
-    //    1. crearPartidasContables()        – INSERT en contabilidad_partida. CHEQUE o finiquitar ANTICIPO.
-    //    2. marcarDocumentosPagados()       – UPDATE Estatus='PAGADO' en documentos
-    //    3. actualizarUltimoChequeChequera() – UPDATE UltimoUtilizado en chequera
     // =========================================================================
 
-    /**
-     * Orquestador principal: ejecuta los 4 pasos dentro de una transacción JDBC.
-     * Al finalizar correctamente genera el reporte PDF y refresca las grillas.
-     */
     private void aplicarPagosCorrientes() {
 
         cuentasBancosGrid.setReadOnly(true);
         porPagarGrid.setReadOnly(true);
+        anticiposOCGrid.setReadOnly(true);
 
         try {
             ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(false);
             Statement st = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
             crearPartidasContables(st);
+            crearPartidasOCAnticipo(st);
             actualizarUltimoChequeChequera(st);
 
             ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().commit();
@@ -878,12 +1046,13 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
             notif.setIcon(FontAwesome.CHECK);
             notif.show(Page.getCurrent());
 
-            AutorizarPagosCorrientesPDF pdf = new AutorizarPagosCorrientesPDF(porPagarContainer);
+            AutorizarPagosCorrientesPDF pdf = new AutorizarPagosCorrientesPDF(porPagarContainer, anticiposOCContainer);
             UI.getCurrent().addWindow(pdf);
             pdf.center();
 
             llenarGridBancos();
             llenarGridPorPagar();
+            llenarGridAnticipOC();
 
         } catch (Exception ex) {
             try {
@@ -901,23 +1070,9 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
         }
         cuentasBancosGrid.setReadOnly(false);
         porPagarGrid.setReadOnly(false);
+        anticiposOCGrid.setReadOnly(false);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /**
-     * PASO 1 – Inserta las líneas de la partida contable para cada documento pagado.
-     *
-     * Por cada documento con monto > 0 se insertan DOS líneas en contabilidad_partida:
-     *   Línea DEBE  → cuenta de proveedores  (reduce el pasivo – cuentas por pagar)
-     *   Línea HABER → cuenta bancaria         (sale dinero del banco)
-     *
-     * CodigoCC del nuevo pago  : codigoPartidaPago (identificador único de este lote)
-     * CodigoCC_Doc             : CodigoCC del documento original pagado
-     *
-     * TODO: Para documentos en DOLARES completar tipoCambio y totalPagoQ con la
-     *       tasa de cambio vigente del día (fuente: tabla o campo a definir).
-     */
     private void crearPartidasContables(Statement st) throws SQLException {
 
         anticiposOcupadosMap.clear();
@@ -957,7 +1112,6 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
 
         porPagarContainer.sort(new String[] { ID_PROVEEDOR_PROPERTY }, new boolean[] { false });
 
-        //Iterar por cada documento a pagar
         for (Object itemId : porPagarContainer.getItemIds()) {
 
             anticipo  = parseMontoSF(porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_ANTICIPOSSF_PROPERTY).getValue());
@@ -974,8 +1128,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
             String noCheque = nvlC(porPagarContainer.getContainerProperty(itemId, CHEQUE_PROPERTY).getValue());
             String numeroDoc = nvlC(porPagarContainer.getContainerProperty(itemId, NUMERO_FACTURA_PROPERTY).getValue());
             String debeQuetzalesCC = nvlC(porPagarContainer.getContainerProperty(itemId, TOTAL_SALDO_QUETZALES_PROPERTY).getValue());
-System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
-            // TODO: Para DOLARES para los DEBEs. Calcular con base al monto HaberQuetzales del documento a pagar.
+            System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
 
             totalPagoQ = moneda.equalsIgnoreCase("DOLARES")
                     ? totalPago * tipoCambio
@@ -987,30 +1140,28 @@ System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
 
             if (!esteProveedor.equals(String.valueOf(porPagarContainer.getContainerProperty(itemId, ID_PROVEEDOR_PROPERTY).getValue()))) {
                 esteProveedor = porPagarContainer.getContainerProperty(itemId, ID_PROVEEDOR_PROPERTY).getValue().toString();
-                if (codigoPartidaPago.isEmpty()) { // es la primera vez...
-                    codigoPartidaPago = Utileria.nextCodigoPartida(((SopdiUI) mainUI).databaseProvider.getCurrentConnection(), empresaId, new java.util.Date(), 3);
-                } else { //ya hubo partida contable
-                    //Concatenar chequeQueryString a queryString
+                if (codigoPartidaPago.isEmpty()) {
+                    codigoPartidaPago = Utileria.nextCodigoPartida(((SopdiUI) mainUI).databaseProvider.getCurrentConnection(), empresaId, new Date(), 3);
+                } else {
                     queryString += chequeQueryString;
 
-                    if(totalDebeQ > totalHaberQ) {
-                        //insertar linea diferencial cambiario en el haber
+                    if (totalDebeQ > totalHaberQ) {
                         queryString += "(";
                         queryString += empresaId;
-                        queryString += ",'" + codigoPartidaPago + "'"; // Codigo de Partida
-                        queryString += ",'" + codigoPartidaPago + "'";          // Codigo CC del documento a pagar
-                        queryString += ",'CHEQUE'";                    // TipoDocumento
-                        queryString += "," + cuentaDiferencialCambiario; // Id Nomenclatura
-                        queryString += ",''";                          // SerieDocumento
-                        queryString += ",'" + noCheque + "'";          // NumeroDocumento
+                        queryString += ",'" + codigoPartidaPago + "'";
+                        queryString += ",'" + codigoPartidaPago + "'";
+                        queryString += ",'CHEQUE'";
+                        queryString += "," + cuentaDiferencialCambiario;
+                        queryString += ",''";
+                        queryString += ",'" + noCheque + "'";
                         queryString += ",current_date";
                         queryString += ",'" + moneda + "'";
-                        queryString += "," + totalPago;                // MontoDocumento
-                        queryString += ",0";                           // Debe
-                        queryString += ",0";                           // Haber
+                        queryString += "," + totalPago;
+                        queryString += ",0";
+                        queryString += ",0";
                         queryString += ",1";
-                        queryString += "," + (totalHaberQ - totalDebeQ); // DebeQuetzales
-                        queryString += ",0";                             // HaberQuetzales
+                        queryString += "," + (totalHaberQ - totalDebeQ);
+                        queryString += ",0";
                         queryString += ",'PAGADO'";
                         queryString += ",'" + descripcion + "'";
                         queryString += ",''";
@@ -1021,26 +1172,23 @@ System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
                         queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
                         queryString += ",current_timestamp";
                         queryString += "),";
-
-                    }
-                    else if(totalDebeQ < totalHaberQ) {
-                        //insertar linea diferencial cambiario en el debe
+                    } else if (totalDebeQ < totalHaberQ) {
                         queryString += "(";
                         queryString += empresaId;
-                        queryString += ",'" + codigoPartidaPago + "'"; // Codigo de Partida
-                        queryString += ",'" + codigoPartidaPago + "'";          // Codigo CC del documento a pagar
-                        queryString += ",'CHEQUE'";                    // TipoDocumento
-                        queryString += "," + cuentaDiferencialCambiario; // Id Nomenclatura
-                        queryString += ",''";                          // SerieDocumento
-                        queryString += ",'" + noCheque + "'";          // NumeroDocumento
+                        queryString += ",'" + codigoPartidaPago + "'";
+                        queryString += ",'" + codigoPartidaPago + "'";
+                        queryString += ",'CHEQUE'";
+                        queryString += "," + cuentaDiferencialCambiario;
+                        queryString += ",''";
+                        queryString += ",'" + noCheque + "'";
                         queryString += ",current_date";
                         queryString += ",'" + moneda + "'";
-                        queryString += "," + totalPago;                // MontoDocumento
-                        queryString += ",0";                           // Debe
-                        queryString += ",0";                           // Haber
+                        queryString += "," + totalPago;
+                        queryString += ",0";
+                        queryString += ",0";
                         queryString += ",1";
-                        queryString += ",0"; // DebeQuetzales
-                        queryString += "," + (totalDebeQ - totalHaberQ);  // HaberQuetzales
+                        queryString += ",0";
+                        queryString += "," + (totalDebeQ - totalHaberQ);
                         queryString += ",'PAGADO'";
                         queryString += ",'" + descripcion + "'";
                         queryString += ",''";
@@ -1053,37 +1201,33 @@ System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
                         queryString += "),";
                     }
 
-                    //Ejecutar queryString
                     Logger.getLogger(this.getClass().getName()).log(Level.INFO, "(1) INSERT partida : " + codigoPartidaPago + " " + queryString.substring(0, queryString.length() - 1));
                     st.executeUpdate(queryString.substring(0, queryString.length() - 1));
                     acumuladoCheque = 0.00;
                     chequeQueryString = "";
-                    totalDebeQ = 0.00; totalHaberQ = 0.00;
+                    totalDebeQ = 0.00;
+                    totalHaberQ = 0.00;
 
-                    //Seguir con el correlativo de codigoPartidaPago, los ultimos 3 digitos en memoria (no se ha hecho commit)
                     String ultimos3 = codigoPartidaPago.substring((codigoPartidaPago.length() - 3));
                     codigoPartidaPago = codigoPartidaPago.substring(0, codigoPartidaPago.length() - 3) + String.format("%03d", Integer.parseInt(ultimos3) + 1);
-//                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "ultimos3: " + ultimos3);
-//                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "codigoPartidaPago: " + codigoPartidaPago);
                 }
-                // ── LÍNEA 1: DEBE en cuenta de proveedores ────────────────────
                 queryString = "INSERT INTO contabilidad_partida " + COLS;
                 queryString += "(";
                 queryString += empresaId;
-                queryString += ",'" + codigoPartidaPago + "'"; // Codigo de Partida
-                queryString += ",'" + codigoCC + "'";          // Codigo CC del documento a pagar
-                queryString += ",'CHEQUE'";                    // TipoDocumento
-                queryString += "," + cuentaProveedores;        // Id Nomenclatura
-                queryString += ",''";                          // SerieDocumento
-                queryString += ",'" + noCheque + "'";          // NumeroDocumento
+                queryString += ",'" + codigoPartidaPago + "'";
+                queryString += ",'" + codigoCC + "'";
+                queryString += ",'CHEQUE'";
+                queryString += "," + cuentaProveedores;
+                queryString += ",''";
+                queryString += ",'" + noCheque + "'";
                 queryString += ",current_date";
                 queryString += ",'" + moneda + "'";
-                queryString += "," + totalPago;                // MontoDocumento
-                queryString += "," + totalPago;                // Debe
-                queryString += ",0";                           // Haber
+                queryString += "," + totalPago;
+                queryString += "," + totalPago;
+                queryString += ",0";
                 queryString += "," + tipoCambio;
-                queryString += "," + debeQuetzalesCC;          // DebeQuetzales (saldo o haber del documento)
-                queryString += ",0";                           // HaberQuetzales
+                queryString += "," + debeQuetzalesCC;
+                queryString += ",0";
                 queryString += ",'PAGADO'";
                 queryString += ",'" + descripcion + "'";
                 queryString += ",'" + tipoDoca + "'";
@@ -1095,26 +1239,24 @@ System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
                 queryString += ",current_timestamp";
                 queryString += "),";
 
-                totalDebeQ+= Double.parseDouble(debeQuetzalesCC);
-            }
-            else { // mismo proveedor
-                // ── LÍNEA 1: DEBE en cuenta de proveedores ────────────────────
+                totalDebeQ += Double.parseDouble(debeQuetzalesCC);
+            } else {
                 queryString += "(";
                 queryString += empresaId;
-                queryString += ",'" + codigoPartidaPago + "'"; // Codigo de Partida
-                queryString += ",'" + codigoCC + "'";          // Codigo CC del documento a pagar
-                queryString += ",'CHEQUE'";                    // TipoDocumento
-                queryString += "," + cuentaProveedores;        // Id Nomenclatura
-                queryString += ",''";                          // SerieDocumento
-                queryString += ",'" + noCheque + "'";          // NumeroDocumento
+                queryString += ",'" + codigoPartidaPago + "'";
+                queryString += ",'" + codigoCC + "'";
+                queryString += ",'CHEQUE'";
+                queryString += "," + cuentaProveedores;
+                queryString += ",''";
+                queryString += ",'" + noCheque + "'";
                 queryString += ",current_date";
                 queryString += ",'" + moneda + "'";
-                queryString += "," + totalPago;                // MontoDocumento
-                queryString += "," + totalPago;                // Debe
-                queryString += ",0";                           // Haber
+                queryString += "," + totalPago;
+                queryString += "," + totalPago;
+                queryString += ",0";
                 queryString += "," + tipoCambio;
-                queryString += "," + debeQuetzalesCC;          // DebeQuetzales
-                queryString += ",0";                           // HaberQuetzales
+                queryString += "," + debeQuetzalesCC;
+                queryString += ",0";
                 queryString += ",'PAGADO'";
                 queryString += ",'" + descripcion + "'";
                 queryString += ",'" + tipoDoca + "'";
@@ -1125,14 +1267,10 @@ System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
                 queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
                 queryString += ",current_timestamp";
                 queryString += "),";
-                totalDebeQ+= Double.parseDouble(debeQuetzalesCC);
+                totalDebeQ += Double.parseDouble(debeQuetzalesCC);
             }
 
-            // ── LÍNEA 2 a n : HABER en cuenta anticipos a proveedores, solamente si hay anticipos por liquidar ─────────────────────
-            if(anticipo > 0.00) {
-                //Buscar los anticipos vigentes o con saldo, del proveedor
-                //Crear linea de HABER con cuenta Anticipos a Proveedores perso solamente de los Anticipos pendientes de liquidar o con Saldo > 0
-
+            if (anticipo > 0.00) {
                 String queryStringAnticipo = " SELECT contabilidad_partida.CodigoPartida, contabilidad_partida.CodigoCC, SUM(DEBE) MontoAnticipo, ";
                 queryStringAnticipo += " SUM(DEBE - HABER) TOTALSALDO, SUM(DebeQuetzales - HaberQuetzales) TOTALSALDOQ, contabilidad_partida.Fecha";
                 queryStringAnticipo += " FROM contabilidad_partida";
@@ -1147,53 +1285,42 @@ System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
                 queryStringAnticipo += " HAVING TOTALSALDO > 0";
                 queryStringAnticipo += " ORDER BY contabilidad_partida.Fecha ASC";
 
-//                Logger.getLogger(this.getClass().getName()).log(Level.INFO, "-->query para buscar anticipos pendiente de liquidar del proveedor : " + queryStringAnticipo);
-
                 rsRecords = st.executeQuery(queryStringAnticipo);
 
                 if (rsRecords.next()) {
                     double totalAnticipoPorLiquidar = anticipo;
                     double montoAnticipo = 0.00;
                     do {
-//                        System.out.println("(1)montoAnticipo: " + rsRecords.getDouble("TOTALSALDO") );
                         montoAnticipo = rsRecords.getDouble("TOTALSALDO") - (anticiposOcupadosMap.get(rsRecords.getString("CodigoCC")) != null ? anticiposOcupadosMap.get(rsRecords.getString("CodigoCC")) : 0.00);
-//                        System.out.println("(2)montoAnticipo: " + montoAnticipo );
 
-                        if(totalAnticipoPorLiquidar > 0.00 && montoAnticipo > 0.00) {
+                        if (totalAnticipoPorLiquidar > 0.00 && montoAnticipo > 0.00) {
 
                             queryString += "(";
                             queryString += empresaId;
-                            queryString += ",'" + codigoPartidaPago + "'"; // Codigo de Partida
-                            queryString += ",'" + rsRecords.getString("CodigoCC") + "'"; // Codigo CC del anticipo
-                            queryString += ",'CHEQUE'";                    // TipoDocumento
-                            queryString += "," + cuentaAnticipos;          // Id Nomenclatura
-                            queryString += ",''";                          // SerieDocumento
-                            queryString += ",'" + noCheque + "'";          // NumeroDocumento
+                            queryString += ",'" + codigoPartidaPago + "'";
+                            queryString += ",'" + rsRecords.getString("CodigoCC") + "'";
+                            queryString += ",'CHEQUE'";
+                            queryString += "," + cuentaAnticipos;
+                            queryString += ",''";
+                            queryString += ",'" + noCheque + "'";
                             queryString += ",current_date";
                             queryString += ",'" + moneda + "'";
                             if (montoAnticipo <= totalAnticipoPorLiquidar) {
-                                queryString += "," + montoAnticipo;        // MontoDocumento
-                                queryString += ",0";                       // Debe
-                                queryString += "," + montoAnticipo;        // Haber
-//                                anticipoQ = moneda.equalsIgnoreCase("DOLARES")
-//                                        ? montoAnticipo * tipoCambio
-//                                        : montoAnticipo;
+                                queryString += "," + montoAnticipo;
+                                queryString += ",0";
+                                queryString += "," + montoAnticipo;
                                 anticipoQ = rsRecords.getDouble("TOTALSALDOQ");
                                 anticiposOcupadosMap.put(rsRecords.getString("CodigoCC"), montoAnticipo);
-                            }
-                            else {
-                                queryString += "," + totalAnticipoPorLiquidar; // MontoDocumento
-                                queryString += ",0";                           // Debe
-                                queryString += "," + totalAnticipoPorLiquidar; // Haber
-//                                anticipoQ = moneda.equalsIgnoreCase("DOLARES")
-//                                        ? totalAnticipoPorLiquidar * tipoCambio
-//                                        : totalAnticipoPorLiquidar;
+                            } else {
+                                queryString += "," + totalAnticipoPorLiquidar;
+                                queryString += ",0";
+                                queryString += "," + totalAnticipoPorLiquidar;
                                 anticipoQ = rsRecords.getDouble("TOTALSALDOQ");
                                 anticiposOcupadosMap.put(rsRecords.getString("CodigoCC"), totalAnticipoPorLiquidar);
                             }
                             queryString += "," + tipoCambio;
-                            queryString += ",0";                           // DebeQuetzales
-                            queryString += "," + anticipoQ;                // HaberQuetzales
+                            queryString += ",0";
+                            queryString += "," + anticipoQ;
                             queryString += ",'PAGADO'";
                             queryString += ",'" + descripcion + "'";
                             queryString += ",'" + tipoDoca + "'";
@@ -1206,34 +1333,31 @@ System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
                             queryString += "),";
                             totalAnticipoPorLiquidar -= montoAnticipo;
 
-                            totalHaberQ+= anticipoQ;
-
-//                            System.out.println("queryString Anticipo por liquidar: " + queryString);
+                            totalHaberQ += anticipoQ;
                         }
                     } while (rsRecords.next());
                 }
-            }//endif anticipo > 0.00
+            }
 
-            // ── LÍNEA n+1: HABER en cuenta bancaria, solamente si hay monto cheque ─────────────────────
-            if(montoCheq > 0.00) {
-                acumuladoCheque+= montoCheq;
+            if (montoCheq > 0.00) {
+                acumuladoCheque += montoCheq;
 
                 chequeQueryString = "(";
                 chequeQueryString += empresaId;
-                chequeQueryString += ",'" + codigoPartidaPago + "'"; // Codigo de Partida
-                chequeQueryString += ",'" + codigoPartidaPago + "'"; // Codigo CC
-                chequeQueryString += ",'CHEQUE'";                    // TipoDocumento
-                chequeQueryString += "," + (moneda.equals("QUETZALES") ? cuentaBancoMonedaLocal : cuentaBancoMonedaExtranjera);        // Id Nomenclatura
-                chequeQueryString += ",''";                          // SerieDocumento
-                chequeQueryString += ",'" + noCheque + "'";          // NumeroDocumento
+                chequeQueryString += ",'" + codigoPartidaPago + "'";
+                chequeQueryString += ",'" + codigoPartidaPago + "'";
+                chequeQueryString += ",'CHEQUE'";
+                chequeQueryString += "," + (moneda.equals("QUETZALES") ? cuentaBancoMonedaLocal : cuentaBancoMonedaExtranjera);
+                chequeQueryString += ",''";
+                chequeQueryString += ",'" + noCheque + "'";
                 chequeQueryString += ",current_date";
                 chequeQueryString += ",'" + moneda + "'";
-                chequeQueryString += "," + acumuladoCheque;                // MontoDocumento
-                chequeQueryString += ",0";                           // Debe
-                chequeQueryString += "," + acumuladoCheque;                // Haber
+                chequeQueryString += "," + acumuladoCheque;
+                chequeQueryString += ",0";
+                chequeQueryString += "," + acumuladoCheque;
                 chequeQueryString += "," + tipoCambio;
-                chequeQueryString += ",0";                           // DebeQuetzales
-                chequeQueryString += "," + (acumuladoCheque * tipoCambio);         // HaberQuetzales
+                chequeQueryString += ",0";
+                chequeQueryString += "," + (acumuladoCheque * tipoCambio);
                 chequeQueryString += ",'PAGADO'";
                 chequeQueryString += ",'" + descripcion + "'";
                 chequeQueryString += ",'" + tipoDoca + "'";
@@ -1245,31 +1369,135 @@ System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
                 chequeQueryString += ",current_timestamp";
                 chequeQueryString += "),";
 
-                totalHaberQ+= (acumuladoCheque * tipoCambio);
+                totalHaberQ += (acumuladoCheque * tipoCambio);
+            }
+        }
 
-            } //endif montoCheq > 0.00
-        }//endfor
-        //Ejecutar el ultmimo query
-        //Concatenar chequeQueryString a queryString
-        queryString+= chequeQueryString;
-        //Ejecutar queryString
-        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "(2) INSERT partida : " + codigoPartidaPago + " " + queryString.substring(0, queryString.length() - 1));
-        st.executeUpdate(queryString.substring(0, queryString.length() - 1));
+        if (!queryString.isEmpty() && queryString.contains("INSERT")) {
+            queryString += chequeQueryString;
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "(2) INSERT partida : " + codigoPartidaPago + " " + queryString.substring(0, queryString.length() - 1));
+            st.executeUpdate(queryString.substring(0, queryString.length() - 1));
+        }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-
     /**
-     * PASO 2 – Marca los documentos pagados en contabilidad_partida.
-     *
-     * Para cada documento con monto > 0:
-     *   - Estatus            → 'PAGADO'
-     *   - MontoAutorizadoPagar / MontoAplicarAnticipo → 0.00
-     *   - Referencia         → codigoPartidaPago  (liga el doc. con la partida de pago)
-     *   - TipoDoca / NoDoca  → medio y número de cheque
-     *
-     * TODO: completar TipoDoca con el medio de pago real si difiere de CHEQUE.
+     * Crea partidas contables para los anticipos OC con cheque asignado.
+     * DEBE: Cuenta Anticipos a Proveedores (registra el anticipo entregado al proveedor)
+     * HABER: Cuenta Bancaria (dinero que sale del banco)
+     * Luego actualiza orden_compra.CodigoCCAnticipo para marcarlos como procesados.
      */
+    private void crearPartidasOCAnticipo(Statement st) throws SQLException {
+
+        final String COLS =
+            " (IdEmpresa, CodigoPartida, CodigoCC, TipoDocumento, IdNomenclatura, " +
+            "  SerieDocumento, NumeroDocumento, Fecha, MonedaDocumento, MontoDocumento," +
+            "  Debe, Haber, TipoCambio, DebeQuetzales, HaberQuetzales, Estatus," +
+            "  Descripcion, TipoDoca, NoDoca, IdProveedor, NombreProveedor, Nombrecheque," +
+            "  CreadoPor, FechaYHoraCreado) VALUES ";
+
+        String cuentaAnticipos = String.valueOf(((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposProveedor());
+        String cuentaBancoMonedaLocal = String.valueOf(((SopdiUI) mainUI).cuentasContablesDefault.getBancosMonedaLocal());
+        String cuentaBancoMonedaExtranjera = String.valueOf(((SopdiUI) mainUI).cuentasContablesDefault.getBancosMonedaExtranjera());
+
+        // Reservar el primer código una sola vez; los siguientes se incrementan localmente
+        // para no consumir múltiples slots en folio_codigo_partida ni sobrepasar 999.
+        String codigoPartidaBase = null;
+
+        for (Object itemId : anticiposOCContainer.getItemIds()) {
+
+            String noCheque = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_CHEQUE_OC_PROPERTY).getValue());
+            if (noCheque.isEmpty()) continue;
+
+            String ocId = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_ID_PROPERTY).getValue());
+            String noc = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_NOC_PROPERTY).getValue());
+            String idProveedor = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_IDPROVEEDOR_OC_PROPERTY).getValue());
+            String nombreProveedor = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_NOMBRE_PROVEEDOR_OC_PROPERTY).getValue());
+            String moneda = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_MONEDA_OC_PROPERTY).getValue());
+            double montoAnticipo = parseMontoSF(anticiposOCContainer.getContainerProperty(itemId, OC_ANTICIPO_SF_OC_PROPERTY).getValue());
+            String cuentaBanco = moneda.equalsIgnoreCase("QUETZALES") ? cuentaBancoMonedaLocal : cuentaBancoMonedaExtranjera;
+
+            // Primera OC: obtener código de la tabla de folios (1 slot total)
+            // Siguientes OC: incrementar los últimos 3 dígitos localmente
+            String codigoPartida;
+            if (codigoPartidaBase == null) {
+                codigoPartidaBase = Utileria.nextCodigoPartida(
+                        ((SopdiUI) mainUI).databaseProvider.getCurrentConnection(), empresaId, new Date(), 3);
+                codigoPartida = codigoPartidaBase;
+            } else {
+                String ultimos3 = codigoPartidaBase.substring(codigoPartidaBase.length() - 3);
+                codigoPartidaBase = codigoPartidaBase.substring(0, codigoPartidaBase.length() - 3)
+                        + String.format("%03d", Integer.parseInt(ultimos3) + 1);
+                codigoPartida = codigoPartidaBase;
+            }
+
+            String descripcion = ("ANTICIPO OC " + noc + " PROV." + nombreProveedor + " CHQ." + noCheque)
+                    .replace("'", "").trim();
+
+            // DEBE: Anticipos a Proveedores | HABER: Banco
+            String qry = "INSERT INTO contabilidad_partida " + COLS;
+            qry += "(";
+            qry += empresaId;
+            qry += ",'" + codigoPartida + "'";       // CodigoPartida
+            qry += ",'" + codigoPartida + "'";       // CodigoCC (auto-referencia del anticipo)
+            qry += ",'CHEQUE'";
+            qry += "," + cuentaAnticipos;            // Cuenta Anticipos a Proveedores
+            qry += ",''";
+            qry += ",'" + noc + "'";                 // NumeroDocumento = NOC
+            qry += ",current_date";
+            qry += ",'" + moneda + "'";
+            qry += "," + montoAnticipo;              // MontoDocumento
+            qry += "," + montoAnticipo;              // Debe
+            qry += ",0";                             // Haber
+            qry += ",1";                             // TipoCambio
+            qry += "," + montoAnticipo;              // DebeQuetzales
+            qry += ",0";                             // HaberQuetzales
+            qry += ",'PAGADO'";
+            qry += ",'" + descripcion + "'";
+            qry += ",'CHEQUE'";
+            qry += ",'" + noCheque + "'";            // NoDoca = número de cheque
+            qry += "," + idProveedor;
+            qry += ",'" + nombreProveedor.replace("'", "") + "'";
+            qry += ",'" + nombreProveedor.replace("'", "") + "'";
+            qry += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+            qry += ",current_timestamp";
+            // Línea HABER: sale del banco
+            qry += "),(";
+            qry += empresaId;
+            qry += ",'" + codigoPartida + "'";
+            qry += ",'" + codigoPartida + "'";
+            qry += ",'CHEQUE'";
+            qry += "," + cuentaBanco;               // Cuenta Bancaria
+            qry += ",''";
+            qry += ",'" + noCheque + "'";
+            qry += ",current_date";
+            qry += ",'" + moneda + "'";
+            qry += "," + montoAnticipo;
+            qry += ",0";                            // Debe
+            qry += "," + montoAnticipo;             // Haber
+            qry += ",1";
+            qry += ",0";                            // DebeQuetzales
+            qry += "," + montoAnticipo;             // HaberQuetzales
+            qry += ",'PAGADO'";
+            qry += ",'" + descripcion + "'";
+            qry += ",'CHEQUE'";
+            qry += ",'" + noCheque + "'";
+            qry += "," + idProveedor;
+            qry += ",'" + nombreProveedor.replace("'", "") + "'";
+            qry += ",'" + nombreProveedor.replace("'", "") + "'";
+            qry += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+            qry += ",current_timestamp";
+            qry += ")";
+
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "INSERT anticipo OC [" + noc + "]: " + qry);
+            st.executeUpdate(qry);
+
+            // Marcar la OC como procesada con el CodigoCCAnticipo
+            String updateOC = "UPDATE orden_compra SET CodigoCCAnticipo = '" + codigoPartida + "'";
+            updateOC += " WHERE Id = " + ocId + " AND IdEmpresa = " + empresaId;
+            st.executeUpdate(updateOC);
+        }
+    }
+
     private void marcarDocumentosPagados(Statement st, String codigoPartidaPago) throws SQLException {
 
         for (Object itemId : porPagarContainer.getItemIds()) {
@@ -1286,7 +1514,7 @@ System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
             queryString += ", MontoAplicarAnticipo = " + montoCheq;
             queryString += ", Estatus    = 'PAGADO'";
             queryString += ", Referencia = '" + codigoPartidaPago + "'";
-            queryString += ", TipoDoca   = 'CHEQUE'";     // TODO: medio de pago real
+            queryString += ", TipoDoca   = 'CHEQUE'";
             queryString += ", NoDoca     = '" + noCheque + "'";
             queryString += " WHERE CodigoPartida = '" + codigoPartidaDoc + "'";
             queryString += " AND IdEmpresa = " + empresaId;
@@ -1297,21 +1525,9 @@ System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-
     /**
-     * PASO 4 – Actualiza el último número de cheque utilizado en la chequera activa
-     * del banco correspondiente.
-     *
-     * Solo aplica para los documentos donde A_LIQUIDAR_MONTO_CHEQUE > 0 (pagados con cheque).
-     *
-     *   UPDATE contabilidad_cuentas_bancos_chequera
-     *   SET    UltimoUtilizado = noCheque
-     *   WHERE  IdCuentaBanco = ?  AND IdEmpresa = ?
-     *     AND  Del <= noCheque   AND Al >= noCheque
-     *
-     * TODO: validar que el número de cheque no supere el campo Al (límite de la chequera).
-     *       Si supera, mostrar advertencia al usuario antes de confirmar.
+     * Actualiza el último número de cheque en chequera para cuentas por pagar (Tab 1)
+     * y para anticipos OC (Tab 2).
      */
     private void actualizarUltimoChequeChequera(Statement st) throws SQLException {
 
@@ -1320,13 +1536,14 @@ System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
             String idCuentaBanco = nvlC(cuentasBancosContainer.getContainerProperty(bancoItemId, ID_CUENTABANCO_PROPERTY).getValue());
             String monedaBanco   = nvlC(cuentasBancosContainer.getContainerProperty(bancoItemId, MONEDA_PROPERTY).getValue());
 
+            // Tab 1: cuentas por pagar regulares
             for (Object itemId : porPagarContainer.getItemIds()) {
 
                 String monedaDoc  = nvlC(porPagarContainer.getContainerProperty(itemId, MONEDA_PROPERTY).getValue());
                 if (!monedaDoc.equalsIgnoreCase(monedaBanco)) continue;
 
                 double montoCheque = parseMontoSF(porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).getValue());
-                if (montoCheque <= 0.00) continue;  // solo pagos con cheque mueven la chequera
+                if (montoCheque <= 0.00) continue;
 
                 String noCheque = nvlC(porPagarContainer.getContainerProperty(itemId, CHEQUE_PROPERTY).getValue())
                                       .replaceAll("[^0-9]", "").trim();
@@ -1343,15 +1560,31 @@ System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
                     "actualizarUltimoChequeChequera: IdCuentaBanco=" + idCuentaBanco + " UltimoUtilizado=" + noCheque);
                 st.executeUpdate(queryString);
             }
+
+            // Tab 2: anticipos OC
+            for (Object itemId : anticiposOCContainer.getItemIds()) {
+
+                String monedaOC = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_MONEDA_OC_PROPERTY).getValue());
+                if (!monedaOC.equalsIgnoreCase(monedaBanco)) continue;
+
+                String noCheque = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_CHEQUE_OC_PROPERTY).getValue())
+                                      .replaceAll("[^0-9]", "").trim();
+                if (noCheque.isEmpty()) continue;
+
+                queryString  = " UPDATE contabilidad_cuentas_bancos_chequera SET ";
+                queryString += "  UltimoUtilizado = " + noCheque;
+                queryString += " WHERE IdCuentaBanco = " + idCuentaBanco;
+                queryString += " AND IdEmpresa = " + empresaId;
+                queryString += " AND Del <= " + noCheque;
+                queryString += " AND Al  >= " + noCheque;
+
+                Logger.getLogger(this.getClass().getName()).log(Level.INFO,
+                    "actualizarUltimoChequeOC: IdCuentaBanco=" + idCuentaBanco + " NOC cheque=" + noCheque);
+                st.executeUpdate(queryString);
+            }
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /**
-     * Retorna el IdNomenclatura de la cuenta bancaria seleccionada cuya moneda
-     * coincide con la indicada. Devuelve cadena vacía si no hay banco para esa moneda.
-     */
     private String obtenerNomenclaturaBancoPorMoneda(String moneda) {
         for (Object bancoItemId : cuentasBancosGrid.getSelectedRows()) {
             String monedaBanco = nvlC(cuentasBancosContainer.getContainerProperty(bancoItemId, MONEDA_PROPERTY).getValue());
@@ -1362,10 +1595,6 @@ System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
         return "";
     }
 
-    /**
-     * Parsea un valor numérico almacenado en el container.
-     * Elimina símbolos de moneda, comas y espacios antes de convertir.
-     */
     private double parseMontoSF(Object value) {
         try {
             if (value == null) return 0.00;
@@ -1376,16 +1605,12 @@ System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
         }
     }
 
-    /** Retorna cadena vacía si el valor del container es null, de lo contrario su toString(). */
     private String nvlC(Object value) {
         return value == null ? "" : String.valueOf(value).trim();
     }
 
-    // =========================================================================
-
     @Override
-    public void enter(ViewChangeListener.ViewChangeEvent event
-    ) {
+    public void enter(ViewChangeListener.ViewChangeEvent event) {
         ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " Autorizar Pagos Corrientes");
         Page.getCurrent().setTitle("Sopdi - Pagos corrientes");
     }

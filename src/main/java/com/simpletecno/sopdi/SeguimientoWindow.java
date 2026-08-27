@@ -8,9 +8,12 @@ package com.simpletecno.sopdi;
 import com.simpletecno.sopdi.operativo.InspectionsTaskTrackView;
 import com.simpletecno.sopdi.utilerias.MyEmailMessanger;
 import com.simpletecno.sopdi.utilerias.TicketsSoporteView;
+import com.simpletecno.sopdi.utilerias.Utileria;
 import com.vaadin.server.FontAwesome;
+import com.vaadin.shared.ui.datefield.Resolution;
 import com.vaadin.ui.Alignment;
 import com.vaadin.ui.Button;
+import com.vaadin.ui.DateField;
 import com.vaadin.ui.GridLayout;
 import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Notification;
@@ -37,6 +40,10 @@ public class SeguimientoWindow extends Window {
     TextField casoTxt;
     TextField nombreTxt;
     public TextArea seguimientoTxt;
+    DateField fechaProximoSeguimientoDt;
+
+    /** true si el seguimiento pertenece a una visita/reunión (soporta recordatorios). */
+    boolean esVisita;
 
     UI mainUI;
     String registroId;
@@ -89,8 +96,22 @@ public class SeguimientoWindow extends Window {
         seguimientoTxt.setDescription("<<ingrese aqui el texto del seguimiento>>");
 //        seguimientoTxt.addStyleName("v-textfield-uppercase");
 
+        // Solo las visitas/reuniones soportan el recordatorio de próximo seguimiento.
+        this.esVisita = mainUI.getNavigator().getCurrentView().getClass()
+                .getSimpleName().equals("InspectionsTaskTrackView");
+
+        fechaProximoSeguimientoDt = new DateField("Fecha próximo seguimiento (opcional) :");
+        fechaProximoSeguimientoDt.setDateFormat("dd/MM/yyyy");
+        fechaProximoSeguimientoDt.setResolution(Resolution.DAY);
+        fechaProximoSeguimientoDt.setDescription(
+                "Si indica una fecha, este seguimiento aparecerá como recordatorio en pantalla a partir de ese día.");
+        fechaProximoSeguimientoDt.setVisible(esVisita);
+
         gridLayout.addComponent(casoTxt, 0, 0);
         gridLayout.addComponent(nombreTxt, 1, 0, 2, 0);
+        if (esVisita) {
+            gridLayout.addComponent(fechaProximoSeguimientoDt, 0, 1, 1, 1);
+        }
 
         gridLayout.addComponent(seguimientoTxt, 0, 3, 3, 3);
 
@@ -173,16 +194,36 @@ public class SeguimientoWindow extends Window {
             if (mainUI.getNavigator().getCurrentView().getClass().getSimpleName().compareTo("TicketsSoporteView") == 0) {
                 queryString += "ticket_soporte_seguimiento (CreadoFechaYHora, IdTicket, CreadoUsuario, ";
             }
+            // Columnas extra solo para visitas/reuniones (recordatorio).
+            String fechaProximoValor = null;
+            if (esVisita) {
+                queryString += "FechaProximoSeguimiento, Atendido, ";
+                fechaProximoValor = (fechaProximoSeguimientoDt.getValue() == null)
+                        ? "NULL"
+                        : "'" + Utileria.getFechaYYYYMMDD_1(fechaProximoSeguimientoDt.getValue()) + "'";
+            }
             queryString += "  Observacion)";
             queryString += "  Values (";
             queryString += "  current_timestamp";
             queryString += ", " + registroId;
             queryString += ", " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrUserId();
+            if (esVisita) {
+                queryString += ", " + fechaProximoValor + ", 0";
+            }
             queryString += ",'" + seguimientoTxt.getValue() + "'";
             queryString += ")";
 
             stQuery = ((SopdiUI) getUI()).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);
+
+            // Un seguimiento nuevo cierra los recordatorios pendientes previos de la misma tarea.
+            if (esVisita) {
+                stQuery.executeUpdate("UPDATE visita_inspeccion_tarea_seguimiento"
+                        + " SET Atendido = 1"
+                        + " WHERE IdVisitaInspeccionTarea = " + registroId
+                        + " AND Atendido = 0"
+                        + " AND IdSeguimiento <> LAST_INSERT_ID()");
+            }
 
             if (mainUI.getNavigator().getCurrentView().getClass().getSimpleName().compareTo("TicketsSoporteView") == 0) {
                 queryString = "Update ticket_soporte Set ";

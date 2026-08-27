@@ -30,9 +30,15 @@ import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import com.simpletecno.sopdi.operativo.Recordatorio;
+import com.simpletecno.sopdi.operativo.RecordatorioEventoService;
+import com.simpletecno.sopdi.operativo.RecordatorioSeguimientoService;
+import com.simpletecno.sopdi.operativo.RecordatoriosWindow;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -80,6 +86,14 @@ public class SopdiUI extends UI implements Button.ClickListener {
 
     public MenuBar userSettings;
     private MenuBar.MenuItem userSettingsItem;
+
+    // Recordatorios de seguimiento de visitas/reuniones (aviso en pantalla).
+    private Button campanaRecordatoriosBtn;
+    private boolean recordatoriosMostrados = false;
+
+    // Tema claro / oscuro
+    private boolean darkMode = false;
+    private Button themeToggleBtn;
 
     public MyDatabaseProvider databaseProvider;
     public SessionInformation sessionInformation;
@@ -616,8 +630,74 @@ public class SopdiUI extends UI implements Button.ClickListener {
 
         setContent(appLayout);
 
+        // Aplicar tema según la hora del día (o preferencia previa de la sesión)
+        Boolean savedPref = (Boolean) VaadinSession.getCurrent().getAttribute("sopdiDarkMode");
+        if (savedPref != null) {
+            darkMode = savedPref;
+            applyTheme();
+        } else {
+            initTheme();
+        }
+
 //        fillCuentasContablesPorDefault();
 
+        // Muestra los recordatorios pendientes de seguimiento al iniciar sesión.
+        abrirVentanaRecordatorios(false);
+
+    }
+
+    /**
+     * Obtiene los recordatorios de seguimiento pendientes del usuario actual y,
+     * si hay, abre la ventana de avisos. Actualiza el conteo de la campana.
+     *
+     * @param forzar si true, abre la ventana aunque no haya pendientes (clic en
+     *               la campana); si false, solo la abre una vez por sesión y
+     *               únicamente cuando existen pendientes (arranque tras login).
+     */
+    private void abrirVentanaRecordatorios(boolean forzar) {
+        try {
+            if (sessionInformation == null || databaseProvider == null) {
+                return;
+            }
+            Connection cnx = databaseProvider.getCurrentConnection();
+
+            RecordatorioSeguimientoService seguimientoService = new RecordatorioSeguimientoService();
+            RecordatorioEventoService eventoService = new RecordatorioEventoService();
+            seguimientoService.asegurarColumnas(cnx);
+            eventoService.asegurarColumnas(cnx);
+
+            java.util.List<Recordatorio> pendientes = new java.util.ArrayList<>();
+            pendientes.addAll(seguimientoService.obtenerPendientes(cnx,
+                    sessionInformation.getStrUserId(),
+                    sessionInformation.getStrAccountingCompanyId()));
+            pendientes.addAll(eventoService.obtenerPendientes(cnx,
+                    sessionInformation.getStrUserId()));
+
+            actualizarCampana(pendientes.size());
+
+            if (forzar || (!recordatoriosMostrados && !pendientes.isEmpty())) {
+                recordatoriosMostrados = true;
+                RecordatoriosWindow window = new RecordatoriosWindow(pendientes);
+                addWindow(window);
+                window.center();
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(SopdiUI.class.getName()).log(Level.WARNING,
+                    "No se pudieron cargar los recordatorios de seguimiento: " + ex.getMessage());
+        }
+    }
+
+    /** Refleja en la campana del encabezado la cantidad de recordatorios pendientes. */
+    private void actualizarCampana(int cantidad) {
+        if (campanaRecordatoriosBtn == null) {
+            return;
+        }
+        campanaRecordatoriosBtn.setCaption(cantidad > 0 ? String.valueOf(cantidad) : "");
+        if (cantidad > 0) {
+            campanaRecordatoriosBtn.addStyleName(ValoTheme.BUTTON_FRIENDLY);
+        } else {
+            campanaRecordatoriosBtn.removeStyleName(ValoTheme.BUTTON_FRIENDLY);
+        }
     }
 
     /**
@@ -625,7 +705,121 @@ public class SopdiUI extends UI implements Button.ClickListener {
      * hamburguesa que oculta/muestra el menú principal y el menú de usuario
      * (userSettings, antes ubicado dentro del menú principal).
      */
+    /** Devuelve true si el modo oscuro está activo en la sesión actual. */
+    public boolean isDarkMode() { return darkMode; }
+
+    /** Detecta la hora del servidor y activa el modo oscuro entre las 19:00 y las 07:00. */
+    private void initTheme() {
+        int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        darkMode = (hour >= 19 || hour < 7);
+        applyTheme();
+    }
+
+    /** Alterna entre modo claro y oscuro, y actualiza el ícono del botón. */
+    public void toggleTheme() {
+        darkMode = !darkMode;
+        applyTheme();
+        VaadinSession.getCurrent().setAttribute("sopdiDarkMode", darkMode);
+    }
+
+    /** Aplica la clase CSS al UI y sincroniza el ícono del botón toggle. */
+    private void applyTheme() {
+        if (darkMode) {
+            addStyleName("sopdi-dark");
+        } else {
+            removeStyleName("sopdi-dark");
+        }
+        if (themeToggleBtn != null) {
+            themeToggleBtn.setIcon(darkMode ? FontAwesome.SUN_O : FontAwesome.MOON_O);
+            themeToggleBtn.setDescription(darkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro");
+        }
+    }
+
+    /** Inyecta el CSS del modo oscuro una sola vez al inicio de sesión. */
+    private void injectDarkModeCSS() {
+        String css =
+            // === App background ===
+            ".v-ui.sopdi-dark { background:#0d1117!important; color:#e6edf3!important; }" +
+            // === Header ===
+            ".v-ui.sopdi-dark .app-header { background-color:#161b22!important; border-color:#30363d!important; }" +
+            ".v-ui.sopdi-dark .app-header .v-label { color:#e6edf3!important; }" +
+            ".v-ui.sopdi-dark .app-header .v-button-borderless { color:#8b949e!important; }" +
+            ".v-ui.sopdi-dark .app-header .v-button-borderless:hover { color:#e6edf3!important; background:rgba(255,255,255,0.06)!important; }" +
+            // === Sidebar / menu ===
+            ".v-ui.sopdi-dark .valo-menu { background:#161b22!important; border-color:#30363d!important; }" +
+            ".v-ui.sopdi-dark .valo-menu .v-tree { background:transparent!important; }" +
+            ".v-ui.sopdi-dark .v-tree-node-caption span { color:#c9d1d9!important; }" +
+            ".v-ui.sopdi-dark .v-tree-node-selected .v-tree-node-caption span { color:#ffffff!important; }" +
+            ".v-ui.sopdi-dark .v-menubar { background:#21262d!important; border-color:#30363d!important; }" +
+            ".v-ui.sopdi-dark .v-menubar-menuitem { color:#e6edf3!important; }" +
+            ".v-ui.sopdi-dark .v-menubar-menuitem:hover,.v-ui.sopdi-dark .v-menubar-menuitem-selected { background:#30363d!important; }" +
+            // === Panels ===
+            ".v-ui.sopdi-dark .v-panel { background:#161b22!important; border-color:#30363d!important; }" +
+            ".v-ui.sopdi-dark .v-panel-content { background:#161b22!important; }" +
+            ".v-ui.sopdi-dark .v-panel-caption { background:#21262d!important; color:#e6edf3!important; }" +
+            // === Windows ===
+            ".v-ui.sopdi-dark .v-window { border-color:#30363d!important; }" +
+            ".v-ui.sopdi-dark .v-window-contents { background:#161b22!important; }" +
+            ".v-ui.sopdi-dark .v-window-outerheader { background:linear-gradient(135deg,#1e3a5f 0%,#2563a8 100%)!important; }" +
+            ".v-ui.sopdi-dark .v-window-header { color:#ffffff!important; }" +
+            ".v-ui.sopdi-dark .v-window-closebox { color:rgba(255,255,255,0.8)!important; }" +
+            // === Labels ===
+            ".v-ui.sopdi-dark .v-label { color:#e6edf3!important; }" +
+            ".v-ui.sopdi-dark .v-label-colored { color:#58a6ff!important; }" +
+            // === Inputs ===
+            ".v-ui.sopdi-dark .v-textfield," +
+            ".v-ui.sopdi-dark .v-textarea," +
+            ".v-ui.sopdi-dark .v-filterselect-input," +
+            ".v-ui.sopdi-dark .v-datefield-textfield," +
+            ".v-ui.sopdi-dark .v-nativeselect-select {" +
+            "  background:#21262d!important; color:#e6edf3!important; border-color:#30363d!important; }" +
+            ".v-ui.sopdi-dark .v-filterselect-button { background:#21262d!important; border-color:#30363d!important; color:#e6edf3!important; }" +
+            ".v-ui.sopdi-dark .v-datefield-button { background:#21262d!important; border-color:#30363d!important; color:#e6edf3!important; }" +
+            ".v-ui.sopdi-dark .v-filterselect-suggestpopup { background:#21262d!important; border-color:#30363d!important; }" +
+            ".v-ui.sopdi-dark .v-filterselect-suggestpopup .gwt-MenuItem { color:#e6edf3!important; }" +
+            ".v-ui.sopdi-dark .v-filterselect-suggestpopup .gwt-MenuItem-selected { background:#2f81f7!important; color:#fff!important; }" +
+            ".v-ui.sopdi-dark .v-datefield-popup { background:#21262d!important; border-color:#30363d!important; color:#e6edf3!important; }" +
+            ".v-ui.sopdi-dark .v-datefield-popup .v-button { color:#e6edf3!important; }" +
+            // === Grid ===
+            ".v-ui.sopdi-dark .v-grid { border-color:#30363d!important; }" +
+            ".v-ui.sopdi-dark .v-grid-header .v-grid-cell { background:#21262d!important; color:#8b949e!important; border-color:#30363d!important; }" +
+            ".v-ui.sopdi-dark .v-grid-body .v-grid-cell { background:#161b22!important; color:#e6edf3!important; border-color:#30363d!important; }" +
+            ".v-ui.sopdi-dark .v-grid-body tr:nth-child(even) .v-grid-cell { background:#1c2128!important; }" +
+            ".v-ui.sopdi-dark .v-grid-row-selected .v-grid-cell { background:#1f4068!important; color:#e6edf3!important; }" +
+            ".v-ui.sopdi-dark .v-grid-footer .v-grid-cell { background:#21262d!important; color:#e6edf3!important; border-color:#30363d!important; }" +
+            ".v-ui.sopdi-dark .v-grid-editor { background:#21262d!important; }" +
+            // === Checkboxes & radio ===
+            ".v-ui.sopdi-dark .v-checkbox label,.v-ui.sopdi-dark .v-radiobutton label { color:#e6edf3!important; }" +
+            // === TabSheet ===
+            ".v-ui.sopdi-dark .v-tabsheet-tabitem .v-caption { color:#8b949e!important; }" +
+            ".v-ui.sopdi-dark .v-tabsheet-tabitem-selected .v-caption { color:#e6edf3!important; }" +
+            ".v-ui.sopdi-dark .v-tabsheet-content { background:#161b22!important; border-color:#30363d!important; }" +
+            ".v-ui.sopdi-dark .v-tabsheet-tabitemcell .v-tabsheet-tabitem { border-color:#30363d!important; }" +
+            // === Rounded cards ===
+            ".v-ui.sopdi-dark .rcorners2,.v-ui.sopdi-dark .rcorners3,.v-ui.sopdi-dark .rcorners4 { background:#1c2128!important; border-color:#30363d!important; }" +
+            ".v-ui.sopdi-dark .v-csslayout-card { background:#161b22!important; border-color:#30363d!important; }" +
+            // === FormLayout captions ===
+            ".v-ui.sopdi-dark .v-formlayout-captioncell .v-caption { color:#8b949e!important; }" +
+            // === Buttons ===
+            ".v-ui.sopdi-dark .v-button-borderless { color:#c9d1d9!important; }" +
+            ".v-ui.sopdi-dark .v-button { background:#21262d!important; color:#e6edf3!important; border-color:#30363d!important; }" +
+            ".v-ui.sopdi-dark .v-button-primary { background:linear-gradient(135deg,#1a56db,#2f81f7)!important; color:#fff!important; border-color:transparent!important; }" +
+            ".v-ui.sopdi-dark .v-button-friendly { background:linear-gradient(135deg,#057a55,#0e9f6e)!important; color:#fff!important; border-color:transparent!important; }" +
+            ".v-ui.sopdi-dark .v-button-danger { background:linear-gradient(135deg,#c81e1e,#e02424)!important; color:#fff!important; border-color:transparent!important; }" +
+            // === Scrollbars (WebKit) ===
+            ".v-ui.sopdi-dark ::-webkit-scrollbar { background:#161b22; width:8px; height:8px; }" +
+            ".v-ui.sopdi-dark ::-webkit-scrollbar-thumb { background:#30363d; border-radius:4px; }" +
+            ".v-ui.sopdi-dark ::-webkit-scrollbar-thumb:hover { background:#484f58; }" +
+            // === Transition suave ===
+            ".v-ui { transition: background 0.25s, color 0.25s; }" +
+            ".v-ui .v-label,.v-ui .v-textfield,.v-ui .v-panel-content,.v-ui .v-window-contents { transition: background 0.25s, color 0.25s; }";
+
+        getPage().getStyles().add(css);
+    }
+
     private HorizontalLayout buildHeader() {
+
+        injectDarkModeCSS();
 
         // CSS en runtime para no depender de recompilar el tema.
         getPage().getStyles().add(
@@ -679,6 +873,27 @@ public class SopdiUI extends UI implements Button.ClickListener {
         header.addComponents(menuToggle, projectCover, lblEmpresaYFormulario);
         header.setExpandRatio(lblEmpresaYFormulario, 1);
         header.setComponentAlignment(lblEmpresaYFormulario, Alignment.MIDDLE_CENTER);
+
+        // Botón de toggle tema claro / oscuro.
+        themeToggleBtn = new Button();
+        themeToggleBtn.setIcon(darkMode ? FontAwesome.SUN_O : FontAwesome.MOON_O);
+        themeToggleBtn.setDescription(darkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro");
+        themeToggleBtn.addStyleName(ValoTheme.BUTTON_SMALL);
+        themeToggleBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+        themeToggleBtn.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
+        themeToggleBtn.addClickListener(event -> toggleTheme());
+        header.addComponent(themeToggleBtn);
+        header.setComponentAlignment(themeToggleBtn, Alignment.MIDDLE_RIGHT);
+
+        // Campana de recordatorios de seguimiento de visitas/reuniones.
+        campanaRecordatoriosBtn = new Button();
+        campanaRecordatoriosBtn.setIcon(FontAwesome.BELL);
+        campanaRecordatoriosBtn.setDescription("Recordatorios de seguimiento de visitas y reuniones");
+        campanaRecordatoriosBtn.addStyleName(ValoTheme.BUTTON_SMALL);
+        campanaRecordatoriosBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+        campanaRecordatoriosBtn.addClickListener(event -> abrirVentanaRecordatorios(true));
+        header.addComponent(campanaRecordatoriosBtn);
+        header.setComponentAlignment(campanaRecordatoriosBtn, Alignment.MIDDLE_RIGHT);
 
         if (userSettings != null) {
             header.addComponent(userSettings);
