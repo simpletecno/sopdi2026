@@ -492,9 +492,9 @@ public class HistorialPagoView extends VerticalLayout implements View {
         queryString += " contabilidad_partida.TipoDOCA, contabilidad_partida.NoDOCA, contabilidad_partida.Estatus,";
         queryString += " contabilidad_partida.MonedaDocumento, contabilidad_partida.TipoCambio,  ";
         queryString += " contabilidad_partida.IdProveedor, contabilidad_partida.NombreProveedor, contabilidad_partida.NombreCheque, ";
-        queryString += " Debe AS Total, usuario.Nombre AS uNombre, contabilidad_nomenclatura.N5, contabilidad_partida.Descripcion,  ";
+        queryString += " Debe AS Total, usuario.Nombre AS uNombre, contabilidad_nomenclatura_empresa.N5, contabilidad_partida.Descripcion,  ";
         queryString += " contabilidad_partida.MontoDocumento";
-        queryString += " FROM contabilidad_partida,usuario, contabilidad_nomenclatura  ";
+        queryString += " FROM contabilidad_partida,usuario, contabilidad_nomenclatura_empresa  ";
         queryString += " WHERE contabilidad_partida.IdEmpresa = " + empresaId;
         queryString += " AND contabilidad_partida.TipoDocumento In ('CHEQUE', 'TRANSFERENCIA', 'NOTA DE DEBITO', 'PAGO DOCUMENTO VENTA')";
         queryString += " AND contabilidad_partida.IdNomenclatura In (";
@@ -505,13 +505,14 @@ public class HistorialPagoView extends VerticalLayout implements View {
             queryString += " ," + ((SopdiUI) mainUI).cuentasContablesDefault.getBancosMonedaExtranjera();
         }
         queryString += ")";
-        queryString += " AND contabilidad_nomenclatura.IdNomenclatura = contabilidad_partida.IdNomenclatura ";
+        queryString += " AND contabilidad_nomenclatura_empresa.IdNomenclatura = contabilidad_partida.IdNomenclatura ";
         queryString += " AND usuario.IdUsuario = contabilidad_partida.CreadoUsuario   ";
         queryString += " AND (contabilidad_partida.Fecha BETWEEN ";
         queryString += "     '" + Utileria.getFechaYYYYMMDD_1(inicioDt.getValue()) + "'";
         queryString += " AND '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "')";
+        queryString += " AND contabilidad_nomenclatura_empresa.IdEmpresa = " + empresaId;
 
-//        System.out.println("query de busqueda en historial pago " + queryString);
+        System.out.println("query de busqueda en historial pago " + queryString);
 
         try {
             stQueryHistorial = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();

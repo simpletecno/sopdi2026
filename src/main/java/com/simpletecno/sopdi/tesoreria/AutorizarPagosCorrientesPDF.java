@@ -264,8 +264,8 @@ public class AutorizarPagosCorrientesPDF extends Window {
         private void escribirTablaOC(Document document) throws DocumentException {
 
             // Columnas: No. | NOC | Proveedor | Fecha | Moneda | Anticipo | # Cheque
-            PdfPTable table = new PdfPTable(7);
-            float[] colWidths = {0.40f, 1.50f, 3.50f, 1.20f, 1.20f, 1.50f, 1.20f};
+            PdfPTable table = new PdfPTable(8);
+            float[] colWidths = {0.40f, 1.50f, 3.50f, 1.20f, 1.20f, 1.50f, 1.20f, 1.20f};
             table.setWidths(colWidths);
             table.setWidthPercentage(97);
             table.setSplitRows(true);
@@ -279,6 +279,7 @@ public class AutorizarPagosCorrientesPDF extends Window {
             agregarEncabezado(table, "MONEDA",    Element.ALIGN_CENTER);
             agregarEncabezado(table, "ANTICIPO",  Element.ALIGN_RIGHT);
             agregarEncabezado(table, "#CHEQUE",   Element.ALIGN_CENTER);
+            agregarEncabezado(table, "C.COSTOS",  Element.ALIGN_CENTER);
 
             int correlativo = 1;
             int filaIndex   = 0;
@@ -295,6 +296,7 @@ public class AutorizarPagosCorrientesPDF extends Window {
                 String moneda     = nvl(containerOC.getContainerProperty(itemId, AutorizarPagosCorrientesView.OC_MONEDA_OC_PROPERTY).getValue());
                 String anticipo   = nvl(containerOC.getContainerProperty(itemId, AutorizarPagosCorrientesView.OC_ANTICIPO_OC_PROPERTY).getValue());
                 double montoNum   = parseDouble(containerOC.getContainerProperty(itemId, AutorizarPagosCorrientesView.OC_ANTICIPO_SF_OC_PROPERTY).getValue());
+                String ccostos    = nvl(containerOC.getContainerProperty(itemId, AutorizarPagosCorrientesView.OC_CENTROS_COSTO_PROPERTY).getValue());
 
                 boolean filaImpar = (filaIndex % 2 == 0);
                 BaseColor fondoFila = filaImpar ? colorFilaImpar : BaseColor.WHITE;
@@ -306,6 +308,7 @@ public class AutorizarPagosCorrientesPDF extends Window {
                 agregarDato(table, moneda,    Element.ALIGN_CENTER, fondoFila, fDatos);
                 agregarDato(table, anticipo,  Element.ALIGN_RIGHT,  fondoFila, fMonto);
                 agregarDato(table, noCheque,  Element.ALIGN_CENTER, fondoFila, fDatosBold);
+                agregarDato(table, ccostos,   Element.ALIGN_CENTER, fondoFila, fDatos);
 
                 totalAnticipo += montoNum;
                 filaIndex++;
