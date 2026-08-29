@@ -22,13 +22,17 @@ import com.vaadin.ui.renderers.ClickableRenderer;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.ui.NumberField;
 
+import com.simpletecno.sopdi.contabilidad.PartidaContableService;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -71,6 +75,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
     static final String A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY = "MONTOCHEQUE";
     static final String NOMBRE_PROVEEDOR_PROPERTY = "NombreProveedor";
     static final String TOTAL_SALDO_QUETZALES_PROPERTY = "TotalSaldoQtz";
+    static final String CODIGO_PARTIDA_PAGO_PROPERTY = "PartidaPago";
 
     // --- Anticipos OC (Tab 2) ---
     static final String OC_ID_PROPERTY = "OC_ID";
@@ -88,6 +93,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
     static final String OC_ESTADO_OC_PROPERTY = "Estado";
     static final String OC_NOMBRE_PROVEEDOR_OC_PROPERTY = "OC_NombreProveedor";
     static final String OC_CENTROS_COSTO_PROPERTY = "C. Costos";
+    static final String OC_CODIGO_PARTIDA_PAGO_PROPERTY = "OC_PartidaPago";
 
     IndexedContainer cuentasBancosContainer = new IndexedContainer();
     Grid cuentasBancosGrid;
@@ -232,6 +238,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         porPagarContainer.addContainerProperty(A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY, String.class, "0.00");
         porPagarContainer.addContainerProperty(NOMBRE_PROVEEDOR_PROPERTY, String.class, "");
         porPagarContainer.addContainerProperty(TOTAL_SALDO_QUETZALES_PROPERTY, String.class, "0.00");
+        porPagarContainer.addContainerProperty(CODIGO_PARTIDA_PAGO_PROPERTY, String.class, "");
 
         porPagarGrid = new Grid("Cuentas por pagar", porPagarContainer);
 
@@ -250,6 +257,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         porPagarGrid.getColumn(A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).setHidable(true).setHidden(true);
         porPagarGrid.getColumn(NOMBRE_PROVEEDOR_PROPERTY).setHidable(true).setHidden(true);
         porPagarGrid.getColumn(TOTAL_SALDO_QUETZALES_PROPERTY).setHidable(true).setHidden(true);
+        porPagarGrid.getColumn(CODIGO_PARTIDA_PAGO_PROPERTY).setHidable(true).setHidden(true);
 
         porPagarGrid.getColumn(TIPO_DOCUMENTO_PROPERTY).setWidth(100);
         porPagarGrid.getColumn(PROVEEDOR_PROPERTY).setWidth(180);
@@ -361,6 +369,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         anticiposOCContainer.addContainerProperty(OC_ESTADO_OC_PROPERTY, String.class, "");
         anticiposOCContainer.addContainerProperty(OC_NOMBRE_PROVEEDOR_OC_PROPERTY, String.class, "");
         anticiposOCContainer.addContainerProperty(OC_CENTROS_COSTO_PROPERTY, String.class, "");
+        anticiposOCContainer.addContainerProperty(OC_CODIGO_PARTIDA_PAGO_PROPERTY, String.class, "");
 
         anticiposOCGrid = new Grid("Solicitudes de Anticipos OC", anticiposOCContainer);
         anticiposOCGrid.setWidth("100%");
@@ -373,6 +382,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         anticiposOCGrid.getColumn(OC_ANTICIPO_SF_OC_PROPERTY).setHidable(true).setHidden(true);
         anticiposOCGrid.getColumn(OC_IDPROVEEDOR_OC_PROPERTY).setHidable(true).setHidden(true);
         anticiposOCGrid.getColumn(OC_NOMBRE_PROVEEDOR_OC_PROPERTY).setHidable(true).setHidden(true);
+        anticiposOCGrid.getColumn(OC_CODIGO_PARTIDA_PAGO_PROPERTY).setHidable(true).setHidden(true);
 
         anticiposOCGrid.getColumn(OC_NOC_PROPERTY).setWidth(90);
         anticiposOCGrid.getColumn(OC_TIPO_PROPERTY).setWidth(120);
@@ -1042,12 +1052,21 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(false);
             Statement st = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
-            crearPartidasContables(st);
-            crearPartidasOCAnticipo(st);
+            Set<String> codigos = new LinkedHashSet<>();
+            codigos.addAll(crearPartidasContables(st));
+            codigos.addAll(crearPartidasOCAnticipo(st));
             actualizarUltimoChequeChequera(st);
 
             ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().commit();
             ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(true);
+
+            // Verificar cuadre de cada partida generada (post-commit, datos ya persistidos)
+            for (String codigoPartida : codigos) {
+                PartidaContableService.EsPartidaCuadrada(
+                        codigoPartida,
+                        ((SopdiUI) mainUI).databaseProvider.getCurrentConnection(),
+                        empresaId);
+            }
 
             Notification notif = new Notification("Pagos aplicados y partidas contables generadas.", Notification.Type.HUMANIZED_MESSAGE);
             notif.setDelayMsec(2000);
@@ -1082,8 +1101,9 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         anticiposOCGrid.setReadOnly(false);
     }
 
-    private void crearPartidasContables(Statement st) throws SQLException {
+    private Set<String> crearPartidasContables(Statement st) throws SQLException {
 
+        Set<String> codigosGenerados = new LinkedHashSet<>();
         anticiposOcupadosMap.clear();
 
         final String COLS =
@@ -1156,6 +1176,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 esteProveedor = porPagarContainer.getContainerProperty(itemId, ID_PROVEEDOR_PROPERTY).getValue().toString();
                 if (codigoPartidaPago.isEmpty()) {
                     codigoPartidaPago = Utileria.nextCodigoPartida(((SopdiUI) mainUI).databaseProvider.getCurrentConnection(), empresaId, new Date(), 3);
+                    codigosGenerados.add(codigoPartidaPago);
                     documentosPagados = new StringBuilder();
                 } else {
                     queryString += chequeQueryString;
@@ -1225,6 +1246,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
 
                     String ultimos3 = codigoPartidaPago.substring((codigoPartidaPago.length() - 3));
                     codigoPartidaPago = codigoPartidaPago.substring(0, codigoPartidaPago.length() - 3) + String.format("%03d", Integer.parseInt(ultimos3) + 1);
+                    codigosGenerados.add(codigoPartidaPago);
                 }
                 descripcion = new StringBuilder("PAGO DOC. ").append(" ").append(numeroDoc);
 
@@ -1256,6 +1278,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 queryString += ",current_timestamp";
                 queryString += "),";
 
+                porPagarContainer.getContainerProperty(itemId, CODIGO_PARTIDA_PAGO_PROPERTY).setValue(codigoPartidaPago);
                 totalDebeQ += Double.parseDouble(debeQuetzalesCC);
             } else { //mismo proveedor
                 descripcion.append(" ").append(numeroDoc);
@@ -1286,6 +1309,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
                 queryString += ",current_timestamp";
                 queryString += "),";
+                porPagarContainer.getContainerProperty(itemId, CODIGO_PARTIDA_PAGO_PROPERTY).setValue(codigoPartidaPago);
                 totalDebeQ += Double.parseDouble(debeQuetzalesCC);
             }
 
@@ -1403,6 +1427,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "(2) INSERT partida : " + codigoPartidaPago + " " + queryString.substring(0, queryString.length() - 1));
             st.executeUpdate(queryString.substring(0, queryString.length() - 1));
         }
+        return codigosGenerados;
     }
 
     /**
@@ -1411,7 +1436,9 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
      * HABER: Cuenta Bancaria (dinero que sale del banco)
      * Luego actualiza orden_compra.CodigoCCAnticipo para marcarlos como procesados.
      */
-    private void crearPartidasOCAnticipo(Statement st) throws SQLException {
+    private Set<String> crearPartidasOCAnticipo(Statement st) throws SQLException {
+
+        Set<String> codigosGenerados = new LinkedHashSet<>();
 
         // CodigoCentrocosto incluido para registrar el CC de cada línea DEBE del anticipo.
         final String COLS =
@@ -1462,12 +1489,14 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             if (codigoPartidaBase == null) {
                 codigoPartidaBase = Utileria.nextCodigoPartida(
                         ((SopdiUI) mainUI).databaseProvider.getCurrentConnection(), empresaId, new Date(), 3);
+                codigosGenerados.add(codigoPartidaBase);
                 codigoPartida = codigoPartidaBase;
             } else {
                 String ultimos3 = codigoPartidaBase.substring(codigoPartidaBase.length() - 3);
                 codigoPartidaBase = codigoPartidaBase.substring(0, codigoPartidaBase.length() - 3)
                         + String.format("%03d", Integer.parseInt(ultimos3) + 1);
                 codigoPartida = codigoPartidaBase;
+                codigosGenerados.add(codigoPartida);
             }
 
             String descripcion = ("ANTICIPO OC " + noc + " PROV." + nombreProveedor + " CHQ." + noCheque)
@@ -1557,11 +1586,15 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "INSERT anticipo OC [" + noc + "]: " + qry);
             st.executeUpdate(qry);
 
+            // Guardar el código de partida en el container para el PDF
+            anticiposOCContainer.getContainerProperty(itemId, OC_CODIGO_PARTIDA_PAGO_PROPERTY).setValue(codigoPartida);
+
             // Marcar la OC como procesada con el CodigoCCAnticipo
             String updateOC = "UPDATE orden_compra SET CodigoCCAnticipo = '" + codigoPartida + "'";
             updateOC += " WHERE Id = " + ocId + " AND IdEmpresa = " + empresaId;
             st.executeUpdate(updateOC);
         }
+        return codigosGenerados;
     }
 
     private void marcarDocumentosPagados(Statement st, String codigoPartidaPago) throws SQLException {

@@ -1,6 +1,7 @@
 package com.simpletecno.sopdi.tesoreria;
 
 import com.simpletecno.sopdi.SopdiUI;
+import com.simpletecno.sopdi.contabilidad.PartidaContableService;
 import com.simpletecno.sopdi.utilerias.Utileria;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.IndexedContainer;
@@ -28,8 +29,10 @@ import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -922,11 +925,19 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
             ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(false);
             Statement st = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
-            crearPartidasContables(st);
+            Set<String> codigos = crearPartidasContables(st);
             actualizarUltimoChequeChequera(st);
 
             ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().commit();
             ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(true);
+
+            // Verificar cuadre de cada partida generada (post-commit, datos ya persistidos)
+            for (String codigoPartida : codigos) {
+                PartidaContableService.EsPartidaCuadrada(
+                        codigoPartida,
+                        ((SopdiUI) mainUI).databaseProvider.getCurrentConnection(),
+                        empresaId);
+            }
 
             Notification notif = new Notification("Pagos aplicados y partidas contables generadas.", Notification.Type.HUMANIZED_MESSAGE);
             notif.setDelayMsec(2000);
@@ -1181,8 +1192,9 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
      * TODO: Para documentos en DOLARES completar tipoCambio y totalPagoQ con la
      *       tasa de cambio vigente del día (fuente: tabla o campo a definir).
      */
-    private void crearPartidasContables(Statement st) throws SQLException {
+    private Set<String> crearPartidasContables(Statement st) throws SQLException {
 
+        Set<String> codigosGenerados = new LinkedHashSet<>();
         anticiposOcupadosMap.clear();
 
         final String COLS =
@@ -1250,6 +1262,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
                 esteProveedor = porPagarContainer.getContainerProperty(itemId, ID_PROVEEDOR_PROPERTY).getValue().toString();
                 if (codigoPartidaPago.isEmpty()) { // es la primera vez...
                     codigoPartidaPago = Utileria.nextCodigoPartida(((SopdiUI) mainUI).databaseProvider.getCurrentConnection(), empresaId, new java.util.Date(), 3);
+                    codigosGenerados.add(codigoPartidaPago);
                 } else { //ya hubo partida contable
                     //Concatenar chequeQueryString a queryString
                     queryString += chequeQueryString;
@@ -1324,6 +1337,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
                     //Seguir con el correlativo de codigoPartidaPago, los ultimos 3 digitos en memoria (no se ha hecho commit)
                     String ultimos3 = codigoPartidaPago.substring((codigoPartidaPago.length() - 3));
                     codigoPartidaPago = codigoPartidaPago.substring(0, codigoPartidaPago.length() - 3) + String.format("%03d", Integer.parseInt(ultimos3) + 1);
+                    codigosGenerados.add(codigoPartidaPago);
 //                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "ultimos3: " + ultimos3);
 //                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "codigoPartidaPago: " + codigoPartidaPago);
                 }
@@ -1516,6 +1530,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
         //Ejecutar queryString
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "(2) INSERT partida : " + codigoPartidaPago + " " + queryString.substring(0, queryString.length() - 1));
         st.executeUpdate(queryString.substring(0, queryString.length() - 1));
+        return codigosGenerados;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
