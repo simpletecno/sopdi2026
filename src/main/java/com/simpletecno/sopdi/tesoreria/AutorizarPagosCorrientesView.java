@@ -95,12 +95,26 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
     static final String OC_CENTROS_COSTO_PROPERTY = "C. Costos";
     static final String OC_CODIGO_PARTIDA_PAGO_PROPERTY = "OC_PartidaPago";
 
+    // --- Liquidaciones (Tab 3) ---
+    static final String LIQ_ID_PROPERTY              = "Liq_Id";
+    static final String LIQ_CODIGOCC_PROPERTY        = "Liq_CodigoCC";
+    static final String LIQ_IDLIQUIDADOR_PROPERTY    = "Liq_IdLiquidador";
+    static final String LIQ_LIQUIDADOR_PROPERTY      = "Liquidador";
+    static final String LIQ_LIQUIDACION_PROPERTY     = "Liquidación";
+    static final String LIQ_MONTO_PROPERTY           = "Monto";
+    static final String LIQ_MONTO_SF_PROPERTY        = "Liq_MontoSF";
+    static final String LIQ_CHEQUE_PROPERTY          = "# Cheque";
+    static final String LIQ_NOMBRE_LIQ_PROPERTY      = "Liq_Nombre";
+    static final String LIQ_CODIGO_PARTIDA_PROPERTY  = "Liq_PartidaPago";
+
     IndexedContainer cuentasBancosContainer = new IndexedContainer();
     Grid cuentasBancosGrid;
     IndexedContainer porPagarContainer = new IndexedContainer();
     Grid porPagarGrid;
     IndexedContainer anticiposOCContainer = new IndexedContainer();
     Grid anticiposOCGrid;
+    IndexedContainer liquidacionContainer = new IndexedContainer();
+    Grid liquidacionGrid;
 
     Button autorizarBtn;
     boolean darkModeActive = false;
@@ -146,12 +160,14 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         createGridCuentasBancos();
         crearGridPorPagar();
         crearGridAnticipOC();
+        crearGridLiquidacion();
         crearTabSheet();
         crearBotones();
 
         llenarGridBancos();
         llenarGridPorPagar();
         llenarGridAnticipOC();
+        llenarGridLiquidacion();
     }
 
     public void createGridCuentasBancos() {
@@ -430,8 +446,18 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         tab2Hint.addStyleName(ValoTheme.LABEL_SMALL);
         tab2Layout.addComponent(tab2Hint);
 
+        VerticalLayout tab3Layout = new VerticalLayout();
+        tab3Layout.setWidth("100%");
+        tab3Layout.setSpacing(true);
+        tab3Layout.addComponent(liquidacionGrid);
+
+        Label tab3Hint = new Label("Haga clic en el Monto para asignar cheque. Incluye liquidaciones autorizadas pendientes de pago.");
+        tab3Hint.addStyleName(ValoTheme.LABEL_SMALL);
+        tab3Layout.addComponent(tab3Hint);
+
         tabSheet.addTab(tab1Layout, "Cuentas por pagar", FontAwesome.FILE_TEXT_O);
         tabSheet.addTab(tab2Layout, "Solicitudes de Anticipos OC", FontAwesome.SHOPPING_CART);
+        tabSheet.addTab(tab3Layout, "Pago de Liquidación", FontAwesome.MONEY);
 
         mainLayout.addComponent(tabSheet);
         mainLayout.setComponentAlignment(tabSheet, Alignment.TOP_CENTER);
@@ -707,7 +733,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         btnClear.setWidth("10em");
         btnClear.addClickListener((Button.ClickListener) event -> limpiar());
 
-        Button btnAutorizarPagos = new Button("Autorizar pagos");
+        Button btnAutorizarPagos = new Button("Generar pagos");
         btnAutorizarPagos.addStyleName(ValoTheme.BUTTON_PRIMARY);
         btnAutorizarPagos.setIcon(FontAwesome.CHECK_SQUARE_O);
         btnAutorizarPagos.setWidth("15em");
@@ -720,6 +746,11 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             for (Object itemId : anticiposOCContainer.getItemIds()) {
                 if (!nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_CHEQUE_OC_PROPERTY).getValue()).isEmpty()) {
                     porLiquidar += parseMontoSF(anticiposOCContainer.getContainerProperty(itemId, OC_ANTICIPO_SF_OC_PROPERTY).getValue());
+                }
+            }
+            for (Object itemId : liquidacionContainer.getItemIds()) {
+                if (!nvlC(liquidacionContainer.getContainerProperty(itemId, LIQ_CHEQUE_PROPERTY).getValue()).isEmpty()) {
+                    porLiquidar += parseMontoSF(liquidacionContainer.getContainerProperty(itemId, LIQ_MONTO_SF_PROPERTY).getValue());
                 }
             }
             if (porLiquidar == 0) {
@@ -769,12 +800,219 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         for (Object itemId : anticiposOCContainer.getItemIds()) {
             anticiposOCContainer.getContainerProperty(itemId, OC_CHEQUE_OC_PROPERTY).setValue("");
         }
+        for (Object itemId : liquidacionContainer.getItemIds()) {
+            liquidacionContainer.getContainerProperty(itemId, LIQ_CHEQUE_PROPERTY).setValue("");
+        }
         for (Object itemId : cuentasBancosContainer.getItemIds()) {
             cuentasBancosContainer.getContainerProperty(itemId, PAGOS_PROPERTY).setValue("0.00");
             cuentasBancosContainer.getContainerProperty(itemId, PAGOSSF_PROPERTY).setValue("0.00");
             cuentasBancosContainer.getContainerProperty(itemId, NUEVO_SALDO_PROPERTY).setValue("0.00");
             cuentasBancosContainer.getContainerProperty(itemId, NUEVO_SALDOSF_PROPERTY).setValue("0.00");
             cuentasBancosContainer.getContainerProperty(itemId, ULTIMO_CHEQUE_PROPERTY).setValue(obtenerUltimoCheque(String.valueOf(cuentasBancosContainer.getContainerProperty(itemId, ID_CUENTABANCO_PROPERTY).getValue())));
+        }
+    }
+
+    // ── Liquidaciones (Tab 3) ─────────────────────────────────────────────────
+
+    private void crearGridLiquidacion() {
+        liquidacionContainer.addContainerProperty(LIQ_ID_PROPERTY,             String.class, "");
+        liquidacionContainer.addContainerProperty(LIQ_CODIGOCC_PROPERTY,       String.class, "");
+        liquidacionContainer.addContainerProperty(LIQ_IDLIQUIDADOR_PROPERTY,   String.class, "");
+        liquidacionContainer.addContainerProperty(LIQ_LIQUIDADOR_PROPERTY,     String.class, "");
+        liquidacionContainer.addContainerProperty(LIQ_LIQUIDACION_PROPERTY,    String.class, "");
+        liquidacionContainer.addContainerProperty(LIQ_MONTO_PROPERTY,          String.class, "0.00");
+        liquidacionContainer.addContainerProperty(LIQ_MONTO_SF_PROPERTY,       String.class, "0.00");
+        liquidacionContainer.addContainerProperty(LIQ_CHEQUE_PROPERTY,         String.class, "");
+        liquidacionContainer.addContainerProperty(LIQ_NOMBRE_LIQ_PROPERTY,     String.class, "");
+        liquidacionContainer.addContainerProperty(LIQ_CODIGO_PARTIDA_PROPERTY, String.class, "");
+
+        liquidacionGrid = new Grid("Liquidaciones autorizadas pendientes de pago", liquidacionContainer);
+        liquidacionGrid.setWidth("100%");
+        liquidacionGrid.setImmediate(true);
+        liquidacionGrid.setHeightMode(HeightMode.ROW);
+        liquidacionGrid.setHeightByRows(7);
+
+        liquidacionGrid.getColumn(LIQ_ID_PROPERTY).setHidable(true).setHidden(true);
+        liquidacionGrid.getColumn(LIQ_CODIGOCC_PROPERTY).setHidable(true).setHidden(true);
+        liquidacionGrid.getColumn(LIQ_IDLIQUIDADOR_PROPERTY).setHidable(true).setHidden(true);
+        liquidacionGrid.getColumn(LIQ_MONTO_SF_PROPERTY).setHidable(true).setHidden(true);
+        liquidacionGrid.getColumn(LIQ_NOMBRE_LIQ_PROPERTY).setHidable(true).setHidden(true);
+        liquidacionGrid.getColumn(LIQ_CODIGO_PARTIDA_PROPERTY).setHidable(true).setHidden(true);
+
+        liquidacionGrid.getColumn(LIQ_LIQUIDACION_PROPERTY).setWidth(100);
+        liquidacionGrid.getColumn(LIQ_LIQUIDADOR_PROPERTY).setExpandRatio(1);
+        liquidacionGrid.getColumn(LIQ_MONTO_PROPERTY).setWidth(130);
+        liquidacionGrid.getColumn(LIQ_CHEQUE_PROPERTY).setWidth(80);
+
+        liquidacionGrid.setCellStyleGenerator(cell -> {
+            if (LIQ_MONTO_PROPERTY.equals(cell.getPropertyId())) return "rightalign";
+            if (LIQ_CHEQUE_PROPERTY.equals(cell.getPropertyId())) return "centeralign";
+            return null;
+        });
+
+        // Filtro por liquidador
+        HeaderRow filterRow = liquidacionGrid.appendHeaderRow();
+        HeaderCell filterCell = filterRow.getCell(LIQ_LIQUIDADOR_PROPERTY);
+        TextField filterField = new TextField();
+        filterField.addStyleName(ValoTheme.TEXTFIELD_TINY);
+        filterField.setInputPrompt("Filtrar...");
+        filterField.setColumns(12);
+        filterField.addTextChangeListener(e -> {
+            liquidacionContainer.removeContainerFilters(LIQ_LIQUIDADOR_PROPERTY);
+            if (!e.getText().isEmpty()) {
+                liquidacionContainer.addContainerFilter(
+                        new SimpleStringFilter(LIQ_LIQUIDADOR_PROPERTY, e.getText(), true, false));
+            }
+        });
+        filterCell.setComponent(filterField);
+
+        // Clic en Monto → asignar cheque
+        liquidacionGrid.getColumn(LIQ_MONTO_PROPERTY)
+                .setRenderer(new ButtonRenderer(this::onAsignarChequeLiquidacionClick))
+                .setWidth(130);
+    }
+
+    /**
+     * Clic en la columna Monto del grid de Liquidaciones:
+     * asigna el próximo cheque de la cuenta bancaria seleccionada (siempre monto total).
+     * Segundo clic des-asigna y restaura el saldo bancario.
+     */
+    private void onAsignarChequeLiquidacionClick(ClickableRenderer.RendererClickEvent event) {
+
+        // Las liquidaciones siempre son QUETZALES
+        String monedaLiq = "QUETZALES";
+
+        Object cuentaItemId = null;
+        for (Object itemId : cuentasBancosContainer.getItemIds()) {
+            if (itemId == null) continue;
+            if (cuentasBancosGrid.isSelected(itemId)) {
+                if (nvlC(cuentasBancosContainer.getContainerProperty(itemId, MONEDA_PROPERTY).getValue())
+                        .equalsIgnoreCase(monedaLiq)) {
+                    cuentaItemId = itemId;
+                    break;
+                }
+            }
+        }
+        if (cuentaItemId == null) {
+            Notification.show("Seleccione una cuenta bancaria en QUETZALES.", Notification.Type.WARNING_MESSAGE);
+            return;
+        }
+        // Verificar que el item sigue siendo válido
+        if (cuentasBancosContainer.getItem(cuentaItemId) == null) {
+            Notification.show("La cuenta bancaria ya no es válida. Recargue la pantalla.", Notification.Type.WARNING_MESSAGE);
+            return;
+        }
+
+        double montoLiq = parseMontoSF(liquidacionContainer.getContainerProperty(event.getItemId(), LIQ_MONTO_SF_PROPERTY).getValue());
+
+        // Segundo clic → des-asignar
+        String chequeActual = nvlC(liquidacionContainer.getContainerProperty(event.getItemId(), LIQ_CHEQUE_PROPERTY).getValue());
+        if (!chequeActual.isEmpty()) {
+            double saldoBco = parseMontoSF(cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDOSF_PROPERTY).getValue());
+            double pagos    = parseMontoSF(cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOSSF_PROPERTY).getValue());
+            cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDO_PROPERTY).setValue(numberFormat.format(saldoBco + montoLiq));
+            cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDOSF_PROPERTY).setValue(numberFormat2.format(saldoBco + montoLiq));
+            cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOS_PROPERTY).setValue(numberFormat.format(Math.max(0, pagos - montoLiq)));
+            cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOSSF_PROPERTY).setValue(numberFormat2.format(Math.max(0, pagos - montoLiq)));
+            liquidacionContainer.getContainerProperty(event.getItemId(), LIQ_CHEQUE_PROPERTY).setValue("");
+            return;
+        }
+
+        // Obtener próximo cheque
+        String ultimoChequeStr = nvlC(cuentasBancosContainer.getContainerProperty(cuentaItemId, ULTIMO_CHEQUE_PROPERTY).getValue());
+        if (ultimoChequeStr.isEmpty()) {
+            Notification.show("La cuenta bancaria no tiene chequera activa.", Notification.Type.WARNING_MESSAGE);
+            return;
+        }
+        int ultimoCheque = Integer.parseInt(ultimoChequeStr);
+
+        // Reusar cheque si el mismo liquidador ya tiene uno asignado en otra fila
+        String idLiq = nvlC(liquidacionContainer.getContainerProperty(event.getItemId(), LIQ_IDLIQUIDADOR_PROPERTY).getValue());
+        String chequeExistente = "";
+        for (Object itemId2 : liquidacionContainer.getItemIds()) {
+            if (itemId2 == null || itemId2.equals(event.getItemId())) continue;
+            if (nvlC(liquidacionContainer.getContainerProperty(itemId2, LIQ_IDLIQUIDADOR_PROPERTY).getValue()).equals(idLiq)) {
+                String ch = nvlC(liquidacionContainer.getContainerProperty(itemId2, LIQ_CHEQUE_PROPERTY).getValue());
+                if (!ch.isEmpty()) { chequeExistente = ch; break; }
+            }
+        }
+
+        String noCheque;
+        if (!chequeExistente.isEmpty()) {
+            noCheque = chequeExistente;
+        } else {
+            if (!numeroChequeEnChequera(ultimoCheque + 1,
+                    nvlC(cuentasBancosContainer.getContainerProperty(cuentaItemId, ID_CUENTABANCO_PROPERTY).getValue()))) {
+                Notification.show("No hay cheques disponibles en chequera.", Notification.Type.WARNING_MESSAGE);
+                return;
+            }
+            noCheque = String.valueOf(ultimoCheque + 1);
+            cuentasBancosContainer.getContainerProperty(cuentaItemId, ULTIMO_CHEQUE_PROPERTY).setValue(noCheque);
+        }
+
+        liquidacionContainer.getContainerProperty(event.getItemId(), LIQ_CHEQUE_PROPERTY).setValue(noCheque);
+
+        // Descontar del saldo bancario
+        double saldoBco = parseMontoSF(cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDOSF_PROPERTY).getValue());
+        double pagos    = parseMontoSF(cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOSSF_PROPERTY).getValue());
+        cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDO_PROPERTY).setValue(numberFormat.format(saldoBco - montoLiq));
+        cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDOSF_PROPERTY).setValue(numberFormat2.format(saldoBco - montoLiq));
+        cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOS_PROPERTY).setValue(numberFormat.format(pagos + montoLiq));
+        cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOSSF_PROPERTY).setValue(numberFormat2.format(pagos + montoLiq));
+    }
+
+    public void llenarGridLiquidacion() {
+        liquidacionContainer.removeAllItems();
+
+        String cuentaLiq = ((SopdiUI) mainUI).cuentasContablesDefault.getLiquidacionesCajaChicha();
+
+        // Sub-query para obtener el saldo real por CodigoCC
+        String sql = "SELECT cp.IdLiquidacion, cp.CodigoCC, cp.IdLiquidador, pe.Nombre AS NLiquidador"
+                + " FROM contabilidad_partida cp"
+                + " INNER JOIN proveedor_empresa pe ON pe.IDProveedor = cp.IdLiquidador AND pe.IdEmpresa = cp.IdEmpresa"
+                + " WHERE cp.IdEmpresa = " + empresaId
+                + " AND cp.IdNomenclatura = " + cuentaLiq
+                + " AND cp.IdLiquidacion > 0"
+                + " AND cp.MontoAutorizadoPagar = 0"
+                + " AND cp.Estatus IN ('CERRADO','CERRADA')"
+                + " AND pe.IdEmpresa = " + empresaId
+                + " GROUP BY cp.IdLiquidacion, cp.CodigoCC, cp.IdLiquidador, pe.Nombre"
+                + " ORDER BY cp.IdLiquidacion";
+
+        String sqlSaldo = "SELECT SUM(HABER - DEBE) TOTALSALDO"
+                + " FROM contabilidad_partida"
+                + " WHERE IdEmpresa = " + empresaId
+                + " AND CodigoCC = ?"
+                + " AND IdNomenclatura = " + cuentaLiq
+                + " AND Estatus IN ('CERRADO','CERRADA')";
+
+        try {
+            stQuery  = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+            rsRecords = stQuery.executeQuery(sql);
+            java.sql.PreparedStatement psSaldo = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(sqlSaldo);
+
+            while (rsRecords.next()) {
+                psSaldo.setString(1, rsRecords.getString("CodigoCC"));
+                rsRecords1 = psSaldo.executeQuery();
+
+                if (rsRecords1.next() && rsRecords1.getDouble("TOTALSALDO") > 0.00) {
+                    Object itemId = liquidacionContainer.addItem();
+                    liquidacionContainer.getContainerProperty(itemId, LIQ_ID_PROPERTY).setValue(rsRecords.getString("IdLiquidacion"));
+                    liquidacionContainer.getContainerProperty(itemId, LIQ_CODIGOCC_PROPERTY).setValue(rsRecords.getString("CodigoCC"));
+                    liquidacionContainer.getContainerProperty(itemId, LIQ_IDLIQUIDADOR_PROPERTY).setValue(rsRecords.getString("IdLiquidador"));
+                    liquidacionContainer.getContainerProperty(itemId, LIQ_LIQUIDADOR_PROPERTY).setValue(rsRecords.getString("NLiquidador"));
+                    liquidacionContainer.getContainerProperty(itemId, LIQ_LIQUIDACION_PROPERTY).setValue(rsRecords.getString("IdLiquidacion"));
+                    liquidacionContainer.getContainerProperty(itemId, LIQ_MONTO_PROPERTY).setValue("Q." + numberFormat.format(rsRecords1.getDouble("TOTALSALDO")));
+                    liquidacionContainer.getContainerProperty(itemId, LIQ_MONTO_SF_PROPERTY).setValue(rsRecords1.getString("TOTALSALDO"));
+                    liquidacionContainer.getContainerProperty(itemId, LIQ_CHEQUE_PROPERTY).setValue("");
+                    liquidacionContainer.getContainerProperty(itemId, LIQ_NOMBRE_LIQ_PROPERTY).setValue(rsRecords.getString("NLiquidador"));
+                    liquidacionContainer.getContainerProperty(itemId, LIQ_CODIGO_PARTIDA_PROPERTY).setValue("");
+                }
+            }
+            psSaldo.close();
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+            Notification.show("Error al cargar liquidaciones: " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
         }
     }
 
@@ -1047,6 +1285,33 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         cuentasBancosGrid.setReadOnly(true);
         porPagarGrid.setReadOnly(true);
         anticiposOCGrid.setReadOnly(true);
+        liquidacionGrid.setReadOnly(true);
+
+        // Pre-validar el correlativo ANTES de abrir la transacción.
+        // Si la tabla folio_codigo_partida es MyISAM, el contador no hace rollback
+        // y puede acumularse hasta sobrepasar 999. Detectarlo aquí evita el error
+        // dentro de la transacción y da un mensaje accionable al usuario.
+        try {
+            int corrActual = Utileria.consultarCorrelativoActual(
+                    ((SopdiUI) mainUI).databaseProvider.getCurrentConnection(), empresaId, new Date(), 3);
+            if (corrActual >= 997) {
+                // Quedan ≤ 3 slots (uno por cada método que llama nextCodigoPartida).
+                // Resetear el contador y notificar; el pago puede continuar desde 001.
+                Utileria.resetearCorrelativo(
+                        ((SopdiUI) mainUI).databaseProvider.getCurrentConnection(), empresaId, new Date(), 3);
+                Logger.getLogger(this.getClass().getName()).log(Level.WARNING,
+                        "Correlativo folio reseteado para empresa={0} — valor anterior={1}",
+                        new Object[]{empresaId, corrActual});
+                Notification.show(
+                        "El correlativo de partidas fue reseteado automáticamente (estaba en " + corrActual + ").\n"
+                        + "Si necesita resetear manualmente ejecute:\n"
+                        + "DELETE FROM folio_codigo_partida WHERE IdEmpresa=" + empresaId
+                        + " AND Fecha='" + Utileria.getFechaYYYYMMDD_1(new Date()) + "' AND Tipo=3;",
+                        Notification.Type.WARNING_MESSAGE);
+            }
+        } catch (Exception preEx) {
+            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "No se pudo pre-validar correlativo", preEx);
+        }
 
         try {
             ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(false);
@@ -1055,6 +1320,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             Set<String> codigos = new LinkedHashSet<>();
             codigos.addAll(crearPartidasContables(st));
             codigos.addAll(crearPartidasOCAnticipo(st));
+            codigos.addAll(crearPartidasLiquidacion(st));
             actualizarUltimoChequeChequera(st);
 
             ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().commit();
@@ -1081,6 +1347,31 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             llenarGridBancos();
             llenarGridPorPagar();
             llenarGridAnticipOC();
+            llenarGridLiquidacion();
+
+        } catch (IllegalStateException isEx) {
+            // Correlativo excedido dentro de la transacción (tabla MyISAM no revierte).
+            // Rollback de lo que se pueda y resetear el folio para que el próximo intento funcione.
+            try {
+                ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().rollback();
+                ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(true);
+                Utileria.resetearCorrelativo(
+                        ((SopdiUI) mainUI).databaseProvider.getCurrentConnection(), empresaId, new Date(), 3);
+            } catch (SQLException rollbackEx) {
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error en rollback/reset correlativo", rollbackEx);
+            }
+            String sqlFix = "DELETE FROM folio_codigo_partida WHERE IdEmpresa=" + empresaId
+                    + " AND Fecha='" + Utileria.getFechaYYYYMMDD_1(new Date()) + "' AND Tipo=3;";
+            Notification notif = new Notification(
+                    "El correlativo de partidas contables llegó al límite del día.\n"
+                    + "El sistema lo reseteó automáticamente. Intente nuevamente.\n"
+                    + "SQL manual: " + sqlFix,
+                    Notification.Type.WARNING_MESSAGE);
+            notif.setDelayMsec(-1);
+            notif.setPosition(Position.MIDDLE_CENTER);
+            notif.setIcon(FontAwesome.WARNING);
+            notif.show(Page.getCurrent());
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Correlativo excedido — reseteado automáticamente", isEx);
 
         } catch (Exception ex) {
             try {
@@ -1099,6 +1390,129 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         cuentasBancosGrid.setReadOnly(false);
         porPagarGrid.setReadOnly(false);
         anticiposOCGrid.setReadOnly(false);
+        liquidacionGrid.setReadOnly(false);
+    }
+
+    /**
+     * Genera partidas contables para las liquidaciones con cheque asignado.
+     *   DEBE  → cuenta Liquidaciones Caja Chica (por CodigoCC de la liquidación)
+     *   HABER → cuenta Bancaria
+     * Post-INSERT: marca Estatus='PAGADO' en las filas de esa liquidación.
+     */
+    private Set<String> crearPartidasLiquidacion(Statement st) throws SQLException {
+
+        Set<String> codigosGenerados = new LinkedHashSet<>();
+
+        String cuentaLiq  = ((SopdiUI) mainUI).cuentasContablesDefault.getLiquidacionesCajaChicha();
+        String cuentaBancoLocal    = ((SopdiUI) mainUI).cuentasContablesDefault.getBancosMonedaLocal();
+        String usuario = ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+
+        final String COLS =
+            " (IdEmpresa, CodigoPartida, CodigoCC, TipoDocumento, IdNomenclatura, " +
+            "  SerieDocumento, NumeroDocumento, Fecha, MonedaDocumento, MontoDocumento," +
+            "  Debe, Haber, TipoCambio, DebeQuetzales, HaberQuetzales, Estatus," +
+            "  Descripcion, TipoDoca, NoDoca, IdProveedor, NombreProveedor, Nombrecheque," +
+            "  CreadoPor, FechaYHoraCreado) VALUES ";
+
+        String codigoPartidaBase = null;
+
+        for (Object itemId : liquidacionContainer.getItemIds()) {
+
+            String noCheque = nvlC(liquidacionContainer.getContainerProperty(itemId, LIQ_CHEQUE_PROPERTY).getValue());
+            if (noCheque.isEmpty()) continue;
+
+            String idLiquidacion  = nvlC(liquidacionContainer.getContainerProperty(itemId, LIQ_ID_PROPERTY).getValue());
+            String codigoCC       = nvlC(liquidacionContainer.getContainerProperty(itemId, LIQ_CODIGOCC_PROPERTY).getValue());
+            String idLiquidador   = nvlC(liquidacionContainer.getContainerProperty(itemId, LIQ_IDLIQUIDADOR_PROPERTY).getValue());
+            String nombreLiq      = nvlC(liquidacionContainer.getContainerProperty(itemId, LIQ_NOMBRE_LIQ_PROPERTY).getValue()).replace("'", "");
+            double monto          = parseMontoSF(liquidacionContainer.getContainerProperty(itemId, LIQ_MONTO_SF_PROPERTY).getValue());
+
+            // Código de partida: 1 slot por liquidación; incrementar localmente para múltiples
+            String codigoPartida;
+            if (codigoPartidaBase == null) {
+                codigoPartidaBase = Utileria.nextCodigoPartida(
+                        ((SopdiUI) mainUI).databaseProvider.getCurrentConnection(), empresaId, new Date(), 3);
+                codigoPartida = codigoPartidaBase;
+            } else {
+                String ultimos3 = codigoPartidaBase.substring(codigoPartidaBase.length() - 3);
+                codigoPartidaBase = codigoPartidaBase.substring(0, codigoPartidaBase.length() - 3)
+                        + String.format("%03d", Integer.parseInt(ultimos3) + 1);
+                codigoPartida = codigoPartidaBase;
+            }
+            codigosGenerados.add(codigoPartida);
+
+            String descripcion = ("PAGO LIQUIDACION " + idLiquidacion + " " + nombreLiq + " CHQ." + noCheque)
+                    .replace("'", "").trim();
+
+            String qry = "INSERT INTO contabilidad_partida " + COLS;
+            // DEBE: Liquidaciones Caja Chica (cierra la deuda)
+            qry += "(";
+            qry += empresaId;
+            qry += ",'" + codigoPartida + "'";
+            qry += ",'" + codigoCC + "'";          // CodigoCC de la liquidación original
+            qry += ",'CHEQUE'";
+            qry += "," + cuentaLiq;
+            qry += ",''";
+            qry += ",'" + noCheque + "'";
+            qry += ",current_date";
+            qry += ",'QUETZALES'";
+            qry += "," + monto;
+            qry += "," + monto;                    // Debe
+            qry += ",0";                           // Haber
+            qry += ",1";                           // TipoCambio
+            qry += "," + monto;                    // DebeQuetzales
+            qry += ",0";                           // HaberQuetzales
+            qry += ",'PAGADO'";
+            qry += ",'" + descripcion + "'";
+            qry += ",'CHEQUE'";
+            qry += ",'" + noCheque + "'";
+            qry += "," + idLiquidador;
+            qry += ",'" + nombreLiq + "'";
+            qry += ",'" + nombreLiq + "'";
+            qry += "," + usuario;
+            qry += ",current_timestamp";
+            // HABER: Banco
+            qry += "),(";
+            qry += empresaId;
+            qry += ",'" + codigoPartida + "'";
+            qry += ",'" + codigoPartida + "'";
+            qry += ",'CHEQUE'";
+            qry += "," + cuentaBancoLocal;
+            qry += ",''";
+            qry += ",'" + noCheque + "'";
+            qry += ",current_date";
+            qry += ",'QUETZALES'";
+            qry += "," + monto;
+            qry += ",0";                           // Debe
+            qry += "," + monto;                    // Haber
+            qry += ",1";
+            qry += ",0";                           // DebeQuetzales
+            qry += "," + monto;                    // HaberQuetzales
+            qry += ",'PAGADO'";
+            qry += ",'" + descripcion + "'";
+            qry += ",'CHEQUE'";
+            qry += ",'" + noCheque + "'";
+            qry += "," + idLiquidador;
+            qry += ",'" + nombreLiq + "'";
+            qry += ",'" + nombreLiq + "'";
+            qry += "," + usuario;
+            qry += ",current_timestamp";
+            qry += ")";
+
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "INSERT liquidacion [{0}]: {1}", new Object[]{idLiquidacion, codigoPartida});
+            st.executeUpdate(qry);
+
+            // Guardar el código en el container para el PDF
+            liquidacionContainer.getContainerProperty(itemId, LIQ_CODIGO_PARTIDA_PROPERTY).setValue(codigoPartida);
+
+            // Marcar las filas de la liquidación como PAGADO en contabilidad_partida
+            String updLiq = "UPDATE contabilidad_partida SET Estatus = 'PAGADO', MontoAutorizadoPagar = 0"
+                    + " WHERE IdLiquidacion = " + idLiquidacion
+                    + " AND IdNomenclatura = " + cuentaLiq
+                    + " AND IdEmpresa = " + empresaId;
+            st.executeUpdate(updLiq);
+        }
+        return codigosGenerados;
     }
 
     private Set<String> crearPartidasContables(Statement st) throws SQLException {
@@ -1160,8 +1574,6 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             String debeQuetzalesCC = nvlC(porPagarContainer.getContainerProperty(itemId, TOTAL_SALDO_QUETZALES_PROPERTY).getValue());
             System.out.println("\nnumeroDoc: " + numeroDoc + "\n");
 
-            documentosPagados.append(numeroDoc).append(" ");
-
             // TipoCambio: 1.00 para Quetzales; tasa del sistema para Dólares.
             tipoCambio = moneda.equalsIgnoreCase("QUETZALES") ? 1.00
                     : parseMontoSF(((SopdiUI) mainUI).tipoCambioDolar);
@@ -1177,7 +1589,6 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 if (codigoPartidaPago.isEmpty()) {
                     codigoPartidaPago = Utileria.nextCodigoPartida(((SopdiUI) mainUI).databaseProvider.getCurrentConnection(), empresaId, new Date(), 3);
                     codigosGenerados.add(codigoPartidaPago);
-                    documentosPagados = new StringBuilder();
                 } else {
                     queryString += chequeQueryString;
 
@@ -1248,7 +1659,9 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                     codigoPartidaPago = codigoPartidaPago.substring(0, codigoPartidaPago.length() - 3) + String.format("%03d", Integer.parseInt(ultimos3) + 1);
                     codigosGenerados.add(codigoPartidaPago);
                 }
-                descripcion = new StringBuilder("PAGO DOC. ").append(" ").append(numeroDoc);
+                // Nuevo proveedor: resetear lista de docs y descripción con el primer documento
+                documentosPagados = new StringBuilder(numeroDoc);
+                descripcion = new StringBuilder("PAGO DOCS: ").append(numeroDoc);
 
                 queryString = "INSERT INTO contabilidad_partida " + COLS;
                 queryString += "(";
@@ -1281,7 +1694,10 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 porPagarContainer.getContainerProperty(itemId, CODIGO_PARTIDA_PAGO_PROPERTY).setValue(codigoPartidaPago);
                 totalDebeQ += Double.parseDouble(debeQuetzalesCC);
             } else { //mismo proveedor
-                descripcion.append(" ").append(numeroDoc);
+
+                // Mismo proveedor: agregar documento a la lista acumulada
+                documentosPagados.append(", ").append(numeroDoc);
+                descripcion.append(", ").append(numeroDoc);
 
                 queryString += "(";
                 queryString += empresaId;
@@ -1408,7 +1824,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 chequeQueryString += ",0";
                 chequeQueryString += "," + (acumuladoCheque * tipoCambio);
                 chequeQueryString += ",'PAGADO'";
-                chequeQueryString += ",'" + "PAGO DOCS : " + documentosPagados.append(" CHQ. ").append(noCheque).toString() + "'";
+                chequeQueryString += ",'" + ("PAGO DOCS: " + documentosPagados.toString() + " CHQ." + noCheque).replace("'", "").trim() + "'";
                 chequeQueryString += ",'" + tipoDoca + "'";
                 chequeQueryString += ",'" + numeroDoc + "'";
                 chequeQueryString += "," + idProveedor;
@@ -1685,6 +2101,27 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 Logger.getLogger(this.getClass().getName()).log(Level.INFO,
                     "actualizarUltimoChequeOC: IdCuentaBanco=" + idCuentaBanco + " NOC cheque=" + noCheque);
                 st.executeUpdate(queryString);
+            }
+
+            // Tab 3: liquidaciones — siempre QUETZALES
+            if (monedaBanco.equalsIgnoreCase("QUETZALES")) {
+                for (Object itemId : liquidacionContainer.getItemIds()) {
+
+                    String noCheque = nvlC(liquidacionContainer.getContainerProperty(itemId, LIQ_CHEQUE_PROPERTY).getValue())
+                                          .replaceAll("[^0-9]", "").trim();
+                    if (noCheque.isEmpty()) continue;
+
+                    queryString  = " UPDATE contabilidad_cuentas_bancos_chequera SET ";
+                    queryString += "  UltimoUtilizado = " + noCheque;
+                    queryString += " WHERE IdCuentaBanco = " + idCuentaBanco;
+                    queryString += " AND IdEmpresa = " + empresaId;
+                    queryString += " AND Del <= " + noCheque;
+                    queryString += " AND Al  >= " + noCheque;
+
+                    Logger.getLogger(this.getClass().getName()).log(Level.INFO,
+                        "actualizarUltimoChequeChequera (Liq): IdCuentaBanco=" + idCuentaBanco + " cheque=" + noCheque);
+                    st.executeUpdate(queryString);
+                }
             }
         }
     }

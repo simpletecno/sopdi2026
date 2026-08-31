@@ -221,6 +221,37 @@ public class PagoProveedorWindow extends Window {
         montoChequeTxt = buildNumberField("Monto para cheque");
         montoChequeTxt.setWidth("100%");
 
+        // ── Lógica de complemento automático ─────────────────────────────────
+        // Cuando el usuario fija el anticipo, el cheque toma el residuo (y viceversa).
+        montoAnticipoTxt.addValueChangeListener(e -> {
+            if (!montoAnticipoTxt.isReadOnly()) {
+                double anticipo = montoAnticipoTxt.getDoubleValueDoNotThrow();
+                // Clamp: no puede superar el saldo disponible de anticipos ni el saldo del documento
+                double maxAnticipo = Math.min(saldoAnticipos, saldoDocumento);
+                if (anticipo > maxAnticipo) {
+                    anticipo = maxAnticipo;
+                    montoAnticipoTxt.setValue(anticipo);
+                }
+                double cheque = Math.max(0, saldoDocumento - anticipo);
+                montoChequeTxt.setValue(cheque);
+            }
+        });
+
+        montoChequeTxt.addValueChangeListener(e -> {
+            double cheque = montoChequeTxt.getDoubleValueDoNotThrow();
+            // Clamp: no puede superar el saldo del documento
+            if (cheque > saldoDocumento) {
+                cheque = saldoDocumento;
+                montoChequeTxt.setValue(cheque);
+            }
+            if (!montoAnticipoTxt.isReadOnly()) {
+                double anticipo = Math.max(0, saldoDocumento - cheque);
+                // Clamp anticipo a saldo disponible
+                anticipo = Math.min(anticipo, saldoAnticipos);
+                montoAnticipoTxt.setValue(anticipo);
+            }
+        });
+
         VerticalLayout card = new VerticalLayout();
         card.addStyleName("ppw-card");
         card.setWidth("100%");

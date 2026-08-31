@@ -1133,6 +1133,49 @@ public class Utileria {
      * @throws IllegalArgumentException si la fecha no tiene un formato válido o {@code tipo} no está en 0..9.
      * @throws RuntimeException         si ocurre un error SQL o si el correlativo excede 999.
      */
+    /**
+     * Devuelve el valor actual del correlativo para (empresa, fecha, tipo) SIN incrementarlo.
+     * Retorna 0 si no existe todavía la fila (nunca se ha usado hoy).
+     */
+    public static int consultarCorrelativoActual(Connection conn, String idEmpresa, Date fecha, int tipo) {
+        LocalDate ld = (fecha instanceof java.sql.Date)
+                ? ((java.sql.Date) fecha).toLocalDate()
+                : fecha.toInstant().atZone(ZONE_GT).toLocalDate();
+        String fecha8 = ld.format(FMT_BASICO);
+        String sql = "SELECT COALESCE(MAX(Valor),0) FROM folio_codigo_partida"
+                + " WHERE IdEmpresa=? AND Fecha=? AND Tipo=?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, idEmpresa);
+            ps.setString(2, fecha8);
+            ps.setInt(3, tipo);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 0;
+            }
+        } catch (SQLException e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Elimina el registro del correlativo para (empresa, fecha, tipo),
+     * de modo que el próximo {@link #nextCodigoPartida} empiece desde 001.
+     * Llamar SOLO desde herramientas administrativas o cuando se detecta overflow.
+     */
+    public static void resetearCorrelativo(Connection conn, String idEmpresa, Date fecha, int tipo)
+            throws SQLException {
+        LocalDate ld = (fecha instanceof java.sql.Date)
+                ? ((java.sql.Date) fecha).toLocalDate()
+                : fecha.toInstant().atZone(ZONE_GT).toLocalDate();
+        String fecha8 = ld.format(FMT_BASICO);
+        try (PreparedStatement ps = conn.prepareStatement(
+                "DELETE FROM folio_codigo_partida WHERE IdEmpresa=? AND Fecha=? AND Tipo=?")) {
+            ps.setString(1, idEmpresa);
+            ps.setString(2, fecha8);
+            ps.setInt(3, tipo);
+            ps.executeUpdate();
+        }
+    }
+
     public static String nextCodigoPartida(Connection conn, String idEmpresa, Date fecha, int tipo) {
         if (fecha == null) throw new IllegalArgumentException("fecha null");
         validarTipoUnDigito(tipo);

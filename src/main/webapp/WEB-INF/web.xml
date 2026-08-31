@@ -116,7 +116,8 @@
         <env-entry-name>DB_URL</env-entry-name>
         <env-entry-type>java.lang.String</env-entry-type>
 <!--        <env-entry-value>jdbc:mysql://localhost:3306/sopdi_fundamex?characterEncoding=utf8</env-entry-value>  -->
-        <env-entry-value>jdbc:mariadb://localhost:3306/sopdi</env-entry-value>
+        <env-entry-value>jdbc:mariadb://localhost:3307/sopdi</env-entry-value>
+        <!--<env-entry-value>jdbc:mariadb://localhost:3306/sopdi</env-entry-value>-->
         <!--<env-entry-value>jdbc:mysql://65.111.164.179:3306/sopdi</env-entry-value>-->
     </env-entry>
     <env-entry>
@@ -128,7 +129,8 @@
     <env-entry>
         <env-entry-name>DB_PASSWORD</env-entry-name>
         <env-entry-type>java.lang.String</env-entry-type>
-        <env-entry-value>rootroot</env-entry-value>
+        <env-entry-value></env-entry-value>
+        <!--<env-entry-value>rootroot</env-entry-value>-->
         <!--<env-entry-value>Jose3107</env-entry-value>-->
     </env-entry>
     <env-entry>

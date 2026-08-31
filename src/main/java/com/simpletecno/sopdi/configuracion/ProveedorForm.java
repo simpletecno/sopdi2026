@@ -282,17 +282,10 @@ public class ProveedorForm extends Window {
                     codigoTxt.setReadOnly(false);
                     codigoTxt.setValue(rsRecords.getString("Codigo"));
                     codigoTxt.setReadOnly(true);
-                    codigoAnteriorTxt.setValue(rsRecords.getString("CodigoAnterior"));
                     nitTxt.setValue(rsRecords.getString("NIT"));
                     tipoPersonaCbx.setValue(rsRecords.getString("TipoPersona"));
                     regimenCbx.select(rsRecords.getString("REGIMEN"));
-                    generoCbx.setValue(rsRecords.getString("Genero"));
                     nombreTxt.setValue(rsRecords.getString("Nombre"));
-                    primerNombreTxt.setValue(rsRecords.getString("PrimerNombre"));
-                    segundoNombreTxt.setValue(rsRecords.getString("SegundoNombre"));
-                    primerApellidoTxt.setValue(rsRecords.getString("PrimerApellido"));
-                    segundoApellidoTxt.setValue(rsRecords.getString("SegundoApellido"));
-                    apellidoDeCasadaTxt.setValue(rsRecords.getString("ApellidoCasada"));
                     nacionalidadTxt.setValue(rsRecords.getString("Nacionalidad"));
                     dpiTxt.setValue(rsRecords.getString("dpi"));
                     direccionTxt.setValue(rsRecords.getString("Direccion"));
@@ -367,25 +360,18 @@ public class ProveedorForm extends Window {
         String queryString2 = "";
 
         if (Objects.equals(idProveedor, "0")) {
-            queryString = "INSERT INTO proveedor (Codigo, CodigoAnterior, Nit, TipoPersona, Regimen, ";
-            queryString += " Genero, Nombre, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, ApellidoCasada,  ";
+            queryString = "INSERT INTO proveedor (Codigo, Nit, TipoPersona, Regimen, ";
+            queryString += " Nombre, ";
             queryString += " Nacionalidad, Dpi, Direccion, Telefono, TelefonoEmergencia, Email, ";
             queryString +=  "EsProveedor, EsCliente, EsBanco, EsAgenteRetenedorISR, EsAgenteRetenedorIVA, ";
             queryString += " EsInstitucionFiscal, EsInstitucionSeguroSocial, EsSujetoRetencionDefinitivaISR, ";
             queryString += " Inhabilitado)";
             queryString += " VALUES (";
             queryString += "'" + codigoTxt.getValue() + "'";
-            queryString += ",'" + codigoAnteriorTxt.getValue() + "'";
             queryString += ",'" + nitTxt.getValue() + "'";
             queryString += ",'" + tipoPersonaCbx.getValue() + "'";
             queryString += ",'" + regimenCbx.getValue() + "'";
-            queryString += ",'" + generoCbx.getValue() + "'";
             queryString += ",'" + nombreTxt.getValue() + "'";
-            queryString += ",'" + primerNombreTxt.getValue() + "'";
-            queryString += ",'" + segundoNombreTxt.getValue() + "'";
-            queryString += ",'" + primerApellidoTxt.getValue() + "'";
-            queryString += ",'" + segundoApellidoTxt.getValue() + "'";
-            queryString += ",'" + apellidoDeCasadaTxt.getValue() + "'";
             queryString += ",'" + nacionalidadTxt.getValue() + "'";
             queryString += ",'" + dpiTxt.getValue() + "'";
             queryString += ",'" + direccionTxt.getValue() + "'";
@@ -404,17 +390,10 @@ public class ProveedorForm extends Window {
             queryString += ")";
         } else {
             queryString = "UPDATE proveedor SET ";
-            queryString += " CodigoAnterior = '" + codigoAnteriorTxt.getValue() + "'";
-            queryString += ",Nit = '" + nitTxt.getValue() + "'";
+            queryString += " Nit = '" + nitTxt.getValue() + "'";
             queryString += ",TipoPersona = '" + tipoPersonaCbx.getValue() + "'";
             queryString += ",Regimen = '" + regimenCbx.getValue() + "'";
-            queryString += ",Genero = '" + generoCbx.getValue() + "'";
             queryString += ",Nombre = '" + nombreTxt.getValue() + "'";
-            queryString += ",PrimerNombre = '" + primerNombreTxt.getValue() + "'";
-            queryString += ",SegundoNombre = '" + segundoNombreTxt.getValue() + "'";
-            queryString += ",PrimerApellido ='" + primerApellidoTxt.getValue() + "'";
-            queryString += ",SegundoApellido = '" + segundoApellidoTxt.getValue() + "'";
-            queryString += ",ApellidoCasada = '" + apellidoDeCasadaTxt.getValue() + "'";
             queryString += ",Nacionalidad = '" + nacionalidadTxt.getValue() + "'";
             queryString += ",Dpi = '" + dpiTxt.getValue() + "'";
             queryString += ",Direccion = '" + direccionTxt.getValue() + "'";

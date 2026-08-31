@@ -6,6 +6,7 @@ import com.simpletecno.sopdi.HeaderFooterPageEvent;
 import com.simpletecno.sopdi.SopdiUI;
 import com.simpletecno.sopdi.utilerias.Utileria;
 import com.vaadin.data.util.IndexedContainer;
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.VaadinService;
 import com.vaadin.ui.BrowserFrame;
@@ -42,6 +43,9 @@ public class AutorizarPagosCorrientesPDF extends Window {
             setWidth("95%");
             setHeight("90%");
             center();
+
+            this.setClosable(true);
+            this.addCloseShortcut(ShortcutAction.KeyCode.ESCAPE, null);
 
             String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
