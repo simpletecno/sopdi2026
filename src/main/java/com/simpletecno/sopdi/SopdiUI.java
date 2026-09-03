@@ -1334,6 +1334,30 @@ public class SopdiUI extends UI implements Button.ClickListener {
     }
 
     public void fillCuentasContablesPorDefault() {
+        // Auto-ALTER: agregar columnas nuevas si no existen
+        String[][] colsNuevas = {
+                {"AcreedorActivo", "INT(10) NULL DEFAULT NULL"},
+                {"AcreedorPasivo", "INT(10) NULL DEFAULT NULL"},
+        };
+        for (String[] col : colsNuevas) {
+            try {
+                java.sql.Statement stAlt = databaseProvider.getCurrentConnection().createStatement();
+                java.sql.ResultSet rsAlt = stAlt.executeQuery(
+                        "SELECT COUNT(*) FROM information_schema.COLUMNS"
+                        + " WHERE TABLE_SCHEMA = DATABASE()"
+                        + " AND TABLE_NAME = 'cuentas_contables_default'"
+                        + " AND COLUMN_NAME = '" + col[0] + "'");
+                boolean existe = rsAlt.next() && rsAlt.getInt(1) > 0;
+                rsAlt.close();
+                if (!existe) {
+                    stAlt.executeUpdate("ALTER TABLE cuentas_contables_default ADD COLUMN " + col[0] + " " + col[1]);
+                }
+            } catch (Exception altEx) {
+                Logger.getLogger(this.getClass().getName()).log(Level.WARNING,
+                        "No se pudo asegurar columna cuentas_contables_default." + col[0], altEx);
+            }
+        }
+
         String queryString = " SELECT * ";
         queryString += " FROM cuentas_contables_default";
         queryString += " WHERE IdEmpresa = " + sessionInformation.getStrAccountingCompanyId();
@@ -1396,6 +1420,8 @@ public class SopdiUI extends UI implements Button.ClickListener {
                 cuentasContablesDefault.setIvaRetenidoPorPagar(rsRecords.getString("IvaRetenidoPorPagar"));
                 cuentasContablesDefault.setTituloAccion(rsRecords.getString("TituloAccion"));
                 cuentasContablesDefault.setTituloAccion2(rsRecords.getString("TituloAccion2"));
+                cuentasContablesDefault.setAcreedorActivo(rsRecords.getString("AcreedorActivo"));
+                cuentasContablesDefault.setAcreedorPasivo(rsRecords.getString("AcreedorPasivo"));
             }
         } catch (Exception ex1) {
             Logger.getLogger(this.getClass().getName()).log(Level.INFO,"Error al leer tabla cuentas_contables_default:  " + ex1.getMessage());

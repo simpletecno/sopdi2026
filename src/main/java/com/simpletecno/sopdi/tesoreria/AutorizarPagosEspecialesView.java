@@ -826,8 +826,9 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
 
-            if (rsRecords.next()) { //  encontrado
+            if (rsRecords.next()) {
                 Object itemId;
+                Object principalItemId = null;
                 double dSaldoContable = 0.00;
                 do {
                     itemId = cuentasBancosContainer.addItem();
@@ -837,7 +838,6 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
                     cuentasBancosContainer.getContainerProperty(itemId, BANCO_PROPERTY).setValue(rsRecords.getString("prov.Nombre"));
                     cuentasBancosContainer.getContainerProperty(itemId, MONEDA_PROPERTY).setValue(rsRecords.getString("Moneda"));
 
-//                    dSaldoContable = getSaldoContable(rsRecords.getString("IdNomenclatura"), rsRecords.getString("Moneda"));
                     dSaldoContable = rsRecords.getDouble("Saldo");
                     cuentasBancosContainer.getContainerProperty(itemId, SALDO_CONTABLE_PROPERTY).setValue(numberFormat.format(dSaldoContable));
                     cuentasBancosContainer.getContainerProperty(itemId, NUEVO_SALDO_PROPERTY).setValue(numberFormat.format(dSaldoContable));
@@ -845,7 +845,17 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
                     cuentasBancosContainer.getContainerProperty(itemId, ULTIMO_CHEQUE_PROPERTY).setValue(obtenerUltimoCheque(rsRecords.getString("IdCuentaBanco")));
                     cuentasBancosContainer.getContainerProperty(itemId, ID_NOMENCLATURA_PROPERTY).setValue(rsRecords.getString("ban.IdNomenclatura"));
 
+                    try {
+                        if (principalItemId == null && "1".equals(rsRecords.getString("EsPrincipal"))) {
+                            principalItemId = itemId;
+                        }
+                    } catch (Exception ignored) {}
+
                 } while (rsRecords.next());
+
+                if (principalItemId != null) {
+                    cuentasBancosGrid.select(principalItemId);
+                }
             }
         } catch (Exception ex) {
             System.out.println("Error al listar tabla empresas contables :" + ex);
@@ -951,7 +961,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
         // ── Cuenta bancaria seleccionada ──────────────────────────────────────
         Object bancoItemId = cuentasBancosGrid.getSelectedRows().iterator().next();
         if (cuentasBancosContainer.getItem(bancoItemId) == null) {
-            Notification.show("La cuenta bancaria ya no es válida. Recargue la pantalla.", Notification.Type.WARNING_MESSAGE);
+            Notification.show("La cuenta bancaria ya no está seleccionada. Recargue la pantalla.", Notification.Type.WARNING_MESSAGE);
             return;
         }
         String idCuentaBanco  = nvlC(cuentasBancosContainer.getContainerProperty(bancoItemId, ID_CUENTABANCO_PROPERTY).getValue());
@@ -1083,6 +1093,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
             Statement st = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
 
             String codigoPartidaBase = null;
+            Set<String> codigosAnticipo = new LinkedHashSet<>();
 
             // Iterar el grid por pagar — todos los datos vienen del container
             for (Object itemId : porPagarContainer.getItemIds()) {
@@ -1114,6 +1125,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
                             + String.format("%03d", Integer.parseInt(ult3) + 1);
                     codigoPartida = codigoPartidaBase;
                 }
+                codigosAnticipo.add(codigoPartida);
 
                 StringBuilder sql = new StringBuilder("INSERT INTO contabilidad_partida " + COLS);
                 // DEBE: Anticipos a Proveedores
@@ -1188,15 +1200,18 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
                 porPagarContainer.getContainerProperty(itemId, CODIGO_PARTIDA_PROPERTY).setValue(codigoPartida);
             }
 
+            // Verificar cuadre ANTES de commit — rollback automático si descuadra
+            for (String cp : codigosAnticipo) {
+                if (!PartidaContableService.EsPartidaCuadrada(
+                        cp,
+                        ((SopdiUI) mainUI).databaseProvider.getCurrentConnection(),
+                        empresaId)) {
+                    throw new RuntimeException("Partida descuadrada: " + cp + ". Se revirtió la transacción.");
+                }
+            }
+
             ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().commit();
             ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(true);
-
-            if (codigoPartidaBase != null) {
-                PartidaContableService.EsPartidaCuadrada(
-                        codigoPartidaBase,
-                        ((SopdiUI) mainUI).databaseProvider.getCurrentConnection(),
-                        empresaId);
-            }
 
             Notification notif = new Notification("Anticipo(s) a proveedor aplicados.", Notification.Type.HUMANIZED_MESSAGE);
             notif.setDelayMsec(2500);
@@ -1252,16 +1267,18 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
             Set<String> codigos = crearPartidasContables(st);
             actualizarUltimoChequeChequera(st);
 
-            ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().commit();
-            ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(true);
-
-            // Verificar cuadre de cada partida generada (post-commit, datos ya persistidos)
+            // Verificar cuadre ANTES de commit — rollback automático si descuadra
             for (String codigoPartida : codigos) {
-                PartidaContableService.EsPartidaCuadrada(
+                if (!PartidaContableService.EsPartidaCuadrada(
                         codigoPartida,
                         ((SopdiUI) mainUI).databaseProvider.getCurrentConnection(),
-                        empresaId);
+                        empresaId)) {
+                    throw new RuntimeException("Partida descuadrada: " + codigoPartida + ". Se revirtió la transacción.");
+                }
             }
+
+            ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().commit();
+            ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(true);
 
             Notification notif = new Notification("Pagos aplicados y partidas contables generadas.", Notification.Type.HUMANIZED_MESSAGE);
             notif.setDelayMsec(2000);
@@ -1470,6 +1487,14 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
                         + " AND Del <= " + noCheque
                         + " AND Al  >= " + noCheque;
                 st.executeUpdate(updChequera);
+            }
+
+            // Verificar cuadre ANTES de commit — rollback automático si descuadra
+            if (!PartidaContableService.EsPartidaCuadrada(
+                    codigoPartida,
+                    ((SopdiUI) mainUI).databaseProvider.getCurrentConnection(),
+                    empresaId)) {
+                throw new RuntimeException("Partida descuadrada: " + codigoPartida + ". Se revirtió la transacción.");
             }
 
             ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().commit();

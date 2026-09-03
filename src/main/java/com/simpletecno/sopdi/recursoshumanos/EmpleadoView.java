@@ -749,12 +749,38 @@ public class EmpleadoView extends VerticalLayout implements View {
 
     }
 
+    private void asegurarColumnasEmpleado(Connection conn) {
+        String[][] columnas = {
+                {"Cargo",        "VARCHAR(150) NULL DEFAULT NULL"},
+                {"Departamento", "VARCHAR(150) NULL DEFAULT NULL"},
+        };
+        for (String[] col : columnas) {
+            try {
+                java.sql.Statement st = conn.createStatement();
+                java.sql.ResultSet rs = st.executeQuery(
+                        "SELECT COUNT(*) FROM information_schema.COLUMNS"
+                        + " WHERE TABLE_SCHEMA = DATABASE()"
+                        + " AND TABLE_NAME = 'proveedor_empresa'"
+                        + " AND COLUMN_NAME = '" + col[0] + "'");
+                boolean existe = rs.next() && rs.getInt(1) > 0;
+                rs.close();
+                if (!existe) {
+                    st.executeUpdate("ALTER TABLE proveedor_empresa ADD COLUMN " + col[0] + " " + col[1]);
+                }
+            } catch (Exception ex) {
+                Logger.getLogger(EmpleadoView.class.getName()).log(Level.WARNING,
+                        "No se pudo asegurar columna proveedor_empresa." + col[0], ex);
+            }
+        }
+    }
+
     private void guardarDatosSeguro() {
         if (!validarFormulario()) {
             return;
         }
 
         Connection connection = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection();
+        asegurarColumnasEmpleado(connection);
         boolean autoCommitOriginal = true;
         try {
             autoCommitOriginal = connection.getAutoCommit();

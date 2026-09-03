@@ -61,6 +61,8 @@ public class CuentasBancosForm extends Window {
     TextField noCuentaTxt;
     ComboBox proveedorCbx;
     NumberField saltoTxt;
+    CheckBox principalChb;
+    CheckBox planillaChb;
     Button salirBtn;
 
     // ── Tab 2: Chequeras ─────────────────────────────────────────────────────
@@ -197,6 +199,14 @@ public class CuentasBancosForm extends Window {
         saltoTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
         saltoTxt.setWidth("8em");
         form.addComponent(saltoTxt);
+
+        principalChb = new CheckBox("Cuenta Principal (única por moneda)");
+        principalChb.setDescription("Solo puede haber una cuenta principal por moneda.");
+        form.addComponent(principalChb);
+
+        planillaChb = new CheckBox("Cuenta para Planilla (única por moneda)");
+        planillaChb.setDescription("Solo puede haber una cuenta para planilla por moneda.");
+        form.addComponent(planillaChb);
 
         llenarComboNomenclatura();
         llenarComboProveedor();
@@ -402,6 +412,8 @@ public class CuentasBancosForm extends Window {
                 noCuentaTxt.setValue(rsRecords.getString("NoCuenta"));
                 proveedorCbx.select(rsRecords.getString("IdProveedor"));
                 saltoTxt.setValue(rsRecords.getDouble("Saldo"));
+                principalChb.setValue("1".equals(rsRecords.getString("EsPrincipal")));
+                planillaChb.setValue("1".equals(rsRecords.getString("EsPlanilla")));
             }
         } catch (Exception ex) {
             System.out.println("Error al llenar registro de contabilidad_cuentas_banco: " + ex.getMessage());
@@ -424,28 +436,51 @@ public class CuentasBancosForm extends Window {
                 return;
             }
 
+            boolean esPrincipal = Boolean.TRUE.equals(principalChb.getValue());
+            boolean esPlanilla  = Boolean.TRUE.equals(planillaChb.getValue());
+            String moneda = String.valueOf(monedaCbx.getValue());
+
+            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+
+            // Unicidad por moneda: desmarcar las demás cuentas si se activa Principal o Planilla
+            if (esPrincipal) {
+                String excluir = tipoTransaccion.equals("1") ? " AND IdCuentaBanco <> " + idCuentaBancoEdit : "";
+                stQuery.executeUpdate("UPDATE contabilidad_cuentas_bancos SET EsPrincipal = 0"
+                        + " WHERE IdEmpresa = " + empresaId
+                        + " AND Moneda = '" + moneda + "'" + excluir);
+            }
+            if (esPlanilla) {
+                String excluir = tipoTransaccion.equals("1") ? " AND IdCuentaBanco <> " + idCuentaBancoEdit : "";
+                stQuery.executeUpdate("UPDATE contabilidad_cuentas_bancos SET EsPlanilla = 0"
+                        + " WHERE IdEmpresa = " + empresaId
+                        + " AND Moneda = '" + moneda + "'" + excluir);
+            }
+
             if (tipoTransaccion.equals("0")) {
                 queryString  = "INSERT INTO contabilidad_cuentas_bancos ";
-                queryString += "(IdEmpresa, IdNomenclatura, IdProveedor, NoCuenta, Moneda, Saldo)";
+                queryString += "(IdEmpresa, IdNomenclatura, IdProveedor, NoCuenta, Moneda, Saldo, EsPrincipal, EsPlanilla)";
                 queryString += " VALUES ";
                 queryString += "(" + empresaId;
                 queryString += ", " + cuentaContableCbx.getValue();
                 queryString += ", " + proveedorCbx.getValue();
                 queryString += ", '" + noCuentaTxt.getValue() + "'";
-                queryString += ", '" + monedaCbx.getValue() + "'";
+                queryString += ", '" + moneda + "'";
                 queryString += ", " + saltoTxt.getValue();
+                queryString += ", " + (esPrincipal ? 1 : 0);
+                queryString += ", " + (esPlanilla  ? 1 : 0);
                 queryString += ")";
             } else {
                 queryString  = "UPDATE contabilidad_cuentas_bancos SET ";
                 queryString += "  IdNomenclatura = " + cuentaContableCbx.getValue();
                 queryString += ", IdProveedor = " + proveedorCbx.getValue();
                 queryString += ", NoCuenta = '" + noCuentaTxt.getValue() + "'";
-                queryString += ", Moneda = '" + monedaCbx.getValue() + "'";
+                queryString += ", Moneda = '" + moneda + "'";
                 queryString += ", Saldo = " + saltoTxt.getValue();
+                queryString += ", EsPrincipal = " + (esPrincipal ? 1 : 0);
+                queryString += ", EsPlanilla = "  + (esPlanilla  ? 1 : 0);
                 queryString += " WHERE IdCuentaBanco = " + idCuentaBancoEdit;
             }
 
-            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             stQuery.executeUpdate(queryString);
 
             ((CuentasContablesBancosView) (mainUI.getNavigator().getCurrentView())).llenarTablaCuentas();

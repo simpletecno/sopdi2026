@@ -1097,6 +1097,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
 
             if (rsRecords.next()) {
                 Object itemId;
+                Object principalItemId = null;
                 double dSaldoContable = 0.00;
                 do {
                     itemId = cuentasBancosContainer.addItem();
@@ -1113,7 +1114,17 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                     cuentasBancosContainer.getContainerProperty(itemId, ULTIMO_CHEQUE_PROPERTY).setValue(obtenerUltimoCheque(rsRecords.getString("IdCuentaBanco")));
                     cuentasBancosContainer.getContainerProperty(itemId, ID_NOMENCLATURA_PROPERTY).setValue(rsRecords.getString("IdCuentaBanco"));
 
+                    try {
+                        if (principalItemId == null && "1".equals(rsRecords.getString("EsPrincipal"))) {
+                            principalItemId = itemId;
+                        }
+                    } catch (Exception ignored) {}
+
                 } while (rsRecords.next());
+
+                if (principalItemId != null) {
+                    cuentasBancosGrid.select(principalItemId);
+                }
             }
         } catch (Exception ex) {
             System.out.println("Error al listar tabla empresas contables :" + ex);
@@ -1428,16 +1439,18 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             codigos.addAll(crearPartidasLiquidacion(st));
             actualizarUltimoChequeChequera(st);
 
-            ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().commit();
-            ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(true);
-
-            // Verificar cuadre de cada partida generada (post-commit, datos ya persistidos)
+            // Verificar cuadre ANTES de commit — rollback automático si descuadra
             for (String codigoPartida : codigos) {
-                PartidaContableService.EsPartidaCuadrada(
+                if (!PartidaContableService.EsPartidaCuadrada(
                         codigoPartida,
                         ((SopdiUI) mainUI).databaseProvider.getCurrentConnection(),
-                        empresaId);
+                        empresaId)) {
+                    throw new RuntimeException("Partida descuadrada: " + codigoPartida + ". Se revirtió la transacción.");
+                }
             }
+
+            ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().commit();
+            ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(true);
 
             Notification notif = new Notification("Pagos aplicados y partidas contables generadas.", Notification.Type.HUMANIZED_MESSAGE);
             notif.setDelayMsec(2000);
@@ -1997,129 +2010,139 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             "  Descripcion, TipoDoca, NoDoca, IdProveedor, NombreProveedor, Nombrecheque," +
             "  CreadoUsuario, CreadoFechaYHora, CodigoCentrocosto, IdOrdenCompra) VALUES ";
 
-        String cuentaAnticipos = String.valueOf(((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposProveedor());
-        String cuentaBancoMonedaLocal = String.valueOf(((SopdiUI) mainUI).cuentasContablesDefault.getBancosMonedaLocal());
+        String cuentaAnticipos        = String.valueOf(((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposProveedor());
+        String cuentaBancoMonedaLocal  = String.valueOf(((SopdiUI) mainUI).cuentasContablesDefault.getBancosMonedaLocal());
         String cuentaBancoMonedaExtranjera = String.valueOf(((SopdiUI) mainUI).cuentasContablesDefault.getBancosMonedaExtranjera());
+
+        // Agrupar por (noCheque|idProveedor): mismo cheque + mismo proveedor = una sola partida
+        LinkedHashMap<String, List<Object>> grupos = new LinkedHashMap<>();
+        for (Object itemId : anticiposOCContainer.getItemIds()) {
+            String noCheque   = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_CHEQUE_OC_PROPERTY).getValue());
+            if (noCheque.isEmpty()) continue;
+            String idProveedor = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_IDPROVEEDOR_OC_PROPERTY).getValue());
+            grupos.computeIfAbsent(noCheque + "|" + idProveedor, k -> new ArrayList<>()).add(itemId);
+        }
 
         String codigoPartidaBase = null;
 
-        for (Object itemId : anticiposOCContainer.getItemIds()) {
+        for (List<Object> grupo : grupos.values()) {
 
-            String noCheque = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_CHEQUE_OC_PROPERTY).getValue());
-            if (noCheque.isEmpty()) continue;
+            Object primerItem   = grupo.get(0);
+            String noCheque     = nvlC(anticiposOCContainer.getContainerProperty(primerItem, OC_CHEQUE_OC_PROPERTY).getValue());
+            String idProveedor  = nvlC(anticiposOCContainer.getContainerProperty(primerItem, OC_IDPROVEEDOR_OC_PROPERTY).getValue());
+            String nombreProveedor = nvlC(anticiposOCContainer.getContainerProperty(primerItem, OC_NOMBRE_PROVEEDOR_OC_PROPERTY).getValue());
+            String moneda       = nvlC(anticiposOCContainer.getContainerProperty(primerItem, OC_MONEDA_OC_PROPERTY).getValue());
+            String cuentaBanco  = moneda.equalsIgnoreCase("QUETZALES") ? cuentaBancoMonedaLocal : cuentaBancoMonedaExtranjera;
+            String fechaSQL     = toFechaSQL(nvlC(anticiposOCContainer.getContainerProperty(primerItem, OC_FECHA_CHEQUE_PROPERTY).getValue()));
 
-            String ocId = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_ID_PROPERTY).getValue());
-            String noc = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_NOC_PROPERTY).getValue());
-            String idProveedor = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_IDPROVEEDOR_OC_PROPERTY).getValue());
-            String nombreProveedor = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_NOMBRE_PROVEEDOR_OC_PROPERTY).getValue());
-            String moneda = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_MONEDA_OC_PROPERTY).getValue());
-            double montoAnticipo = parseMontoSF(anticiposOCContainer.getContainerProperty(itemId, OC_ANTICIPO_SF_OC_PROPERTY).getValue());
-            String cuentaBanco = moneda.equalsIgnoreCase("QUETZALES") ? cuentaBancoMonedaLocal : cuentaBancoMonedaExtranjera;
-            String fechaSQL = toFechaSQL(nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_FECHA_CHEQUE_PROPERTY).getValue()));
-
-            // Obtener centros de costo distintos de orden_compra_detalle
-            java.util.List<String> centrosCosto = new java.util.ArrayList<>();
-            String sqlCC = "SELECT DISTINCT idcc FROM orden_compra_detalle"
-                    + " WHERE IdOrdenCompra = " + ocId
-                    + " AND idcc IS NOT NULL AND idcc <> ''"
-                    + " ORDER BY idcc";
-            try (ResultSet rsCC = st.executeQuery(sqlCC)) {
-                while (rsCC.next()) {
-                    centrosCosto.add(rsCC.getString("idcc"));
-                }
-            }
-            // Si no hay centros de costo registrados, usar una lista con elemento vacío
-            // para que se genere al menos una línea DEBE (sin CC).
-            if (centrosCosto.isEmpty()) {
-                centrosCosto.add("");
+            // Total del cheque = suma de todos los anticipos del grupo
+            double totalMonto = 0.0;
+            for (Object itemId : grupo) {
+                totalMonto += parseMontoSF(anticiposOCContainer.getContainerProperty(itemId, OC_ANTICIPO_SF_OC_PROPERTY).getValue());
             }
 
-            // Código de partida: 1 slot por OC; incrementar localmente para múltiples OCs
+            // Un solo codigoPartida por grupo (cheque + proveedor)
             String codigoPartida;
             if (codigoPartidaBase == null) {
                 codigoPartidaBase = Utileria.nextCodigoPartida(
                         ((SopdiUI) mainUI).databaseProvider.getCurrentConnection(), empresaId, new Date(), 3);
-                codigosGenerados.add(codigoPartidaBase);
                 codigoPartida = codigoPartidaBase;
             } else {
                 String ultimos3 = codigoPartidaBase.substring(codigoPartidaBase.length() - 3);
                 codigoPartidaBase = codigoPartidaBase.substring(0, codigoPartidaBase.length() - 3)
                         + String.format("%03d", Integer.parseInt(ultimos3) + 1);
                 codigoPartida = codigoPartidaBase;
-                codigosGenerados.add(codigoPartida);
             }
+            codigosGenerados.add(codigoPartida);
 
-            String descripcion = ("ANTICIPO OC " + noc + " PROV." + nombreProveedor + " CHQ." + noCheque)
-                    .replace("'", "").trim();
-
-            // ── DEBE: una línea por cada centro de costo, monto dividido proporcionalmente ──
-            // La última línea absorbe el residuo de redondeo.
-            int nCC = centrosCosto.size();
-            double montoPorCC = Math.floor((montoAnticipo / nCC) * 100) / 100; // truncar a 2 decimales
-            double sumaCC = 0.00;
-
+            // DEBE: una línea por CC por OC (cada OC distribuye su monto entre sus centros de costo)
+            // HABER: una sola línea al banco con el total del cheque
             StringBuilder insertBuilder = new StringBuilder("INSERT INTO contabilidad_partida " + COLS);
             boolean primerTupla = true;
 
-            for (int i = 0; i < nCC; i++) {
-                String cc = centrosCosto.get(i);
-                double monto = (i == nCC - 1)
-                        ? Math.round((montoAnticipo - sumaCC) * 100.0) / 100.0  // último: residuo
-                        : montoPorCC;
-                sumaCC += monto;
+            for (Object itemId : grupo) {
+                String ocId          = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_ID_PROPERTY).getValue());
+                String noc           = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_NOC_PROPERTY).getValue());
+                double montoAnticipo = parseMontoSF(anticiposOCContainer.getContainerProperty(itemId, OC_ANTICIPO_SF_OC_PROPERTY).getValue());
+                String descripcion   = ("ANTICIPO OC " + noc + " PROV." + nombreProveedor + " CHQ." + noCheque)
+                        .replace("'", "").trim();
 
-                if (!primerTupla) insertBuilder.append(",");
-                primerTupla = false;
+                // Centros de costo de esta OC
+                List<String> centrosCosto = new ArrayList<>();
+                String sqlCC = "SELECT DISTINCT idcc FROM orden_compra_detalle"
+                        + " WHERE IdOrdenCompra = " + ocId
+                        + " AND idcc IS NOT NULL AND idcc <> '' ORDER BY idcc";
+                try (ResultSet rsCC = st.executeQuery(sqlCC)) {
+                    while (rsCC.next()) centrosCosto.add(rsCC.getString("idcc"));
+                }
+                if (centrosCosto.isEmpty()) centrosCosto.add("");
 
-                insertBuilder.append("(");
-                insertBuilder.append(empresaId);
-                insertBuilder.append(",'").append(codigoPartida).append("'");  // CodigoPartida
-                insertBuilder.append(",'").append(codigoPartida).append("'");  // CodigoCC
-                insertBuilder.append(",'CHEQUE'");
-                insertBuilder.append(",").append(cuentaAnticipos);
-                insertBuilder.append(",''");
-                insertBuilder.append(",'").append(noCheque).append("'");
-                insertBuilder.append(",").append(fechaSQL);
-                insertBuilder.append(",'").append(moneda).append("'");
-                insertBuilder.append(",").append(monto);
-                insertBuilder.append(",").append(monto);   // Debe
-                insertBuilder.append(",0");                // Haber
-                insertBuilder.append(",1");                // TipoCambio
-                insertBuilder.append(",").append(monto);   // DebeQuetzales
-                insertBuilder.append(",0");                // HaberQuetzales
-                insertBuilder.append(",'PAGADO'");
-                insertBuilder.append(",'").append(descripcion).append("'");
-                insertBuilder.append(",'CHEQUE'");
-                insertBuilder.append(",'").append(noCheque).append("'");
-                insertBuilder.append(",").append(idProveedor);
-                insertBuilder.append(",'").append(nombreProveedor.replace("'", "")).append("'");
-                insertBuilder.append(",'").append(nombreProveedor.replace("'", "")).append("'");
-                insertBuilder.append(",").append(((SopdiUI) mainUI).sessionInformation.getStrUserId());
-                insertBuilder.append(",current_timestamp");
-                insertBuilder.append(",'").append(cc).append("'"); // CodigoCentrocosto
-                insertBuilder.append(",").append(ocId);
-                insertBuilder.append(")");
+                int nCC = centrosCosto.size();
+                double montoPorCC = Math.floor((montoAnticipo / nCC) * 100) / 100;
+                double sumaCC = 0.00;
+
+                for (int i = 0; i < nCC; i++) {
+                    String cc    = centrosCosto.get(i);
+                    double monto = (i == nCC - 1)
+                            ? Math.round((montoAnticipo - sumaCC) * 100.0) / 100.0
+                            : montoPorCC;
+                    sumaCC += monto;
+
+                    if (!primerTupla) insertBuilder.append(",");
+                    primerTupla = false;
+
+                    insertBuilder.append("(");
+                    insertBuilder.append(empresaId);
+                    insertBuilder.append(",'").append(codigoPartida).append("'");
+                    insertBuilder.append(",'").append(cc.isEmpty() ? codigoPartida : cc).append("'"); // CodigoCC
+                    insertBuilder.append(",'CHEQUE'");
+                    insertBuilder.append(",").append(cuentaAnticipos);
+                    insertBuilder.append(",''");
+                    insertBuilder.append(",'").append(noCheque).append("'");
+                    insertBuilder.append(",").append(fechaSQL);
+                    insertBuilder.append(",'").append(moneda).append("'");
+                    insertBuilder.append(",").append(totalMonto);    // MontoDocumento = total cheque
+                    insertBuilder.append(",").append(monto);         // Debe
+                    insertBuilder.append(",0");                      // Haber
+                    insertBuilder.append(",1");                      // TipoCambio
+                    insertBuilder.append(",").append(monto);         // DebeQuetzales
+                    insertBuilder.append(",0");                      // HaberQuetzales
+                    insertBuilder.append(",'PAGADO'");
+                    insertBuilder.append(",'").append(descripcion).append("'");
+                    insertBuilder.append(",'CHEQUE'");
+                    insertBuilder.append(",'").append(noCheque).append("'");
+                    insertBuilder.append(",").append(idProveedor);
+                    insertBuilder.append(",'").append(nombreProveedor.replace("'", "")).append("'");
+                    insertBuilder.append(",'").append(nombreProveedor.replace("'", "")).append("'");
+                    insertBuilder.append(",").append(((SopdiUI) mainUI).sessionInformation.getStrUserId());
+                    insertBuilder.append(",current_timestamp");
+                    insertBuilder.append(",'").append(cc).append("'"); // CodigoCentrocosto
+                    insertBuilder.append(",").append(ocId);
+                    insertBuilder.append(")");
+                }
             }
 
-            // ── HABER: una sola línea al banco por el total del anticipo ──
+            // HABER: una sola línea al banco con el total del grupo (cheque)
+            String descHaber = ("ANTICIPO OC CHQ." + noCheque + " PROV." + nombreProveedor)
+                    .replace("'", "").trim();
             insertBuilder.append(",(");
             insertBuilder.append(empresaId);
             insertBuilder.append(",'").append(codigoPartida).append("'");
-            insertBuilder.append(",'").append(codigoPartida).append("'");
+            insertBuilder.append(",'").append(codigoPartida).append("'"); // CodigoCC = codigoPartida
             insertBuilder.append(",'CHEQUE'");
             insertBuilder.append(",").append(cuentaBanco);
             insertBuilder.append(",''");
             insertBuilder.append(",'").append(noCheque).append("'");
             insertBuilder.append(",").append(fechaSQL);
             insertBuilder.append(",'").append(moneda).append("'");
-            insertBuilder.append(",").append(montoAnticipo);
-            insertBuilder.append(",0");               // Debe
-            insertBuilder.append(",").append(montoAnticipo); // Haber
-            insertBuilder.append(",1"); //tipocambio
-            insertBuilder.append(",0");               // DebeQuetzales
-            insertBuilder.append(",").append(montoAnticipo); // HaberQuetzales
+            insertBuilder.append(",").append(totalMonto);
+            insertBuilder.append(",0");                    // Debe
+            insertBuilder.append(",").append(totalMonto);  // Haber
+            insertBuilder.append(",1");                    // TipoCambio
+            insertBuilder.append(",0");                    // DebeQuetzales
+            insertBuilder.append(",").append(totalMonto);  // HaberQuetzales
             insertBuilder.append(",'PAGADO'");
-            insertBuilder.append(",'").append(descripcion).append("'");
+            insertBuilder.append(",'").append(descHaber).append("'");
             insertBuilder.append(",'CHEQUE'");
             insertBuilder.append(",'").append(noCheque).append("'");
             insertBuilder.append(",").append(idProveedor);
@@ -2127,22 +2150,21 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             insertBuilder.append(",'").append(nombreProveedor.replace("'", "")).append("'");
             insertBuilder.append(",").append(((SopdiUI) mainUI).sessionInformation.getStrUserId());
             insertBuilder.append(",current_timestamp");
-            insertBuilder.append(",''");              // CodigoCentrocosto vacío en el HABER (banco)
-            insertBuilder.append(",").append(ocId);
+            insertBuilder.append(",''");  // CodigoCentrocosto vacío en HABER (banco)
+            insertBuilder.append(",0");   // IdOrdenCompra — no aplica para HABER
             insertBuilder.append(")");
 
-            String qry = insertBuilder.toString();
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO,
+                    "INSERT anticipo OC grupo CHQ.{0} partida {1}", new Object[]{noCheque, codigoPartida});
+            st.executeUpdate(insertBuilder.toString());
 
-            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "INSERT anticipo OC [" + noc + "]: " + qry);
-            st.executeUpdate(qry);
-
-            // Guardar el código de partida en el container para el PDF
-            anticiposOCContainer.getContainerProperty(itemId, OC_CODIGO_PARTIDA_PAGO_PROPERTY).setValue(codigoPartida);
-
-            // Marcar la OC como procesada con el CodigoCCAnticipo
-            String updateOC = "UPDATE orden_compra SET CodigoCCAnticipo = '" + codigoPartida + "'";
-            updateOC += " WHERE Id = " + ocId + " AND IdEmpresa = " + empresaId;
-            st.executeUpdate(updateOC);
+            // Por cada OC del grupo: guardar codigoPartida en container y marcar como procesada
+            for (Object itemId : grupo) {
+                String ocId = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_ID_PROPERTY).getValue());
+                anticiposOCContainer.getContainerProperty(itemId, OC_CODIGO_PARTIDA_PAGO_PROPERTY).setValue(codigoPartida);
+                st.executeUpdate("UPDATE orden_compra SET CodigoCCAnticipo = '" + codigoPartida + "'"
+                        + " WHERE Id = " + ocId + " AND IdEmpresa = " + empresaId);
+            }
         }
         return codigosGenerados;
     }

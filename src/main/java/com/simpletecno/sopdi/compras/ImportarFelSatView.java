@@ -1089,6 +1089,8 @@ public class ImportarFelSatView extends VerticalLayout implements View {
         String queryStringDOCA = "";
         String moneda = "QUETZALES";
 
+        boolean nuevaLiquidacion = false;
+
         queryString = "SELECT *";
         queryString += " FROM documentos_fel_sat";
         queryString += " WHERE Id = " + idDocumento;
@@ -1235,6 +1237,8 @@ Logger.getLogger(this.getClass()).log(Level.INFO, "QUERY BUSCAR ULTIMA LIQUIDACI
                         Notification.show("ULTIMA LIQUIDACION EMPRESA COLISIONA Y HAY CONFLICTO CON LIQUIDACION A CREAR : " + ultimaLiquidacion + " " + " codigocc=" + codigoCC +  " " + empresaNombre + " IdPartida=" + rsRecords1.getString("IdPartida"), Notification.Type.ERROR_MESSAGE);
                         return;
                     }
+
+                    nuevaLiquidacion = true;
 
                 }
 
@@ -1424,15 +1428,16 @@ System.out.println("queryPartidaLiquidacionFelSatMobil="+queryString);
 
                 stQuery1.executeUpdate(queryString);
 
-                queryString = "UPDATE contabilidad_empresa SET";
-                queryString += " IdUltimaLiquidacion = " + ultimaLiquidacion;
-                queryString += " WHERE IdEmpresa = " + empresaId;
-
-System.out.println("queryUpdateUltimaLiquidacion="+queryString);
+                if(nuevaLiquidacion) {
+                    queryString = "UPDATE contabilidad_empresa SET";
+                    queryString += " IdUltimaLiquidacion = " + ultimaLiquidacion;
+                    queryString += " WHERE IdEmpresa = " + empresaId;
+                    System.out.println("queryUpdateUltimaLiquidacion=" + queryString);
+                }
 
                 stQuery1.executeUpdate(queryString);
 
-                queryString =  "UPDATE documento_liq_mobil SET";
+                queryString = "UPDATE documento_liq_mobil SET";
                 queryString += " Contabilizado = 1";
                 queryString += " WHERE documento_liq_mobil.IdProveedor = " + idProveedor;
                 queryString += " AND   documento_liq_mobil.Numero = '" + numero + "'";
