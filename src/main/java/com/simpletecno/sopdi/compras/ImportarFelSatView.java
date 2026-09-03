@@ -1138,6 +1138,8 @@ public class ImportarFelSatView extends VerticalLayout implements View {
             queryString += " AND   documento_liq_mobil.Numero = '" + numero + "'";
             queryString += " AND PRV.IdEmpresa = " + empresaId;
 
+Logger.getLogger(this.getClass()).log(Level.INFO, "QUERY BUSCARR FACTURA EN LIQUIDACION MOBIL=" + queryString);
+
             rsRecords = stQuery.executeQuery(queryString);
 
             if(rsRecords.next()) { // es una factura liquidacion caja chica
@@ -1153,13 +1155,13 @@ public class ImportarFelSatView extends VerticalLayout implements View {
                 queryString += " FROM contabilidad_partida";
                 queryString += " WHERE IdEmpresa = " + empresaId;
                 queryString += " AND IdLiquidador = " + idLiquidador;
-                queryString += " AND IdNomenclatura = " +  ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getLiquidacionesCajaChicha();
+                queryString += " AND IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getLiquidacionesCajaChicha();
                 queryString += " AND IdLiquidacion > 0 ";
                 queryString += " AND Estatus IN ('INGRESADO', 'REVISADO')";
-                queryString += " AND EXTRACT(YEAR FROM Fecha) > 2024";
+                queryString += " AND EXTRACT(YEAR_MONTH FROM Fecha) > 202605";
                 queryString += " GROUP BY CodigoCC, IdLiquidacion";
 
-Logger.getLogger(this.getClass()).log(Level.INFO, "Liquidador=" + idLiquidador + " " + nombreLiquidador + " query=" + queryString);
+Logger.getLogger(this.getClass()).log(Level.INFO, "QUERY BUSCAR ULTIMA LIQUIDACION Liquidador=" + idLiquidador + " " + nombreLiquidador + " query=" + queryString);
 
                 rsRecords1 = stQuery1.executeQuery(queryString);
 
@@ -1181,6 +1183,22 @@ Logger.getLogger(this.getClass()).log(Level.INFO, "Liquidador=" + idLiquidador +
                         ultimaLiquidacion = 1;
                     }
 
+                    // REVISAR NUEVAMENTE, POR SI ESA LIQUIDACION LA ACABAN DE CREAR MANUALMENTE...
+                    queryString = " SELECT IdPartida, CodigoCC, IdLiquidacion ";
+                    queryString += " FROM contabilidad_partida";
+                    queryString += " WHERE IdEmpresa = " + empresaId;
+                    queryString += " AND IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getLiquidacionesCajaChicha();
+                    queryString += " AND IdLiquidacion = " + ultimaLiquidacion;
+
+                    Logger.getLogger(this.getClass()).log(Level.INFO, "QUERY BUSCAR NUEVAMENTE ULTIMA LIQUIDACION =" + queryString);
+
+                    rsRecords1 = stQuery1.executeQuery(queryString);
+
+                    if(rsRecords1.next()) { // encontrado
+                        Notification.show("ULTIMA LIQUIDACION EMPRESA COLISIONA CON LIQUIDACION A CREAR : " + ultimaLiquidacion + " " + empresaNombre + " IdPartida=" + rsRecords1.getString("IdPartida"), Notification.Type.ERROR_MESSAGE);
+                        return;
+                    }
+
                     String fecha = fechaEmision; //Utileria.getFechaYYYYMMDD_1(new java.util.Date());
                                             //0123456789
                                             //1234567890
@@ -1193,6 +1211,8 @@ Logger.getLogger(this.getClass()).log(Level.INFO, "Liquidador=" + idLiquidador +
 
                     queryString = " SELECT codigoCC FROM contabilidad_partida ";
                     queryString += " WHERE codigoCC LIKE '" + codigoCC + "%'";
+                    queryString += " AND  IdEmpresa = " + empresaId;
+                    queryString += " AND  IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getLiquidacionesCajaChicha();
                     queryString += " ORDER BY codigoCC DESC ";
                     queryString += " LIMIT 1";
 
@@ -1204,6 +1224,18 @@ Logger.getLogger(this.getClass()).log(Level.INFO, "Liquidador=" + idLiquidador +
                     } else {
                         codigoCC += "001";
                     }
+                    queryString = " SELECT IdPartida, CodigoCC FROM contabilidad_partida ";
+                    queryString += " WHERE codigoCC = '" + codigoCC + "'";
+                    queryString += " AND IdEmpresa = " + empresaId;
+                    queryString += " AND IdNomenclatura = " + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getLiquidacionesCajaChicha();
+
+                    rsRecords1 = stQuery1.executeQuery(queryString);
+
+                    if (rsRecords1.next()) { //  encontrado
+                        Notification.show("ULTIMA LIQUIDACION EMPRESA COLISIONA Y HAY CONFLICTO CON LIQUIDACION A CREAR : " + ultimaLiquidacion + " " + " codigocc=" + codigoCC +  " " + empresaNombre + " IdPartida=" + rsRecords1.getString("IdPartida"), Notification.Type.ERROR_MESSAGE);
+                        return;
+                    }
+
                 }
 
 Logger.getLogger(this.getClass()).log(Level.INFO, "Liquidador=" + idLiquidador + " " + nombreLiquidador + " codigoCC=" + codigoCC + " liquidacionId=" + ultimaLiquidacion);

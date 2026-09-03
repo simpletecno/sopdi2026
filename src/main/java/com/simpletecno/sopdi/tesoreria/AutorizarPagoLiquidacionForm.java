@@ -333,7 +333,7 @@ public class AutorizarPagoLiquidacionForm extends Window {
                     queryString += " WHERE IdEmpresa = " + empresaId;
                     queryString += " AND CodigoCC = '" + rsRecords.getString("CodigoCC") + "'";
                     queryString += " AND contabilidad_partida.IdNomenclatura = " + ((SopdiUI) mainUI).cuentasContablesDefault.getLiquidacionesCajaChicha();
-//                    queryString += " AND contabilidad_partida.IdLiquidacion = " + rsRecords.getString("IdLiquidacion");
+                    queryString += " AND contabilidad_partida.IdLiquidacion = " + rsRecords.getString("IdLiquidacion");
                     queryString += " AND contabilidad_partida.Estatus = 'CERRADO'";
 
                     rsRecords1 = stQuery1.executeQuery(queryString);

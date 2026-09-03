@@ -30,13 +30,20 @@ public class AutorizarPagosCorrientesPDF extends Window {
 
     String fileName;
 
-    /** Constructor de compatibilidad para vistas que no tienen anticipos OC. */
+    /** Constructor de compatibilidad para vistas sin anticipos OC ni liquidaciones. */
     public AutorizarPagosCorrientesPDF(IndexedContainer porPagarContainer) {
-        this(porPagarContainer, new IndexedContainer());
+        this(porPagarContainer, new IndexedContainer(), new IndexedContainer());
+    }
+
+    /** Constructor de compatibilidad para vistas sin liquidaciones. */
+    public AutorizarPagosCorrientesPDF(IndexedContainer porPagarContainer,
+                                       IndexedContainer anticiposOCContainer) {
+        this(porPagarContainer, anticiposOCContainer, new IndexedContainer());
     }
 
     public AutorizarPagosCorrientesPDF(IndexedContainer porPagarContainer,
-                                       IndexedContainer anticiposOCContainer) {
+                                       IndexedContainer anticiposOCContainer,
+                                       IndexedContainer liquidacionContainer) {
         try {
             BrowserFrame browser = new BrowserFrame();
             browser.setSizeFull();
@@ -55,7 +62,7 @@ public class AutorizarPagosCorrientesPDF extends Window {
                     + ".pdf";
 
             StreamResource pdfResource = new StreamResource(
-                    new Pdf(fileName, porPagarContainer, anticiposOCContainer), fileName);
+                    new Pdf(fileName, porPagarContainer, anticiposOCContainer, liquidacionContainer), fileName);
             pdfResource.setMIMEType("application/pdf");
 
             browser.setSource(pdfResource);
@@ -108,13 +115,16 @@ public class AutorizarPagosCorrientesPDF extends Window {
         private final ByteArrayOutputStream os = new ByteArrayOutputStream();
         private final IndexedContainer container;
         private final IndexedContainer containerOC;
+        private final IndexedContainer containerLiq;
 
         // ── Constructor ──────────────────────────────────────────────────────
 
         public Pdf(String pFileName, IndexedContainer porPagarContainer,
-                   IndexedContainer anticiposOCContainer) {
-            this.container   = porPagarContainer;
-            this.containerOC = anticiposOCContainer;
+                   IndexedContainer anticiposOCContainer,
+                   IndexedContainer liquidacionContainer) {
+            this.container    = porPagarContainer;
+            this.containerOC  = anticiposOCContainer;
+            this.containerLiq = liquidacionContainer;
             try {
                 new File(RECEIPTFILE).mkdirs();
                 String fullPath = RECEIPTFILE + pFileName;
@@ -187,6 +197,25 @@ public class AutorizarPagosCorrientesPDF extends Window {
                 document.add(titulo);
                 document.add(new Paragraph(" "));
                 escribirTablaOC(document);
+                document.add(new Paragraph(" "));
+            }
+
+            // Sección liquidaciones (Tab 3)
+            boolean hayLiquidaciones = false;
+            for (Object id : containerLiq.getItemIds()) {
+                if (!nvl(containerLiq.getContainerProperty(id,
+                        AutorizarPagosCorrientesView.LIQ_CHEQUE_PROPERTY).getValue()).isEmpty()) {
+                    hayLiquidaciones = true;
+                    break;
+                }
+            }
+            if (hayLiquidaciones) {
+                Paragraph tituloLiq = new Paragraph("PAGO DE LIQUIDACIONES",
+                        new Font(Font.FontFamily.HELVETICA, 10f, Font.BOLD, colorEncabezado));
+                tituloLiq.setSpacingBefore(12f);
+                document.add(tituloLiq);
+                document.add(new Paragraph(" "));
+                escribirTablaLiquidaciones(document);
                 document.add(new Paragraph(" "));
             }
         }
@@ -326,6 +355,62 @@ public class AutorizarPagosCorrientesPDF extends Window {
             agregarCeldaTotal(table, "TOTAL",                     Element.ALIGN_RIGHT, 5);
             agregarCeldaTotal(table, df.format(totalAnticipo),    Element.ALIGN_RIGHT, 1);
             agregarCeldaTotal(table, "",                          Element.ALIGN_LEFT,  3);
+
+            document.add(table);
+        }
+
+        // ── Tabla de liquidaciones ───────────────────────────────────────────
+
+        private void escribirTablaLiquidaciones(Document document) throws DocumentException {
+
+            // Columnas: No. | Liquidación | Liquidador | Monto | # Cheque | Cód. Partida
+            PdfPTable table = new PdfPTable(6);
+            float[] colWidths = {0.35f, 1.20f, 3.50f, 1.50f, 1.00f, 2.20f};
+            table.setWidths(colWidths);
+            table.setWidthPercentage(100);
+            table.setSplitRows(true);
+            table.setHeaderRows(1);
+            table.setSpacingBefore(4f);
+
+            agregarEncabezado(table, "No.",          Element.ALIGN_CENTER);
+            agregarEncabezado(table, "LIQUIDACIÓN",  Element.ALIGN_CENTER);
+            agregarEncabezado(table, "LIQUIDADOR",   Element.ALIGN_LEFT);
+            agregarEncabezado(table, "MONTO",        Element.ALIGN_RIGHT);
+            agregarEncabezado(table, "#CHEQUE",      Element.ALIGN_CENTER);
+            agregarEncabezado(table, "CÓD. PARTIDA", Element.ALIGN_LEFT);
+
+            int correlativo = 1;
+            int filaIndex   = 0;
+            double totalMonto = 0.00;
+
+            for (Object itemId : containerLiq.getItemIds()) {
+                String noCheque = nvl(containerLiq.getContainerProperty(itemId,
+                        AutorizarPagosCorrientesView.LIQ_CHEQUE_PROPERTY).getValue());
+                if (noCheque.isEmpty()) continue;
+
+                String liquidacion = nvl(containerLiq.getContainerProperty(itemId, AutorizarPagosCorrientesView.LIQ_LIQUIDACION_PROPERTY).getValue());
+                String liquidador  = nvl(containerLiq.getContainerProperty(itemId, AutorizarPagosCorrientesView.LIQ_LIQUIDADOR_PROPERTY).getValue());
+                String monto       = nvl(containerLiq.getContainerProperty(itemId, AutorizarPagosCorrientesView.LIQ_MONTO_PROPERTY).getValue());
+                double montoNum    = parseDouble(containerLiq.getContainerProperty(itemId, AutorizarPagosCorrientesView.LIQ_MONTO_SF_PROPERTY).getValue());
+                String partida     = nvl(containerLiq.getContainerProperty(itemId, AutorizarPagosCorrientesView.LIQ_CODIGO_PARTIDA_PROPERTY).getValue());
+
+                boolean filaImpar = (filaIndex % 2 == 0);
+                BaseColor fondoFila = filaImpar ? colorFilaImpar : BaseColor.WHITE;
+
+                agregarDato(table, String.valueOf(correlativo++), Element.ALIGN_CENTER, fondoFila, fDatos);
+                agregarDato(table, liquidacion, Element.ALIGN_CENTER, fondoFila, fDatos);
+                agregarDato(table, liquidador,  Element.ALIGN_LEFT,   fondoFila, fDatos);
+                agregarDato(table, monto,       Element.ALIGN_RIGHT,  fondoFila, fMonto);
+                agregarDato(table, noCheque,    Element.ALIGN_CENTER, fondoFila, fDatosBold);
+                agregarDato(table, partida,     Element.ALIGN_LEFT,   fondoFila, fDatos);
+
+                totalMonto += montoNum;
+                filaIndex++;
+            }
+
+            agregarCeldaTotal(table, "TOTAL",               Element.ALIGN_RIGHT, 3);
+            agregarCeldaTotal(table, df.format(totalMonto), Element.ALIGN_RIGHT, 1);
+            agregarCeldaTotal(table, "",                    Element.ALIGN_LEFT,  2);
 
             document.add(table);
         }

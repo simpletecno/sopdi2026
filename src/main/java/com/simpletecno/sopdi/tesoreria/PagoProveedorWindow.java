@@ -8,6 +8,7 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.ui.NumberField;
 
 import java.text.DecimalFormat;
+import java.util.Date;
 
 /**
  * Ventana modal para registrar el pago a un proveedor.
@@ -25,6 +26,7 @@ public class PagoProveedorWindow extends Window {
     Label        saldoAnticiposLbl;
     NumberField  montoAnticipoTxt;
     NumberField  montoChequeTxt;
+    DateField    fechaChequeDt;
 
     // ── Botones ──────────────────────────────────────────────────────────────
     private Button aceptarBtn;
@@ -217,36 +219,38 @@ public class PagoProveedorWindow extends Window {
         divider.addStyleName("ppw-divider");
         divider.setWidth("100%");
 
+        // -- Campo: fecha del cheque (por defecto hoy)
+        fechaChequeDt = new DateField("Fecha de cheque");
+        fechaChequeDt.setDateFormat("dd/MM/yyyy");
+        fechaChequeDt.setValue(new Date());
+        fechaChequeDt.setImmediate(true);
+        fechaChequeDt.setWidth("100%");
+
         // -- Campo: monto para cheque
         montoChequeTxt = buildNumberField("Monto para cheque");
         montoChequeTxt.setWidth("100%");
 
         // ── Lógica de complemento automático ─────────────────────────────────
-        // Cuando el usuario fija el anticipo, el cheque toma el residuo (y viceversa).
         montoAnticipoTxt.addValueChangeListener(e -> {
-            if (!montoAnticipoTxt.isReadOnly()) {
-                double anticipo = montoAnticipoTxt.getDoubleValueDoNotThrow();
-                // Clamp: no puede superar el saldo disponible de anticipos ni el saldo del documento
-                double maxAnticipo = Math.min(saldoAnticipos, saldoDocumento);
-                if (anticipo > maxAnticipo) {
-                    anticipo = maxAnticipo;
-                    montoAnticipoTxt.setValue(anticipo);
-                }
-                double cheque = Math.max(0, saldoDocumento - anticipo);
-                montoChequeTxt.setValue(cheque);
+            if (montoAnticipoTxt.isReadOnly()) return;
+            double anticipo = montoAnticipoTxt.getDoubleValueDoNotThrow();
+            double maxAnticipo = Math.min(saldoAnticipos, saldoDocumento);
+            if (anticipo > maxAnticipo) {
+                anticipo = maxAnticipo;
+                montoAnticipoTxt.setValue(anticipo);
             }
+            double cheque = Math.max(0, saldoDocumento - anticipo);
+            montoChequeTxt.setValue(cheque);
         });
 
         montoChequeTxt.addValueChangeListener(e -> {
             double cheque = montoChequeTxt.getDoubleValueDoNotThrow();
-            // Clamp: no puede superar el saldo del documento
             if (cheque > saldoDocumento) {
                 cheque = saldoDocumento;
                 montoChequeTxt.setValue(cheque);
             }
             if (!montoAnticipoTxt.isReadOnly()) {
                 double anticipo = Math.max(0, saldoDocumento - cheque);
-                // Clamp anticipo a saldo disponible
                 anticipo = Math.min(anticipo, saldoAnticipos);
                 montoAnticipoTxt.setValue(anticipo);
             }
@@ -257,7 +261,7 @@ public class PagoProveedorWindow extends Window {
         card.setWidth("100%");
         card.setSpacing(true);
         card.setMargin(false);
-        card.addComponents(saldoDocumentoLbl, saldoAnticiposLbl, montoAnticipoTxt, divider, montoChequeTxt);
+        card.addComponents(saldoDocumentoLbl, saldoAnticiposLbl, montoAnticipoTxt, divider, montoChequeTxt, fechaChequeDt);
 
         mainLayout.addComponent(card);
     }
@@ -334,14 +338,17 @@ public class PagoProveedorWindow extends Window {
     public void setSaldoAnticipos(double saldo) {
         saldoAnticiposLbl.setValue("Saldo anticipos:  " + moneda + " " + NUMBER_FORMAT.format(saldo));
         saldoAnticipos = saldo;
+        montoAnticipoTxt.setReadOnly(saldo <= 0);
     }
 
     public void setMontoAnticipo(double monto) {
-        montoAnticipoTxt.setReadOnly(false);
         montoAnticipoTxt.setValue(monto);
-        if(monto == 0) {
-            montoAnticipoTxt.setReadOnly(true);
-        }
+    }
+
+    @Override
+    public void attach() {
+        super.attach();
+        montoAnticipoTxt.focus();
     }
 
     public void setMontoCheque(double monto) {
@@ -370,5 +377,9 @@ public class PagoProveedorWindow extends Window {
 
     public double getSaldoAnticipos() {
         return saldoAnticipos;
+    }
+
+    public Date getFechaCheque() {
+        return fechaChequeDt.getValue() != null ? fechaChequeDt.getValue() : new Date();
     }
 }

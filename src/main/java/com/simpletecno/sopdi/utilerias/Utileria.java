@@ -1195,12 +1195,12 @@ public class Utileria {
 
         try (PreparedStatement ps = conn.prepareStatement(
                 "INSERT INTO folio_codigo_partida (IdEmpresa, Fecha, Tipo, Valor) " +
-                        "VALUES (?, ?, ?, 1) " +
+                        "VALUES (?, ?, ?, LAST_INSERT_ID(1)) " +
                         "ON DUPLICATE KEY UPDATE Valor = LAST_INSERT_ID(Valor + 1)");
              PreparedStatement ps2 = conn.prepareStatement("SELECT LAST_INSERT_ID()")) {
 
             ps.setString(1, idEmpresa);
-            ps.setString(2, fecha8);          // <-- Si tu columna es DATE: usa ps.setDate(2, java.sql.Date.valueOf(ld));
+            ps.setString(2, fecha8);
             ps.setInt(3, tipo);
             ps.executeUpdate();
 
