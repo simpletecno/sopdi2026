@@ -699,6 +699,73 @@
         background: #fdecec !important;
     }
 
+    /* Catálogo de empleados */
+    .empleado-main {
+        gap: 14px;
+    }
+
+    .empleado-main > .v-expand > .v-slot {
+        vertical-align: top;
+    }
+
+    .empleado-estado {
+        margin: 0 0 8px 0;
+        color: #2f6fed;
+    }
+
+    .empleado-estado-edicion {
+        color: #1f3a5f;
+    }
+
+    .empleado-detalle {
+        box-sizing: border-box;
+    }
+
+    .empleado-tabs {
+        border: 1px solid #dbe4f0;
+        border-radius: 12px;
+        background: #ffffff;
+        overflow: hidden;
+    }
+
+    .empleado-tabs .v-tabsheet-content {
+        min-height: 520px;
+        max-height: 620px;
+        overflow-y: auto;
+        background: #ffffff;
+    }
+
+    .empleado-tabs .v-tabsheet-tabitemcell {
+        font-weight: 600;
+    }
+
+    .empleado-tab-form .v-formlayout-captioncell {
+        color: #475569;
+        font-weight: 600;
+        white-space: normal;
+    }
+
+    .empleado-tab-form .v-formlayout-row > td {
+        padding-top: 4px;
+        padding-bottom: 4px;
+    }
+
+    .empleado-main[width-range~="0-1050px"] {
+        overflow-y: auto;
+    }
+
+    .empleado-main[width-range~="0-1050px"] > .v-expand > .v-slot {
+        display: block !important;
+        width: 100% !important;
+        height: auto !important;
+        margin-left: 0 !important;
+        padding-bottom: 14px;
+    }
+
+    .empleado-main[width-range~="0-1050px"] > .v-expand > .v-slot:first-child {
+        height: 420px !important;
+    }
+
     /* Tables legacy */
     .v-table {
         border-radius: 16px;

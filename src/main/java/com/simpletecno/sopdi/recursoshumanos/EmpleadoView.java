@@ -16,6 +16,7 @@ import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.server.Page;
+import com.vaadin.server.Responsive;
 import com.vaadin.server.Sizeable;
 import com.vaadin.shared.ui.MarginInfo;
 import com.vaadin.ui.*;
@@ -25,11 +26,16 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.ui.NumberField;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,44 +63,48 @@ public class EmpleadoView extends VerticalLayout implements View {
     Button salarioBtn;
     Button vacacionesBtn;
     Button deleteBtn;
+    Button saveBtn;
+
+    Label formularioEstadoLbl = new Label("Nuevo empleado");
 
     CheckBox mostrarInhabilitadosChb = new CheckBox("Mostrar inhabilitados");
 
-    ComboBox generoCbx = new ComboBox("Género : ");
-    ComboBox cargoCbx = new ComboBox("Cargo/Plaza : ");
-    TextField idEmpleadoTxt =  new TextField("Id Empleado : ");
-    TextField primerNombreTxt =  new TextField("Primer Nombre : ");
-    TextField segundoNombreTxt =  new TextField("Segundo Nombre : ");
-    TextField primerApellidoTxt =  new TextField("Primer Apellido : ");
-    TextField segundoApellidoTxt =  new TextField("Segundo Apellido : ");
-    TextField apellidoCasadaTxt =  new TextField("Apellido de Casada : ");
-    TextField nombreCompletoTxt =  new TextField("Nombre Completo (para IGSS) : ");
-    TextArea direccionTxt =  new TextArea("Dirección : ");
-    TextField nacionalidadTxt =  new TextField("Nacionalidad : ");
-    TextField telefonoTxt =  new TextField("Teléfono : ");
-    TextField telefonoEmergenciaTxt =  new TextField("Teléfono emergencia : ");
-    TextField nitTxt =  new TextField("NIT : ");
-    TextField dpiTxt =  new TextField("DPI : ");
-    TextField afiliacionIgssTxt =  new TextField("Afiliación IGSS : ");
-    TextField codigoOcupacionTxt =  new TextField("Código Ocupación : ");
-    TextField condicionLaboralTxt =  new TextField("Condición Laboral : ");
+    ComboBox generoCbx = new ComboBox("Género");
+    ComboBox cargoCbx = new ComboBox("Cargo / plaza");
+    TextField idEmpleadoTxt =  new TextField("ID empleado");
+    TextField primerNombreTxt =  new TextField("Primer nombre");
+    TextField segundoNombreTxt =  new TextField("Segundo nombre");
+    TextField primerApellidoTxt =  new TextField("Primer apellido");
+    TextField segundoApellidoTxt =  new TextField("Segundo apellido");
+    TextField apellidoCasadaTxt =  new TextField("Apellido de casada");
+    TextField nombreCompletoTxt =  new TextField("Nombre completo para IGSS");
+    TextArea direccionTxt =  new TextArea("Dirección");
+    TextField nacionalidadTxt =  new TextField("Nacionalidad");
+    TextField telefonoTxt =  new TextField("Teléfono");
+    TextField telefonoEmergenciaTxt =  new TextField("Teléfono de emergencia");
+    TextField nitTxt =  new TextField("NIT");
+    TextField dpiTxt =  new TextField("DPI");
+    TextField afiliacionIgssTxt =  new TextField("Afiliación IGSS");
+    TextField codigoOcupacionTxt =  new TextField("Código de ocupación");
+    TextField condicionLaboralTxt =  new TextField("Condición laboral");
     CheckBox aplicaAnticipoChb = new CheckBox("Aplica Anticipo");
     CheckBox obraAsignadaChb = new CheckBox("Tiene obra asignada");
     CheckBox esLiquidador = new CheckBox("Es liquidador");
-    TextField correlativoTxt =  new TextField("Correlativo planilla : ");
-    TextField cuentaBancariaTxt =  new TextField("Cuenta Bancaria : ");
-    DateField fechaIngresoDt = new DateField("Fecha Ingreso : ");
-    DateField fechaEgresoDt = new DateField("Fecha Egreso : ");
-    CheckBox aplicaIndemnizacion = new CheckBox("Aplica Indenmización");
+    TextField correlativoTxt =  new TextField("Correlativo de planilla");
+    TextField cuentaBancariaTxt =  new TextField("Cuenta bancaria");
+    DateField fechaIngresoDt = new DateField("Fecha de ingreso");
+    DateField fechaEgresoDt = new DateField("Fecha de egreso");
+    CheckBox aplicaIndemnizacion = new CheckBox("Aplica indemnización");
     CheckBox inhabilitadoChb = new CheckBox("Inhabilitado");
     Label idLiquidacion = new Label("0");
-    NumberField vacacionesDiasDerechoTxt =  new NumberField("Dias vacaciones derecho : ");
-    NumberField vacacionesDiasGozadosTxt =  new NumberField("Dias vacaciones gozados : ");
+    NumberField vacacionesDiasDerechoTxt =  new NumberField("Días de vacaciones con derecho");
+    NumberField vacacionesDiasGozadosTxt =  new NumberField("Días de vacaciones gozados");
 
     public static Locale locale = new Locale("ES", "GT");
     private static final DecimalFormat numberFormat = new DecimalFormat("##,###,##0.00");
 
     private Date egresoDateMemory = null;
+    private String idEmpleadoOriginal = null;
     
     boolean esNuevo;
 
@@ -113,6 +123,8 @@ public class EmpleadoView extends VerticalLayout implements View {
 
         mainLayout.setSpacing(true);
         mainLayout.setSizeFull();
+        mainLayout.addStyleName("empleado-main");
+        Responsive.makeResponsive(mainLayout);
 
         addComponent(mainLayout);
         setExpandRatio(mainLayout, 1.0f);
@@ -161,6 +173,7 @@ public class EmpleadoView extends VerticalLayout implements View {
                 if (empleadosGrid.getSelectedRow() != null) {
                     esNuevo = false;
                     mostrarDatos(String.valueOf(empleadosContainer.getContainerProperty(empleadosGrid.getSelectedRow(), "id").getValue()));
+                    actualizarEstadoAcciones(true);
                 }
             }
         });
@@ -219,7 +232,7 @@ public class EmpleadoView extends VerticalLayout implements View {
         buttonsLayout.setWidth("100%");
         buttonsLayout.addStyleName("rcorners3");
 
-        refreshBtn = new Button("Refrescar");
+        refreshBtn = new Button();
         refreshBtn.setIcon(FontAwesome.REFRESH);
         refreshBtn.setDescription("Refrescar");
         refreshBtn.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
@@ -230,9 +243,10 @@ public class EmpleadoView extends VerticalLayout implements View {
             }
         });
 
-        nuevoBtn = new Button("Nuevo");
+        nuevoBtn = new Button();
         nuevoBtn.setIcon(FontAwesome.PLUS);
         nuevoBtn.setDescription("Nuevo");
+        nuevoBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
         nuevoBtn.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
         nuevoBtn.addClickListener(new Button.ClickListener() {
             @Override
@@ -244,13 +258,17 @@ public class EmpleadoView extends VerticalLayout implements View {
                 clearForms();
                 idEmpleadoTxt.focus();
                 esNuevo = true;
+                formularioEstadoLbl.setValue("Nuevo empleado");
+                formularioEstadoLbl.removeStyleName("empleado-estado-edicion");
+                actualizarEstadoAcciones(false);
             }
         });
 
-        salarioBtn = new Button("Salario");
+        salarioBtn = new Button();
         salarioBtn.setIcon(FontAwesome.MONEY);
-        salarioBtn.setDescription("SALARIO");
+        salarioBtn.setDescription("Consultar salarios del empleado seleccionado");
         salarioBtn.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
+        salarioBtn.setEnabled(false);
         salarioBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -268,10 +286,11 @@ public class EmpleadoView extends VerticalLayout implements View {
             }
         });
 
-        vacacionesBtn = new Button("Vacaciones");
+        vacacionesBtn = new Button();
         vacacionesBtn.setIcon(FontAwesome.BATTERY_4);
-        vacacionesBtn.setDescription("Vacacinoes");
+        vacacionesBtn.setDescription("Administrar vacaciones y ausencias");
         vacacionesBtn.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
+        vacacionesBtn.setEnabled(false);
         vacacionesBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -291,11 +310,12 @@ public class EmpleadoView extends VerticalLayout implements View {
             }
         });
 
-        deleteBtn = new Button("Eliminar");
+        deleteBtn = new Button();
         deleteBtn.setIcon(FontAwesome.REMOVE);
-        deleteBtn.setDescription("Eliminar");
+        deleteBtn.setDescription("Inhabilitar al empleado seleccionado");
         deleteBtn.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
         deleteBtn.addStyleName(ValoTheme.BUTTON_DANGER);
+        deleteBtn.setEnabled(false);
         deleteBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -318,12 +338,12 @@ public class EmpleadoView extends VerticalLayout implements View {
 //                            Notification.show("Este proveedor/cliente tiene historial de contable, no se puede eliminar.", Notification.Type.WARNING_MESSAGE);
 //                            return;
 //                        }
-                        ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de eliminar el registro del empleado?",
+                        ConfirmDialog.show(UI.getCurrent(), "Confirme:", "¿Está seguro de inhabilitar al empleado?",
                                 "SI", "NO", new ConfirmDialog.Listener() {
 
                                     public void onClose(ConfirmDialog dialog) {
                                         if (dialog.isConfirmed()) {
-//                                            deleteProveedor();
+                                            deleteEmpleado();
                                         }
                                     }
                                 });
@@ -356,65 +376,73 @@ public class EmpleadoView extends VerticalLayout implements View {
     private void fillGridEmpleados() {
         empleadosContainer.removeAllItems();
 
-        String queryString = " SELECT * FROM proveedor_empresa ";
-        queryString += " WHERE EsPlanilla = 1";
+        String queryString = "SELECT IdProveedor, Inhabilitado, Nombre, PrimerNombre, SegundoNombre, "
+                + "PrimerApellido, SegundoApellido, ApellidoCasada FROM proveedor_empresa "
+                + "WHERE EsPlanilla = 1";
         if (!mostrarInhabilitadosChb.getValue()) {
             queryString += " AND Inhabilitado = 0 ";
         }
-        queryString += " AND IdEmpresa = " + empresaId;
+        queryString += " AND IdEmpresa = ?";
         queryString += " ORDER BY Nombre ";
 
         try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords = stQuery.executeQuery(queryString);
+            Connection connection = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection();
+            try (PreparedStatement statement = connection.prepareStatement(queryString)) {
+                statement.setString(1, empresaId);
+                try (ResultSet records = statement.executeQuery()) {
 
-            Object itemId;
-            while (rsRecords.next()) {
+                    Object itemId;
+                    while (records.next()) {
 
-                itemId = empleadosContainer.addItem();
+                        itemId = empleadosContainer.addItem();
 
-                System.out.println(itemId);
-                System.out.println(empleadosContainer.getContainerPropertyIds());
-                System.out.println(empleadosContainer.getContainerProperty(itemId, "id"));
-                empleadosContainer.getContainerProperty(itemId, "id").setValue(rsRecords.getString("IdProveedor"));
-                empleadosContainer.getContainerProperty(itemId, "inhabilitado").setValue("1".equals(rsRecords.getString("Inhabilitado")));
-                if(rsRecords.getString("PrimerNombre").equals("")){
-                    empleadosContainer.getContainerProperty(itemId, "nombre").setValue(rsRecords.getString("Nombre"));
-                }else{
-                    empleadosContainer.getContainerProperty(itemId, "nombre").setValue(rsRecords.getString("PrimerNombre") + " " + rsRecords.getString("SegundoNombre") + " " + rsRecords.getString("PrimerApellido") + " " + rsRecords.getString("SegundoApellido") +  " " + rsRecords.getString("ApellidoCasada") );
+                        empleadosContainer.getContainerProperty(itemId, "id").setValue(records.getString("IdProveedor"));
+                        empleadosContainer.getContainerProperty(itemId, "inhabilitado").setValue(records.getBoolean("Inhabilitado"));
+                        String primerNombre = valueOrEmpty(records.getString("PrimerNombre"));
+                        if (primerNombre.isEmpty()) {
+                            empleadosContainer.getContainerProperty(itemId, "nombre").setValue(valueOrEmpty(records.getString("Nombre")));
+                        } else {
+                            empleadosContainer.getContainerProperty(itemId, "nombre").setValue(buildNombreCompleto(
+                                    primerNombre, records.getString("SegundoNombre"), records.getString("PrimerApellido"),
+                                    records.getString("SegundoApellido"), records.getString("ApellidoCasada")));
+                        }
+                    }
                 }
-//                empleadoCbx.getItem(rsRecords.getString("IDProveedor")).getItemProperty(NIT_PROPERTY).setValue(rsRecords.getString("NIT"));
-//                empleadoCbx.getItem(rsRecords.getString("IDProveedor")).getItemProperty(GRUPO_PROPERTY).setValue(rsRecords.getString("GRUPO"));
-//                empleadoCbx.getItem(rsRecords.getString("IDProveedor")).getItemProperty(NOMBRESINCODIGO_PROPERTY).setValue(rsRecords.getString("Nombre"));
             }
-
         } catch (Exception ex1) {
-            System.out.println("Error al listar Proveedores/Empleados " + ex1.getMessage());
-            ex1.printStackTrace();
+            Logger.getLogger(EmpleadoView.class.getName()).log(Level.SEVERE, "Error al listar empleados", ex1);
+            Notification.show("No fue posible cargar los empleados.", Notification.Type.ERROR_MESSAGE);
         }
     }
 
     private void createRightContent() {
 
         rightLayout.addStyleName("rcorners3");
-//        rightLayout.setSizeFull();
+        rightLayout.addStyleName("empleado-detalle");
+        rightLayout.setWidth("100%");
+        rightLayout.setHeightUndefined();
+        rightLayout.setSpacing(true);
 
         mainLayout.addComponent(rightLayout);
 
-        HorizontalLayout formsLayout = new HorizontalLayout();
-        formsLayout.setWidth("100%");
+        TabSheet empleadoTabs = new TabSheet();
+        empleadoTabs.setWidth("100%");
+        empleadoTabs.setHeightUndefined();
+        empleadoTabs.addStyleName("empleado-tabs");
 
-        HorizontalLayout middleLayout = new HorizontalLayout();
-        middleLayout.addStyleName("rcorners3");
-        middleLayout.setWidth("100%");
-        middleLayout.setSpacing(true);
+        FormLayout datosPersonalesForm = crearTabFormulario();
+        FormLayout datosLaboralesForm = crearTabFormulario();
+        FormLayout vacacionesForm = crearTabFormulario();
 
-        rightLayout.addComponents(formsLayout, middleLayout);
+        empleadoTabs.addTab(datosPersonalesForm, "Datos personales", FontAwesome.USER);
+        empleadoTabs.addTab(datosLaboralesForm, "Datos laborales", FontAwesome.BRIEFCASE);
+        empleadoTabs.addTab(vacacionesForm, "Vacaciones y liquidación", FontAwesome.CALENDAR);
 
-        FormLayout leftFormLayout = new FormLayout();
-        FormLayout rightFormLayout = new FormLayout();
-
-        formsLayout.addComponents(leftFormLayout, rightFormLayout);
+        formularioEstadoLbl.addStyleName(ValoTheme.LABEL_H2);
+        formularioEstadoLbl.addStyleName(ValoTheme.LABEL_COLORED);
+        formularioEstadoLbl.addStyleName("empleado-estado");
+        rightLayout.addComponent(formularioEstadoLbl);
+        rightLayout.addComponent(empleadoTabs);
 
 
         generoCbx.addItem("Masculino");
@@ -427,20 +455,20 @@ public class EmpleadoView extends VerticalLayout implements View {
         cargoCbx.setWidth("95%");
         cargoCbx.addItem("");
 
-        String queryString = " SELECT * FROM empleado_cargo WHERE IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        String queryString = "SELECT Cargo FROM empleado_cargo WHERE IdEmpresa = ?";
 
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords = stQuery.executeQuery(queryString);
-
-            while (rsRecords.next()) {
-                cargoCbx.addItem(rsRecords.getString("Cargo"));
-             }
+        try (PreparedStatement statement = ((SopdiUI) UI.getCurrent()).databaseProvider
+                .getCurrentConnection().prepareStatement(queryString)) {
+            statement.setString(1, empresaId);
+            try (ResultSet records = statement.executeQuery()) {
+                while (records.next()) {
+                    cargoCbx.addItem(records.getString("Cargo"));
+                }
+            }
         } catch (Exception ex1) {
-            System.out.println("Error al listar Proveedores/Empleados " + ex1.getMessage());
-            ex1.printStackTrace();
+            Logger.getLogger(EmpleadoView.class.getName()).log(Level.SEVERE, "Error al listar cargos", ex1);
+            Notification.show("No fue posible cargar los cargos.", Notification.Type.ERROR_MESSAGE);
         }
-        cargoCbx.addItem("");
         cargoCbx.setNullSelectionAllowed(false);
         cargoCbx.setInvalidAllowed(false);
         cargoCbx.setTextInputAllowed(false);
@@ -471,18 +499,29 @@ public class EmpleadoView extends VerticalLayout implements View {
         fechaIngresoDt.setDateFormat("dd/MM/yyyy");
         fechaEgresoDt.setDateFormat("dd/MM/yyyy");
 
-        inhabilitadoChb.addValueChangeListener(event -> aplicarEstiloInhabilitado(inhabilitadoChb.getValue()));
+        configurarCamposFormulario();
+
+        inhabilitadoChb.addValueChangeListener(event -> {
+            aplicarEstiloInhabilitado(inhabilitadoChb.getValue());
+            if (deleteBtn != null) {
+                deleteBtn.setEnabled(empleadosGrid.getSelectedRow() != null
+                        && !Boolean.TRUE.equals(inhabilitadoChb.getValue()));
+            }
+        });
 
 
         idLiquidacion.setCaption("Planilla Liquidación No.");
 
-        leftFormLayout.addComponents(idEmpleadoTxt, cargoCbx, generoCbx, primerNombreTxt, segundoNombreTxt, primerApellidoTxt, segundoApellidoTxt);
-        leftFormLayout.addComponents(apellidoCasadaTxt, nacionalidadTxt, direccionTxt, telefonoTxt, telefonoEmergenciaTxt);
-        rightFormLayout.addComponents(nitTxt, dpiTxt, afiliacionIgssTxt, codigoOcupacionTxt, condicionLaboralTxt, cuentaBancariaTxt,correlativoTxt);
-        rightFormLayout.addComponents(fechaIngresoDt, fechaEgresoDt, aplicaIndemnizacion, aplicaAnticipoChb, obraAsignadaChb, esLiquidador, inhabilitadoChb);
-        middleLayout.addComponents(idLiquidacion, vacacionesDiasDerechoTxt, vacacionesDiasGozadosTxt);
+        datosPersonalesForm.addComponents(idEmpleadoTxt, generoCbx, primerNombreTxt, segundoNombreTxt,
+                primerApellidoTxt, segundoApellidoTxt, apellidoCasadaTxt, nombreCompletoTxt,
+                nacionalidadTxt, direccionTxt, telefonoTxt, telefonoEmergenciaTxt);
 
-        rightLayout.addComponent(nombreCompletoTxt);
+        datosLaboralesForm.addComponents(cargoCbx, nitTxt, dpiTxt, afiliacionIgssTxt,
+                codigoOcupacionTxt, condicionLaboralTxt, cuentaBancariaTxt, correlativoTxt,
+                fechaIngresoDt, fechaEgresoDt, aplicaIndemnizacion, aplicaAnticipoChb,
+                obraAsignadaChb, esLiquidador, inhabilitadoChb);
+
+        vacacionesForm.addComponents(idLiquidacion, vacacionesDiasDerechoTxt, vacacionesDiasGozadosTxt);
 
         HorizontalLayout buttonsLayout = new HorizontalLayout();
         buttonsLayout.setSpacing(true);
@@ -491,19 +530,30 @@ public class EmpleadoView extends VerticalLayout implements View {
 
         rightLayout.addComponent(buttonsLayout);
 
-        Button saveBtn = new Button("Guardar");
+        saveBtn = new Button("Guardar cambios");
         saveBtn.setIcon(FontAwesome.SAVE);
-        saveBtn.setWidth(120, Sizeable.UNITS_PIXELS);
+        saveBtn.setWidth(180, Sizeable.UNITS_PIXELS);
+        saveBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
         saveBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                guardarDatos();
+                guardarDatosSeguro();
             }
         });
 
         buttonsLayout.addComponent(saveBtn);
         buttonsLayout.setComponentAlignment(saveBtn,Alignment.MIDDLE_CENTER);
 
+    }
+
+    private FormLayout crearTabFormulario() {
+        FormLayout formulario = new FormLayout();
+        formulario.setWidth("100%");
+        formulario.setHeightUndefined();
+        formulario.setMargin(true);
+        formulario.setSpacing(true);
+        formulario.addStyleName("empleado-tab-form");
+        return formulario;
     }
 
     private void aplicarEstiloInhabilitado(Boolean inhabilitado) {
@@ -514,21 +564,49 @@ public class EmpleadoView extends VerticalLayout implements View {
         }
     }
 
+    private void configurarCamposFormulario() {
+        Component[] camposAnchoCompleto = {
+                idEmpleadoTxt, cargoCbx, generoCbx, primerNombreTxt, segundoNombreTxt,
+                primerApellidoTxt, segundoApellidoTxt, apellidoCasadaTxt, nacionalidadTxt,
+                direccionTxt, telefonoTxt, telefonoEmergenciaTxt, nitTxt, dpiTxt,
+                afiliacionIgssTxt, codigoOcupacionTxt, condicionLaboralTxt, cuentaBancariaTxt,
+                correlativoTxt, fechaIngresoDt, fechaEgresoDt, nombreCompletoTxt,
+                vacacionesDiasDerechoTxt, vacacionesDiasGozadosTxt
+        };
+        for (Component campo : camposAnchoCompleto) {
+            campo.setWidth("100%");
+        }
+
+        idEmpleadoTxt.setRequired(true);
+        cargoCbx.setRequired(true);
+        primerNombreTxt.setRequired(true);
+        primerApellidoTxt.setRequired(true);
+        direccionTxt.setRequired(true);
+        telefonoTxt.setRequired(true);
+        telefonoEmergenciaTxt.setRequired(true);
+        dpiTxt.setRequired(true);
+        fechaIngresoDt.setRequired(true);
+
+        idEmpleadoTxt.setInputPrompt("Código único");
+        telefonoTxt.setInputPrompt("Ej. 5555-5555");
+        telefonoEmergenciaTxt.setInputPrompt("Ej. 5555-5555");
+        dpiTxt.setInputPrompt("13 dígitos");
+        nombreCompletoTxt.setDescription("Nombre que se reportará al IGSS");
+    }
+
+    private void actualizarEstadoAcciones(boolean empleadoSeleccionado) {
+        salarioBtn.setEnabled(empleadoSeleccionado);
+        vacacionesBtn.setEnabled(empleadoSeleccionado);
+        deleteBtn.setEnabled(empleadoSeleccionado && !Boolean.TRUE.equals(inhabilitadoChb.getValue()));
+    }
+
     private void completarNombre() {
-        nombreCompletoTxt.setValue(
-                primerNombreTxt.getValue()
-                + " "
-                + segundoNombreTxt.getValue()
-                + " "
-                + primerApellidoTxt.getValue()
-                + " "
-                + segundoApellidoTxt.getValue()
-                + " "
-                + apellidoCasadaTxt.getValue()
-        );
+        nombreCompletoTxt.setValue(buildNombreCompleto(primerNombreTxt.getValue(), segundoNombreTxt.getValue(),
+                primerApellidoTxt.getValue(), segundoApellidoTxt.getValue(), apellidoCasadaTxt.getValue()));
     }
 
     private void clearForms() {
+        idEmpleadoTxt.setReadOnly(false);
         idEmpleadoTxt.setValue("");
         cargoCbx.setValue("");
         generoCbx.setValue("Masculino");
@@ -558,6 +636,10 @@ public class EmpleadoView extends VerticalLayout implements View {
         aplicaIndemnizacion.setValue(false);
         vacacionesDiasDerechoTxt.setValue(15d);
         vacacionesDiasGozadosTxt.setValue(0d);
+        cuentaBancariaTxt.setValue("");
+        idLiquidacion.setValue("0");
+        egresoDateMemory = null;
+        idEmpleadoOriginal = null;
 
     }
 
@@ -565,62 +647,64 @@ public class EmpleadoView extends VerticalLayout implements View {
 
         clearForms();
 
-        String queryString = " SELECT * FROM proveedor_empresa ";
-        queryString += " WHERE IdProveedor = " + idProveedor;
-        queryString += " AND IdEmpresa = " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
-        queryString += " AND EsPlanilla = 1";
+        String queryString = "SELECT * FROM proveedor_empresa WHERE IdProveedor = ? AND IdEmpresa = ? AND EsPlanilla = 1";
 
-//System.out.println(queryString);
-
-        try {
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords = stQuery.executeQuery(queryString);
-
-            if(rsRecords.next()) {
-                idEmpleadoTxt.setValue(rsRecords.getString("IDProveedor"));
-                cargoCbx.setValue(rsRecords.getString("Cargo"));
-                generoCbx.setValue(rsRecords.getString("Genero"));
-                primerNombreTxt.setValue(rsRecords.getString("PrimerNombre"));
-                segundoNombreTxt.setValue(rsRecords.getString("SegundoNombre"));
-                primerApellidoTxt.setValue(rsRecords.getString("PrimerApellido"));
-                segundoApellidoTxt.setValue(rsRecords.getString("SegundoApellido"));
-                apellidoCasadaTxt.setValue(rsRecords.getString("ApellidoCasada"));
-                direccionTxt.setValue(rsRecords.getString("Direccion"));
-                nacionalidadTxt.setValue(rsRecords.getString("nacionalidad"));
-                telefonoTxt.setValue(rsRecords.getString("Telefono"));
-                telefonoEmergenciaTxt.setValue(rsRecords.getString("TelefonoEmergencia"));
-                nitTxt.setValue(rsRecords.getString("Nit"));
-                dpiTxt.setValue(rsRecords.getString("Dpi"));
-                afiliacionIgssTxt.setValue(rsRecords.getString("AfiliacionIgss"));
-                codigoOcupacionTxt.setValue(rsRecords.getString("CodigoOcupacion"));
-                condicionLaboralTxt.setValue(rsRecords.getString("CondicionLaboral"));
-                aplicaAnticipoChb.setValue(rsRecords.getString("AplicaAnticipoSalario").equals("1"));
-                obraAsignadaChb.setValue(rsRecords.getString("AsignadoObra").equals("1"));
-                esLiquidador.setValue(rsRecords.getString("EsLiquidador").equals("1"));
-                cuentaBancariaTxt.setValue(rsRecords.getString("BancoCuenta"));
-                fechaIngresoDt.setValue(rsRecords.getDate("FechaIngreso"));
-                if(rsRecords.getObject("FechaEgreso") != null) {
-                    fechaEgresoDt.setValue(rsRecords.getDate("FechaEgreso"));
-                    egresoDateMemory = rsRecords.getDate("FechaEgreso");
+        try (PreparedStatement statement = ((SopdiUI) UI.getCurrent()).databaseProvider
+                .getCurrentConnection().prepareStatement(queryString)) {
+            statement.setString(1, idProveedor);
+            statement.setString(2, empresaId);
+            try (ResultSet records = statement.executeQuery()) {
+                if(records.next()) {
+                idEmpleadoOriginal = records.getString("IDProveedor");
+                idEmpleadoTxt.setValue(idEmpleadoOriginal);
+                idEmpleadoTxt.setReadOnly(true);
+                cargoCbx.setValue(valueOrEmpty(records.getString("Cargo")));
+                generoCbx.setValue(valueOrDefault(records.getString("Genero"), "Masculino"));
+                primerNombreTxt.setValue(valueOrEmpty(records.getString("PrimerNombre")));
+                segundoNombreTxt.setValue(valueOrEmpty(records.getString("SegundoNombre")));
+                primerApellidoTxt.setValue(valueOrEmpty(records.getString("PrimerApellido")));
+                segundoApellidoTxt.setValue(valueOrEmpty(records.getString("SegundoApellido")));
+                apellidoCasadaTxt.setValue(valueOrEmpty(records.getString("ApellidoCasada")));
+                direccionTxt.setValue(valueOrEmpty(records.getString("Direccion")));
+                nacionalidadTxt.setValue(valueOrEmpty(records.getString("nacionalidad")));
+                telefonoTxt.setValue(valueOrEmpty(records.getString("Telefono")));
+                telefonoEmergenciaTxt.setValue(valueOrEmpty(records.getString("TelefonoEmergencia")));
+                nitTxt.setValue(valueOrEmpty(records.getString("Nit")));
+                dpiTxt.setValue(valueOrEmpty(records.getString("Dpi")));
+                afiliacionIgssTxt.setValue(valueOrEmpty(records.getString("AfiliacionIgss")));
+                codigoOcupacionTxt.setValue(valueOrEmpty(records.getString("CodigoOcupacion")));
+                condicionLaboralTxt.setValue(valueOrEmpty(records.getString("CondicionLaboral")));
+                aplicaAnticipoChb.setValue(records.getBoolean("AplicaAnticipoSalario"));
+                obraAsignadaChb.setValue(records.getBoolean("AsignadoObra"));
+                esLiquidador.setValue(records.getBoolean("EsLiquidador"));
+                cuentaBancariaTxt.setValue(valueOrEmpty(records.getString("BancoCuenta")));
+                fechaIngresoDt.setValue(records.getDate("FechaIngreso"));
+                if(records.getObject("FechaEgreso") != null) {
+                    fechaEgresoDt.setValue(records.getDate("FechaEgreso"));
+                    egresoDateMemory = records.getDate("FechaEgreso");
                 }
                 else {
                     fechaEgresoDt.setValue(null);
+                    egresoDateMemory = null;
                 }
-                correlativoTxt.setValue(rsRecords.getString("IdCorrFinal"));
-                inhabilitadoChb.setValue(rsRecords.getString("Inhabilitado").equals("1"));
+                correlativoTxt.setValue(valueOrDefault(records.getString("IdCorrFinal"), "0"));
+                inhabilitadoChb.setValue(records.getBoolean("Inhabilitado"));
                 aplicarEstiloInhabilitado(inhabilitadoChb.getValue());
-                aplicaIndemnizacion.setValue(rsRecords.getString("AplicaIndemnizacion").equals("1"));
+                aplicaIndemnizacion.setValue(records.getBoolean("AplicaIndemnizacion"));
 
-                idLiquidacion.setValue(rsRecords.getString("IdPlanillaLiquidacion"));
+                idLiquidacion.setValue(valueOrDefault(records.getString("IdPlanillaLiquidacion"), "0"));
 
-                vacacionesDiasDerechoTxt.setValue(rsRecords.getDouble("DiasVacacionesDerecho"));
-                vacacionesDiasGozadosTxt.setValue(rsRecords.getDouble("DiasVacacionesGozados"));
+                vacacionesDiasDerechoTxt.setValue(records.getDouble("DiasVacacionesDerecho"));
+                vacacionesDiasGozadosTxt.setValue(records.getDouble("DiasVacacionesGozados"));
 
+                formularioEstadoLbl.setValue("Editando empleado " + idEmpleadoOriginal);
+                formularioEstadoLbl.addStyleName("empleado-estado-edicion");
+
+                }
             }
-
         } catch (Exception ex1) {
-            System.out.println("Error al listar Proveedores/Empleados " + ex1.getMessage());
-            ex1.printStackTrace();
+            Logger.getLogger(EmpleadoView.class.getName()).log(Level.SEVERE, "Error al cargar empleado", ex1);
+            Notification.show("No fue posible cargar el empleado.", Notification.Type.ERROR_MESSAGE);
         }
     }
 
@@ -642,6 +726,266 @@ public class EmpleadoView extends VerticalLayout implements View {
 
     }
 
+    private void guardarDatosSeguro() {
+        if (!validarFormulario()) {
+            return;
+        }
+
+        Connection connection = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection();
+        boolean autoCommitOriginal = true;
+        try {
+            autoCommitOriginal = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            if (esNuevo) {
+                insertarEmpleado(connection);
+            } else {
+                actualizarEmpleado(connection);
+            }
+            actualizarAsistencia(connection);
+            connection.commit();
+
+            idEmpleadoOriginal = idEmpleadoTxt.getValue().trim();
+            egresoDateMemory = fechaEgresoDt.getValue();
+            esNuevo = false;
+            Notification.show("OPERACIÓN EXITOSA!", Notification.Type.HUMANIZED_MESSAGE);
+            Logger.getLogger(EmpleadoView.class.getName()).log(Level.INFO,
+                    "El usuario {0} actualizó el empleado {1}",
+                    new Object[]{((SopdiUI) mainUI).sessionInformation.getStrUserName(), idEmpleadoOriginal});
+            fillGridEmpleados();
+        } catch (Exception ex) {
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackError) {
+                ex.addSuppressed(rollbackError);
+            }
+            Logger.getLogger(EmpleadoView.class.getName()).log(Level.SEVERE, "Error al guardar empleado", ex);
+            Notification.show("No fue posible guardar el empleado. Verifique que el ID no esté duplicado y que los datos sean válidos.",
+                    Notification.Type.ERROR_MESSAGE);
+        } finally {
+            try {
+                connection.setAutoCommit(autoCommitOriginal);
+            } catch (SQLException ex) {
+                Logger.getLogger(EmpleadoView.class.getName()).log(Level.SEVERE, "No fue posible restaurar la conexión", ex);
+            }
+        }
+    }
+
+    private boolean validarFormulario() {
+        if (isBlank(idEmpleadoTxt.getValue())) {
+            return mostrarErrorValidacion("Error, falta el Id del Empleado!", idEmpleadoTxt);
+        }
+        if (isBlank(primerNombreTxt.getValue())) {
+            return mostrarErrorValidacion("Error, falta el nombre del empleado!", primerNombreTxt);
+        }
+        if (isBlank(primerApellidoTxt.getValue())) {
+            return mostrarErrorValidacion("Error, falta el apellido del empleado!", primerApellidoTxt);
+        }
+        if (isBlank(nombreCompletoTxt.getValue())) {
+            return mostrarErrorValidacion("Error, falta el nombre completo del empleado!", primerNombreTxt);
+        }
+        if (cargoCbx.getValue() == null || isBlank(String.valueOf(cargoCbx.getValue()))) {
+            return mostrarErrorValidacion("Error, falta el cargo/puesto/plaza del empleado!", cargoCbx);
+        }
+        if (isBlank(direccionTxt.getValue())) {
+            return mostrarErrorValidacion("Error, falta la dirección del empleado!", direccionTxt);
+        }
+        if (isBlank(dpiTxt.getValue())) {
+            return mostrarErrorValidacion("Error, falta el DPI del empleado!", dpiTxt);
+        }
+        if (fechaIngresoDt.getValue() == null) {
+            return mostrarErrorValidacion("Error, falta la fecha de ingreso del empleado!", fechaIngresoDt);
+        }
+        if (isBlank(telefonoTxt.getValue())) {
+            return mostrarErrorValidacion("Error, falta el teléfono del empleado!", telefonoTxt);
+        }
+        if (isBlank(telefonoEmergenciaTxt.getValue())) {
+            return mostrarErrorValidacion("Error, falta el teléfono de emergencia del empleado!", telefonoEmergenciaTxt);
+        }
+        if (fechaEgresoDt.getValue() == null && aplicaIndemnizacion.getValue()) {
+            aplicaIndemnizacion.setValue(false);
+            Notification.show("Aplica indemnización solamente cuando el empleado tiene fecha de egreso.",
+                    Notification.Type.WARNING_MESSAGE);
+            return false;
+        }
+        if (fechaEgresoDt.getValue() != null && fechaEgresoDt.getValue().before(fechaIngresoDt.getValue())) {
+            return mostrarErrorValidacion("La fecha de egreso no puede ser anterior a la fecha de ingreso.", fechaEgresoDt);
+        }
+        if (vacacionesDiasDerechoTxt.getValue() == null || vacacionesDiasGozadosTxt.getValue() == null) {
+            Notification.show("Los días de vacaciones son obligatorios.", Notification.Type.ERROR_MESSAGE);
+            return false;
+        }
+        return true;
+    }
+
+    private boolean mostrarErrorValidacion(String mensaje, AbstractField<?> campo) {
+        Notification.show(mensaje, Notification.Type.ERROR_MESSAGE);
+        campo.focus();
+        return false;
+    }
+
+    private void insertarEmpleado(Connection connection) throws SQLException {
+        String sql = "INSERT INTO proveedor_empresa (IDProveedor, IdEmpresa, Nombre, NIT, DPI, Regimen, "
+                + "EsPlanilla, Cargo, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, ApellidoCasada, "
+                + "Banco, BancoCuenta, Nacionalidad, Direccion, Telefono, TelefonoEmergencia, Genero, TituloAcademico, "
+                + "AfiliacionIgss, FechaIngreso, FechaEgreso, CodigoOcupacion, CondicionLaboral, AplicaAnticipoSalario, "
+                + "AsignadoObra, IdCorrFinal, AplicaIndemnizacion, DiasVacacionesDerecho, DiasVacacionesGozados, "
+                + "EsLiquidador, Inhabilitado) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            int index = 1;
+            statement.setString(index++, idEmpleadoTxt.getValue().trim());
+            statement.setString(index++, empresaId);
+            statement.setString(index++, nombreCompletoTxt.getValue().trim());
+            statement.setString(index++, nitTxt.getValue().trim());
+            statement.setString(index++, dpiTxt.getValue().trim());
+            statement.setString(index++, "NORMAL");
+            statement.setBoolean(index++, true);
+            statement.setString(index++, String.valueOf(cargoCbx.getValue()));
+            statement.setString(index++, primerNombreTxt.getValue().trim());
+            statement.setString(index++, segundoNombreTxt.getValue().trim());
+            statement.setString(index++, primerApellidoTxt.getValue().trim());
+            statement.setString(index++, segundoApellidoTxt.getValue().trim());
+            statement.setString(index++, apellidoCasadaTxt.getValue().trim());
+            statement.setString(index++, "Banco Industrial");
+            statement.setString(index++, cuentaBancariaTxt.getValue().trim());
+            statement.setString(index++, nacionalidadTxt.getValue().trim());
+            statement.setString(index++, direccionTxt.getValue().trim());
+            statement.setString(index++, telefonoTxt.getValue().trim());
+            statement.setString(index++, telefonoEmergenciaTxt.getValue().trim());
+            statement.setString(index++, String.valueOf(generoCbx.getValue()));
+            statement.setString(index++, "");
+            statement.setString(index++, afiliacionIgssTxt.getValue().trim());
+            statement.setDate(index++, toSqlDate(fechaIngresoDt.getValue()));
+            setNullableDate(statement, index++, fechaEgresoDt.getValue());
+            statement.setString(index++, codigoOcupacionTxt.getValue().trim());
+            statement.setString(index++, condicionLaboralTxt.getValue().trim());
+            statement.setBoolean(index++, aplicaAnticipoChb.getValue());
+            statement.setBoolean(index++, obraAsignadaChb.getValue());
+            statement.setString(index++, valueOrDefault(correlativoTxt.getValue(), "0").trim());
+            statement.setBoolean(index++, aplicaIndemnizacion.getValue());
+            statement.setDouble(index++, Double.parseDouble(vacacionesDiasDerechoTxt.getValue()));
+            statement.setDouble(index++, Double.parseDouble(vacacionesDiasGozadosTxt.getValue()));
+            statement.setBoolean(index++, esLiquidador.getValue());
+            statement.setBoolean(index, inhabilitadoChb.getValue());
+            statement.executeUpdate();
+        }
+    }
+
+    private void actualizarEmpleado(Connection connection) throws SQLException {
+        if (idEmpleadoOriginal == null) {
+            throw new SQLException("No se conoce el ID original del empleado");
+        }
+        String sql = "UPDATE proveedor_empresa SET IDProveedor=?, Nombre=?, NIT=?, DPI=?, PrimerNombre=?, "
+                + "SegundoNombre=?, PrimerApellido=?, SegundoApellido=?, ApellidoCasada=?, BancoCuenta=?, "
+                + "Nacionalidad=?, Direccion=?, Telefono=?, TelefonoEmergencia=?, Genero=?, AfiliacionIgss=?, "
+                + "FechaIngreso=?, FechaEgreso=?, CodigoOcupacion=?, CondicionLaboral=?, AplicaAnticipoSalario=?, "
+                + "AsignadoObra=?, EsLiquidador=?, IdCorrFinal=?, Inhabilitado=?, Cargo=?, AplicaIndemnizacion=?, "
+                + "DiasVacacionesDerecho=?, DiasVacacionesGozados=? WHERE IdProveedor=? AND IdEmpresa=?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            int index = 1;
+            statement.setString(index++, idEmpleadoTxt.getValue().trim());
+            statement.setString(index++, nombreCompletoTxt.getValue().trim());
+            statement.setString(index++, nitTxt.getValue().trim());
+            statement.setString(index++, dpiTxt.getValue().trim());
+            statement.setString(index++, primerNombreTxt.getValue().trim());
+            statement.setString(index++, segundoNombreTxt.getValue().trim());
+            statement.setString(index++, primerApellidoTxt.getValue().trim());
+            statement.setString(index++, segundoApellidoTxt.getValue().trim());
+            statement.setString(index++, apellidoCasadaTxt.getValue().trim());
+            statement.setString(index++, cuentaBancariaTxt.getValue().trim());
+            statement.setString(index++, nacionalidadTxt.getValue().trim());
+            statement.setString(index++, direccionTxt.getValue().trim());
+            statement.setString(index++, telefonoTxt.getValue().trim());
+            statement.setString(index++, telefonoEmergenciaTxt.getValue().trim());
+            statement.setString(index++, String.valueOf(generoCbx.getValue()));
+            statement.setString(index++, afiliacionIgssTxt.getValue().trim());
+            statement.setDate(index++, toSqlDate(fechaIngresoDt.getValue()));
+            setNullableDate(statement, index++, fechaEgresoDt.getValue());
+            statement.setString(index++, codigoOcupacionTxt.getValue().trim());
+            statement.setString(index++, condicionLaboralTxt.getValue().trim());
+            statement.setBoolean(index++, aplicaAnticipoChb.getValue());
+            statement.setBoolean(index++, obraAsignadaChb.getValue());
+            statement.setBoolean(index++, esLiquidador.getValue());
+            statement.setString(index++, valueOrDefault(correlativoTxt.getValue(), "0").trim());
+            statement.setBoolean(index++, inhabilitadoChb.getValue());
+            statement.setString(index++, String.valueOf(cargoCbx.getValue()));
+            statement.setBoolean(index++, aplicaIndemnizacion.getValue());
+            statement.setDouble(index++, Double.parseDouble(vacacionesDiasDerechoTxt.getValue()));
+            statement.setDouble(index++, Double.parseDouble(vacacionesDiasGozadosTxt.getValue()));
+            statement.setString(index++, idEmpleadoOriginal);
+            statement.setString(index, empresaId);
+            if (statement.executeUpdate() != 1) {
+                throw new SQLException("El empleado no existe o fue modificado por otro usuario");
+            }
+        }
+    }
+
+    private void actualizarAsistencia(Connection connection) throws SQLException {
+        Date fechaEgresoNueva = fechaEgresoDt.getValue();
+        if (Objects.equals(fechaEgresoNueva, egresoDateMemory)) {
+            return;
+        }
+        if (egresoDateMemory != null) {
+            actualizarEstadoAsistencia(connection, egresoDateMemory, "PRESENTE", "", false, false);
+        }
+        if (fechaEgresoNueva != null) {
+            actualizarEstadoAsistencia(connection, fechaEgresoNueva, "DE BAJA", "Retiro de labores", true, true);
+        }
+    }
+
+    private void actualizarEstadoAsistencia(Connection connection, Date fecha, String estatus, String razon,
+                                             boolean descuento, boolean definitiva) throws SQLException {
+        String sql = "UPDATE empleado_asistencia SET Estatus=?, Razon=?, EsDescuento=?, EsDefinitiva=? "
+                + "WHERE IdEmpleado=? AND Fecha=?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, estatus);
+            statement.setString(2, razon);
+            statement.setBoolean(3, descuento);
+            statement.setBoolean(4, definitiva);
+            statement.setString(5, valueOrDefault(idEmpleadoOriginal, idEmpleadoTxt.getValue().trim()));
+            statement.setDate(6, toSqlDate(fecha));
+            statement.executeUpdate();
+        }
+    }
+
+    private static java.sql.Date toSqlDate(Date value) {
+        return new java.sql.Date(value.getTime());
+    }
+
+    private static void setNullableDate(PreparedStatement statement, int index, Date value) throws SQLException {
+        if (value == null) {
+            statement.setNull(index, Types.DATE);
+        } else {
+            statement.setDate(index, toSqlDate(value));
+        }
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    private static String valueOrEmpty(String value) {
+        return value == null ? "" : value;
+    }
+
+    private static String valueOrDefault(String value, String defaultValue) {
+        return isBlank(value) ? defaultValue : value;
+    }
+
+    private static String buildNombreCompleto(String... partes) {
+        StringBuilder nombre = new StringBuilder();
+        for (String parte : partes) {
+            if (!isBlank(parte)) {
+                if (nombre.length() > 0) {
+                    nombre.append(' ');
+                }
+                nombre.append(parte.trim());
+            }
+        }
+        return nombre.toString();
+    }
+
+    @Deprecated
     private void guardarDatos() {
 
         if (idEmpleadoTxt.getValue().trim().isEmpty()) {
@@ -703,6 +1047,9 @@ public class EmpleadoView extends VerticalLayout implements View {
             }
         }
 
+        String correlativoValor = (correlativoTxt.getValue() == null || correlativoTxt.getValue().trim().isEmpty())
+                ? "0" : correlativoTxt.getValue().trim();
+
         String queryString = "";
 
         if (esNuevo ) {
@@ -747,7 +1094,7 @@ public class EmpleadoView extends VerticalLayout implements View {
             queryString += ",'" + condicionLaboralTxt.getValue() + "'";
             queryString += ","  + (aplicaAnticipoChb.getValue() ? "1" : "0");
             queryString += ","  + (obraAsignadaChb.getValue() ? "1" : "0");
-            queryString += ","  + correlativoTxt.getValue() ;
+            queryString += ","  + correlativoValor ;
             queryString += ","  + (aplicaIndemnizacion.getValue() ? "1" : "0");
             queryString += ","  + vacacionesDiasDerechoTxt.getValue();
             queryString += ","  + vacacionesDiasGozadosTxt.getValue();
@@ -778,7 +1125,7 @@ public class EmpleadoView extends VerticalLayout implements View {
             queryString += ",AplicaAnticipoSalario = "  + (aplicaAnticipoChb.getValue() ? "1" : "0");
             queryString += ",AsignadoObra = "  + (obraAsignadaChb.getValue() ? "1" : "0");
             queryString += ",EsLiquidador = "  + (esLiquidador.getValue() ? "1" : "0");
-            queryString += ",IdCorrFinal = "  + correlativoTxt.getValue() ;
+            queryString += ",IdCorrFinal = "  + correlativoValor ;
             queryString += ",Inhabilitado = "  + (inhabilitadoChb.getValue() ? "1" : "0");
             queryString += ",Cargo = '" + cargoCbx.getValue() + "'";
             queryString += ",AplicaIndemnizacion = " + (aplicaIndemnizacion.getValue() ? "1" : "0");
@@ -877,34 +1224,30 @@ System.out.println("empleado queryString = " + queryString);
     }
 
     private void deleteEmpleado() {
-//        if (historialContableTable.size() > 0) {
-//            Notification.show("Este registro tiene historial contable,  no se puede eliminar su registro!");
-//            return;
-//        }
-//        String queryString = "Delete ";
-//        queryString += " From  proveedor_nota ";
-//        queryString += " Where IdProveedor = " + String.valueOf(salarioContainer.getContainerProperty(proveedorGrid.getSelectedRow(), IDPROVEEDOR_PROPERTY).getValue());
-//
-//        try {
-//            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-//            stQuery.executeUpdate(queryString);
-//
-//            queryString = "Delete ";
-//            queryString += " From  proveedor ";
-//            queryString += " Where IdProveedor = " + String.valueOf(salarioContainer.getContainerProperty(proveedorGrid.getSelectedRow(), IDPROVEEDOR_PROPERTY).getValue());
-//
-//            stQuery.executeUpdate(queryString);
-//
-//            Notification.show("Operación exitosa!", Notification.Type.TRAY_NOTIFICATION);
-//
-//            salarioContainer.removeItem(proveedorGrid.getSelectedRow());
-//
-//        } catch (Exception ex) {
-//
-//            Logger.getLogger(EmpleadoView.class.getName()).log(Level.SEVERE, null, ex);
-//            System.out.println("Error al ELIMINAR registros de proveedor : " + ex.getMessage());
-//            Notification.show("Error al ELIMINAR registros de proveedor..!", Notification.Type.ERROR_MESSAGE);
-//
-//        }
+        Object selectedRow = empleadosGrid.getSelectedRow();
+        if (selectedRow == null) {
+            Notification.show("Seleccione un empleado.", Notification.Type.WARNING_MESSAGE);
+            return;
+        }
+        String idEmpleado = String.valueOf(
+                empleadosContainer.getContainerProperty(selectedRow, "id").getValue());
+        String sql = "UPDATE proveedor_empresa SET Inhabilitado = 1 "
+                + "WHERE IdProveedor = ? AND IdEmpresa = ? AND EsPlanilla = 1";
+        try (PreparedStatement statement = ((SopdiUI) mainUI).databaseProvider
+                .getCurrentConnection().prepareStatement(sql)) {
+            statement.setString(1, idEmpleado);
+            statement.setString(2, empresaId);
+            if (statement.executeUpdate() == 1) {
+                Notification.show("Empleado inhabilitado.", Notification.Type.TRAY_NOTIFICATION);
+                clearForms();
+                esNuevo = true;
+                fillGridEmpleados();
+            } else {
+                Notification.show("El empleado ya no existe o fue modificado.", Notification.Type.WARNING_MESSAGE);
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(EmpleadoView.class.getName()).log(Level.SEVERE, "Error al inhabilitar empleado", ex);
+            Notification.show("No fue posible inhabilitar el empleado.", Notification.Type.ERROR_MESSAGE);
+        }
     }
 }

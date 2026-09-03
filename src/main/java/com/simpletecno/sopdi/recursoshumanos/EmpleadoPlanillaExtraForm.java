@@ -73,28 +73,28 @@ public class EmpleadoPlanillaExtraForm extends Window {
         titleLayout.setWidth("100%");
 
         Double bono_78_89 = 0d;
-        Double bono_aguinaldo = 0d;
-        Double decuento = 0d;
+        Double otros_ingresos = 0d;
+        Double descuento = 0d;
 
         if(tipo == 0){
             bono_78_89 = (Double)((EmpleadoCalculoSalarioView) (mainUI.getNavigator().getCurrentView())).planillaDetalleContainer.getContainerProperty(selectedItemId, EmpleadoCalculoSalarioView.BONO2).getValue();
-            bono_aguinaldo =  (Double)((EmpleadoCalculoSalarioView) (mainUI.getNavigator().getCurrentView())).planillaDetalleContainer.getContainerProperty(selectedItemId, EmpleadoCalculoSalarioView.BONO3).getValue();
-            decuento = (Double)((EmpleadoCalculoSalarioView) (mainUI.getNavigator().getCurrentView())).planillaDetalleContainer.getContainerProperty(selectedItemId, EmpleadoCalculoSalarioView.DESCUENTO2).getValue();
+            otros_ingresos =  (Double)((EmpleadoCalculoSalarioView) (mainUI.getNavigator().getCurrentView())).planillaDetalleContainer.getContainerProperty(selectedItemId, EmpleadoCalculoSalarioView.BONO3).getValue();
+            descuento = (Double)((EmpleadoCalculoSalarioView) (mainUI.getNavigator().getCurrentView())).planillaDetalleContainer.getContainerProperty(selectedItemId, EmpleadoCalculoSalarioView.DESCUENTO2).getValue();
         }else if(tipo == 1){
             bono_78_89 = (Double)((EmpleadoCalculoLiquidacionView) (mainUI.getNavigator().getCurrentView())).planillaDetalleContainer.getContainerProperty(selectedItemId, EmpleadoCalculoLiquidacionView.BONO2).getValue();
-            bono_aguinaldo =  (Double)((EmpleadoCalculoLiquidacionView) (mainUI.getNavigator().getCurrentView())).planillaDetalleContainer.getContainerProperty(selectedItemId, EmpleadoCalculoLiquidacionView.BONO3).getValue();
-            decuento = (Double)((EmpleadoCalculoLiquidacionView) (mainUI.getNavigator().getCurrentView())).planillaDetalleContainer.getContainerProperty(selectedItemId, EmpleadoCalculoLiquidacionView.DESCUENTO2).getValue();
+            otros_ingresos =  (Double)((EmpleadoCalculoLiquidacionView) (mainUI.getNavigator().getCurrentView())).planillaDetalleContainer.getContainerProperty(selectedItemId, EmpleadoCalculoLiquidacionView.BONO3).getValue();
+            descuento = (Double)((EmpleadoCalculoLiquidacionView) (mainUI.getNavigator().getCurrentView())).planillaDetalleContainer.getContainerProperty(selectedItemId, EmpleadoCalculoLiquidacionView.DESCUENTO2).getValue();
         }
 
         Label titleLbl = new Label(
-                "DECUENTOS Y BONIFICACIONES EXTRA PARA:\n" +
+                "DESCUENTOS Y BONIFICACIONES EXTRA PARA:\n" +
                         "<ul>"+
                         "  <li><b>" + nombreEmpleado + "</b></li>"+
                         "</ul> "+
                         "<ul>"+
                         "   <li><b> 78-89 | Monto Actual\t\t: " + bono_78_89 + "</b></li>"+
-                        "   <li><b> Aguinaldo | Monto Actual\t: " + bono_aguinaldo + "</b></li>"+
-                        "   <li><b> Descuento | Monto Actual\t: " + decuento + "</b></li>"+
+                        "   <li><b> Otros Ingresos | Monto Actual\t: " + otros_ingresos + "</b></li>"+
+                        "   <li><b> Descto1 | Monto Actual\t: " + descuento + "</b></li>"+
                         "</ul> ",
                 ContentMode.HTML);
         titleLbl.addStyleName(ValoTheme.LABEL_COLORED);
@@ -122,14 +122,14 @@ public class EmpleadoPlanillaExtraForm extends Window {
 
         tipoModificacionCbx = new ComboBox("Cambiar :");
         tipoModificacionCbx.addItem("78-89");
-        tipoModificacionCbx.addItem("Extra");
+        tipoModificacionCbx.addItem("Otros Ingresos");
         tipoModificacionCbx.addItem("Descuento");
         tipoModificacionCbx.setWidth("40%");
 
 
-        montoTxt = new NumberField("Por :");
-        montoTxt.setInputPrompt("Monto del bono");
-        montoTxt.setDescription("Monto del bono");
+        montoTxt = new NumberField("Sumar / restar :");
+        montoTxt.setInputPrompt("Use un valor negativo para restar");
+        montoTxt.setDescription("Monto que se sumará o restará al valor actual");
         montoTxt.setDecimalAllowed(true);
         montoTxt.setDecimalPrecision(2);
         montoTxt.setMinimumFractionDigits(2);
@@ -189,7 +189,7 @@ public class EmpleadoPlanillaExtraForm extends Window {
         // Validación: debe elegir tipo
         if (tipoModificacionCbx.getValue() == null) {
             Notification notif = new Notification("", Notification.Type.HUMANIZED_MESSAGE);
-            notif.setCaption("No ha seleccionado un tipo de cambio (78-89 / Extra / Descuento)");
+            notif.setCaption("No ha seleccionado un tipo de cambio (78-89 / Otros Ingresos / Descuento)");
             notif.setDelayMsec(1500);
             notif.setPosition(Position.MIDDLE_CENTER);
             notif.setIcon(FontAwesome.CHECK);
@@ -214,7 +214,7 @@ public class EmpleadoPlanillaExtraForm extends Window {
                             .setValue(nuevoValor);
                     break;
 
-                case "Extra":
+                case "Otros Ingresos":
                     nuevoValor = (Double) view.planillaDetalleContainer
                             .getContainerProperty(selectedItemId, EmpleadoCalculoSalarioView.BONO3)
                             .getValue();
@@ -247,7 +247,7 @@ public class EmpleadoPlanillaExtraForm extends Window {
                             .setValue(nuevoValor);
                     break;
 
-                case "Extra":
+                case "Otros Ingresos":
                     nuevoValor = (Double) view.planillaDetalleContainer
                             .getContainerProperty(selectedItemId, EmpleadoCalculoLiquidacionView.BONO3)
                             .getValue();
@@ -275,7 +275,7 @@ public class EmpleadoPlanillaExtraForm extends Window {
 
             if (tipoCambio.equals("78-89")) {
                 queryString += "Bonificacion2 = " + nuevoValor;
-            } else if (tipoCambio.equals("Extra")) {
+            } else if (tipoCambio.equals("Otros Ingresos")) {
                 queryString += "Bonificacion3 = " + nuevoValor;
             } else if (tipoCambio.equals("Descuento")) {
                 // OJO: Tu código original NUNCA actualizaba descuento en DB.

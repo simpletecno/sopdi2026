@@ -2689,7 +2689,9 @@ System.out.println("Empleado=[" + idProveedor + "] liquidoRecibir=[" + liquidoRe
         long dias_trabajados = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS) + 1;
 
         indemnizacion = promedio[0] + promedio[1];
+        indemnizacion += (promedio[2] / 12) * 2; // Agregado de una doseaba parte del bono 14 y el aguinaldo, ya que es un derecho del trabajador y se le debe pagar en caso de despido injustificado
         indemnizacion = Utileria.round(indemnizacion*dias_trabajados/365);
+
 
         return indemnizacion;
     }
