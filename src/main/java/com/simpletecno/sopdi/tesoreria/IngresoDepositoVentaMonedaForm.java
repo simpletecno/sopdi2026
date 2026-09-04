@@ -33,6 +33,7 @@ import java.util.Date;
 public class IngresoDepositoVentaMonedaForm extends Window {
 
     static final String NIT_PROPERTY = "NIT";
+    static final String NOMBRESINCODIGO_PROPERTY = "NSC";
 
     UI mainUI;
     Statement stQuery;
@@ -551,6 +552,7 @@ public class IngresoDepositoVentaMonedaForm extends Window {
                 proveedorCbx.addItem(rsRecords.getString("IDProveedor"));
                 proveedorCbx.setItemCaption(rsRecords.getString("IDProveedor"), "(" + rsRecords.getString("IDProveedor") + ") " + rsRecords.getString("Nombre"));
                 proveedorCbx.getItem(rsRecords.getString("IDProveedor")).getItemProperty(NIT_PROPERTY).setValue(rsRecords.getString("NIT"));
+                proveedorCbx.getItem(rsRecords.getString("IDProveedor")).getItemProperty(NOMBRESINCODIGO_PROPERTY).setValue(rsRecords.getString("Nombre"));
             }
             proveedorCbx.select(proveedorCbx.getItemIds().iterator().next());
 
@@ -795,7 +797,7 @@ public class IngresoDepositoVentaMonedaForm extends Window {
         queryString += ",'" + medioCbx.getValue() + "'";
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += "," + proveedorCbx.getValue();
-        queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
+        queryString += ",'" + proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NOMBRESINCODIGO_PROPERTY).getValue() + "'";
         queryString += ",''";
         queryString += ",'" + numeroTxt.getValue() + "'";
         queryString += "," + cuentaContable1Cbx.getValue();
@@ -820,7 +822,7 @@ public class IngresoDepositoVentaMonedaForm extends Window {
         queryString += ",'" + medioCbx.getValue() + "'";
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
         queryString += "," + proveedorCbx.getValue();
-        queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
+        queryString += ",'" + proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NOMBRESINCODIGO_PROPERTY).getValue() + "'";
         queryString += ",''";
         queryString += ",'" + numeroTxt.getValue() + "'";
         queryString += "," + cuentaContable2Cbx.getValue();
@@ -845,7 +847,7 @@ public class IngresoDepositoVentaMonedaForm extends Window {
             queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
-            queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
+            queryString += ",'" + proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NOMBRESINCODIGO_PROPERTY).getValue() + "'";
             queryString += ",''";
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable3Cbx.getValue();
@@ -870,7 +872,7 @@ public class IngresoDepositoVentaMonedaForm extends Window {
             queryString += ",'" + medioCbx.getValue() + "'";
             queryString += ",'" + Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) + "'";
             queryString += "," + proveedorCbx.getValue();
-            queryString += ",'" + proveedorCbx.getItemCaption(proveedorCbx.getValue()) + "'";
+            queryString += ",'" + proveedorCbx.getContainerProperty(proveedorCbx.getValue(), NOMBRESINCODIGO_PROPERTY).getValue() + "'";
             queryString += ",''";
             queryString += ",'" + numeroTxt.getValue() + "'";
             queryString += "," + cuentaContable3Cbx.getValue();
@@ -985,5 +987,4 @@ public class IngresoDepositoVentaMonedaForm extends Window {
             e.printStackTrace();
         }
     }
-
 }

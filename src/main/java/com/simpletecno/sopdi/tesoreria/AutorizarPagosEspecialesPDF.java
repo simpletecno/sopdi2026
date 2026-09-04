@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 public class AutorizarPagosEspecialesPDF extends Window {
 
     String fileName;
+    private Pdf pdfContent;
 
     public AutorizarPagosEspecialesPDF(IndexedContainer porPagarContainer) {
         try {
@@ -41,8 +42,8 @@ public class AutorizarPagosEspecialesPDF extends Window {
                     + "_" + new Utileria().getFechaHoraSinFormato()
                     + ".pdf";
 
-            StreamResource pdfResource = new StreamResource(
-                    new Pdf(fileName, porPagarContainer), fileName);
+            this.pdfContent = new Pdf(fileName, porPagarContainer);
+            StreamResource pdfResource = new StreamResource(this.pdfContent, fileName);
             pdfResource.setMIMEType("application/pdf");
 
             browser.setSource(pdfResource);
@@ -54,6 +55,11 @@ public class AutorizarPagosEspecialesPDF extends Window {
             Notification.show("Error al generar el reporte PDF.", Notification.Type.ERROR_MESSAGE);
             Logger.getLogger(AutorizarPagosEspecialesPDF.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    /** Retorna los bytes del PDF generado (para guardarlo en BD o enviarlo). */
+    public byte[] getPdfBytes() {
+        return pdfContent != null ? pdfContent.getBytes() : new byte[0];
     }
 
     // =========================================================================
@@ -130,6 +136,10 @@ public class AutorizarPagosEspecialesPDF extends Window {
         @Override
         public InputStream getStream() {
             return new ByteArrayInputStream(os.toByteArray());
+        }
+
+        public byte[] getBytes() {
+            return os.toByteArray();
         }
 
         private void addMetaData(Document document) {

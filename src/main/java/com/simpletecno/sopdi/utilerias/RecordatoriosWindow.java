@@ -1,4 +1,4 @@
-package com.simpletecno.sopdi.operativo;
+package com.simpletecno.sopdi.utilerias;
 
 import com.simpletecno.sopdi.SopdiUI;
 import com.simpletecno.sopdi.utilerias.DescripcionWindow;
@@ -95,13 +95,27 @@ public class RecordatoriosWindow extends Window {
         atendidoBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
         atendidoBtn.addClickListener(e -> marcarSeleccionado());
 
+        Button verPdfBtn = new Button("Ver PDF cheques", FontAwesome.FILE_PDF_O);
+        verPdfBtn.addStyleName(ValoTheme.BUTTON_FRIENDLY);
+        verPdfBtn.setEnabled(false);
+        verPdfBtn.setDescription("Abre el PDF de los cheques de este aviso");
+        verPdfBtn.addClickListener(e -> abrirPdfAviso(verPdfBtn));
+
+        // Habilitar botón Ver PDF solo cuando se selecciona un aviso de pago
+        grid.addSelectionListener(event -> {
+            Object selId = grid.getSelectedRow();
+            boolean esPago = selId != null && Recordatorio.TIPO_AVISO_PAGO.equals(
+                    String.valueOf(container.getContainerProperty(selId, TIPO_PROPERTY).getValue()));
+            verPdfBtn.setEnabled(esPago);
+        });
+
         Button cerrarBtn = new Button("Cerrar", FontAwesome.SIGN_OUT);
         cerrarBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
         cerrarBtn.addClickListener(e -> close());
 
         HorizontalLayout buttons = new HorizontalLayout();
         buttons.setSpacing(true);
-        buttons.addComponents(atendidoBtn, cerrarBtn);
+        buttons.addComponents(atendidoBtn, verPdfBtn, cerrarBtn);
 
         layout.addComponent(buttons);
         layout.setComponentAlignment(buttons, Alignment.BOTTOM_CENTER);
@@ -122,10 +136,42 @@ public class RecordatoriosWindow extends Window {
             container.getContainerProperty(itemId, TITULO_PROPERTY).setValue(r.titulo == null ? "" : r.titulo);
             container.getContainerProperty(itemId, DETALLE_PROPERTY).setValue(r.detalle == null ? "" : r.detalle);
             container.getContainerProperty(itemId, FECHA_PROPERTY).setValue(r.fecha == null ? "" : r.fecha);
-            container.getContainerProperty(itemId, IDSEG_PROPERTY).setValue(r.idSeguimiento == null ? "" : r.idSeguimiento);
+            // idSeguimiento se usa también para idAviso (avisos de pago)
+            String idSeg = r.idSeguimiento != null ? r.idSeguimiento
+                         : r.idAviso != null ? r.idAviso : "";
+            container.getContainerProperty(itemId, IDSEG_PROPERTY).setValue(idSeg);
             container.getContainerProperty(itemId, IDEVENTO_PROPERTY).setValue(r.idEvento == null ? "" : r.idEvento);
         }
         setCaption("SOPDI - Recordatorios (" + container.size() + ")");
+    }
+
+    private void abrirPdfAviso(Button source) {
+        Object itemId = grid.getSelectedRow();
+        if (itemId == null) return;
+        String idAviso = String.valueOf(container.getContainerProperty(itemId, IDSEG_PROPERTY).getValue());
+        java.sql.Connection cnx = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection();
+        byte[] bytes = AvisoPagoChequeService.getPdfBytes(cnx, idAviso);
+        if (bytes == null || bytes.length == 0) {
+            Notification.show("No hay PDF adjunto en este aviso.", Notification.Type.WARNING_MESSAGE);
+            return;
+        }
+        // Mostrar el PDF en una ventana modal con BrowserFrame
+        com.vaadin.server.StreamResource pdfResource = new com.vaadin.server.StreamResource(
+                () -> new java.io.ByteArrayInputStream(bytes),
+                "cheques_" + idAviso + ".pdf");
+        pdfResource.setMIMEType("application/pdf");
+
+        com.vaadin.ui.BrowserFrame frame = new com.vaadin.ui.BrowserFrame("", pdfResource);
+        frame.setSizeFull();
+
+        com.vaadin.ui.Window pdfWindow = new com.vaadin.ui.Window("PDF — Cheques por imprimir");
+        pdfWindow.setModal(false);
+        pdfWindow.setResizable(true);
+        pdfWindow.setWidth("90%");
+        pdfWindow.setHeight("85%");
+        pdfWindow.setContent(frame);
+        UI.getCurrent().addWindow(pdfWindow);
+        pdfWindow.center();
     }
 
     private void marcarSeleccionado() {
@@ -145,6 +191,10 @@ public class RecordatoriosWindow extends Window {
         } else if ((Recordatorio.TIPO_EVENTO_HOY.equals(tipo) || Recordatorio.TIPO_EVENTO_VENCIDO.equals(tipo))
                 && idEvento != null && !idEvento.trim().isEmpty()) {
             ok = eventoService.marcarRealizado(cnx, idEvento);
+        } else if (Recordatorio.TIPO_AVISO_PAGO.equals(tipo)) {
+            String idAviso = String.valueOf(
+                    container.getContainerProperty(itemId, IDSEG_PROPERTY).getValue());
+            ok = AvisoPagoChequeService.marcarAtendido(cnx, idAviso);
         } else {
             Notification.show("Las tareas vencidas se cierran cambiando su estatus en la visita.",
                     Notification.Type.WARNING_MESSAGE);

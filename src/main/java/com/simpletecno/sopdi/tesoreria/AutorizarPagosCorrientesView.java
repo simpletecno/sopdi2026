@@ -1452,15 +1452,24 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().commit();
             ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(true);
 
-            Notification notif = new Notification("Pagos aplicados y partidas contables generadas.", Notification.Type.HUMANIZED_MESSAGE);
-            notif.setDelayMsec(2000);
+            // Generar PDF y avisar a Isabel Garcia (IdUsuario=15) para que imprima los cheques
+            String usuarioActual = ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+            String msgAviso = "Cheques pendientes de impresión autorizados por usuario " + usuarioActual
+                    + " — empresa " + empresaId + ".";
+            AutorizarPagosCorrientesPDF pdfWindow =
+                    new AutorizarPagosCorrientesPDF(porPagarContainer, anticiposOCContainer, liquidacionContainer);
+            byte[] pdfBytes = pdfWindow.getPdfBytes();
+            com.simpletecno.sopdi.utilerias.AvisoPagoChequeService.crearAviso(
+                    ((SopdiUI) mainUI).databaseProvider.getCurrentConnection(),
+                    empresaId,
+                    com.simpletecno.sopdi.utilerias.AvisoPagoChequeService.ID_USUARIO_IMPRESORA,
+                    msgAviso, usuarioActual, pdfBytes);
+
+            Notification notif = new Notification("Pagos aplicados. Se notificó a la impresora de cheques.", Notification.Type.HUMANIZED_MESSAGE);
+            notif.setDelayMsec(2500);
             notif.setPosition(Position.MIDDLE_CENTER);
             notif.setIcon(FontAwesome.CHECK);
             notif.show(Page.getCurrent());
-
-            AutorizarPagosCorrientesPDF pdf = new AutorizarPagosCorrientesPDF(porPagarContainer, anticiposOCContainer, liquidacionContainer);
-            UI.getCurrent().addWindow(pdf);
-            pdf.center();
 
             llenarGridBancos();
             llenarGridPorPagar();
@@ -1468,8 +1477,6 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             llenarGridLiquidacion();
 
         } catch (IllegalStateException isEx) {
-            // Correlativo excedido dentro de la transacción (tabla MyISAM no revierte).
-            // Rollback de lo que se pueda y resetear el folio para que el próximo intento funcione.
             try {
                 ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().rollback();
                 ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(true);
@@ -1478,6 +1485,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             } catch (SQLException rollbackEx) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error en rollback/reset correlativo", rollbackEx);
             }
+            restaurarEstadoTrasError();
             String sqlFix = "DELETE FROM folio_codigo_partida WHERE IdEmpresa=" + empresaId
                     + " AND Fecha='" + Utileria.getFechaYYYYMMDD_1(new Date()) + "' AND Tipo=3;";
             Notification notif = new Notification(
@@ -1498,6 +1506,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             } catch (SQLException rollbackEx) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error en rollback", rollbackEx);
             }
+            restaurarEstadoTrasError();
             Notification notif = new Notification("Error al aplicar pagos: " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
             notif.setDelayMsec(3000);
             notif.setPosition(Position.MIDDLE_CENTER);
@@ -1509,6 +1518,18 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         porPagarGrid.setReadOnly(false);
         anticiposOCGrid.setReadOnly(false);
         liquidacionGrid.setReadOnly(false);
+    }
+
+    /**
+     * Limpia el estado en memoria que pudo haber quedado sucio tras un rollback,
+     * para que el usuario pueda reintentar el pago sin residuos del intento fallido.
+     */
+    private void restaurarEstadoTrasError() {
+        anticiposOcupadosMap.clear();
+        llenarGridBancos();      // restaura saldos y correlativos de cheque desde BD
+        llenarGridPorPagar();    // restaura montos y cheques asignados desde BD
+        llenarGridAnticipOC();   // restaura anticipos OC
+        llenarGridLiquidacion(); // restaura liquidaciones
     }
 
     /**
@@ -1695,6 +1716,12 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         StringBuilder documentosPagados = new StringBuilder();
         String chequeQueryString  = "";
         String fechaSQLPrev       = "current_date"; // fecha del proveedor anterior (para diferencial cambiario)
+        // Variables del proveedor anterior (para la línea de diferencial cambiario al cambiar proveedor)
+        String prevNoCheque    = "";
+        String prevMoneda      = "QUETZALES";
+        String prevIdProveedor = "";
+        String prevProveedor   = "";
+        String prevDescripcion = "";
 
         porPagarContainer.sort(new String[] { ID_PROVEEDOR_PROPERTY }, new boolean[] { false });
 
@@ -1736,62 +1763,11 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                     codigosGenerados.add(codigoPartidaPago);
                 } else {
                     queryString += chequeQueryString;
-
-                    if (totalDebeQ > totalHaberQ) {
-                        queryString += "(";
-                        queryString += empresaId;
-                        queryString += ",'" + codigoPartidaPago + "'";
-                        queryString += ",'" + codigoPartidaPago + "'";
-                        queryString += ",'CHEQUE'";
-                        queryString += "," + cuentaDiferencialCambiario;
-                        queryString += ",''";
-                        queryString += ",'" + noCheque + "'";
-                        queryString += "," + fechaSQLPrev;
-                        queryString += ",'" + moneda + "'";
-                        queryString += "," + totalPago;
-                        queryString += ",0";
-                        queryString += ",0";
-                        queryString += ",1";
-                        queryString += "," + (totalHaberQ - totalDebeQ);
-                        queryString += ",0";
-                        queryString += ",'PAGADO'";
-                        queryString += ",'" + descripcion + "'";
-                        queryString += ",''";
-                        queryString += ",''";
-                        queryString += "," + idProveedor;
-                        queryString += ",'" + proveedor.replace("'", "") + "'";
-                        queryString += ",'" + proveedor.replace("'", "") + "'";
-                        queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
-                        queryString += ",current_timestamp";
-                        queryString += "),";
-                    } else if (totalDebeQ < totalHaberQ) {
-                        queryString += "(";
-                        queryString += empresaId;
-                        queryString += ",'" + codigoPartidaPago + "'";
-                        queryString += ",'" + codigoPartidaPago + "'";
-                        queryString += ",'CHEQUE'";
-                        queryString += "," + cuentaDiferencialCambiario;
-                        queryString += ",''";
-                        queryString += ",'" + noCheque + "'";
-                        queryString += "," + fechaSQLPrev;
-                        queryString += ",'" + moneda + "'";
-                        queryString += "," + totalPago;
-                        queryString += ",0";
-                        queryString += ",0";
-                        queryString += ",1";//tipo cambio
-                        queryString += ",0";
-                        queryString += "," + (totalDebeQ - totalHaberQ);
-                        queryString += ",'PAGADO'";
-                        queryString += ",'" + descripcion + "'";
-                        queryString += ",''";
-                        queryString += ",''";
-                        queryString += "," + idProveedor;
-                        queryString += ",'" + proveedor.replace("'", "") + "'";
-                        queryString += ",'" + proveedor.replace("'", "") + "'";
-                        queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
-                        queryString += ",current_timestamp";
-                        queryString += "),";
-                    }
+                    // Diferencial cambiario del proveedor anterior (con valores prev* para correctitud)
+                    queryString += buildDiferencialCambiario(totalDebeQ, totalHaberQ, acumuladoCheque,
+                            codigoPartidaPago, prevNoCheque, prevMoneda, prevIdProveedor, prevProveedor,
+                            prevDescripcion, fechaSQLPrev, cuentaDiferencialCambiario, empresaId,
+                            ((SopdiUI) mainUI).sessionInformation.getStrUserId());
 
                     Logger.getLogger(this.getClass().getName()).log(Level.INFO, "(1) INSERT partida : " + codigoPartidaPago + " " + queryString.substring(0, queryString.length() - 1));
                     st.executeUpdate(queryString.substring(0, queryString.length() - 1));
@@ -1980,16 +1956,78 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 chequeQueryString += ",current_timestamp";
                 chequeQueryString += "),";
 
-                totalHaberQ += (acumuladoCheque * tipoCambio);
+                totalHaberQ += (montoCheq * tipoCambio); // incremental, no acumulativo
             }
+
+            // Guardar valores del proveedor actual para usarlos en el diferencial
+            // cuando se detecte el cambio de proveedor en la siguiente iteración.
+            prevNoCheque    = noCheque;
+            prevMoneda      = moneda;
+            prevIdProveedor = idProveedor;
+            prevProveedor   = proveedor;
+            prevDescripcion = descripcion.toString();
+            fechaSQLPrev    = fechaSQLRow;
         }
 
         if (!queryString.isEmpty() && queryString.contains("INSERT")) {
             queryString += chequeQueryString;
+            // Diferencial cambiario del último proveedor (no se detecta cambio de proveedor al final)
+            queryString += buildDiferencialCambiario(totalDebeQ, totalHaberQ, acumuladoCheque,
+                    codigoPartidaPago, prevNoCheque, prevMoneda, prevIdProveedor, prevProveedor,
+                    prevDescripcion, fechaSQLPrev, cuentaDiferencialCambiario, empresaId,
+                    ((SopdiUI) mainUI).sessionInformation.getStrUserId());
             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "(2) INSERT partida : " + codigoPartidaPago + " " + queryString.substring(0, queryString.length() - 1));
             st.executeUpdate(queryString.substring(0, queryString.length() - 1));
         }
         return codigosGenerados;
+    }
+
+    /**
+     * Genera la tupla SQL (con coma al final) para la línea de diferencial cambiario
+     * si hay diferencia entre totalDebeQ y totalHaberQ; retorna "" si no hay diferencial.
+     *
+     * Caso totalDebeQ > totalHaberQ → TC bajó → ganancia → HABER diferencial
+     * Caso totalDebeQ < totalHaberQ → TC subió → pérdida → DEBE diferencial
+     */
+    private String buildDiferencialCambiario(double totalDebeQ, double totalHaberQ, double montoDocumento,
+            String codigoPartida, String noCheque, String moneda,
+            String idProveedor, String proveedor, String descripcion, String fechaSQL,
+            String cuentaDiferencial, String empresaId, String usuario) {
+
+        double diffQ = Math.round(Math.abs(totalDebeQ - totalHaberQ) * 100.0) / 100.0;
+        if (diffQ <= 0.001) return "";  // diferencia insignificante
+
+        String debeQ  = totalDebeQ < totalHaberQ ? String.valueOf(diffQ) : "0";  // pérdida → DEBE
+        String haberQ = totalDebeQ > totalHaberQ ? String.valueOf(diffQ) : "0";  // ganancia → HABER
+
+        String descDif = ("DIFERENCIAL CAMBIARIO " + descripcion).replace("'", "").trim();
+        String qry = "(";
+        qry += empresaId;
+        qry += ",'" + codigoPartida + "'";
+        qry += ",'" + codigoPartida + "'";
+        qry += ",'CHEQUE'";
+        qry += "," + cuentaDiferencial;
+        qry += ",''";
+        qry += ",'" + noCheque + "'";
+        qry += "," + fechaSQL;
+        qry += ",'" + moneda + "'";
+        qry += "," + montoDocumento;     // MontoDocumento = mismo que las demás líneas de la partida
+        qry += ",0";                     // Debe (en moneda del documento = 0)
+        qry += ",0";                     // Haber (en moneda del documento = 0)
+        qry += ",1";                     // TipoCambio
+        qry += "," + debeQ;             // DebeQuetzales
+        qry += "," + haberQ;            // HaberQuetzales
+        qry += ",'PAGADO'";
+        qry += ",'" + descDif + "'";
+        qry += ",''";
+        qry += ",''";
+        qry += "," + idProveedor;
+        qry += ",'" + proveedor.replace("'", "") + "'";
+        qry += ",'" + proveedor.replace("'", "") + "'";
+        qry += "," + usuario;
+        qry += ",current_timestamp";
+        qry += "),";
+        return qry;
     }
 
     /**

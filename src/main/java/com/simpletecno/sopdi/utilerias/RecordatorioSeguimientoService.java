@@ -1,4 +1,4 @@
-package com.simpletecno.sopdi.operativo;
+package com.simpletecno.sopdi.utilerias;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -145,6 +145,9 @@ public class RecordatorioSeguimientoService {
         } catch (Exception ex) {
             LOG.log(Level.WARNING, "Error en consulta B (tareas vencidas): {0}", ex.getMessage());
         }
+
+        // ---- Consulta C: avisos de pago/cheque pendientes ----
+        lista.addAll(AvisoPagoChequeService.obtenerPendientes(cnx, idUsuario, idEmpresa));
 
         return lista;
     }

@@ -1,7 +1,7 @@
 package com.simpletecno.sopdi.calendario;
 
 import com.simpletecno.sopdi.SopdiUI;
-import com.simpletecno.sopdi.operativo.RecordatorioEventoService;
+import com.simpletecno.sopdi.utilerias.RecordatorioEventoService;
 import com.vaadin.event.ShortcutAction.KeyCode;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.MarginInfo;

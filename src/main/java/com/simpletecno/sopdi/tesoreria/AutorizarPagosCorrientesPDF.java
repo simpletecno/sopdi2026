@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 public class AutorizarPagosCorrientesPDF extends Window {
 
     String fileName;
+    private Pdf pdfContent;
 
     /** Constructor de compatibilidad para vistas sin anticipos OC ni liquidaciones. */
     public AutorizarPagosCorrientesPDF(IndexedContainer porPagarContainer) {
@@ -61,8 +62,8 @@ public class AutorizarPagosCorrientesPDF extends Window {
                     + "_" + new Utileria().getFechaHoraSinFormato()
                     + ".pdf";
 
-            StreamResource pdfResource = new StreamResource(
-                    new Pdf(fileName, porPagarContainer, anticiposOCContainer, liquidacionContainer), fileName);
+            this.pdfContent = new Pdf(fileName, porPagarContainer, anticiposOCContainer, liquidacionContainer);
+            StreamResource pdfResource = new StreamResource(this.pdfContent, fileName);
             pdfResource.setMIMEType("application/pdf");
 
             browser.setSource(pdfResource);
@@ -74,6 +75,11 @@ public class AutorizarPagosCorrientesPDF extends Window {
             Notification.show("Error al generar el reporte PDF.", Notification.Type.ERROR_MESSAGE);
             Logger.getLogger(AutorizarPagosCorrientesPDF.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    /** Retorna los bytes del PDF generado (para guardarlo en BD o enviarlo). */
+    public byte[] getPdfBytes() {
+        return pdfContent != null ? pdfContent.getBytes() : new byte[0];
     }
 
     // =========================================================================
@@ -166,6 +172,10 @@ public class AutorizarPagosCorrientesPDF extends Window {
         @Override
         public InputStream getStream() {
             return new ByteArrayInputStream(os.toByteArray());
+        }
+
+        public byte[] getBytes() {
+            return os.toByteArray();
         }
 
         // ── Estructura del documento ─────────────────────────────────────────

@@ -1,4 +1,4 @@
-package com.simpletecno.sopdi.operativo;
+package com.simpletecno.sopdi.utilerias;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;

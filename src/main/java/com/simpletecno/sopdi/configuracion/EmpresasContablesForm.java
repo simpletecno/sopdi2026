@@ -51,6 +51,7 @@ public class EmpresasContablesForm extends Window {
     TextField claveFELTxt;
     TextField tokenFELTxt;
     ComboBox regimenCbx;
+    ComboBox idProveedorCbx;
     TextField codigoProductoExcelFELTxt;
 
     // ── Parámetros generales (montos y porcentajes) ──────────────────────────
@@ -138,6 +139,15 @@ public class EmpresasContablesForm extends Window {
         regimenCbx.addItem("Opcional Simplificado sobre Ingresos de Actividades Lucrativas");
         regimenCbx.select("Sobre las Utilidades de Actividades Lucrativas");
 
+        idProveedorCbx = new ComboBox("Proveedor de la empresa :");
+        idProveedorCbx.setWidth("25em");
+        idProveedorCbx.setFilteringMode(com.vaadin.shared.ui.combobox.FilteringMode.CONTAINS);
+        idProveedorCbx.setNullSelectionAllowed(true);
+        idProveedorCbx.setInvalidAllowed(false);
+        idProveedorCbx.setNewItemsAllowed(false);
+        idProveedorCbx.setDescription("IdProveedor que corresponde a esta empresa en proveedor_empresa");
+        llenarComboProveedorEmpresa();
+
         codigoProductoExcelFELTxt = new TextField("Código FEL producto EXENTO :");
         codigoProductoExcelFELTxt.setWidth("10em");
         codigoProductoExcelFELTxt.setMaxLength(32);
@@ -169,6 +179,7 @@ public class EmpresasContablesForm extends Window {
         mainForm.addComponent(nitTxt);
         mainForm.addComponent(ultimaLiquidacionTxt);
         mainForm.addComponent(regimenCbx);
+        mainForm.addComponent(idProveedorCbx);
         mainForm.addComponent(recibeEnganchesCheck);
 
         // Facturación electrónica (FEL) -> felForm
@@ -501,6 +512,29 @@ public class EmpresasContablesForm extends Window {
      *
      * Para agregar un parámetro nuevo, basta con añadir una fila a este arreglo.
      */
+    private void llenarComboProveedorEmpresa() {
+        idProveedorCbx.removeAllItems();
+        String empresa = idEmpresaEdit.equals("0")
+                ? ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId()
+                : idEmpresaEdit;
+        try {
+            Statement st = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+            ResultSet rs = st.executeQuery(
+                    "SELECT IDProveedor, Nombre FROM proveedor_empresa"
+                    + " WHERE IdEmpresa = " + empresa
+                    + " ORDER BY Nombre");
+            while (rs.next()) {
+                String id = rs.getString("IDProveedor");
+                idProveedorCbx.addItem(id);
+                idProveedorCbx.setItemCaption(id, id + " – " + rs.getString("Nombre"));
+            }
+            rs.close();
+        } catch (Exception ex) {
+            Logger.getLogger(EmpresasContablesForm.class.getName()).log(Level.WARNING,
+                    "Error al cargar proveedores para IdProveedor", ex);
+        }
+    }
+
     private void asegurarColumnasParametros() {
         String[][] columnas = {
                 {"PorcentajeIva",                        "DECIMAL(6,2)  NULL DEFAULT 0"},
@@ -510,6 +544,7 @@ public class EmpresasContablesForm extends Window {
                 {"PrimerPorcentajeIsr",                  "DECIMAL(6,2)  NULL DEFAULT 0"},
                 {"MontoInicialBaseIsrSegundoPorcentaje", "DECIMAL(14,2) NULL DEFAULT 0"},
                 {"SegundoPorcentajeIsr",                 "DECIMAL(6,2)  NULL DEFAULT 0"},
+                {"IdProveedor",                          "VARCHAR(20)   NULL DEFAULT NULL"},
         };
         for (String[] col : columnas) {
             String existeSql = "SELECT COUNT(*) FROM information_schema.COLUMNS "
@@ -557,6 +592,7 @@ public class EmpresasContablesForm extends Window {
                 claveFELTxt.setValue(rsRecords.getString("ClaveFEL"));
                 tokenFELTxt.setValue(rsRecords.getString("TokenFEL"));
                 regimenCbx.select(rsRecords.getString("Regimen"));
+                idProveedorCbx.select(rsRecords.getString("IdProveedor"));
                 codigoProductoExcelFELTxt.setValue(rsRecords.getString("CodigoProductoExentoFel"));
 
                 // Parámetros generales (montos y porcentajes)
@@ -648,7 +684,7 @@ public class EmpresasContablesForm extends Window {
             if (idEmpresaEdit.equals("0")) {
                 queryString = "INSERT INTO contabilidad_empresa (IdEmpresa, Empresa, NombreCorto, Nit, " +
                         "IdUltimaLiquidacion, RecibeEnganches, UsuarioFEL, ClaveFEL, UsuarioToken, " +
-                        "Regimen, CodigoProductoExentoFel, " +
+                        "Regimen, IdProveedor, CodigoProductoExentoFel, " +
                         "PorcentajeIva, MontoMaximoFacturaCf, MontoInicialRetencionIsr, " +
                         "MontoMaximoBaseIsrPrimerPorcentaje, PrimerPorcentajeIsr, " +
                         "MontoInicialBaseIsrSegundoPorcentaje, SegundoPorcentajeIsr, Logo)";
@@ -667,6 +703,7 @@ public class EmpresasContablesForm extends Window {
                 queryString += ", '" + claveFELTxt.getValue() + "'";
                 queryString += ", '" + tokenFELTxt.getValue() + "'";
                 queryString += ", '" + regimenCbx.getValue() + "'";
+                queryString += ", " + (idProveedorCbx.getValue() == null ? "NULL" : "'" + idProveedorCbx.getValue() + "'");
                 queryString += ", '" + codigoProductoExcelFELTxt.getValue() + "'";
                 queryString += ", " + num(porcentajeIvaTxt);
                 queryString += ", " + num(montoMaximoFacturaCfTxt);
@@ -692,6 +729,7 @@ public class EmpresasContablesForm extends Window {
                 queryString += ", ClaveFEL = '" + claveFELTxt.getValue() + "'";
                 queryString += ", TokenFEL = '" + tokenFELTxt.getValue() + "'";
                 queryString += ", Regimen = '" + regimenCbx.getValue() + "'";
+                queryString += ", IdProveedor = " + (idProveedorCbx.getValue() == null ? "NULL" : "'" + idProveedorCbx.getValue() + "'");
                 queryString += ", CodigoProductoExentoFel = '" + codigoProductoExcelFELTxt.getValue() + "'";
                 queryString += ", PorcentajeIva = " + num(porcentajeIvaTxt);
                 queryString += ", MontoMaximoFacturaCf = " + num(montoMaximoFacturaCfTxt);
