@@ -827,7 +827,9 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
                     cuentasBancosContainer.getContainerProperty(itemId, BANCO_PROPERTY).setValue(rsRecords.getString("prov.Nombre"));
                     cuentasBancosContainer.getContainerProperty(itemId, MONEDA_PROPERTY).setValue(rsRecords.getString("Moneda"));
 
-                    dSaldoContable = rsRecords.getDouble("Saldo");
+                    dSaldoContable = calcularSaldoContable(
+                            rsRecords.getString("IdCuentaBanco"),
+                            rsRecords.getString("IdNomenclatura"));
                     cuentasBancosContainer.getContainerProperty(itemId, SALDO_CONTABLE_PROPERTY).setValue(numberFormat.format(dSaldoContable));
                     cuentasBancosContainer.getContainerProperty(itemId, NUEVO_SALDO_PROPERTY).setValue(numberFormat.format(dSaldoContable));
                     cuentasBancosContainer.getContainerProperty(itemId, NUEVO_SALDOSF_PROPERTY).setValue(String.valueOf(dSaldoContable));
@@ -852,28 +854,50 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
         }
     }
 
-    private double getSaldoContable(String idNomenclatura, String moneda) {
-        double dSaldoContable = 0.00;
-
-        queryString = " SELECT SUM(DEBE - HABER) AS SALDOCONTABLE ";
-        queryString += " FROM contabilidad_partida ";
-        queryString += " WHERE IdEmpresa = " + empresaId;
-        queryString += " AND IdNomenclatura = '" + idNomenclatura + "'";
-        queryString += " AND contabilidad_partida.Estatus <> 'ANULADO'";
-        queryString += " AND contabilidad_partida.MonedaDocumento = '" + moneda + "'";
-
+    /**
+     * Calcula el saldo contable real de una cuenta bancaria:
+     *   Base  = SaldoFinalContable de la última conciliación bancaria (0 si no existe)
+     *   Delta = SUM(Debe - Haber) de contabilidad_partida después de esa conciliación
+     * Si no hay conciliación, toma el SUM total histórico.
+     */
+    private double calcularSaldoContable(String idCuentaBanco, String idNomenclatura) {
+        double saldo = 0.00;
         try {
-            stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords1 = stQuery1.executeQuery(queryString);
-            if(rsRecords1.next()) {
-                dSaldoContable = rsRecords1.getDouble("SALDOCONTABLE");
+            double saldoConciliacion = 0.00;
+            String anioMesConciliacion = null;
+            String sqlConc = "SELECT SaldoFinalContable, AnioMes"
+                    + " FROM contabilidad_conciliacion_bancaria"
+                    + " WHERE IdCuentaBanco = " + idCuentaBanco
+                    + "   AND IdEmpresa = " + empresaId
+                    + " ORDER BY AnioMes DESC LIMIT 1";
+            try (java.sql.Statement stConc = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+                 java.sql.ResultSet rsConc = stConc.executeQuery(sqlConc)) {
+                if (rsConc.next()) {
+                    saldoConciliacion   = rsConc.getDouble("SaldoFinalContable");
+                    anioMesConciliacion = rsConc.getString("AnioMes");
+                }
             }
+
+            String filtroFecha = (anioMesConciliacion != null)
+                    ? " AND cp.Fecha > LAST_DAY(STR_TO_DATE(CONCAT('" + anioMesConciliacion + "','01'),'%Y%m%d'))"
+                    : "";
+            String sqlMov = "SELECT COALESCE(SUM(cp.Debe - cp.Haber), 0) AS Movimiento"
+                    + " FROM contabilidad_partida cp"
+                    + " WHERE cp.IdNomenclatura = " + idNomenclatura
+                    + "   AND cp.IdEmpresa = " + empresaId
+                    + "   AND cp.Estatus <> 'ANULADO'"
+                    + filtroFecha;
+            try (java.sql.Statement stMov = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+                 java.sql.ResultSet rsMov = stMov.executeQuery(sqlMov)) {
+                if (rsMov.next()) {
+                    saldo = saldoConciliacion + rsMov.getDouble("Movimiento");
+                }
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.WARNING,
+                    "Error al calcular saldo contable banco " + idCuentaBanco, ex);
         }
-        catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
-            Notification.show("Error al obtener saldo contable de cuentas bancarias : " + ex.getMessage(), Notification.Type.WARNING_MESSAGE);
-        }
-        return dSaldoContable;
+        return saldo;
     }
 
     /**
