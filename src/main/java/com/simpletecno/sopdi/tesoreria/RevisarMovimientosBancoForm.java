@@ -236,7 +236,8 @@ public class RevisarMovimientosBancoForm extends Window {
                             container,
                             e.getItemId(),
                             codigoPartida,
-                            estatus
+                            estatus,
+                            "0"
                     );
             UI.getCurrent().addWindow(cambiarEstatusPago);
             cambiarEstatusPago.center();

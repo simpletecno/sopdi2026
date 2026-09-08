@@ -234,7 +234,8 @@ public class IngresoBancosView extends VerticalLayout implements View {
                             container,
                             e.getItemId(),
                             codigoPartida,
-                            estatus
+                            estatus,
+                            "0"
                     );
             UI.getCurrent().addWindow(cambiarEstatusPago);
             cambiarEstatusPago.center();

@@ -1735,6 +1735,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
 
         String codigoPartidaPago  = "";
         String esteProveedor      = "";
+        String esteNoCheque       = "";
         double tipoCambio         = 0.00;
         double totalPagoChequeQ   = 0.00;
         double totalPagoAnticipoQ = 0.00;
@@ -1750,7 +1751,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         String prevProveedor   = "";
         String prevDescripcion = "";
 
-        porPagarContainer.sort(new String[] { ID_PROVEEDOR_PROPERTY }, new boolean[] { false });
+        porPagarContainer.sort(new String[] { ID_PROVEEDOR_PROPERTY, CHEQUE_PROPERTY }, new boolean[] { false, false });
 
         for (Object itemId : porPagarContainer.getItemIds()) {
 
@@ -1783,8 +1784,9 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
 
             String tipoDoca = tipoDocumento;
 
-            if (!esteProveedor.equals(String.valueOf(porPagarContainer.getContainerProperty(itemId, ID_PROVEEDOR_PROPERTY).getValue()))) {
-                esteProveedor = porPagarContainer.getContainerProperty(itemId, ID_PROVEEDOR_PROPERTY).getValue().toString();
+            if (!esteProveedor.equals(idProveedor) || !esteNoCheque.equals(noCheque)) {
+                esteProveedor = idProveedor;
+                esteNoCheque  = noCheque;
                 if (codigoPartidaPago.isEmpty()) {
                     codigoPartidaPago = Utileria.nextCodigoPartida(((SopdiUI) mainUI).databaseProvider.getCurrentConnection(), empresaId, new Date(), 3);
                     codigosGenerados.add(codigoPartidaPago);

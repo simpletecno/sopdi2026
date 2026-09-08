@@ -1,6 +1,7 @@
 package com.simpletecno.sopdi.api;
 
 import com.simpletecno.sopdi.api.resource.ContabilidadPartidaResource;
+import com.simpletecno.sopdi.api.resource.PagoYFacturaResource;
 import com.simpletecno.sopdi.api.resource.ProveedorResource;
 import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
 import io.swagger.v3.oas.integration.SwaggerConfiguration;
@@ -25,6 +26,7 @@ public class ApiApplication extends ResourceConfig {
         // Recursos JAX-RS
         register(ProveedorResource.class);
         register(ContabilidadPartidaResource.class);
+        register(PagoYFacturaResource.class);
 
         // Serialización JSON con Jackson
         register(JacksonFeature.class);

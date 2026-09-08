@@ -876,6 +876,7 @@ public class InspectionTaskOCWindow extends Window {
             queryString += " WHERE DIC.IdProject In (Select PRJ.Numero From project PRJ WHERE PRJ.Estatus = 'ACTIVO')";
             queryString += " AND DIC.Tipo In ('INTINI', 'DOCA')";
             queryString += " AND DIC.IdCC = '" + idcc + "'";
+            queryString += " AND DIC.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
             queryString += " AND Prov.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
             queryString += " GROUP BY DIC.IdProject, DIC.NoCuenta, DIC.IdEmpresa, DIC.IdProveedor, DIC.Idex, DIC.Lote";
             queryString += " ORDER BY DIC.IdProject, DIC.Idex, DIC.NoCuenta ";
@@ -1317,6 +1318,7 @@ public class InspectionTaskOCWindow extends Window {
             queryString += " INNER JOIN centro_costo_cuenta CCC ON CCC.CodigoCuentaCentroCosto = OCD.NoCuenta";
             queryString += " INNER JOIN contabilidad_empresa EMP ON EMP.IdEmpresa = OCD.IdEmpresa";
             queryString += " WHERE OC.IdVisitaInspeccionTareaOC  = " + ocContainer.getContainerProperty(ocGrid.getSelectedRow(), IDOC_PROPERTY).getValue();
+            queryString += " AND OCD.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
 
             rsRecords2 = stQuery2.executeQuery(queryString);
 

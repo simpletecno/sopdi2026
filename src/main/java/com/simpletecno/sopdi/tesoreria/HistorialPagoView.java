@@ -324,13 +324,14 @@ public class HistorialPagoView extends VerticalLayout implements View {
             }
             String codigoPartida = String.valueOf(historialPagosContainer.getContainerProperty(e.getItemId(), CODIGOPARTIDA_PROPERTY).getValue());
             String monto = String.valueOf(historialPagosContainer.getContainerProperty(e.getItemId(), VALOR_PROPERTY).getValue()).replaceAll(",", "");
-            String descripcion = String.valueOf(historialPagosContainer.getContainerProperty(e.getItemId(), DESCRIPCION_PROPERTY).getValue()).replaceAll(",", "");
+            String idNomenclatura = String.valueOf(historialPagosContainer.getContainerProperty(e.getItemId(), ID_NOMENCLATURA_PROPERTY).getValue());
             CambiarEstatusPago cambiarEstatusPago
                     = new CambiarEstatusPago(
                             historialPagosContainer,
                             e.getItemId(),
                             codigoPartida,
-                            monto
+                            monto,
+                            idNomenclatura
                     );
             UI.getCurrent().addWindow(cambiarEstatusPago);
             cambiarEstatusPago.center();
