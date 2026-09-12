@@ -1433,9 +1433,8 @@ System.out.println("queryPartidaLiquidacionFelSatMobil="+queryString);
                     queryString += " IdUltimaLiquidacion = " + ultimaLiquidacion;
                     queryString += " WHERE IdEmpresa = " + empresaId;
                     System.out.println("queryUpdateUltimaLiquidacion=" + queryString);
+                    stQuery1.executeUpdate(queryString);
                 }
-
-                stQuery1.executeUpdate(queryString);
 
                 queryString = "UPDATE documento_liq_mobil SET";
                 queryString += " Contabilizado = 1";

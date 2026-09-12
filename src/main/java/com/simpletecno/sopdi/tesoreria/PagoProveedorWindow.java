@@ -8,7 +8,6 @@ import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.ui.NumberField;
 
 import java.text.DecimalFormat;
-import java.util.Date;
 
 /**
  * Ventana modal para registrar el pago a un proveedor.
@@ -26,7 +25,6 @@ public class PagoProveedorWindow extends Window {
     Label        saldoAnticiposLbl;
     NumberField  montoAnticipoTxt;
     NumberField  montoChequeTxt;
-    DateField    fechaChequeDt;
 
     // ── Botones ──────────────────────────────────────────────────────────────
     private Button aceptarBtn;
@@ -219,13 +217,6 @@ public class PagoProveedorWindow extends Window {
         divider.addStyleName("ppw-divider");
         divider.setWidth("100%");
 
-        // -- Campo: fecha del cheque (por defecto hoy)
-        fechaChequeDt = new DateField("Fecha de cheque");
-        fechaChequeDt.setDateFormat("dd/MM/yyyy");
-        fechaChequeDt.setValue(new Date());
-        fechaChequeDt.setImmediate(true);
-        fechaChequeDt.setWidth("100%");
-
         // -- Campo: monto para cheque
         montoChequeTxt = buildNumberField("Monto para cheque");
         montoChequeTxt.setWidth("100%");
@@ -261,7 +252,7 @@ public class PagoProveedorWindow extends Window {
         card.setWidth("100%");
         card.setSpacing(true);
         card.setMargin(false);
-        card.addComponents(saldoDocumentoLbl, saldoAnticiposLbl, montoAnticipoTxt, divider, montoChequeTxt, fechaChequeDt);
+        card.addComponents(saldoDocumentoLbl, saldoAnticiposLbl, montoAnticipoTxt, divider, montoChequeTxt);
 
         mainLayout.addComponent(card);
     }
@@ -379,7 +370,4 @@ public class PagoProveedorWindow extends Window {
         return saldoAnticipos;
     }
 
-    public Date getFechaCheque() {
-        return fechaChequeDt.getValue() != null ? fechaChequeDt.getValue() : new Date();
-    }
 }

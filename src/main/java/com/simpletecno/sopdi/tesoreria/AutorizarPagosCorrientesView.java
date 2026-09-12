@@ -284,11 +284,11 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         porPagarGrid.getColumn(CODIGO_PARTIDA_PAGO_PROPERTY).setHidable(true).setHidden(true);
         porPagarGrid.getColumn(FECHA_CHEQUE_PROPERTY).setHidable(true).setHidden(true);
 
-        porPagarGrid.getColumn(TIPO_DOCUMENTO_PROPERTY).setWidth(100);
-        porPagarGrid.getColumn(PROVEEDOR_PROPERTY).setWidth(180);
+        porPagarGrid.getColumn(TIPO_DOCUMENTO_PROPERTY).setHidable(true).setHidden(true);
+        porPagarGrid.getColumn(MONEDA_PROPERTY).setHidable(true).setHidden(true);
+        porPagarGrid.getColumn(PROVEEDOR_PROPERTY).setExpandRatio(1);
         porPagarGrid.getColumn(FECHA_PROPERTY).setWidth(95);
         porPagarGrid.getColumn(NUMERO_FACTURA_PROPERTY).setWidth(100);
-        porPagarGrid.getColumn(MONEDA_PROPERTY).setWidth(90);
         porPagarGrid.getColumn(SALDO_PROPERTY).setWidth(110);
         porPagarGrid.getColumn(A_LIQUIDAR_PROPERTY).setWidth(110);
         porPagarGrid.getColumn(CHEQUE_PROPERTY).setWidth(70);
@@ -412,7 +412,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
 
         anticiposOCGrid.getColumn(OC_NOC_PROPERTY).setWidth(90);
         anticiposOCGrid.getColumn(OC_TIPO_PROPERTY).setWidth(120);
-        anticiposOCGrid.getColumn(OC_PROVEEDOR_OC_PROPERTY).setWidth(180);
+        anticiposOCGrid.getColumn(OC_PROVEEDOR_OC_PROPERTY).setExpandRatio(1);
         anticiposOCGrid.getColumn(OC_FECHA_OC_PROPERTY).setWidth(90);
         anticiposOCGrid.getColumn(OC_MONEDA_OC_PROPERTY).setWidth(90);
         anticiposOCGrid.getColumn(OC_CENTROS_COSTO_PROPERTY).setWidth(150);
@@ -694,10 +694,6 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY)
                     .setValue(numberFormat2.format(win.getMontoCheque()));
 
-            // Guardar fecha del cheque seleccionada en PagoProveedorWindow
-            String fechaCheque = Utileria.getFechaYYYYMMDD_1(win.getFechaCheque());
-            porPagarContainer.getContainerProperty(event.getItemId(), FECHA_CHEQUE_PROPERTY).setValue(fechaCheque);
-
             String uckStr = nvlC(cuentasBancosContainer.getContainerProperty(finalCuentaMonedaItemId, ULTIMO_CHEQUE_PROPERTY).getValue());
             int ultimoCheque = uckStr.isEmpty() ? 0 : Integer.parseInt(uckStr);
 
@@ -793,7 +789,13 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                     Notification.show("Seleccione al menos una cuenta bancaria.", Notification.Type.WARNING_MESSAGE);
                     return;
                 }
-                aplicarPagosCorrientes();
+                pedirFechaCheque(fecha -> {
+                    String fechaSQL = Utileria.getFechaYYYYMMDD_1(fecha);
+                    for (Object itemId : porPagarContainer.getItemIds()) {
+                        porPagarContainer.getContainerProperty(itemId, FECHA_CHEQUE_PROPERTY).setValue(fechaSQL);
+                    }
+                    aplicarPagosCorrientes();
+                });
             }
         });
 

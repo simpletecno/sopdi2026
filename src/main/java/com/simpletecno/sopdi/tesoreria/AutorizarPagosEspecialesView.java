@@ -18,8 +18,6 @@ import com.vaadin.shared.ui.grid.HeightMode;
 import com.vaadin.ui.*;
 import com.vaadin.ui.Grid.HeaderCell;
 import com.vaadin.ui.Grid.HeaderRow;
-import com.vaadin.ui.renderers.ButtonRenderer;
-import com.vaadin.ui.renderers.ClickableRenderer;
 import com.vaadin.ui.themes.ValoTheme;
 import org.vaadin.ui.NumberField;
 
@@ -77,7 +75,6 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
     // ── Controles del layout de campos de pago (entre los dos grids) ──────────
     ComboBox  medioCbx;
     TextField documentoTxt;
-    DateField fechaDt;
     ComboBox  proveedorCbx;
     NumberField montoTxt;
     NumberField tasaCambioTxt;
@@ -288,12 +285,6 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
         medioCbx.setDescription("Seleccione cheque o nota de debito(transferencia)");
         llenarComboMedio();
 
-        fechaDt = new DateField("Fecha");
-        fechaDt.setDateFormat("dd/MM/yyyy");
-        fechaDt.setWidth("100%");
-        fechaDt.setValue(new java.util.Date());
-        fechaDt.setReadOnly(true);
-
         tasaCambioTxt = new NumberField("T. Cambio");
         tasaCambioTxt.setDecimalAllowed(true);
         tasaCambioTxt.setDecimalPrecision(5);
@@ -306,7 +297,7 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
         tasaCambioTxt.setImmediate(true);
         tasaCambioTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
         tasaCambioTxt.setWidth("100%");
-        tasaCambioTxt.setValue(((SopdiUI)mainUI).getTasaCambioDelDia(Utileria.getFechaYYYYMMDD_1(fechaDt.getValue())));
+        tasaCambioTxt.setValue(((SopdiUI)mainUI).getTasaCambioDelDia(Utileria.getFechaYYYYMMDD_1(new java.util.Date())));
 
         montoTxt = new NumberField("Monto");
         montoTxt.setValidationVisible(false);
@@ -360,7 +351,7 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
                     } else {
                         tasaCambioTxt.setReadOnly(false);
                         tasaCambioTxt.setValue(((SopdiUI) mainUI).getTasaCambioDelDia(
-                                Utileria.getFechaYYYYMMDD_1(fechaDt.getValue())));
+                                Utileria.getFechaYYYYMMDD_1(new java.util.Date())));
                     }
                 }
             }
@@ -370,12 +361,11 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
         camposPagoLayout.setSpacing(true);
         camposPagoLayout.setMargin(false);
         camposPagoLayout.setWidth("100%");
-        camposPagoLayout.addComponents(medioCbx, fechaDt, tasaCambioTxt, montoTxt);
+        camposPagoLayout.addComponents(medioCbx, tasaCambioTxt, montoTxt);
         for (int i = 0; i < camposPagoLayout.getComponentCount(); i++) {
             camposPagoLayout.setComponentAlignment(camposPagoLayout.getComponent(i), Alignment.BOTTOM_LEFT);
         }
         camposPagoLayout.setExpandRatio(medioCbx, 1.5f);
-        camposPagoLayout.setExpandRatio(fechaDt, 1f);
         camposPagoLayout.setExpandRatio(tasaCambioTxt, 0.7f);
         camposPagoLayout.setExpandRatio(montoTxt, 1.0f);
 
@@ -523,9 +513,8 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
         porPagarGrid.getColumn(A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).setHidable(true).setHidden(true);
         porPagarGrid.getColumn(NOMBRE_PROVEEDOR_PROPERTY).setHidable(true).setHidden(true);
 
-        // Anchos de columna: Proveedor reducido para que las demás sean visibles
-        porPagarGrid.getColumn(TIPO_DOCUMENTO_PROPERTY).setWidth(100);
-        porPagarGrid.getColumn(PROVEEDOR_PROPERTY).setWidth(180);
+        porPagarGrid.getColumn(TIPO_DOCUMENTO_PROPERTY).setWidth(130);
+        porPagarGrid.getColumn(PROVEEDOR_PROPERTY).setExpandRatio(1);
         porPagarGrid.getColumn(FECHA_PROPERTY).setWidth(95);
         porPagarGrid.getColumn(MONEDA_PROPERTY).setWidth(90);
         porPagarGrid.getColumn(CHEQUE_PROPERTY).setWidth(70);
@@ -541,10 +530,7 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
 
         });
 
-        // Columna con botón embebido para abrir formulario entrada monto
-        porPagarGrid.getColumn(A_LIQUIDAR_MONTO_CHEQUE_PROPERTY)
-                .setRenderer(new ButtonRenderer(this::onALiquidarButtonClick))
-                .setWidth(120);
+        porPagarGrid.getColumn(A_LIQUIDAR_MONTO_CHEQUE_PROPERTY).setWidth(120);
 
         HeaderRow filterRow = porPagarGrid.appendHeaderRow();
 
@@ -601,133 +587,6 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
         mainLayout.setComponentAlignment(porPagarGrid, Alignment.TOP_CENTER);
     }
 
-    /**
-     * Manejador del click en el botón de la columna "A liquidar" del grid porPagar.
-     * Valida que haya una cuenta bancaria seleccionada de la misma moneda del documento,
-     * luego abre la ventana PagoProveedorWindow y al confirmar actualiza los montos
-     * de anticipo y cheque tanto en porPagarContainer como en cuentasBancosContainer.
-     */
-    private void onALiquidarButtonClick(ClickableRenderer.RendererClickEvent event) {
-
-        // Buscar cuenta bancaria seleccionada con la misma moneda que el documento
-        boolean cuentaMonedaSeleccionada = false;
-        Object cuentaMonedaItemId = null;
-        for (Object itemId : cuentasBancosContainer.getItemIds()) {
-            if (itemId == null) continue;
-            if (cuentasBancosGrid.isSelected(itemId)) {
-                if (String.valueOf(cuentasBancosContainer.getContainerProperty(itemId, MONEDA_PROPERTY).getValue())
-                        .equals(String.valueOf(porPagarContainer.getContainerProperty(event.getItemId(), MONEDA_PROPERTY).getValue()))) {
-                    cuentaMonedaSeleccionada = true;
-                    cuentaMonedaItemId = itemId;
-                    break;
-                }
-            }
-        }
-        if (!cuentaMonedaSeleccionada) {
-            Notification.show("Seleccione una cuenta bancaria de la misma moneda.", Notification.Type.WARNING_MESSAGE);
-            return;
-        }
-
-        // Preparar datos del documento
-        double saldoDoc = Double.parseDouble(String.valueOf(
-                porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).getValue()));
-
-        // Construir y configurar la ventana de pago
-        PagoProveedorWindow win = new PagoProveedorWindow();
-        win.setCaption("Pagar a proveedor : " +
-                porPagarContainer.getContainerProperty(event.getItemId(), PROVEEDOR_PROPERTY).getValue());
-        win.setMoneda(String.valueOf(porPagarContainer.getContainerProperty(event.getItemId(), MONEDA_PROPERTY).getValue())
-                .startsWith("Q") ? "Q." : "$.");
-        win.setSaldoDocumento(saldoDoc);
-        win.setSaldoDocumento(numberFormat.format(saldoDoc));
-
-        // Al confirmar en la ventana, actualizar containers
-        final Object finalCuentaMonedaItemId = cuentaMonedaItemId;
-        win.getAceptarBtn().addClickListener(event1 -> {
-            porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_MONTO_CHEQUE_PROPERTY)
-                    .setValue(numberFormat.format(win.getMontoCheque() + win.getMontoAnticipo()));
-            porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY)
-                    .setValue(numberFormat2.format(win.getMontoCheque()));
-
-            // Guardar fecha del cheque seleccionada en PagoProveedorWindow
-            porPagarContainer.getContainerProperty(event.getItemId(), FECHA_CHEQUE_PROPERTY)
-                    .setValue(Utileria.getFechaYYYYMMDD_1(win.getFechaCheque()));
-
-            int ultimoCheque = Integer.parseInt(String.valueOf(
-                    cuentasBancosContainer.getContainerProperty(finalCuentaMonedaItemId, ULTIMO_CHEQUE_PROPERTY).getValue()));
-
-            if (win.getMontoCheque() > 0) {
-                double saldoBco = Double.parseDouble(String.valueOf(
-                        cuentasBancosContainer.getContainerProperty(finalCuentaMonedaItemId, NUEVO_SALDOSF_PROPERTY).getValue()));
-                double pagos = Double.parseDouble(String.valueOf(
-                        cuentasBancosContainer.getContainerProperty(finalCuentaMonedaItemId, PAGOSSF_PROPERTY).getValue()));
-
-
-                // Reusar cheque si el proveedor ya tiene otro documento con cheque asignado
-                for (Object itemId2 : porPagarContainer.getItemIds()) {
-                    if (itemId2 == null || itemId2.equals(event.getItemId())) continue;
-                    if (String.valueOf(porPagarContainer.getContainerProperty(itemId2, ID_PROVEEDOR_PROPERTY).getValue())
-                            .equals(String.valueOf(porPagarContainer.getContainerProperty(event.getItemId(), ID_PROVEEDOR_PROPERTY).getValue()))) {
-                        if (!String.valueOf(porPagarContainer.getContainerProperty(itemId2, CHEQUE_PROPERTY).getValue()).isEmpty()) {
-                            porPagarContainer.getContainerProperty(event.getItemId(), CHEQUE_PROPERTY)
-                                    .setValue(String.valueOf(porPagarContainer.getContainerProperty(itemId2, CHEQUE_PROPERTY).getValue()));
-                        }
-                    }
-                }
-
-                if (String.valueOf(porPagarContainer.getContainerProperty(event.getItemId(), CHEQUE_PROPERTY).getValue()).isEmpty()) {
-                    // Reusar cheque si el mismo proveedor ya tiene uno asignado en otra fila
-                    for (Object itemId2 : porPagarContainer.getItemIds()) {
-                        if (itemId2 == null || itemId2.equals(event.getItemId())) continue;
-                        if (String.valueOf(porPagarContainer.getContainerProperty(itemId2, ID_PROVEEDOR_PROPERTY).getValue())
-                                .equals(String.valueOf(porPagarContainer.getContainerProperty(event.getItemId(), ID_PROVEEDOR_PROPERTY).getValue()))) {
-                            String chExistente = String.valueOf(porPagarContainer.getContainerProperty(itemId2, CHEQUE_PROPERTY).getValue());
-                            if (!chExistente.isEmpty()) {
-                                porPagarContainer.getContainerProperty(event.getItemId(), CHEQUE_PROPERTY).setValue(chExistente);
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                if (String.valueOf(porPagarContainer.getContainerProperty(event.getItemId(), CHEQUE_PROPERTY).getValue()).isEmpty()) {
-                    // No había cheque reutilizable — asignar el próximo de la chequera
-                    if (!numeroChequeEnChequera(ultimoCheque + 1,
-                            String.valueOf(cuentasBancosContainer.getContainerProperty(finalCuentaMonedaItemId, ID_CUENTABANCO_PROPERTY).getValue()))) {
-                        Notification.show("No hay cheques disponibles en chequera. Por favor revise cuentas bancarias y chequera en el sistema.",
-                                Notification.Type.WARNING_MESSAGE);
-                    } else {
-                        porPagarContainer.getContainerProperty(event.getItemId(), CHEQUE_PROPERTY)
-                                .setValue(String.valueOf(ultimoCheque + 1));
-                        cuentasBancosContainer.getContainerProperty(finalCuentaMonedaItemId, ULTIMO_CHEQUE_PROPERTY)
-                                .setValue(String.valueOf(ultimoCheque + 1));
-                    }
-                }
-
-                // Actualizar saldo del banco siempre que se haya asignado cheque
-                if (!String.valueOf(porPagarContainer.getContainerProperty(event.getItemId(), CHEQUE_PROPERTY).getValue()).isEmpty()) {
-                    cuentasBancosContainer.getContainerProperty(finalCuentaMonedaItemId, NUEVO_SALDO_PROPERTY)
-                            .setValue(numberFormat.format(saldoBco - win.getMontoCheque()));
-                    cuentasBancosContainer.getContainerProperty(finalCuentaMonedaItemId, NUEVO_SALDOSF_PROPERTY)
-                            .setValue(numberFormat2.format(saldoBco - win.getMontoCheque()));
-                    cuentasBancosContainer.getContainerProperty(finalCuentaMonedaItemId, PAGOS_PROPERTY)
-                            .setValue(numberFormat.format(pagos + win.getMontoCheque()));
-                    cuentasBancosContainer.getContainerProperty(finalCuentaMonedaItemId, PAGOSSF_PROPERTY)
-                            .setValue(numberFormat2.format(pagos + win.getMontoCheque()));
-                }
-            } else {
-                if (!String.valueOf(porPagarContainer.getContainerProperty(event.getItemId(), CHEQUE_PROPERTY).getValue()).isEmpty()) {
-                    cuentasBancosContainer.getContainerProperty(finalCuentaMonedaItemId, ULTIMO_CHEQUE_PROPERTY)
-                            .setValue(String.valueOf(ultimoCheque - 1));
-                    porPagarContainer.getContainerProperty(event.getItemId(), CHEQUE_PROPERTY).setValue("");
-                }
-            }
-        });
-
-        UI.getCurrent().addWindow(win);
-        win.center();
-    }
-
     private void crearBotones() {
         HorizontalLayout buttonsLayout = new HorizontalLayout();
         buttonsLayout.setMargin(new MarginInfo(false, true, false, true));
@@ -762,7 +621,15 @@ public class AutorizarPagosEspecialesView extends VerticalLayout implements View
                     Notification.show("Seleccione al menos una cuenta bancaria.", Notification.Type.WARNING_MESSAGE);
                     return;
                 }
-                aplicarPagosCorrientes();
+                pedirFechaCheque(fecha -> {
+                    String fechaSQL        = Utileria.getFechaYYYYMMDD_1(fecha);
+                    String fechaDisplay    = Utileria.getFechaDDMMYYYY(fecha);
+                    for (Object itemId : porPagarContainer.getItemIds()) {
+                        porPagarContainer.getContainerProperty(itemId, FECHA_PROPERTY).setValue(fechaDisplay);
+                        porPagarContainer.getContainerProperty(itemId, FECHA_CHEQUE_PROPERTY).setValue(fechaSQL);
+                    }
+                    aplicarPagosCorrientes();
+                });
             }
         });
 
@@ -1036,9 +903,8 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
         Object itemId = porPagarContainer.addItem();
         porPagarContainer.getContainerProperty(itemId, TIPO_DOCUMENTO_PROPERTY).setValue(tipoPago);
         porPagarContainer.getContainerProperty(itemId, PROVEEDOR_PROPERTY).setValue(nombreProv);
-        porPagarContainer.getContainerProperty(itemId, FECHA_PROPERTY).setValue(Utileria.getFechaDDMMYYYY(fechaDt.getValue()));
-        porPagarContainer.getContainerProperty(itemId, FECHA_CHEQUE_PROPERTY).setValue(
-                fechaDt.getValue() != null ? Utileria.getFechaYYYYMMDD_1(fechaDt.getValue()) : Utileria.getFechaYYYYMMDD_1(new Date()));
+        porPagarContainer.getContainerProperty(itemId, FECHA_PROPERTY).setValue(Utileria.getFechaDDMMYYYY(new Date()));
+        porPagarContainer.getContainerProperty(itemId, FECHA_CHEQUE_PROPERTY).setValue("");
         porPagarContainer.getContainerProperty(itemId, MONEDA_PROPERTY).setValue(monedaBanco);
         porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_MONTO_CHEQUE_PROPERTY).setValue(monedaSimbolo + numberFormat.format(monto));
         porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).setValue(numberFormat2.format(monto));
@@ -1695,7 +1561,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
                 queryString += "(";
                 queryString += empresaId;
                 queryString += ",'" + codigoPartidaPago + "'";
-                queryString += ",'" + codigoCC + "'";
+                queryString += ",'" + (codigoCC.isEmpty() ? codigoPartidaPago : codigoCC) + "'";
                 queryString += ",'CHEQUE'";
                 queryString += "," + cuentaDebeParaTipo(tipoDocumento,
                         cuentaProveedores, cuentaAbastos, cuentaEfectivoEnTransito,
@@ -1711,6 +1577,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
                 queryString += "," + tipoCambio;
                 queryString += "," + (tipoCambio * totalPago);
                 queryString += ",0";
+                totalDebeQ += (tipoCambio * totalPago);
                 queryString += ",'PAGADO'";
                 queryString += ",'" + descripcion + "'";
                 queryString += ",'" + tipoDoca + "'";
@@ -1727,7 +1594,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
                 queryString += "(";
                 queryString += empresaId;
                 queryString += ",'" + codigoPartidaPago + "'";
-                queryString += ",'" + codigoCC + "'";
+                queryString += ",'" + (codigoCC.isEmpty() ? codigoPartidaPago : codigoCC) + "'";
                 queryString += ",'CHEQUE'";
                 queryString += "," + cuentaDebeParaTipo(tipoDocumento,
                         cuentaProveedores, cuentaAbastos, cuentaEfectivoEnTransito,
@@ -1740,9 +1607,11 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
                 queryString += "," + totalPago;                // MontoDocumento
                 queryString += "," + totalPago;                // Debe
                 queryString += ",0";                           // Haber
+                debeQuetzalesCC = String.valueOf(tipoCambio * totalPago);
                 queryString += "," + tipoCambio;
                 queryString += "," + debeQuetzalesCC;          // DebeQuetzales
                 queryString += ",0";                           // HaberQuetzales
+                totalDebeQ += (tipoCambio * totalPago);
                 queryString += ",'PAGADO'";
                 queryString += ",'" + descripcion + "'";
                 queryString += ",'" + tipoDoca + "'";
