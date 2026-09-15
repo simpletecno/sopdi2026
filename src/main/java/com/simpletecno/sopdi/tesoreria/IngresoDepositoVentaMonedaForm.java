@@ -157,6 +157,7 @@ public class IngresoDepositoVentaMonedaForm extends Window {
 
         proveedorCbx = new ComboBox("Proveedor o Cliente");
         proveedorCbx.addContainerProperty(NIT_PROPERTY, String.class, "");
+        proveedorCbx.addContainerProperty(NOMBRESINCODIGO_PROPERTY, String.class, "");
         proveedorCbx.setInvalidAllowed(false);
         proveedorCbx.setNewItemsAllowed(false);
         proveedorCbx.setNullSelectionAllowed(false);
@@ -537,9 +538,10 @@ public class IngresoDepositoVentaMonedaForm extends Window {
     }
 
     public void llenarComboProveedor() {
-        queryString = " SELECT * from proveedor_empresa ";
+        queryString = " SELECT * FROM proveedor_empresa ";
         queryString += " WHERE Inhabilitado = 0 ";
         queryString += " AND IdEmpresa =  " + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
+        queryString += " AND EsBanco = 1";
         queryString += " ORDER BY Nombre";
 
         proveedorCbx.removeAllItems();
