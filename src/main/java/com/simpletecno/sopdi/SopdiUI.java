@@ -246,10 +246,10 @@ public class SopdiUI extends UI implements Button.ClickListener {
             queryString += " LEFT  JOIN proveedor_empresa Prv On Usr.IdUsuario = Prv.IdUsuario";
             queryString += " WHERE Upper(Usr.Usuario)  = '" + userName.toUpperCase() + "'";
 //            queryString += " AND Prv.IdEmpresa = " + sessionInformation.getStrCompanyId() + " ";
-            if (databaseProvider.getUsedDBDataSource().equals("MYSQL")) {
-                queryString += " AND  Usr.Clave    = Sha1('" + passWord + "')";
-            } else {
-                queryString += " AND  Usr.Clave    = SUBSTRING(master.dbo.fn_varbintohexstr(HASHBYTES('SHA1', '" + passWord + "')),3,40)";
+            if (databaseProvider.equals("MYSQL") || databaseProvider.equals("MARIADB")) {
+                queryString += " AND UPPER(Usr.Clave) = UPPER(SHA1('" + passWord + "'))";
+            } else if (databaseProvider.equals("MSSQL")) {
+                queryString += " AND Usr.Clave = SUBSTRING(master.dbo.fn_varbintohexstr(HASHBYTES('SHA1', '" + passWord + "')),3,40)";
             }
 
 //System.out.println("\nLogin="+queryString);
@@ -1174,6 +1174,7 @@ public class SopdiUI extends UI implements Button.ClickListener {
                 cuentasContablesDefault.setBono14(rsRecords.getString("Bono14"));
                 cuentasContablesDefault.setProvisionAguinaldo(rsRecords.getString("ProvisionAguinaldo"));
                 cuentasContablesDefault.setProvisionBono14(rsRecords.getString("ProvisionBono14"));
+                cuentasContablesDefault.setProvisionIndemnizacion(rsRecords.getString("ProvisionIndemnizacion"));
                 cuentasContablesDefault.setIndemnizacion(rsRecords.getString("Indemnizacion"));
                 cuentasContablesDefault.setVacaciones(rsRecords.getString("Vacaciones"));
                 cuentasContablesDefault.setAcreedoresCortoPlazo(rsRecords.getString("AcreedoresCortoPlazo"));

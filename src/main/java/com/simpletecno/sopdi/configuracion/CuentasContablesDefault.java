@@ -47,6 +47,7 @@ public class CuentasContablesDefault {
     private String bono14;
     private String provisionAguinaldo;
     private String provisionBono14;
+    private String provisionIndemnizacion;
     private String indemnizacion;
     private String vacaciones;
     private String acreedoresCortoPlazo;
@@ -403,8 +404,12 @@ public class CuentasContablesDefault {
         this.provisionBono14 = provisionBono14;
     }
 
-    public String getProvisionBono14(){
-        return provisionBono14;
+    public String getProvisionBono14(){return provisionBono14;}
+
+    public String getProvisionIndemnizacion(){return provisionIndemnizacion;}
+
+    public void setProvisionIndemnizacion(String provisionIndemnizacion) {
+        this.provisionIndemnizacion = provisionIndemnizacion;
     }
 
     public void setIndemnizacion(String indemnizacion){

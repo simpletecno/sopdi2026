@@ -27,7 +27,6 @@ public class InfileClient {
     public final static int ESCENARIO_FUNDACION = 10;
 
     private final Emisor emisor;
-    Map<Integer, Integer> frases = null;
 
 
     final BigDecimal IVA_RATE     = new BigDecimal("0.12");
@@ -44,6 +43,8 @@ public class InfileClient {
 
     HttpURLConnection conn = null;
 
+    // Fecha de emision del ultimo documento certificado
+    private Date fechaHoraEmision;
 
     public InfileClient(Emisor emisor) {
         this.emisor = emisor;
@@ -61,12 +62,38 @@ public class InfileClient {
         }
     }
 
+    public boolean generarDocumentoBaseConFrases(Receptor receptor, String identificador, List<Producto> productos,
+                                                 Map<Integer, Integer> frasesDocumento, String tipoDocumento,
+                                                 String adenda, Date FechaEmision, String Moneda, Double TipoCambio) {
+        if(tipoDocumento.equals("RDON") || tipoDocumento.equals("FACT")) {
+            return generarDocumento(receptor, identificador, productos, tipoDocumento, adenda, "", "", "",
+                    FechaEmision, FechaEmision, Moneda, TipoCambio, "", frasesDocumento, true);
+        }else {
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Error: Tipo de documento no soportado. NO ES BASE (FACT o RDON)");
+            return false;
+        }
+    }
+
     public boolean generarDocumentoDependiente(Receptor receptor, String identificador, List<Producto> productos,String tipoDocumento,
                                                String adenda, String UUID, String serie, String numero, Date FechaEmision,
                                                Date fechaDependienteEmision, String Moneda, Double TipoCambio, String razon) {
         if (tipoDocumento.equals("NCRE")){
             return generarDocumento(receptor, identificador, productos, tipoDocumento, adenda, UUID, serie, numero,
                                     FechaEmision, fechaDependienteEmision, Moneda, TipoCambio, razon);
+        }else {  // Si el tipo de documento no es soportado, retornar false
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Error: Tipo de documento no soportado. NO ES DEPENDIENTE (NCRE)");
+            return false;
+        }
+    }
+
+    public boolean generarDocumentoDependienteConFrases(Receptor receptor, String identificador, List<Producto> productos,
+                                                        Map<Integer, Integer> frasesDocumento, String tipoDocumento,
+                                                        String adenda, String UUID, String serie, String numero,
+                                                        Date FechaEmision, Date fechaDependienteEmision, String Moneda,
+                                                        Double TipoCambio, String razon) {
+        if (tipoDocumento.equals("NCRE")){
+            return generarDocumento(receptor, identificador, productos, tipoDocumento, adenda, UUID, serie, numero,
+                    FechaEmision, fechaDependienteEmision, Moneda, TipoCambio, razon, frasesDocumento, true);
         }else {  // Si el tipo de documento no es soportado, retornar false
             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Error: Tipo de documento no soportado. NO ES DEPENDIENTE (NCRE)");
             return false;
@@ -88,27 +115,28 @@ public class InfileClient {
 
     private boolean generarDocumento(Receptor receptor, String identificador, List<Producto> productos, String tipoDocumento, String adenda, String UUID,
                                      String serie, String numero, Date FechaEmision, Date fechaDependienteEmision, String Moneda, Double TipoCambio, String razon) {
+        return generarDocumento(receptor, identificador, productos, tipoDocumento, adenda, UUID, serie, numero,
+                FechaEmision, fechaDependienteEmision, Moneda, TipoCambio, razon, null, false);
+    }
+
+    private boolean generarDocumento(Receptor receptor, String identificador, List<Producto> productos, String tipoDocumento, String adenda, String UUID,
+                                     String serie, String numero, Date FechaEmision, Date fechaDependienteEmision, String Moneda, Double TipoCambio,
+                                     String razon, Map<Integer, Integer> frasesDocumento, boolean usarFrasesDocumento) {
         try {
 
+            fechaHoraEmision = FechaEmision;
 
             if (productos == null || productos.isEmpty()) {
                 System.out.println("Error: Debe incluir al menos un producto.");
                 return false;
             }
 
-            boolean todosIguales = productos.stream()
-                    .map(Producto::getFrases)
-                    .map(m -> new TreeMap<>(m)) // normaliza orden y equals/hashCode
-                    .distinct()
-                    .limit(2)
-                    .count() <= 1;
+            Map<Integer, Integer> frasesParaDocumento = usarFrasesDocumento
+                    ? copiarFrases(frasesDocumento)
+                    : obtenerFrasesDesdeProductos(productos);
 
-            if (!todosIguales) {
-                System.out.println("Error: Todos los productos deben tener las mismas frases.");
-                return false;
-            }else {
-                frases = productos.get(0).getFrases();
-            }
+            if (frasesParaDocumento == null) return false;
+
             URL url = new URL(URL);
             conn = (HttpURLConnection) url.openConnection();
             conn.setConnectTimeout(15000);
@@ -138,7 +166,8 @@ public class InfileClient {
                     Moneda,
                     TipoCambio,
                     productos,
-                    razon
+                    razon,
+                    frasesParaDocumento
             );
 
 
@@ -184,9 +213,31 @@ public class InfileClient {
 
     }
 
+    private Map<Integer, Integer> obtenerFrasesDesdeProductos(List<Producto> productos) {
+        boolean todosIguales = productos.stream()
+                .map(Producto::getFrases)
+                .map(m -> new TreeMap<>(m)) // normaliza orden y equals/hashCode
+                .distinct()
+                .limit(2)
+                .count() <= 1;
+
+        if (!todosIguales) {
+            System.out.println("Error: Todos los productos deben tener las mismas frases.");
+            return null;
+        }
+
+        return copiarFrases(productos.get(0).getFrases());
+    }
+
+    private Map<Integer, Integer> copiarFrases(Map<Integer, Integer> frasesDocumento) {
+        if (frasesDocumento == null) return Collections.emptyMap();
+        return new LinkedHashMap<>(frasesDocumento);
+    }
+
 
     private String generarXML(Receptor receptor, String tipoDocumento, String adenda, String UUID, String serie, String numero,
-                              Date fechaEmision, Date fechaDependienteEmision, String moneda, Double tipoCambio, List<Producto> productos, String razon) {
+                              Date fechaEmision, Date fechaDependienteEmision, String moneda, Double tipoCambio, List<Producto> productos,
+                              String razon, Map<Integer, Integer> frasesDocumento) {
 //-------------------------------- Encabezado del XML --------------------------
         String fechaHoraEmisionStr = Utileria.getFechaDDMMYYYY_HHMM_SS(fechaEmision);
         String fechaHoraDependienteStr = Utileria.getFechaYYYYMMDD_1(fechaDependienteEmision);
@@ -240,8 +291,8 @@ public class InfileClient {
 //-------------------------------- Frases --------------------------------
         if(!tipoDocumento.equals("CIVA")) {
             xml.append("<dte:Frases>\n");
-            if (frases != null) {
-                for (Map.Entry<Integer, Integer> entry : frases.entrySet()) {
+            if (frasesDocumento != null) {
+                for (Map.Entry<Integer, Integer> entry : frasesDocumento.entrySet()) {
                     int frase = entry.getKey();
                     int escenario = entry.getValue();
                     if(frase == EXENTOIVA_FRASE && tipoDocumento.equals("NCRE")) {
@@ -258,6 +309,8 @@ public class InfileClient {
         BigDecimal totalIVA = new BigDecimal("0.00");
         xml.append("<dte:Items>\n");
 
+        boolean esExentoIva = frasesDocumento != null && frasesDocumento.containsKey(EXENTOIVA_FRASE);
+
         for (Producto p : productos) {
             BigDecimal precioProducto = p.getMonto(); // asumir scale consistente
             BigDecimal cantidad       = BigDecimal.valueOf(p.getCantidad());
@@ -267,7 +320,7 @@ public class InfileClient {
             BigDecimal gravableProducto;
             BigDecimal impuestoProducto;
 
-            if (p.tieneFrase(EXENTOIVA_FRASE)) {
+            if (esExentoIva) {
                 if (tipoDocumento.equals("FACT") || tipoDocumento.equals("NCRE")) {
                     // Exento: todo el total es gravable=total y el impuesto es 0
                     gravableProducto  = totalProducto.setScale(MONEY_SCALE, RM);
@@ -297,7 +350,7 @@ public class InfileClient {
                 xml.append("      <dte:Impuestos>\n");
                 xml.append("        <dte:Impuesto>\n");
                 xml.append("          <dte:NombreCorto>IVA</dte:NombreCorto>\n");
-                if(p.tieneFrase(EXENTOIVA_FRASE)) {
+                if(esExentoIva) {
                     xml.append("          <dte:CodigoUnidadGravable>2</dte:CodigoUnidadGravable>\n");
                 } else {
                     xml.append("          <dte:CodigoUnidadGravable>1</dte:CodigoUnidadGravable>\n");
@@ -572,6 +625,9 @@ public class InfileClient {
         return null;
     }
 
+    public Date getFechaHoraEmision() {
+        return fechaHoraEmision;
+    }
 
     public String getOrigen() {
         return jsonRespuesta != null ? jsonRespuesta.optString("origen", "") : "";

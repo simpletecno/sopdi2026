@@ -304,6 +304,7 @@ public class EmpleadoView extends VerticalLayout implements View {
                 }
                 EmpleadoAusenciasForm empleadoAusenciasForm = new EmpleadoAusenciasForm(
                         String.valueOf(empleadosContainer.getContainerProperty(empleadosGrid.getSelectedRow(), "id").getValue()),
+                        String.valueOf(empleadosContainer.getContainerProperty(empleadosGrid.getSelectedRow(), "nombre").getValue()),
                         (String) cargoCbx.getValue());
                 mainUI.addWindow(empleadoAusenciasForm);
                 empleadoAusenciasForm.center();

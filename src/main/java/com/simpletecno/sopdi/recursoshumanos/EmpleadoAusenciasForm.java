@@ -42,12 +42,13 @@ public class   EmpleadoAusenciasForm extends Window {
     private static final String TIPO_PROPERTY = "AUSENCIA";
     private static final String FECHA_INICIO_PROPERTY = "Fecha Inicio";
     private static final String FECHA_FIN_PROPERTY = "Fecha Fin";
+    private static final String BOLETA_PROPERTY = "Boleta";
     private static final String DIAS_PROPERTY = "DIAS";
 
     // Tipo Ausencias
     private static final String ES_DESCUENTO_PROPERTY = "EsDescuento";
     private static final String ES_DESCUENTO_PLANILLA_PROPERTY = "EsDescuentoEnPlanilla";
-    private static final String PRIORIDAD_PROPERTY = "EsDescuentoEnPlanilla";
+    private static final String PRIORIDAD_PROPERTY = "Prioridad";
 
     VerticalLayout mainLayout;
     MarginInfo marginInfo;
@@ -75,6 +76,7 @@ public class   EmpleadoAusenciasForm extends Window {
     TextField boletaTxT =  new TextField("Boleta : ");
 
     Button nuevoBtn;
+    Button resetBtn;
     Button saveBtn;
     Button deleteBtn;
     Button salirBtn;
@@ -86,10 +88,12 @@ public class   EmpleadoAusenciasForm extends Window {
 
     UI mainUI;
     String idEmpleado;
+    String nombreEmpleado;
     String cargo;
 
-    public EmpleadoAusenciasForm(String idEmpleado, String cargo) {
+    public EmpleadoAusenciasForm(String idEmpleado, String nombreEmpleado, String cargo) {
         this.idEmpleado = idEmpleado;
+        this.nombreEmpleado = nombreEmpleado;
         this.cargo = cargo;
         this.mainUI = UI.getCurrent();
 
@@ -118,8 +122,6 @@ public class   EmpleadoAusenciasForm extends Window {
         mainLayout.addComponent(horizontalLayout);
         mainLayout.setComponentAlignment(horizontalLayout, Alignment.BOTTOM_CENTER);
 
-        creatRangoFechas();
-
         createForm();
 
         getTipoAusencia();
@@ -134,6 +136,7 @@ public class   EmpleadoAusenciasForm extends Window {
         ausenciaContaier.addContainerProperty(TIPO_PROPERTY, String.class, "");
         ausenciaContaier.addContainerProperty(FECHA_INICIO_PROPERTY, Date.class, "");
         ausenciaContaier.addContainerProperty(FECHA_FIN_PROPERTY, Date.class, "");
+        ausenciaContaier.addContainerProperty(BOLETA_PROPERTY, String.class, "");
         ausenciaContaier.addContainerProperty(DIAS_PROPERTY, String.class, "0");
 
         ausenciaGrid = new Grid(ausenciaContaier);
@@ -150,6 +153,7 @@ public class   EmpleadoAusenciasForm extends Window {
         ausenciaGrid.getColumn(FECHA_INICIO_PROPERTY).setRenderer(new DateRenderer(new SimpleDateFormat("dd/MM/yyyy")));
         ausenciaGrid.getColumn(FECHA_FIN_PROPERTY).setExpandRatio(2);
         ausenciaGrid.getColumn(FECHA_FIN_PROPERTY).setRenderer(new DateRenderer(new SimpleDateFormat("dd/MM/yyyy")));
+        ausenciaGrid.getColumn(BOLETA_PROPERTY).setExpandRatio(1);
         ausenciaGrid.getColumn(DIAS_PROPERTY).setExpandRatio(1);
         ausenciaGrid.getColumn(ID_PROPERTY).setHidden(true);
         ausenciaGrid.addSelectionListener(new SelectionEvent.SelectionListener() {
@@ -167,33 +171,6 @@ public class   EmpleadoAusenciasForm extends Window {
 
         mainLayout.addComponent(ausenciaGrid);
         mainLayout.setComponentAlignment(ausenciaGrid, Alignment.TOP_CENTER);
-
-    }
-
-    private void creatRangoFechas(){
-        mesanioInicioField = new PopupDateField("Mes Inicio : ");
-        mesanioInicioField.setDateFormat("MM/yyyy");
-        mesanioInicioField.setResolution(Resolution.MONTH);
-        mesanioInicioField.setValue(new Date());
-
-        mesanioFinField = new PopupDateField("Mes Fin : ");
-        mesanioFinField.setDateFormat("MM/yyyy");
-        mesanioFinField.setResolution(Resolution.MONTH);
-        mesanioFinField.setValue(new Date());
-
-        FormLayout mesanioLayout = new FormLayout(mesanioInicioField, mesanioFinField);
-        mesanioLayout.setMargin(true);
-        mesanioLayout.setComponentAlignment(mesanioInicioField, Alignment.TOP_RIGHT);
-        mesanioLayout.setComponentAlignment(mesanioFinField, Alignment.TOP_RIGHT);
-
-        Label divider = new Label();
-        divider.setWidth("1px");
-        divider.setHeight("100%");
-        divider.addStyleName("vertical-divider"); // Estilo que definiremos en CSS
-
-        horizontalLayout.addComponents(mesanioLayout, divider);
-        horizontalLayout.setComponentAlignment(mesanioLayout, Alignment.TOP_LEFT);
-
 
     }
 
@@ -225,6 +202,16 @@ public class   EmpleadoAusenciasForm extends Window {
     private void createForm() {
 
         mainLayout.setWidth("100%");
+
+        mesanioInicioField = new PopupDateField("Mes Inicio : ");
+        mesanioInicioField.setDateFormat("MM/yyyy");
+        mesanioInicioField.setResolution(Resolution.MONTH);
+        mesanioInicioField.setValue(new Date());
+
+        mesanioFinField = new PopupDateField("Mes Fin : ");
+        mesanioFinField.setDateFormat("MM/yyyy");
+        mesanioFinField.setResolution(Resolution.MONTH);
+        mesanioFinField.setValue(new Date());
 
         tipoAusenciaCbx = new ComboBox("Tipo : ");
         tipoAusenciaCbx.addContainerProperty(ES_DESCUENTO_PROPERTY, Integer.class, 0);
@@ -311,16 +298,43 @@ public class   EmpleadoAusenciasForm extends Window {
         nuevoBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-//                if (!((SopdiUI) mainUI).sessionInformation.getStrUserProfile().equals("ADMINISTRADOR")) {
-//                    Notification.show("Usuario no tiene permiso para esta operación.", Notification.Type.WARNING_MESSAGE);
-//                    return;
-//                }
+                // Open summary window for a new absence. Saving is handled by the summary window.
+                deleteBtn.setVisible(false);
+                saveBtn.setVisible(false); // keep main save (Guardar) disabled for new entries
+
+                String tipo = tipoAusenciaCbx.getValue() == null ? "" : String.valueOf(tipoAusenciaCbx.getValue());
+                java.util.Date inicio = inicioDt.getValue();
+                java.util.Date fin = finDt.getValue();
+                double dias = diasTxt.getDoubleValueDoNotThrow();
+                String boleta = boletaTxT.getValue();
+                boolean medioInicio = medioDiaInicioChbx.getValue();
+                boolean medioFin = medioDiaFinChbx.getValue();
+                boolean sab = sabadosChbx.getValue();
+
+                EmpleadoAusenciaResumenWindow resumen = new EmpleadoAusenciaResumenWindow(mainUI, idEmpleado, nombreEmpleado, cargo, tipo, inicio, fin, dias, boleta, medioInicio, medioFin, sab, () -> {
+                    fillData();
+                    deleteBtn.setVisible(false);
+                    saveBtn.setVisible(false);
+                });
+
+                UI.getCurrent().addWindow(resumen);
+            }
+        });
+
+        resetBtn = new Button("Reset");
+        resetBtn.setIcon(FontAwesome.REFRESH);
+        resetBtn.setDescription("Reset");
+        resetBtn.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
+        resetBtn.addClickListener(new Button.ClickListener() {
+            @Override
+            public void buttonClick(Button.ClickEvent event) {
                 inicioDt.setValue(new java.util.Date());
                 finDt.setValue(new java.util.Date());
+                diasTxt.setReadOnly(false);
                 diasTxt.setValue(1d);
-                esNuevo = true;
+                diasTxt.setReadOnly(true);
                 deleteBtn.setVisible(false);
-                saveBtn.setVisible(true);
+                saveBtn.setVisible(false);
                 inicioDt.focus();
             }
         });
@@ -330,21 +344,15 @@ public class   EmpleadoAusenciasForm extends Window {
         saveBtn.addStyleName(ValoTheme.BUTTON_ICON_ONLY);
         saveBtn.addClickListener(
                 (Button.ClickListener)
-                        event -> {
-                            if(!esNuevo) {
-                                if (ausenciaGrid.getSelectedRow() != null) {
-                                    saveData(String.valueOf(ausenciaContaier.getContainerProperty(ausenciaGrid.getSelectedRow(), ID_PROPERTY).getValue()));
-                                }
-                                else {
-                                    Notification.show("NO HA SELECCIONADO UN REGISTRO.", Notification.Type.ERROR_MESSAGE);
-                                    return;
-                                }
-                            }
-                            else {
-                                saveData("");
+                    event -> {
+                            if (ausenciaGrid.getSelectedRow() != null) {
+                                saveData(String.valueOf(ausenciaContaier.getContainerProperty(ausenciaGrid.getSelectedRow(), ID_PROPERTY).getValue()));
+                            } else {
+                                Notification.show("NO HA SELECCIONADO UN REGISTRO.", Notification.Type.ERROR_MESSAGE);
+                                return;
                             }
                             saveBtn.setVisible(false);
-                        }
+                    }
         );
         saveBtn.setVisible(false);
 
@@ -388,22 +396,22 @@ public class   EmpleadoAusenciasForm extends Window {
         salirBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
         salirBtn.addClickListener((Button.ClickListener) event -> close());
 
-        HorizontalLayout layout1 = new HorizontalLayout(medioDiaInicioChbx, medioDiaFinChbx);
-        layout1.setComponentAlignment(medioDiaInicioChbx, Alignment.BOTTOM_CENTER);
-        layout1.setComponentAlignment(medioDiaFinChbx, Alignment.BOTTOM_CENTER);
-        layout1.setSpacing(true);
-        layout1.setWidth("100%");
+        GridLayout layoutGrid = new GridLayout(20, 2);
 
+        VerticalLayout mesanioLayout = new VerticalLayout(mesanioInicioField, mesanioFinField);
+        mesanioLayout.setHeight("100%");
+        mesanioLayout.setComponentAlignment(mesanioInicioField, Alignment.TOP_CENTER);
+        mesanioLayout.setComponentAlignment(mesanioFinField, Alignment.BOTTOM_CENTER);
 
-        GridLayout layoutGrid = new GridLayout(17,2);
+        layoutGrid.addComponent(mesanioLayout, 0, 0, 2, 1);
 
-        layoutGrid.addComponent(diasTxt, 0,0, 2, 1);
+        layoutGrid.addComponent(diasTxt, 3, 0, 5, 1);
 
-        layoutGrid.addComponent(tipoAusenciaCbx, 3,0, 7,0);
-        layoutGrid.addComponent(boletaTxT, 8,0, 12,0);
+        layoutGrid.addComponent(tipoAusenciaCbx, 6, 0, 10, 0);
+        layoutGrid.addComponent(boletaTxT, 11, 0, 15, 0);
 
-        layoutGrid.addComponent(inicioDt, 3,1, 7,1);
-        layoutGrid.addComponent(finDt, 8,1, 12,1);
+        layoutGrid.addComponent(inicioDt, 6, 1, 10, 1);
+        layoutGrid.addComponent(finDt, 11, 1, 15, 1);
 
         VerticalLayout layoutCheckbox = new VerticalLayout(medioDiaInicioChbx, medioDiaFinChbx, sabadosChbx);
         layoutCheckbox.setHeight("80%");
@@ -411,7 +419,7 @@ public class   EmpleadoAusenciasForm extends Window {
         layoutCheckbox.setComponentAlignment(medioDiaFinChbx, Alignment.MIDDLE_LEFT);
         layoutCheckbox.setComponentAlignment(sabadosChbx, Alignment.BOTTOM_LEFT);
 
-        layoutGrid.addComponent(layoutCheckbox, 13,0, 16,1);
+        layoutGrid.addComponent(layoutCheckbox, 16, 0, 19, 1);
         layoutGrid.setComponentAlignment(layoutCheckbox, Alignment.BOTTOM_CENTER);
 
         layoutGrid.setSpacing(true);
@@ -422,13 +430,18 @@ public class   EmpleadoAusenciasForm extends Window {
 
         HorizontalLayout buttonsLayout = new HorizontalLayout();
         buttonsLayout.setSpacing(true);
-        buttonsLayout.setMargin(true);
+        buttonsLayout.setMargin(false);
+        buttonsLayout.setWidth("40%");
 
         buttonsLayout.addComponent(nuevoBtn);
+        buttonsLayout.addComponent(resetBtn);
         buttonsLayout.addComponent(saveBtn);
         buttonsLayout.addComponent(deleteBtn);
         buttonsLayout.addComponent(salirBtn);
         buttonsLayout.setComponentAlignment(salirBtn, Alignment.BOTTOM_RIGHT);
+
+        mainLayout.addComponent(buttonsLayout);
+        mainLayout.setComponentAlignment(buttonsLayout, Alignment.MIDDLE_CENTER);
 
     }
 
@@ -512,8 +525,11 @@ public class   EmpleadoAusenciasForm extends Window {
         queryString = "Select * ";
         queryString += "From empleado_ausencia ";
         queryString += "Where IdEmpleado = " + idEmpleado + " ";
-        queryString += "AND FechaInicio <= '" + Utileria.getFechaYYYYMMDD_1(Utileria.getInicioMesDate(mesanioInicioField.getValue())) + "' ";
-        queryString += "AND FechaFin >= '" + Utileria.getFechaYYYYMMDD_1(Utileria.getInicioMesDate(mesanioFinField.getValue())) + "' ";
+        String rangeStart = Utileria.getFechaYYYYMMDD_1(Utileria.getInicioMesDate(mesanioInicioField.getValue()));
+        String rangeEnd = Utileria.getFechaYYYYMMDD_1(Utileria.getFinMesDate(mesanioFinField.getValue()));
+        // Select absences that overlap the month range: FechaInicio <= rangeEnd AND FechaFin >= rangeStart
+        queryString += "AND FechaInicio <= '" + rangeEnd + "' ";
+        queryString += "AND FechaFin >= '" + rangeStart + "' ";
         queryString += "Order By FechaInicio, FechaFin";
 
         try {
@@ -527,9 +543,10 @@ public class   EmpleadoAusenciasForm extends Window {
                 itemId = ausenciaContaier.addItem();
 //System.out.println("CuentaContalbe=" + rsRecords.getString("NoCuenta") + " " + rsRecords.getString("N5"));
                 ausenciaContaier.getContainerProperty(itemId, ID_PROPERTY).setValue(rsRecords.getString("Id"));
-                ausenciaContaier.getContainerProperty(itemId, TIPO_PROPERTY).setValue(rsRecords.getDate("FechaInicio"));
+                ausenciaContaier.getContainerProperty(itemId, TIPO_PROPERTY).setValue(rsRecords.getString("Tipo"));
                 ausenciaContaier.getContainerProperty(itemId, FECHA_INICIO_PROPERTY).setValue(rsRecords.getDate("FechaInicio"));
-                ausenciaContaier.getContainerProperty(itemId, FECHA_FIN_PROPERTY).setValue(rsRecords.getString("FechaFin"));
+                ausenciaContaier.getContainerProperty(itemId, FECHA_FIN_PROPERTY).setValue(rsRecords.getDate("FechaFin"));
+                ausenciaContaier.getContainerProperty(itemId, BOLETA_PROPERTY).setValue(rsRecords.getString("Boleta"));
                 ausenciaContaier.getContainerProperty(itemId, DIAS_PROPERTY).setValue(rsRecords.getString("Dias"));
 
                 totalDias+= rsRecords.getInt("Dias");
@@ -546,7 +563,9 @@ public class   EmpleadoAusenciasForm extends Window {
     public void fillForm(String id) {
 
         inicioDt.setValue(new java.util.Date());
+        diasTxt.setReadOnly(false);
         diasTxt.setValue(0.00);
+        diasTxt.setReadOnly(true);
 
         String queryString = "";
 
@@ -562,7 +581,9 @@ public class   EmpleadoAusenciasForm extends Window {
 
                 inicioDt.setValue(rsRecords.getDate("FechaInicio"));
                 finDt.setValue(rsRecords.getDate("FechaFin"));
+                diasTxt.setReadOnly(false);
                 diasTxt.setValue(rsRecords.getDouble("Dias"));
+                diasTxt.setReadOnly(true);
             }
 
         } catch (Exception ex) {
@@ -598,56 +619,16 @@ public class   EmpleadoAusenciasForm extends Window {
         String queryString;
 
         try {
-            if(esNuevo) {
-                queryString = "SELECT (Boleta = '" + boletaTxT.getValue() + "') AS Boleta";
-                queryString += "FROM empleado_ausencia ";
-                queryString += "WHERE IdEmpleado = " + idEmpleado + " ";
-                queryString += "AND Tipo = '" + tipoAusenciaCbx.getValue() + "' ";
-                queryString += "OR (FechaInicio >= '" + Utileria.getFechaYYYYMMDD_1(inicioDt.getValue()) + "' ";
-                queryString += "OR FechaFin <= '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "') ";
-                queryString += "OR Boleta = '" + boletaTxT.getValue() + "' ";
-                //System.out.println("queryEmpleadoAusencias=" + queryString);
-                stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-                rsRecords = stQuery.executeQuery(queryString);
 
-                if(rsRecords.next()) {
-                    String mensaje = "NUEVO : YA EXISTE UN REGISTRO CON ESTOS DATOS.";
-                    if(rsRecords.getBoolean("Boleta") && !boletaTxT.getValue().isEmpty()) {
-                        mensaje += " CODIGO BOLETA REPETIDO";
-                    }
-                    Notification.show(mensaje, Notification.Type.ERROR_MESSAGE);
-                    return false;
-                }
-                queryString = "INSERT INTO empleado_ausencia ";
-                queryString += "(Tipo, IdEmpleado, FechaInicio, FechaFin, Dias, CreadoUsuario, ";
-                queryString += "MedioDiaMañana, MedioDiaTarde, Sabados, Boleta) ";
-                queryString += "VALUES ";
-                queryString += "(";
-                queryString += "'" + tipoAusenciaCbx.getValue() + "'";
-                queryString += "," + idEmpleado;
-                queryString += ",'" + Utileria.getFechaYYYYMMDD_1(inicioDt.getValue()) + "'";
-                queryString += ",'" + Utileria.getFechaYYYYMMDD_1(finDt.getValue()) + "'";
-                queryString += ","  + diasTxt.getDoubleValueDoNotThrow();
-                queryString += ","  + ((SopdiUI)mainUI).sessionInformation.getStrUserId();
-                queryString += ","  + medioDiaInicioChbx.getValue();
-                queryString += ","  + medioDiaFinChbx.getValue();
-                queryString += ","  + sabadosChbx.getValue();
-                queryString += ",'" + boletaTxT.getValue() + "'";
-                queryString += ")";
-
-            } else {
-
-                queryString = "UPDATE empleado_ausencia SET ";
-                queryString += "FechaInicio = '" + Utileria.getFechaYYYYMMDD_1(inicioDt.getValue() )+ "' ";
-                queryString += ",FechaFin = '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue() )+ "' ";
-                queryString += ",Dias = " + diasTxt.getDoubleValueDoNotThrow() + " ";
-                queryString += ",MedioDiaMañana = " + diasTxt.getDoubleValueDoNotThrow() + " ";
-                queryString += ",MedioDiaTarde = " + diasTxt.getDoubleValueDoNotThrow() + " ";
-                queryString += ",Sabados = " + diasTxt.getDoubleValueDoNotThrow() + " ";
-                queryString += ",Boleta = '" + boletaTxT.getValue() + "' ";
-                queryString += " Where Id = " + id;
-
-            }
+            queryString = "UPDATE empleado_ausencia SET ";
+            queryString += "FechaInicio = '" + Utileria.getFechaYYYYMMDD_1(inicioDt.getValue() )+ "' ";
+            queryString += ",FechaFin = '" + Utileria.getFechaYYYYMMDD_1(finDt.getValue() )+ "' ";
+            queryString += ",Dias = " + diasTxt.getDoubleValueDoNotThrow() + " ";
+            queryString += ",MedioDiaMañana = " + (Boolean.TRUE.equals(medioDiaInicioChbx.getValue())?1:0) + " ";
+            queryString += ",MedioDiaTarde = " + (Boolean.TRUE.equals(medioDiaFinChbx.getValue())?1:0) + " ";
+            queryString += ",Sabados = " + (Boolean.TRUE.equals(sabadosChbx.getValue())?1:0) + " ";
+            queryString += ",Boleta = '" + boletaTxT.getValue() + "' ";
+            queryString += " Where Id = " + id;
 
             System.out.println("saveData="+queryString);
 
@@ -673,23 +654,16 @@ public class   EmpleadoAusenciasForm extends Window {
         Date fechaInicio = inicioDt.getValue();
         Date fechaFin = finDt.getValue();
 
-        if(esNuevo) {
-            if(((Date)ausenciaContaier.getContainerProperty(ausenciaGrid.getSelectedRow(), FECHA_INICIO_PROPERTY).getValue()).before(inicioDt.getValue())){
-                fechaInicio = (Date)ausenciaContaier.getContainerProperty(ausenciaGrid.getSelectedRow(), FECHA_INICIO_PROPERTY).getValue();
-            }
-            if(((Date)ausenciaContaier.getContainerProperty(ausenciaGrid.getSelectedRow(), FECHA_FIN_PROPERTY).getValue()).before(finDt.getValue())){
-                fechaFin = (Date)ausenciaContaier.getContainerProperty(ausenciaGrid.getSelectedRow(), FECHA_FIN_PROPERTY).getValue();
-            }
+        if(((Date)ausenciaContaier.getContainerProperty(ausenciaGrid.getSelectedRow(), FECHA_FIN_PROPERTY).getValue()).before(finDt.getValue())){
+            fechaFin = (Date)ausenciaContaier.getContainerProperty(ausenciaGrid.getSelectedRow(), FECHA_FIN_PROPERTY).getValue();
         }
 
         try {
 
-            queryString = "DELETE ea.* ";
-            queryString += "FROM empleado_asistencia ea ";
-            queryString += "LEFT JOIN razon_ausencia ra ON ea.Razon = ra.Razon";
-            queryString += "WHERE Fecha BETWEEN '" + Utileria.getFechaYYYYMMDD_1(fechaInicio) + "' ";
+            queryString = "DELETE FROM empleado_asistencia WHERE Fecha BETWEEN '" + Utileria.getFechaYYYYMMDD_1(fechaInicio) + "' ";
             queryString += "AND '" + Utileria.getFechaYYYYMMDD_1(fechaFin) + "' ";
-            queryString += "AND ra.Prioridad < " + tipoAusenciaCbx.getContainerProperty(tipoAusenciaCbx.getValue(), PRIORIDAD_PROPERTY).getValue();
+            queryString += "AND IdEmpleado = " + idEmpleado + " ";
+            queryString += "AND Razon IN (SELECT Razon FROM razon_ausencia WHERE Prioridad < " + tipoAusenciaCbx.getContainerProperty(tipoAusenciaCbx.getValue(), PRIORIDAD_PROPERTY).getValue() + ")";
 
             System.out.println("saveData="+queryString);
 
@@ -711,10 +685,10 @@ public class   EmpleadoAusenciasForm extends Window {
 
             queryString = "SELECT ea.* ";
             queryString += "FROM empleado_asistencia ea ";
-            queryString += "LEFT JOIN razon_ausencia ra ON ea.Razon = ra.Razon";
-            queryString += "WHERE Fecha BETWEEN '" + Utileria.getFechaYYYYMMDD_1(fechaInicio) + "' ";
+            queryString += "WHERE ea.Fecha BETWEEN '" + Utileria.getFechaYYYYMMDD_1(fechaInicio) + "' ";
             queryString += "AND '" + Utileria.getFechaYYYYMMDD_1(fechaFin) + "' ";
-            queryString += "AND ra.Prioridad < " + tipoAusenciaCbx.getContainerProperty(tipoAusenciaCbx.getValue(), PRIORIDAD_PROPERTY).getValue();
+            queryString += "AND ea.IdEmpleado = " + idEmpleado + " ";
+            queryString += "AND ea.Razon IN (SELECT Razon FROM razon_ausencia WHERE Prioridad < " + tipoAusenciaCbx.getContainerProperty(tipoAusenciaCbx.getValue(), PRIORIDAD_PROPERTY).getValue() + ")";
 
             System.out.println("saveData="+queryString);
 
@@ -743,12 +717,11 @@ public class   EmpleadoAusenciasForm extends Window {
 
             do {
                 double tiempodia = 1;
-                if(fechaTemp.equals(inicioDt.getValue())) tiempodia -= medioDiaInicioChbx.getValue()?0.5:0;
-                if(fechaTemp.equals(finDt.getValue())) tiempodia -= medioDiaFinChbx.getValue()?0.5:0;
+                if (Boolean.TRUE.equals(medioDiaInicioChbx.getValue()) && fechaTemp.equals(inicioDt.getValue())) tiempodia -= 0.5;
+                if (Boolean.TRUE.equals(medioDiaFinChbx.getValue()) && fechaTemp.equals(finDt.getValue())) tiempodia -= 0.5;
 
-                if (fechaTemp.equals(inicioDt.getValue()) ||                                            // Si es el inicio
-                   (fechaTemp.before(inicioDt.getValue()) && fechaTemp.before(finDt.getValue())) ||     // Si esta en medio
-                    fechaTemp.equals(finDt.getValue())){                                                // Si esta al final
+                boolean isAbsent = !fechaTemp.before(inicioDt.getValue()) && !fechaTemp.after(finDt.getValue());
+                if (isAbsent) {
                     queryString += "(" + idEmpleado + ",";                                                  // IdEmpleado
                     queryString += "'" + cargo + "',";                                                      // Cargo
                     queryString += "'" + Utileria.getFechaYYYYMMDD_1(fechaTemp) + "',";                     // Fecha
@@ -756,13 +729,13 @@ public class   EmpleadoAusenciasForm extends Window {
                     queryString += 0 + ",";                                                                 // HorasExtraDoble
                     queryString += "'AUSENTE',";                                                            // Estatus
                     queryString += "'" + tipoAusenciaCbx.getValue() + "',";                                 // Razon
-                    queryString += tipoAusenciaCbx.getValue().equals("Vacaciones")?tiempodia:0 + ",";       // DiasVacaciones
+                    queryString += ("Vacaciones".equals(tipoAusenciaCbx.getValue())?tiempodia:0) + ",";       // DiasVacaciones
                     queryString += 0 + ",";                                                                 // EsDefinitiva
                     queryString += tipoAusenciaCbx.getContainerProperty(tipoAusenciaCbx.getValue(), ES_DESCUENTO_PROPERTY).getValue() + ","; // EsDescuento
                     queryString += tipoAusenciaCbx.getContainerProperty(tipoAusenciaCbx.getValue(), ES_DESCUENTO_PLANILLA_PROPERTY).getValue() + ","; // EsAusenteSinGoceDeSueldo
                     queryString += "current_timestamp,";                                                    // CreadoFechaYHora
                     queryString += ((SopdiUI)mainUI).sessionInformation.getStrUserId();                     // CreadoIdUsuario
-                }else{
+                } else {
                     queryString += "(" + idEmpleado + ",";                                                  // IdEmpleado
                     queryString += "'" + cargo + "',";                                                      // Cargo
                     queryString += "'" + Utileria.getFechaYYYYMMDD_1(fechaTemp) + "',";                     // Fecha
@@ -809,7 +782,9 @@ public class   EmpleadoAusenciasForm extends Window {
     public void deleteAusencias(String id) {
 
         inicioDt.setValue(new java.util.Date());
+        diasTxt.setReadOnly(false);
         diasTxt.setValue(0.00);
+        diasTxt.setReadOnly(true);
 
         String queryString = "";
 
