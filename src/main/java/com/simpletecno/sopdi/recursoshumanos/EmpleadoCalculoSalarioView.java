@@ -87,7 +87,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
     public static final String PROVISION1 = "CuotPatIgss";
     public static final String PROVISION2 = "ProvBono14";
     public static final String PROVISION3 = "ProvAguinaldo";
-    public static final String PROVISION4 = "Provi4";
+    public static final String PROVISION4 = "ProvIndem";
     public static final String PROVISION5 = "Provi5";
     public static final String PROVISIONADO = "Tot.Provi.";
     public static final String CODIGOPARTIDA = "CodigoPartida";
@@ -438,12 +438,12 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
                     return;
                 }
                 try {
-                    if (fechaChequeDt.getValue().before(new SimpleDateFormat("yyyy-mm-dd").parse(String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), FECHA_INICIALSF_PLANILLA).getValue())))) {
+                    if (fechaChequeDt.getValue().before(new SimpleDateFormat("yyyy-MM-dd").parse(String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), FECHA_INICIALSF_PLANILLA).getValue())))) {
                         Notification.show("La fecha de cheques no puede ser menor a la fecha inicial de planilla.", Notification.Type.HUMANIZED_MESSAGE);
                         fechaChequeDt.focus();
                         return;
                     }
-                    if (fechaChequeDt.getValue().equals(new SimpleDateFormat("yyyy-mm-dd").parse(String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), FECHA_INICIALSF_PLANILLA).getValue())))) {
+                    if (fechaChequeDt.getValue().equals(new SimpleDateFormat("yyyy-MM-dd").parse(String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), FECHA_INICIALSF_PLANILLA).getValue())))) {
                         Notification.show("La fecha de cheques no puede ser igual a la fecha inicial de planilla.", Notification.Type.HUMANIZED_MESSAGE);
                         fechaChequeDt.focus();
                         return;
@@ -986,7 +986,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
                 stQuery.executeUpdate(queryString);
 
                 queryString = "DELETE FROM planilla_encabezado ";
-                queryString += " WHERE IdP = " + planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), ID_PLANILLA).getValue();
+                queryString += " WHERE Id = " + planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), ID_PLANILLA).getValue();
 
                 stQuery.executeUpdate(queryString);
 
@@ -1296,13 +1296,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
                             liquidoRecibir = 0.00;
                         }
 
-                        //BONO14 O AGUINALDO
-                        if(bono14Chb.getValue()) {
-                            bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.BONO14, salarioBase);
-                        }
-                        if(aguinaldoChb.getValue()) {
-                            bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.AGUINALDO, salarioBase);
-                        }
+                        bonificaciones[3] = getProvisionSeleccionada(idProveedor, salarioBase);
 
                         liquidoRecibir += bonificaciones[3];
 
@@ -1318,13 +1312,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
                             diasLaborados = 0;
                         }
                         if(String.valueOf(tipoPlanillaCbx.getValue()).equals("Solo provisión")) {
-                            //BONO14 O AGUINALDO
-                            if(bono14Chb.getValue()) {
-                                bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.BONO14, salarioBase);
-                            }
-                            if(aguinaldoChb.getValue()) {
-                                bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.AGUINALDO, salarioBase);
-                            }
+                            bonificaciones[3] = getProvisionSeleccionada(idProveedor, salarioBase);
 
                             liquidoRecibir = bonificaciones[3];
                         }
@@ -1359,22 +1347,6 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
 
                             ordinario = Utileria.round((ordinario / factorDiasMes) * diasLaborados); //DEVENGADO
 
-                            totalIngresos = Utileria.round((ordinario + extraOrdinario));
-                            totalIngresos += Utileria.round((bonificaciones[0] + bonificaciones[1] + bonificaciones[2] + bonificaciones[3] + bonificaciones[4]));
-
-                            if (!String.valueOf(tipoPlanillaCbx.getValue()).contains("Solo")) {
-                                descuentos[0] = Utileria.round((ordinario + extraOrdinario) * (porcentajeCuotaLaboralIGSS / 100));
-
-                                if (((totalIngresos - descuentos[0]) - montoBaseRetenerISR) > 0) { //ingresos - cuotalaboraligss
-                                    descuentos[2] = Utileria.round((((totalIngresos - descuentos[0]) - montoBaseRetenerISR) * 0.05)); //isr
-                                }
-
-                                descuentos[3] = anticipoPrevio(fechaInicioDt.getValue());
-
-                                totalEgresos = (descuentos[0] + descuentos[1] + descuentos[2] + descuentos[3] + descuentos[4]);
-                            }
-
-                            liquidoRecibir = (totalIngresos - totalEgresos);
                         }
 
                     }
@@ -1385,12 +1357,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
                     // En "Salario + provisión" se paga también el Bono 14/Aguinaldo,
                     // pero se mantiene todo el cálculo normal de salario.
                     if (String.valueOf(tipoPlanillaCbx.getValue()).equals("Salario + provisión")) {
-                        if (bono14Chb.getValue()) {
-                            bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.BONO14, salarioBase);
-                        }
-                        if (aguinaldoChb.getValue()) {
-                            bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.AGUINALDO, salarioBase);
-                        }
+                        bonificaciones[3] = getProvisionSeleccionada(idProveedor, salarioBase);
                     }
 
                     boolean esAnticipo = String.valueOf(tipoPlanillaCbx.getValue()).contains("Anticipo");
@@ -1479,13 +1446,14 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
                         planillaDetalleContainer.getContainerProperty(itemId, PROVISION1).setValue(0.00); // CUOTA PATRONAL IGSS
                         planillaDetalleContainer.getContainerProperty(itemId, PROVISION2).setValue(0.00); //AGINALDO
                         planillaDetalleContainer.getContainerProperty(itemId, PROVISION3).setValue(0.00); //BONO14
+                        planillaDetalleContainer.getContainerProperty(itemId, PROVISION4).setValue(0.00); // INDEMNIZACION
                     }
                     else {
                         planillaDetalleContainer.getContainerProperty(itemId, PROVISION1).setValue(Utileria.round((ordinario + extraOrdinario) * (porcentajeCuotaPatronalIGSS / 100))); //CUOTA PATRONAL IGSS
                         planillaDetalleContainer.getContainerProperty(itemId, PROVISION2).setValue(Utileria.round((ordinario) / 12)); //AGINALDO
                         planillaDetalleContainer.getContainerProperty(itemId, PROVISION3).setValue(Utileria.round((ordinario) / 12)); //BONO14
+                        planillaDetalleContainer.getContainerProperty(itemId, PROVISION4).setValue(getProvisionIndemnizacion(salarioBase, extraOrdinario)); // INDEMNIZACION
                     }
-                    planillaDetalleContainer.getContainerProperty(itemId, PROVISION4).setValue(0.00);
                     planillaDetalleContainer.getContainerProperty(itemId, PROVISION5).setValue(0.00);
 
                     double provisionadoItem = Utileria.round(
@@ -1527,7 +1495,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
         try {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "INICIO - CALCULANDO PLANILLA EMPLEADOS");
 
-            guardarPlanilla(Integer.valueOf(String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), ID_PLANILLA).getValue())));
+            //guardarPlanilla(Integer.valueOf(String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), ID_PLANILLA).getValue())));
 
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
@@ -1809,13 +1777,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
                             liquidoRecibir = 0.00;
                         }
 
-                        //Provision BONO14 O AGUINALDO
-                        if(bono14Chb.getValue()) {
-                            bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.BONO14,salarioBase);
-                        }
-                        if(aguinaldoChb.getValue()) {
-                            bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.AGUINALDO,salarioBase);
-                        }
+                        bonificaciones[3] = getProvisionSeleccionada(idProveedor, salarioBase);
 
                         liquidoRecibir+= bonificaciones[3];
 
@@ -1831,13 +1793,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
                         }
 
                         if(String.valueOf(tipoPlanillaCbx.getValue()).equals("Solo provisión")) {
-                            //BONO14 O AGUINALDO
-                            if(bono14Chb.getValue()) {
-                                bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.BONO14, salarioBase);
-                            }
-                            if(aguinaldoChb.getValue()) {
-                                bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.AGUINALDO, salarioBase);
-                            }
+                            bonificaciones[3] = getProvisionSeleccionada(idProveedor, salarioBase);
 
                             liquidoRecibir = bonificaciones[3];
                         }
@@ -1872,15 +1828,6 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
                             //                        bonificaciones[2] = LA ESPECIAL CARGADA POR EXCEL
 
                             bonificaciones[4] = Utileria.round(eventos * valorEvento); // BONO5
-
-                            if (String.valueOf(tipoPlanillaCbx.getValue()).equals("Salario + provisión")) {
-                                if (bono14Chb.getValue()) {
-                                    bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.BONO14, salarioBase);
-                                }
-                                if (aguinaldoChb.getValue()) {
-                                    bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.AGUINALDO, salarioBase);
-                                }
-                            }
 
                             totalIngresos = Utileria.round(
                                     ordinario
@@ -1920,12 +1867,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
 
                     // En "Salario + provisión" se paga provisión sin perder el salario normal.
                     if (String.valueOf(tipoPlanillaCbx.getValue()).equals("Salario + provisión")) {
-                        if (bono14Chb.getValue()) {
-                            bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.BONO14, salarioBase);
-                        }
-                        if (aguinaldoChb.getValue()) {
-                            bonificaciones[3] = getProvision(idProveedor, TIPO_Provision.AGUINALDO, salarioBase);
-                        }
+                        bonificaciones[3] = getProvisionSeleccionada(idProveedor, salarioBase);
                     }
 
                     double salarioDevengadoParaTotal = (esAnticipo || esSoloProvision) ? 0.00 : ordinario;
@@ -2014,13 +1956,14 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
                         item.getItemProperty(PROVISION1).setValue(0.00); //CUOTA PATRONAL IGSS
                         item.getItemProperty(PROVISION2).setValue(0.00); //AGUINALDO
                         item.getItemProperty(PROVISION3).setValue(0.00); //BONO14
+                        item.getItemProperty(PROVISION4).setValue(0.00); // INDEMNIZACION
                     }
                     else {
                         item.getItemProperty(PROVISION1).setValue(Utileria.round((ordinario + extraOrdinario) * (porcentajeCuotaPatronalIGSS / 100))); //CUOTA PATRONAL IGSS
                         item.getItemProperty(PROVISION2).setValue(Utileria.round((ordinario) / 12)); //AGUINALDO
                         item.getItemProperty(PROVISION3).setValue(Utileria.round((ordinario) / 12)); //BONO14
+                        item.getItemProperty(PROVISION4).setValue(getProvisionIndemnizacion(salarioBase, extraOrdinario)); // INDEMNIZACION
                     }
-                    item.getItemProperty(PROVISION4).setValue(0.00);
                     item.getItemProperty(PROVISION5).setValue(0.00);
                     item.getItemProperty(PROVISIONADO).setValue(
                             (double)item.getItemProperty(PROVISION1).getValue()
@@ -2495,7 +2438,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
                     stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
                     rsRecords1 = stQuery1.executeQuery(queryString1);
 
-                    if (rsRecords.next()) { //  encontrado
+                    if (rsRecords1.next()) { //  encontrado
 //                01234567890123
 //                22202311308000
 //                12345678901234
@@ -2513,7 +2456,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
 //2026-03-04                    codigoCC = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + "10000000" + item.getItemProperty(IDEMPLEADO).getValue().toString().substring(2);
                     //2210000000343
                     codigoCC = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId() + "100000" + item.getItemProperty(IDEMPLEADO).getValue().toString().substring(0);
-                    queryString += " (";
+                    queryString += " ,(";
                     queryString += ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
                     queryString += ",'INGRESADO'";
                     queryString += ",'" + codigoPartidaProvision + "'";
@@ -3064,6 +3007,39 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
                     queryString += ",'0'";
                     queryString += ", " + null + ")";
                 }
+                //INDEMNIZACION
+                if((double)item.getItemProperty(PROVISION4).getValue() > 0 ) {
+                    queryString += ",(";
+                    queryString += ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+                    queryString += ",'INGRESADO'";
+                    queryString += ",'" + codigoPartida + "'";
+                    queryString += ",'" + codigoCC + "'";
+                    queryString += ",'PLANILLA'";
+                    queryString += ",'" + fecha + "'";
+                    queryString += "," + item.getItemProperty(IDEMPLEADO).getValue();
+                    queryString += ",''";//nitproveedor
+                    queryString += ",'" + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
+                    queryString += ",'" + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
+                    queryString += "," + item.getItemProperty(LIQUIDO).getValue();
+                    queryString += ",'" + String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CORRELATIVO_PLANILLA).getValue()) + "'";  //serie documento
+                    queryString += ",'" + String.valueOf(item.getItemProperty(IDEMPLEADO).getValue()) + String.format("%03d", Integer.valueOf(String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CORRELATIVO_PLANILLA).getValue()))) + "'";  //numero documento
+                    queryString += ",''"; //tipodoca
+                    queryString += ",''"; //doca
+                    queryString += "," + ((SopdiUI) mainUI).cuentasContablesDefault.getIndemnizacion(); // INDEMNIZACION
+                    queryString += ",'QUETZALES'";
+                    queryString += "," + (double)item.getItemProperty(PROVISION4).getValue();
+                    queryString += ",0.00"; //HABER
+                    queryString += "," + (double)item.getItemProperty(PROVISION4).getValue();
+                    queryString += ",0.00"; //HABER Q.
+                    queryString += ",1.0";
+                    queryString += "," + item.getItemProperty(LIQUIDO).getValue();
+                    queryString += ",'PLANILLA SUELDO POR PAGAR " + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
+                    queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+                    queryString += ",current_timestamp";
+                    queryString += ",0";
+                    queryString += ",'0'";
+                    queryString += ", " + null + ")";
+                }
 
 /************************************************ HABER *************************************/
 
@@ -3302,6 +3278,39 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
                     queryString += ",'0'";
                     queryString += ", " + null + ")";
                 }
+                //PROVISION INDEMNIZACION
+                if((double)item.getItemProperty(PROVISION4).getValue() > 0) {
+                    queryString += ",(";
+                    queryString += ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+                    queryString += ",'INGRESADO'";
+                    queryString += ",'" + codigoPartida + "'";
+                    queryString += ",'" + codigoCC + "'";
+                    queryString += ",'PLANILLA'";
+                    queryString += ",'" + fecha + "'";
+                    queryString += "," + item.getItemProperty(IDEMPLEADO).getValue();
+                    queryString += ",''";//nitproveedor
+                    queryString += ",'" + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
+                    queryString += ",'" + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
+                    queryString += "," + item.getItemProperty(LIQUIDO).getValue();
+                    queryString += ",'" + String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CORRELATIVO_PLANILLA).getValue()) + "'";  //serie documento
+                    queryString += ",'" + String.valueOf(item.getItemProperty(IDEMPLEADO).getValue()) + String.format("%03d", Integer.valueOf(String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CORRELATIVO_PLANILLA).getValue()))) + "'";  //numero documento
+                    queryString += ",''"; //tipodoca
+                    queryString += ",''"; //doca
+                    queryString += "," + ((SopdiUI)mainUI).cuentasContablesDefault.getProvisionIndemnizacion(); //PROVISION INDEMNIZACION
+                    queryString += ",'QUETZALES'";
+                    queryString += ",0.00"; //DEBE
+                    queryString += "," + item.getItemProperty(PROVISION4).getValue();
+                    queryString += ",0.00"; //DEBE Q.
+                    queryString += "," + item.getItemProperty(PROVISION4).getValue();
+                    queryString += ",1.0";
+                    queryString += "," + item.getItemProperty(LIQUIDO).getValue();
+                    queryString += ",'PLANILLA SUELDO POR PAGAR " + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
+                    queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+                    queryString += ",current_timestamp";
+                    queryString += ",0";
+                    queryString += ",'0'";
+                    queryString += ", " + null + ")";
+                }
 
                 if((double)item.getItemProperty(LIQUIDO).getValue() > 0 && !((SopdiUI)mainUI).sessionInformation.getStrAccountingCompanyRegimen().equals("EXENTA")) {
 
@@ -3421,7 +3430,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
             queryString = "UPDATE planilla_encabezado";
             queryString += " SET Estatus = 'GENERADA'";
             queryString += ", TotalEmpleados = " + planillaDetalleContainer.size();
-            queryString += ", TotalPagado= " + planillaDetalleContainer.size();
+            queryString += ", TotalPagado= " + totalPagado;
             queryString += ", AutorizadoFechaYhora = current_timestamp";
             queryString += ", AutorizadoUsuario = " + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += " WHERE IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
@@ -3729,7 +3738,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
             queryString = "UPDATE planilla_encabezado";
             queryString += " SET Estatus = 'GENERADA'";
             queryString += ", TotalEmpleados = " + planillaDetalleContainer.size();
-            queryString += ", TotalPagado= " + planillaDetalleContainer.size();
+            queryString += ", TotalPagado= " + totalPagado;
             queryString += ", AutorizadoFechaYhora = current_timestamp";
             queryString += ", AutorizadoUsuario = " + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
             queryString += " WHERE IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
@@ -3882,11 +3891,12 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
             rsRecords2 = stQuery.executeQuery(queryString);
 
             if(!rsRecords2.next()) {
-                Notification.show("ERROR,  no se encontró Empleado!", Notification.Type.ERROR_MESSAGE);
+                Notification.show("ERROR,  no se encontró Empleado(" + idProveedor + ")!", Notification.Type.ERROR_MESSAGE);
+                return 0;
             }
-
             fechaEgreso = rsRecords2.getDate("FechaEgreso");
             fechaIngreso = rsRecords2.getDate("FechaIngreso");
+
 
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error al traer Fecha de Ingreso y Egereso : " + ex);
@@ -3917,6 +3927,29 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
 
 
         return diasTrabajados;
+    }
+
+    // 0.00 Provoca que no se generen el pago de la provision en la partida contable
+    private double getProvisionSeleccionada(String idProveedor, double salarioBase) {
+        if (aguinaldoChb.getValue()) {
+            return getProvision(idProveedor, TIPO_Provision.AGUINALDO, salarioBase);
+        }
+        if (bono14Chb.getValue()) {
+            return getProvision(idProveedor, TIPO_Provision.BONO14, salarioBase);
+        }
+        return 0.00;
+    }
+
+    private boolean esEmpresaExenta() {
+        return "EXENTA".equals(((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyRegimen());
+    }
+
+    // 0.00 Provoca que no se generen el pago de la provision en la partida contable
+    private double getProvisionIndemnizacion(double salarioBase, double extraOrdinario) {
+        if (!esEmpresaExenta()) {
+            return 0.00;
+        }
+        return Utileria.round((salarioBase + extraOrdinario) / 12);
     }
 
     private double getProvision(String idProveedor, TIPO_Provision tipoProvision, double salarioBase) {
