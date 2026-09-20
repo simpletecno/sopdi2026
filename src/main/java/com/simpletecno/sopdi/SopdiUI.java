@@ -250,6 +250,18 @@ public class SopdiUI extends UI implements Button.ClickListener {
                 return false;
             }
             stQuery = databaseProvider.getCurrentConnection().createStatement();
+            stQuery.executeUpdate("CREATE TABLE IF NOT EXISTS usuario_acceso_log ("
+                    + " IdLog INT NOT NULL AUTO_INCREMENT,"
+                    + " IdUsuario INT NULL,"
+                    + " Usuario VARCHAR(100) NULL,"
+                    + " FechaHora DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+                    + " IP VARCHAR(45) NULL,"
+                    + " Resultado VARCHAR(20) NOT NULL,"
+                    + " Detalle VARCHAR(512) NULL,"
+                    + " PRIMARY KEY (IdLog),"
+                    + " KEY idx_uacceso_usuario (IdUsuario),"
+                    + " KEY idx_uacceso_fecha (FechaHora)"
+                    + " )");
 
             String queryString;
 
@@ -272,14 +284,19 @@ public class SopdiUI extends UI implements Button.ClickListener {
             rsRecords = stQuery.executeQuery(queryString);
             if (rsRecords.next()) { //  encontrado
 
+                String idUsuarioLog = rsRecords.getString("IdUsuario");
+                String ipCliente    = ControlAcceso.obtenerIpCliente();
+
                 if (rsRecords.getString("Estatus").toUpperCase().compareTo("INACTIVO") == 0) {
                     Notification.show("Usuario tiene estatus INACTIVO, por favor consulte a su administrador!", Notification.Type.HUMANIZED_MESSAGE);
                     loginMsg = "Usuario INACTIVO!";
+                    registrarAcceso(idUsuarioLog, userName, ipCliente, "INACTIVO", loginMsg);
                     return false;
                 }
                 if (rsRecords.getString("EmpresaEstatus").toUpperCase().compareTo("INACTIVA") == 0) {
                     Notification.show("Su empresa tiene estatus INACTIVA, por favor consulte a su administrador!", Notification.Type.HUMANIZED_MESSAGE);
                     loginMsg = "Empresa INACTIVA!";
+                    registrarAcceso(idUsuarioLog, userName, ipCliente, "EMPRESA_INACTIVA", loginMsg);
                     return false;
                 }
 
@@ -290,15 +307,16 @@ public class SopdiUI extends UI implements Button.ClickListener {
                 if (msgHorario != null) {
                     Notification.show(msgHorario, Notification.Type.WARNING_MESSAGE);
                     loginMsg = msgHorario;
+                    registrarAcceso(idUsuarioLog, userName, ipCliente, "HORARIO", loginMsg);
                     return false;
                 }
 
                 // --- Restriccion de acceso por IP autorizada (opcional por usuario) ---
-                String ipCliente = ControlAcceso.obtenerIpCliente();
                 String msgIp = ControlAcceso.validarIp(rsRecords.getString("IpsAutorizadas"), ipCliente);
                 if (msgIp != null) {
                     Notification.show(msgIp, Notification.Type.WARNING_MESSAGE);
                     loginMsg = msgIp;
+                    registrarAcceso(idUsuarioLog, userName, ipCliente, "IP_DENEGADA", loginMsg);
                     return false;
                 }
 
@@ -362,10 +380,12 @@ public class SopdiUI extends UI implements Button.ClickListener {
                 }
 
                 actualizarTasaCambio();
+                registrarAcceso(idUsuarioLog, userName, ipCliente, "EXITO", null);
 
             } else {
                 Notification.show("Usuario incorrecto o contraseña incorrecta, intente de nuevo!", Notification.Type.WARNING_MESSAGE);
                 loginMsg = "Usuario incorrecto o contraseña incorrecta. <span>Intente de nuevo o registrese.</span>";
+                registrarAcceso(null, userName, ControlAcceso.obtenerIpCliente(), "CLAVE_INCORRECTA", null);
                 return false;
             }
         }
@@ -388,6 +408,22 @@ public class SopdiUI extends UI implements Button.ClickListener {
         }
 
         return true;
+    }
+
+    private void registrarAcceso(String idUsuario, String usuario, String ip, String resultado, String detalle) {
+        try {
+            String idVal  = (idUsuario != null && !idUsuario.isEmpty()) ? idUsuario                                           : "NULL";
+            String usrVal = (usuario   != null && !usuario.isEmpty())   ? "'" + usuario.replace("'", "''") + "'"             : "NULL";
+            String ipVal  = (ip        != null && !ip.isEmpty())        ? "'" + ip.replace("'", "''") + "'"                  : "NULL";
+            String detVal = (detalle   != null && !detalle.isEmpty())   ? "'" + detalle.replace("'", "''") + "'"             : "NULL";
+            String resVal = "'" + resultado.replace("'", "''") + "'";
+            Statement stLog = databaseProvider.getCurrentConnection().createStatement();
+            stLog.executeUpdate("INSERT INTO usuario_acceso_log (IdUsuario, Usuario, IP, Resultado, Detalle) VALUES ("
+                    + idVal + ", " + usrVal + ", " + ipVal + ", " + resVal + ", " + detVal + ")");
+            stLog.close();
+        } catch (Exception ex) {
+            Logger.getLogger(SopdiUI.class.getName()).log(Level.WARNING, "No se pudo registrar acceso en bitacora", ex);
+        }
     }
 
     public void actualizarTasaCambio() {
