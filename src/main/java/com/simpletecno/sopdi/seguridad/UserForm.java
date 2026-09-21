@@ -390,7 +390,7 @@ public class UserForm extends Window {
                 queryString =  "Select * ";
                 queryString += " From  usuario ";
                 queryString += " Where Usuario = '" + usuarioTxt.getValue() + "'";
-                queryString += " And IdEmpresa = "  + ((SopdiUI) mainUI).sessionInformation.getStrCompanyId();
+                queryString += " And IdEmpresa = "  + companyCbx.getValue();
 
 //System.out.println("\n\n"+queryString);
 
