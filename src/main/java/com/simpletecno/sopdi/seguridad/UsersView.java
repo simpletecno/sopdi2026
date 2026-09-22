@@ -148,11 +148,36 @@ public class UsersView extends VerticalLayout implements View {
 
         tabSheet = new TabSheet();
         tabSheet.setSizeFull();
-        tabSheet.addTab(activeWrapper,   "Usuarios Activos");
-        tabSheet.addTab(inactiveWrapper, "Usuarios Inactivos");
+        tabSheet.addStyleName("usuarios-tabsheet");
+        tabSheet.addTab(activeWrapper,   "Usuarios Activos")
+                .setIcon(FontAwesome.USERS);
+        tabSheet.addTab(inactiveWrapper, "Usuarios Inactivos")
+                .setIcon(FontAwesome.USER_TIMES);
 
         addComponent(tabSheet);
         setExpandRatio(tabSheet, 1);
+
+        Page.getCurrent().getStyles().add(
+            ".usuarios-tabsheet .v-tabsheet-tabitem {"
+            + "  border-radius: 8px 8px 0 0;"
+            + "  border: 1px solid #c9c9c9;"
+            + "  border-bottom: none;"
+            + "  margin-right: 3px;"
+            + "  background: #f5f5f5;"
+            + "}"
+            + ".usuarios-tabsheet .v-tabsheet-tabitem-selected {"
+            + "  border-color: #1d89bf;"
+            + "  background: #fff;"
+            + "}"
+            + ".usuarios-tabsheet .v-tabsheet-tabitem .v-caption {"
+            + "  font-size: 14px;"
+            + "  font-weight: 600;"
+            + "  padding: 7px 16px;"
+            + "  color: #444;"
+            + "}"
+            + ".usuarios-tabsheet .v-tabsheet-tabitem-selected .v-caption {"
+            + "  color: #1d89bf;"
+            + "}");
 
         fillReportTable();
     }
@@ -160,6 +185,7 @@ public class UsersView extends VerticalLayout implements View {
     private Table buildTable() {
         Table t = new Table();
         t.setSizeFull();
+        t.setPageLength(0);
         t.setImmediate(true);
         t.setSelectable(true);
         t.addContainerProperty(CODIGO_PROPERTY,   String.class,  null);
