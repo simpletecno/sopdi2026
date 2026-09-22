@@ -100,6 +100,7 @@ public class UsersView extends VerticalLayout implements View {
         newBtn.setIcon(FontAwesome.PLUS_CIRCLE);
         newBtn.setWidth(130, Sizeable.UNITS_PIXELS);
         newBtn.setDescription("Registrar nuevo usuario");
+        newBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
         newBtn.addListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -185,7 +186,7 @@ public class UsersView extends VerticalLayout implements View {
     private Table buildTable() {
         Table t = new Table();
         t.setSizeFull();
-        t.setPageLength(0);
+        t.setPageLength(15);
         t.setImmediate(true);
         t.setSelectable(true);
         t.addContainerProperty(CODIGO_PROPERTY,   String.class,  null);
@@ -390,5 +391,6 @@ public class UsersView extends VerticalLayout implements View {
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
         Page.getCurrent().setTitle("Sopdi - USUARIOS");
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(" USUARIOS DEL SISTEMA");
     }
 }
