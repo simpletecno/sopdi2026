@@ -1439,8 +1439,9 @@ public class OrdenCompraForm extends Window {
                 if(montoTxt.getDoubleValueDoNotThrow() > ((SopdiUI)mainUI).sessionInformation.getDblMontoInicialRetencionIsr()) {
                     if (proveedorCbx.getItem(proveedorCbx.getValue()).getItemProperty("Regimen").getValue().toString().equals("SUJETO A RETENCION ISR")) {
                         if (retencionIsrTxt.getDoubleValueDoNotThrow() > 0) {
-                            if (anticipoTxt.getDoubleValueDoNotThrow() > (montoTxt.getDoubleValueDoNotThrow() - retencionIsrTxt.getDoubleValueDoNotThrow())) {
-                                Notification.show("EL ANTICIPO NO PUEDE SER MAYOR AL MONTO DE LA ORDEN DE COMPRA - LA RETENCION ISR.", Notification.Type.WARNING_MESSAGE);
+                            double montoMaximoAnticipo = montoTxt.getDoubleValueDoNotThrow() - retencionIsrTxt.getDoubleValueDoNotThrow();
+                            if (anticipoTxt.getDoubleValueDoNotThrow() > montoMaximoAnticipo) {
+                                Notification.show("EL ANTICIPO NO PUEDE SER MAYOR A " + numberFormat.format(montoMaximoAnticipo) + " (MONTO DE LA ORDEN DE COMPRA - LA RETENCION ISR).", Notification.Type.WARNING_MESSAGE);
                                 anticipoTxt.focus();
                                 return;
                             }
