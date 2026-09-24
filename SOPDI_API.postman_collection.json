@@ -1,0 +1,243 @@
+{
+  "info": {
+    "_postman_id": "sopdi-api-collection",
+    "name": "SOPDI REST API",
+    "description": "Colección para probar los endpoints de la API REST de SOPDI.\n\n**Configurar antes de usar:**\n- `baseUrl`  → URL base, ej: `http://localhost:8080/sopdi/api`\n- `apiKey`   → Valor de la API Key (tabla `api_key`, columna `KeyValue`)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/sopdi/api", "type": "string" },
+    { "key": "apiKey",  "value": "REEMPLAZAR_CON_API_KEY",          "type": "string" }
+  ],
+
+  "item": [
+
+    {
+      "name": "Pago y Factura",
+      "item": [
+
+        {
+          "name": "POST pagoyfactura – caso normal (varias cuotas)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key",    "value": "{{apiKey}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/pagoyfactura", "host": ["{{baseUrl}}"], "path": ["pagoyfactura"] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"idEmpresa\": 101,\n  \"idProveedor\": 4523,\n  \"nit\": \"12345678-9\",\n  \"numeroComprobante\": \"COMP-2026-000482\",\n  \"monto\": 4500.00,\n  \"fecha\": \"2026-09-23\",\n  \"cuotas\": [\n    {\n      \"idCuota\": 8801,\n      \"numeroCuota\": 1,\n      \"concepto\": \"Cuota 1 de 3 – Plan mensual Komclick\",\n      \"monto\": 1500.00,\n      \"idNomenclatura\": \"4101-01\"\n    },\n    {\n      \"idCuota\": 8802,\n      \"numeroCuota\": 2,\n      \"concepto\": \"Cuota 2 de 3 – Plan mensual Komclick\",\n      \"monto\": 1500.00,\n      \"idNomenclatura\": \"4101-01\"\n    },\n    {\n      \"idCuota\": 8803,\n      \"numeroCuota\": 3,\n      \"concepto\": \"Cuota 3 de 3 – Plan mensual Komclick\",\n      \"monto\": 1500.00,\n      \"idNomenclatura\": \"4101-01\"\n    }\n  ]\n}"
+            },
+            "description": "Caso principal. Reemplaza `idEmpresa`, `idProveedor` e `idNomenclatura` con valores reales de la BD.\n\n**Respuesta exitosa (200):**\n```json\n{\n  \"codigo\": 1,\n  \"uuid\": \"xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx\",\n  \"serie\": \"A\",\n  \"numero\": 482,\n  \"pdfBase64\": \"JVBERi0x...\",\n  \"mensaje\": \"Factura certificada y contabilizada exitosamente\"\n}\n```\nEl campo `pdfBase64` es el PDF en Base64. Ver pestaña **Tests** para extraerlo."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const r = pm.response.json();",
+                  "",
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('codigo = 1', () => pm.expect(r.codigo).to.eql(1));",
+                  "pm.test('uuid presente', () => pm.expect(r.uuid).to.be.a('string').and.not.empty);",
+                  "",
+                  "// Guardar UUID para otros requests",
+                  "if (r.uuid) pm.collectionVariables.set('lastUUID', r.uuid);",
+                  "if (r.serie) pm.collectionVariables.set('lastSerie', r.serie);",
+                  "if (r.numero) pm.collectionVariables.set('lastNumero', String(r.numero));",
+                  "",
+                  "// Opcional: mostrar el PDF base64 en consola (primeros 80 chars)",
+                  "if (r.pdfBase64) console.log('PDF base64 (inicio):', r.pdfBase64.substring(0, 80) + '...');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+
+        {
+          "name": "POST pagoyfactura – sin cuotas (línea única)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key",    "value": "{{apiKey}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/pagoyfactura", "host": ["{{baseUrl}}"], "path": ["pagoyfactura"] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"idEmpresa\": 101,\n  \"idProveedor\": 4523,\n  \"nit\": \"12345678-9\",\n  \"numeroComprobante\": \"COMP-2026-000001\",\n  \"monto\": 1120.00,\n  \"fecha\": \"2026-09-23\"\n}"
+            },
+            "description": "Sin campo `cuotas` → se genera una sola línea de producto con el monto total."
+          },
+          "response": []
+        },
+
+        {
+          "name": "POST pagoyfactura – error 400 (falta IdEmpresa)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-API-Key",    "value": "{{apiKey}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/pagoyfactura", "host": ["{{baseUrl}}"], "path": ["pagoyfactura"] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"idProveedor\": 4523,\n  \"monto\": 1120.00,\n  \"fecha\": \"2026-09-23\"\n}"
+            },
+            "description": "Debe retornar HTTP 400 con mensaje de campo obligatorio."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        },
+
+        {
+          "name": "POST pagoyfactura – error 401 (sin API Key)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{baseUrl}}/pagoyfactura", "host": ["{{baseUrl}}"], "path": ["pagoyfactura"] },
+            "body": {
+              "mode": "raw",
+              "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"idEmpresa\": 101,\n  \"idProveedor\": 4523,\n  \"monto\": 1120.00,\n  \"fecha\": \"2026-09-23\"\n}"
+            },
+            "description": "Sin header X-API-Key → debe retornar HTTP 401."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "response": []
+        }
+
+      ]
+    },
+
+    {
+      "name": "Contabilidad Partidas",
+      "item": [
+
+        {
+          "name": "GET partidas por empresa y fecha",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-API-Key", "value": "{{apiKey}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contabilidad-partidas?idEmpresa=101&fechaDesde=2026-09-01&fechaHasta=2026-09-30&tamano=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["contabilidad-partidas"],
+              "query": [
+                { "key": "idEmpresa",  "value": "101" },
+                { "key": "fechaDesde", "value": "2026-09-01" },
+                { "key": "fechaHasta", "value": "2026-09-30" },
+                { "key": "tamano",     "value": "20" }
+              ]
+            },
+            "description": "Verificar que el POST /pagoyfactura creó las partidas correctamente. Buscar `TipoDocumento = FACTURA VENTA` y el UUID del DTE."
+          },
+          "response": []
+        },
+
+        {
+          "name": "GET partidas – filtrar por UUID del DTE",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-API-Key", "value": "{{apiKey}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contabilidad-partidas?idEmpresa=101&fechaDesde=2026-09-01&fechaHasta=2026-09-30&tamano=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["contabilidad-partidas"],
+              "query": [
+                { "key": "idEmpresa",  "value": "101" },
+                { "key": "fechaDesde", "value": "2026-09-01" },
+                { "key": "fechaHasta", "value": "2026-09-30" },
+                { "key": "tamano",     "value": "50" }
+              ]
+            },
+            "description": "Usa `{{lastUUID}}` (guardado automáticamente por el test del POST) para buscar las partidas del DTE recién certificado."
+          },
+          "response": []
+        }
+
+      ]
+    },
+
+    {
+      "name": "Proveedores / Clientes",
+      "item": [
+
+        {
+          "name": "GET proveedores (buscar clientes válidos)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-API-Key", "value": "{{apiKey}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/proveedores?esCliente=1&tamano=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["proveedores"],
+              "query": [
+                { "key": "esCliente", "value": "1" },
+                { "key": "tamano",    "value": "20" }
+              ]
+            },
+            "description": "Lista clientes disponibles. Usa el `IDProveedor` retornado como `idProveedor` en el POST /pagoyfactura."
+          },
+          "response": []
+        }
+
+      ]
+    },
+
+    {
+      "name": "OpenAPI / Swagger",
+      "item": [
+
+        {
+          "name": "GET openapi.json",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/openapi.json", "host": ["{{baseUrl}}"], "path": ["openapi.json"] },
+            "description": "Definición OpenAPI completa. No requiere API Key. También disponible en `{{baseUrl}}/openapi.yaml`."
+          },
+          "response": []
+        }
+
+      ]
+    }
+
+  ]
+}
