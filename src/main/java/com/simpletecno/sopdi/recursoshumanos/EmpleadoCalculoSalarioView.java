@@ -3887,6 +3887,7 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
             queryString = "SELECT *";
             queryString += " FROM proveedor_empresa";
             queryString += " WHERE IdProveedor = " + idProveedor;
+            queryString += " AND IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
 
             rsRecords2 = stQuery.executeQuery(queryString);
 
