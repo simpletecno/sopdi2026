@@ -22,7 +22,7 @@ import org.json.JSONArray;
 
 public class InfileClient {
     final static String URL = "https://certificador.feel.com.gt/fel/procesounificado/transaccion/v2/xml";
-    final static String PDF_URL = "https://report.feel.com.gt/ingfacereport/ingfacereport_documento?uuid=";
+    public final static String PDF_URL = "https://report.feel.com.gt/ingfacereport/ingfacereport_documento?uuid=";
     public final static int EXENTOIVA_FRASE = 4;
     public final static int ESCENARIO_FUNDACION = 10;
 

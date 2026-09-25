@@ -71,6 +71,7 @@ public class EmpleadoView extends VerticalLayout implements View {
 
     ComboBox generoCbx = new ComboBox("Género");
     ComboBox cargoCbx = new ComboBox("Cargo / plaza");
+    ComboBox departamentoCbx = new ComboBox("Departamento");
     TextField idEmpleadoTxt =  new TextField("ID empleado");
     TextField primerNombreTxt =  new TextField("Primer nombre");
     TextField segundoNombreTxt =  new TextField("Segundo nombre");
@@ -476,6 +477,26 @@ public class EmpleadoView extends VerticalLayout implements View {
         cargoCbx.setNewItemsAllowed(false);
         cargoCbx.select("");
 
+        departamentoCbx.setWidth("95%");
+        departamentoCbx.addItem("");
+        try (PreparedStatement deptPs = ((SopdiUI) UI.getCurrent()).databaseProvider
+                .getCurrentConnection().prepareStatement(
+                        "SELECT Departamento FROM empleado_departamento WHERE IdEmpresa = ? ORDER BY Departamento")) {
+            deptPs.setString(1, empresaId);
+            try (ResultSet deptRs = deptPs.executeQuery()) {
+                while (deptRs.next()) {
+                    departamentoCbx.addItem(deptRs.getString("Departamento"));
+                }
+            }
+        } catch (Exception ex1) {
+            Logger.getLogger(EmpleadoView.class.getName()).log(Level.SEVERE, "Error al listar departamentos", ex1);
+        }
+        departamentoCbx.setNullSelectionAllowed(false);
+        departamentoCbx.setInvalidAllowed(false);
+        departamentoCbx.setTextInputAllowed(false);
+        departamentoCbx.setNewItemsAllowed(false);
+        departamentoCbx.select("");
+
         direccionTxt.setWidth("100%");
         direccionTxt.setHeight("5em");
 
@@ -517,7 +538,7 @@ public class EmpleadoView extends VerticalLayout implements View {
                 primerApellidoTxt, segundoApellidoTxt, apellidoCasadaTxt, nombreCompletoTxt,
                 nacionalidadTxt, direccionTxt, telefonoTxt, telefonoEmergenciaTxt);
 
-        datosLaboralesForm.addComponents(cargoCbx, nitTxt, dpiTxt, afiliacionIgssTxt,
+        datosLaboralesForm.addComponents(cargoCbx, departamentoCbx, nitTxt, dpiTxt, afiliacionIgssTxt,
                 codigoOcupacionTxt, condicionLaboralTxt, cuentaBancariaTxt, correlativoTxt,
                 fechaIngresoDt, fechaEgresoDt, aplicaIndemnizacion, aplicaAnticipoChb,
                 obraAsignadaChb, esLiquidador, inhabilitadoChb);
@@ -610,6 +631,7 @@ public class EmpleadoView extends VerticalLayout implements View {
         idEmpleadoTxt.setReadOnly(false);
         idEmpleadoTxt.setValue("");
         cargoCbx.setValue("");
+        departamentoCbx.setValue("");
         generoCbx.setValue("Masculino");
         primerNombreTxt.setValue("");
         segundoNombreTxt.setValue("");
@@ -660,6 +682,7 @@ public class EmpleadoView extends VerticalLayout implements View {
                 idEmpleadoTxt.setValue(idEmpleadoOriginal);
                 idEmpleadoTxt.setReadOnly(true);
                 cargoCbx.setValue(valueOrEmpty(records.getString("Cargo")));
+                try { departamentoCbx.setValue(valueOrEmpty(records.getString("Departamento"))); } catch (Exception ignored) {}
                 generoCbx.setValue(valueOrDefault(records.getString("Genero"), "Masculino"));
                 primerNombreTxt.setValue(valueOrEmpty(records.getString("PrimerNombre")));
                 segundoNombreTxt.setValue(valueOrEmpty(records.getString("SegundoNombre")));
@@ -727,18 +750,45 @@ public class EmpleadoView extends VerticalLayout implements View {
 
     }
 
+    private void asegurarColumnasEmpleado(Connection conn) {
+        String[][] columnas = {
+                {"Cargo",        "VARCHAR(150) NULL DEFAULT NULL"},
+                {"Departamento", "VARCHAR(150) NULL DEFAULT NULL"},
+        };
+        for (String[] col : columnas) {
+            try {
+                java.sql.Statement st = conn.createStatement();
+                java.sql.ResultSet rs = st.executeQuery(
+                        "SELECT COUNT(*) FROM information_schema.COLUMNS"
+                        + " WHERE TABLE_SCHEMA = DATABASE()"
+                        + " AND TABLE_NAME = 'proveedor_empresa'"
+                        + " AND COLUMN_NAME = '" + col[0] + "'");
+                boolean existe = rs.next() && rs.getInt(1) > 0;
+                rs.close();
+                if (!existe) {
+                    st.executeUpdate("ALTER TABLE proveedor_empresa ADD COLUMN " + col[0] + " " + col[1]);
+                }
+            } catch (Exception ex) {
+                Logger.getLogger(EmpleadoView.class.getName()).log(Level.WARNING,
+                        "No se pudo asegurar columna proveedor_empresa." + col[0], ex);
+            }
+        }
+    }
+
     private void guardarDatosSeguro() {
         if (!validarFormulario()) {
             return;
         }
 
         Connection connection = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection();
+        asegurarColumnasEmpleado(connection);
         boolean autoCommitOriginal = true;
         try {
             autoCommitOriginal = connection.getAutoCommit();
             connection.setAutoCommit(false);
 
             if (esNuevo) {
+                insertarProveedor(connection);
                 insertarEmpleado(connection);
             } else {
                 actualizarEmpleado(connection);
@@ -825,13 +875,53 @@ public class EmpleadoView extends VerticalLayout implements View {
         return false;
     }
 
+    private void insertarProveedor(Connection connection) throws SQLException {
+        String sql = "INSERT INTO proveedor (Codigo, CodigoAnterior, Nit, TipoPersona, Regimen, "
+                + "Genero, Nombre, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, ApellidoCasada, "
+                + "Nacionalidad, Dpi, Direccion, Telefono, TelefonoEmergencia, Email, "
+                + "EsProveedor, EsCliente, EsBanco, EsAgenteRetenedorISR, EsAgenteRetenedorIVA, "
+                + "EsInstitucionFiscal, EsInstitucionSeguroSocial, EsSujetoRetencionDefinitivaISR, Inhabilitado) "
+                + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            int index = 1;
+            statement.setString(index++, idEmpleadoTxt.getValue().trim());       // Codigo
+            statement.setString(index++, "");                                     // CodigoAnterior
+            statement.setString(index++, nitTxt.getValue().trim());               // Nit
+            statement.setString(index++, "INDIVIDUAL");                           // TipoPersona
+            statement.setString(index++, "Opcional Simplificado");               // Regimen
+            statement.setString(index++, String.valueOf(generoCbx.getValue()));   // Genero
+            statement.setString(index++, nombreCompletoTxt.getValue().trim());    // Nombre
+            statement.setString(index++, primerNombreTxt.getValue().trim());      // PrimerNombre
+            statement.setString(index++, segundoNombreTxt.getValue().trim());     // SegundoNombre
+            statement.setString(index++, primerApellidoTxt.getValue().trim());    // PrimerApellido
+            statement.setString(index++, segundoApellidoTxt.getValue().trim());   // SegundoApellido
+            statement.setString(index++, apellidoCasadaTxt.getValue().trim());    // ApellidoCasada
+            statement.setString(index++, nacionalidadTxt.getValue().trim());      // Nacionalidad
+            statement.setString(index++, dpiTxt.getValue().trim());               // Dpi
+            statement.setString(index++, direccionTxt.getValue().trim());         // Direccion
+            statement.setString(index++, telefonoTxt.getValue().trim());          // Telefono
+            statement.setString(index++, telefonoEmergenciaTxt.getValue().trim()); // TelefonoEmergencia
+            statement.setString(index++, "");                                     // Email
+            statement.setBoolean(index++, false);  // EsProveedor
+            statement.setBoolean(index++, false);  // EsCliente
+            statement.setBoolean(index++, false);  // EsBanco
+            statement.setBoolean(index++, false);  // EsAgenteRetenedorISR
+            statement.setBoolean(index++, false);  // EsAgenteRetenedorIVA
+            statement.setBoolean(index++, false);  // EsInstitucionFiscal
+            statement.setBoolean(index++, false);  // EsInstitucionSeguroSocial
+            statement.setBoolean(index++, false);  // EsSujetoRetencionDefinitivaISR
+            statement.setBoolean(index,   false);  // Inhabilitado
+            statement.executeUpdate();
+        }
+    }
+
     private void insertarEmpleado(Connection connection) throws SQLException {
         String sql = "INSERT INTO proveedor_empresa (IDProveedor, IdEmpresa, Nombre, NIT, DPI, Regimen, "
-                + "EsPlanilla, Cargo, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, ApellidoCasada, "
+                + "EsPlanilla, Cargo, Departamento, PrimerNombre, SegundoNombre, PrimerApellido, SegundoApellido, ApellidoCasada, "
                 + "Banco, BancoCuenta, Nacionalidad, Direccion, Telefono, TelefonoEmergencia, Genero, TituloAcademico, "
                 + "AfiliacionIgss, FechaIngreso, FechaEgreso, CodigoOcupacion, CondicionLaboral, AplicaAnticipoSalario, "
                 + "AsignadoObra, IdCorrFinal, AplicaIndemnizacion, DiasVacacionesDerecho, DiasVacacionesGozados, "
-                + "EsLiquidador, Inhabilitado) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                + "EsLiquidador, Inhabilitado) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             int index = 1;
             statement.setString(index++, idEmpleadoTxt.getValue().trim());
@@ -842,6 +932,7 @@ public class EmpleadoView extends VerticalLayout implements View {
             statement.setString(index++, "NORMAL");
             statement.setBoolean(index++, true);
             statement.setString(index++, String.valueOf(cargoCbx.getValue()));
+            statement.setString(index++, String.valueOf(departamentoCbx.getValue()));
             statement.setString(index++, primerNombreTxt.getValue().trim());
             statement.setString(index++, segundoNombreTxt.getValue().trim());
             statement.setString(index++, primerApellidoTxt.getValue().trim());
@@ -880,7 +971,7 @@ public class EmpleadoView extends VerticalLayout implements View {
                 + "SegundoNombre=?, PrimerApellido=?, SegundoApellido=?, ApellidoCasada=?, BancoCuenta=?, "
                 + "Nacionalidad=?, Direccion=?, Telefono=?, TelefonoEmergencia=?, Genero=?, AfiliacionIgss=?, "
                 + "FechaIngreso=?, FechaEgreso=?, CodigoOcupacion=?, CondicionLaboral=?, AplicaAnticipoSalario=?, "
-                + "AsignadoObra=?, EsLiquidador=?, IdCorrFinal=?, Inhabilitado=?, Cargo=?, AplicaIndemnizacion=?, "
+                + "AsignadoObra=?, EsLiquidador=?, IdCorrFinal=?, Inhabilitado=?, Cargo=?, Departamento=?, AplicaIndemnizacion=?, "
                 + "DiasVacacionesDerecho=?, DiasVacacionesGozados=? WHERE IdProveedor=? AND IdEmpresa=?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             int index = 1;
@@ -910,6 +1001,7 @@ public class EmpleadoView extends VerticalLayout implements View {
             statement.setString(index++, valueOrDefault(correlativoTxt.getValue(), "0").trim());
             statement.setBoolean(index++, inhabilitadoChb.getValue());
             statement.setString(index++, String.valueOf(cargoCbx.getValue()));
+            statement.setString(index++, String.valueOf(departamentoCbx.getValue()));
             statement.setBoolean(index++, aplicaIndemnizacion.getValue());
             statement.setDouble(index++, Double.parseDouble(vacacionesDiasDerechoTxt.getValue()));
             statement.setDouble(index++, Double.parseDouble(vacacionesDiasGozadosTxt.getValue()));

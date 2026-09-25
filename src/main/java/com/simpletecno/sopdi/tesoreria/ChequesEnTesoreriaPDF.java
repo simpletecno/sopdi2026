@@ -24,6 +24,7 @@ import com.simpletecno.sopdi.HeaderFooterPageEvent;
 import com.simpletecno.sopdi.SopdiUI;
 import com.simpletecno.sopdi.utilerias.Utileria;
 import com.vaadin.data.util.IndexedContainer;
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.VaadinService;
 import com.vaadin.ui.BrowserFrame;
@@ -73,6 +74,9 @@ public class ChequesEnTesoreriaPDF extends Window {
         this.fechaReporte = fechaReporte;
         this.registradosContainer = registradosContainer;
         this.pendientesContainer = pendientesContainer;
+
+        this.setClosable(true);
+        this.addCloseShortcut(ShortcutAction.KeyCode.ESCAPE, null);
 
         try {
             BrowserFrame e = new BrowserFrame();

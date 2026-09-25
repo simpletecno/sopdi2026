@@ -17,6 +17,7 @@ import com.itextpdf.text.pdf.draw.LineSeparator;
 import com.simpletecno.sopdi.HeaderFooterPageEvent;
 import com.simpletecno.sopdi.SopdiUI;
 import com.simpletecno.sopdi.utilerias.Utileria;
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.VaadinService;
 import com.vaadin.ui.BrowserFrame;
@@ -67,6 +68,9 @@ public class ConciliacionPDF extends Window {
         this.empresaNit = empresaNit;
         this.fecha = fecha;
         this.bancoNombre = bancoNombre;
+
+        this.setClosable(true);
+        this.addCloseShortcut(ShortcutAction.KeyCode.ESCAPE, null);
 
         try {
 

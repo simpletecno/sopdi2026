@@ -292,6 +292,8 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
                         generarPlanillaBtn.setEnabled(false);
                         excluirEmpleadosBtn.setEnabled(false);
                         generarPlanillaIgssBtn.setEnabled(true);
+                    } else {
+                        cargarSiguienteChequeChequera();
                     }
                     fillPlanillaDetalleGrid();
                 }
@@ -2654,6 +2656,8 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
             ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().commit();
             ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().setAutoCommit(true);
 
+            actualizarUltimoChequera(correlativoCheque - 1);
+
             planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), ESTATUS_PLANILLA).setValue("GENERADA");
 
             Notification notif = new Notification("PLANILLA GENERADA EXITOSAMENTE, POR FAVOR REVISE CHEQUES A PAGAR. " +
@@ -3438,6 +3442,8 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
 
             stQuery.executeUpdate(queryString);
 
+            actualizarUltimoChequera(correlativoCheque - 1);
+
             ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().commit();
             ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().setAutoCommit(true);
 
@@ -3745,6 +3751,8 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
             queryString += " AND Id = " + planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), ID_PLANILLA).getValue();
 
             stQuery.executeUpdate(queryString);
+
+            actualizarUltimoChequera(correlativoCheque - 1);
 
             ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().commit();
             ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().setAutoCommit(true);
@@ -4055,6 +4063,42 @@ public class EmpleadoCalculoSalarioView extends VerticalLayout implements View {
         private String codigoOcupacion = "";
         private String condicionLaboral = "";
         private String tipoSalario = "";
+    }
+
+    private void actualizarUltimoChequera(int ultimoUtilizado) {
+        try {
+            String q  = " UPDATE contabilidad_cuentas_bancos_chequera ch";
+            q        += " INNER JOIN contabilidad_cuentas_bancos ccb ON ccb.IdCuentaBanco = ch.IdCuentaBanco";
+            q        += " SET ch.UltimoUtilizado = " + ultimoUtilizado;
+            q        += " WHERE ccb.IdEmpresa = " + empresa;
+            q        += " AND ccb.EsPlanilla = 1";
+            Statement st = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+            st.executeUpdate(q);
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "No se pudo actualizar UltimoUtilizado en chequera: " + ex.getMessage());
+        }
+    }
+
+    private void cargarSiguienteChequeChequera() {
+        try {
+            String q  = " SELECT ch.UltimoUtilizado, ch.Al";
+            q        += " FROM contabilidad_cuentas_bancos_chequera ch";
+            q        += " INNER JOIN contabilidad_cuentas_bancos ccb ON ccb.IdCuentaBanco = ch.IdCuentaBanco";
+            q        += " WHERE ccb.IdEmpresa = " + empresa;
+            q        += " AND ccb.EsPlanilla = 1";
+            q        += " AND ch.UltimoUtilizado < ch.Al";
+            q        += " ORDER BY ch.IdChequera ASC LIMIT 1";
+
+            Statement st = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+            ResultSet rs = st.executeQuery(q);
+
+            if (rs.next()) {
+                int siguiente = rs.getInt("UltimoUtilizado") + 1;
+                correlativoInicialChequeTxt.setValue(String.valueOf(siguiente));
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "No se pudo obtener siguiente cheque de chequera: " + ex.getMessage());
+        }
     }
 
     @Override

@@ -182,7 +182,7 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
         });
 
         // Layout central: grid maestro | botones | grid mis
-        VerticalLayout middleButtons = new VerticalLayout(chkInhabilitados,btnAgregar, btnQuitar);
+        VerticalLayout middleButtons = new VerticalLayout(btnAgregar, btnQuitar);
         middleButtons.setSpacing(true);
         middleButtons.setMargin(true);
         middleButtons.setWidthUndefined();
@@ -197,8 +197,8 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
         gridsRow.setComponentAlignment(middleButtons, Alignment.MIDDLE_CENTER);
         gridsRow.addComponent(gridMis);
 
-        gridsRow.setExpandRatio(gridMaestro, 1.5f);
-        gridsRow.setExpandRatio(gridMis, 1.5f);
+        gridsRow.setExpandRatio(gridMaestro, 2.0f);
+        gridsRow.setExpandRatio(gridMis, 2.0f);
 
         // Botones bottom del segundo grid
         btnNuevo = new Button("Nuevo");
@@ -210,10 +210,13 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
         btnNuevo.addClickListener(e -> onNuevo());
         btnEditar.addClickListener(e -> onEditar());
 
-        HorizontalLayout bottomButtons = new HorizontalLayout(btnNuevo, btnEditar);
-        bottomButtons.setSpacing(false);
+        btnNuevo.setVisible(false);
+
+        HorizontalLayout bottomButtons = new HorizontalLayout(btnNuevo,chkInhabilitados, btnEditar);
+        bottomButtons.setSpacing(true);
         bottomButtons.setWidth("15%");
         bottomButtons.setComponentAlignment(btnNuevo, Alignment.MIDDLE_LEFT);
+        bottomButtons.setComponentAlignment(chkInhabilitados, Alignment.MIDDLE_CENTER);
         bottomButtons.setComponentAlignment(btnEditar, Alignment.MIDDLE_LEFT);
 //        bottomButtons.setComponentAlignment(btnQuitar, Alignment.MIDDLE_LEFT);
 
@@ -225,7 +228,7 @@ public class ProveedorEmpresaView extends VerticalLayout implements View {
         setComponentAlignment(bottomButtons, Alignment.BOTTOM_RIGHT);
 //        setExpandRatio(bottomButtons, 1);
 
-        setExpandRatio(gridsRow, 1.5f);
+        setExpandRatio(gridsRow, 2.0f);
     }
 
     private void loadData() {

@@ -19,6 +19,7 @@ import com.simpletecno.sopdi.utilerias.ConvertirNumerosALetras;
 import com.simpletecno.sopdi.configuracion.EnvironmentVars;
 import com.simpletecno.sopdi.SopdiUI;
 import com.simpletecno.sopdi.utilerias.Utileria;
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.VaadinService;
 import com.vaadin.ui.BrowserFrame;
@@ -89,6 +90,9 @@ public class PagoChequesPDF extends Window {
         this.razon = razon;
         this.montoCheque = montoCheque;
 
+        this.setClosable(true);
+        this.addCloseShortcut(ShortcutAction.KeyCode.ESCAPE, null);
+
         try {
             BrowserFrame e = new BrowserFrame();
             e.setSizeFull();
@@ -96,7 +100,7 @@ public class PagoChequesPDF extends Window {
             setHeight("700");
             center();
             
-            System.out.println("valor de cheque " + cheque +  " cheque " + this.cheque);
+//            System.out.println("valor de cheque " + cheque +  " cheque " + this.cheque);
 
             fileName = "CH_" + cheque + "_" + empresaNombre.replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "").replaceAll("ñ", "n").replaceAll("Ñ", "N").replaceAll("ó", "o").replaceAll("é","") + "_" + codigoPartida + ".pdf";
 

@@ -6,6 +6,7 @@ import com.simpletecno.sopdi.HeaderFooterPageEvent;
 import com.simpletecno.sopdi.SopdiUI;
 import com.simpletecno.sopdi.utilerias.Utileria;
 import com.vaadin.data.util.IndexedContainer;
+import com.vaadin.event.ShortcutAction;
 import com.vaadin.server.StreamResource;
 import com.vaadin.server.VaadinService;
 import com.vaadin.ui.BrowserFrame;
@@ -21,21 +22,38 @@ import java.util.logging.Logger;
 /**
  * Reporte PDF – Pagos Corrientes Autorizados.
  *
- * Fuente de datos : porPagarContainer (AutorizarPagosCorrientesView)
- * Filtro          : A_LIQUIDAR_ANTICIPOS + A_LIQUIDAR_MONTO_CHEQUE > 0
- * Columnas        : No. | IdProveedor | Proveedor | Fecha | No.Doc | A Liquidar | Cheque
+ * Fuente de datos : porPagarContainer (Tab 1) + anticiposOCContainer (Tab 2)
+ * Filtro Tab 1    : A_LIQUIDAR_ANTICIPOS + A_LIQUIDAR_MONTO_CHEQUE > 0
+ * Filtro Tab 2    : OC_CHEQUE_OC_PROPERTY no vacío
  */
 public class AutorizarPagosCorrientesPDF extends Window {
 
     String fileName;
+    private Pdf pdfContent;
 
+    /** Constructor de compatibilidad para vistas sin anticipos OC ni liquidaciones. */
     public AutorizarPagosCorrientesPDF(IndexedContainer porPagarContainer) {
+        this(porPagarContainer, new IndexedContainer(), new IndexedContainer());
+    }
+
+    /** Constructor de compatibilidad para vistas sin liquidaciones. */
+    public AutorizarPagosCorrientesPDF(IndexedContainer porPagarContainer,
+                                       IndexedContainer anticiposOCContainer) {
+        this(porPagarContainer, anticiposOCContainer, new IndexedContainer());
+    }
+
+    public AutorizarPagosCorrientesPDF(IndexedContainer porPagarContainer,
+                                       IndexedContainer anticiposOCContainer,
+                                       IndexedContainer liquidacionContainer) {
         try {
             BrowserFrame browser = new BrowserFrame();
             browser.setSizeFull();
             setWidth("95%");
             setHeight("90%");
             center();
+
+            this.setClosable(true);
+            this.addCloseShortcut(ShortcutAction.KeyCode.ESCAPE, null);
 
             String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
@@ -44,7 +62,8 @@ public class AutorizarPagosCorrientesPDF extends Window {
                     + "_" + new Utileria().getFechaHoraSinFormato()
                     + ".pdf";
 
-            StreamResource pdfResource = new StreamResource(new Pdf(fileName, porPagarContainer), fileName);
+            this.pdfContent = new Pdf(fileName, porPagarContainer, anticiposOCContainer, liquidacionContainer);
+            StreamResource pdfResource = new StreamResource(this.pdfContent, fileName);
             pdfResource.setMIMEType("application/pdf");
 
             browser.setSource(pdfResource);
@@ -56,6 +75,11 @@ public class AutorizarPagosCorrientesPDF extends Window {
             Notification.show("Error al generar el reporte PDF.", Notification.Type.ERROR_MESSAGE);
             Logger.getLogger(AutorizarPagosCorrientesPDF.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    /** Retorna los bytes del PDF generado (para guardarlo en BD o enviarlo). */
+    public byte[] getPdfBytes() {
+        return pdfContent != null ? pdfContent.getBytes() : new byte[0];
     }
 
     // =========================================================================
@@ -96,11 +120,17 @@ public class AutorizarPagosCorrientesPDF extends Window {
 
         private final ByteArrayOutputStream os = new ByteArrayOutputStream();
         private final IndexedContainer container;
+        private final IndexedContainer containerOC;
+        private final IndexedContainer containerLiq;
 
         // ── Constructor ──────────────────────────────────────────────────────
 
-        public Pdf(String pFileName, IndexedContainer porPagarContainer) {
-            this.container = porPagarContainer;
+        public Pdf(String pFileName, IndexedContainer porPagarContainer,
+                   IndexedContainer anticiposOCContainer,
+                   IndexedContainer liquidacionContainer) {
+            this.container    = porPagarContainer;
+            this.containerOC  = anticiposOCContainer;
+            this.containerLiq = liquidacionContainer;
             try {
                 new File(RECEIPTFILE).mkdirs();
                 String fullPath = RECEIPTFILE + pFileName;
@@ -144,6 +174,10 @@ public class AutorizarPagosCorrientesPDF extends Window {
             return new ByteArrayInputStream(os.toByteArray());
         }
 
+        public byte[] getBytes() {
+            return os.toByteArray();
+        }
+
         // ── Estructura del documento ─────────────────────────────────────────
 
         private void addMetaData(Document document) {
@@ -153,22 +187,59 @@ public class AutorizarPagosCorrientesPDF extends Window {
         }
 
         private void addContent(Document document) throws DocumentException {
-            // Espacio tras el header de página
             document.add(new Paragraph(" "));
             escribirTabla(document);
             document.add(new Paragraph(" "));
+
+            // Sección de anticipos OC (sólo si hay registros con cheque asignado)
+            boolean hayAnticipOC = false;
+            for (Object id : containerOC.getItemIds()) {
+                if (!nvl(containerOC.getContainerProperty(id,
+                        AutorizarPagosCorrientesView.OC_CHEQUE_OC_PROPERTY).getValue()).isEmpty()) {
+                    hayAnticipOC = true;
+                    break;
+                }
+            }
+            if (hayAnticipOC) {
+                Paragraph titulo = new Paragraph("SOLICITUDES DE ANTICIPOS – ÓRDENES DE COMPRA",
+                        new Font(Font.FontFamily.HELVETICA, 10f, Font.BOLD, colorEncabezado));
+                titulo.setSpacingBefore(12f);
+                document.add(titulo);
+                document.add(new Paragraph(" "));
+                escribirTablaOC(document);
+                document.add(new Paragraph(" "));
+            }
+
+            // Sección liquidaciones (Tab 3)
+            boolean hayLiquidaciones = false;
+            for (Object id : containerLiq.getItemIds()) {
+                if (!nvl(containerLiq.getContainerProperty(id,
+                        AutorizarPagosCorrientesView.LIQ_CHEQUE_PROPERTY).getValue()).isEmpty()) {
+                    hayLiquidaciones = true;
+                    break;
+                }
+            }
+            if (hayLiquidaciones) {
+                Paragraph tituloLiq = new Paragraph("PAGO DE LIQUIDACIONES",
+                        new Font(Font.FontFamily.HELVETICA, 10f, Font.BOLD, colorEncabezado));
+                tituloLiq.setSpacingBefore(12f);
+                document.add(tituloLiq);
+                document.add(new Paragraph(" "));
+                escribirTablaLiquidaciones(document);
+                document.add(new Paragraph(" "));
+            }
         }
 
         // ── Tabla principal ──────────────────────────────────────────────────
 
         private void escribirTabla(Document document) throws DocumentException {
 
-            // 7 columnas: No. | ID Prov | Proveedor | Fecha | No.Doc | A Liquidar | Cheque
-            int COLS = 8;
+            // Columnas: No. | Proveedor | Fecha | No.Doc | A Liquidar | Anticipos | Cheque | #Cheque | Cód. Partida
+            int COLS = 9;
             PdfPTable table = new PdfPTable(COLS);
-            float[] colWidths = {0.40f, 3.60f, 1.20f, 1.90f, 1.20f, 1.20f, 1.20f,1.20f};
+            float[] colWidths = {0.35f, 2.80f, 1.00f, 1.70f, 1.10f, 1.10f, 1.10f, 1.00f, 2.20f};
             table.setWidths(colWidths);
-            table.setWidthPercentage(97);
+            table.setWidthPercentage(100);
             table.setSplitRows(true);
             table.setHeaderRows(1);
             table.setSpacingBefore(4f);
@@ -182,6 +253,7 @@ public class AutorizarPagosCorrientesPDF extends Window {
             agregarEncabezado(table, "ANTICIPOS",     Element.ALIGN_CENTER);
             agregarEncabezado(table, "CHEQUE",        Element.ALIGN_CENTER);
             agregarEncabezado(table, "#CHEQUE",       Element.ALIGN_CENTER);
+            agregarEncabezado(table, "CÓD. PARTIDA",  Element.ALIGN_LEFT);
 
             // ── Filas de datos (filtradas) ────────────────────────────────────
             int correlativo  = 1;
@@ -205,12 +277,12 @@ public class AutorizarPagosCorrientesPDF extends Window {
                 String anticipos   = nvl(container.getContainerProperty(itemId, AutorizarPagosCorrientesView.A_LIQUIDAR_ANTICIPOS_PROPERTY).getValue());
                 String cheque      = nvl(container.getContainerProperty(itemId, AutorizarPagosCorrientesView.A_LIQUIDAR_MONTO_CHEQUE_PROPERTY).getValue());
                 String noCheque    = nvl(container.getContainerProperty(itemId, AutorizarPagosCorrientesView.CHEQUE_PROPERTY).getValue());
+                String partida     = nvl(container.getContainerProperty(itemId, AutorizarPagosCorrientesView.CODIGO_PARTIDA_PAGO_PROPERTY).getValue());
 
                 boolean filaImpar = (filaIndex % 2 == 0);
                 BaseColor fondoFila = filaImpar ? colorFilaImpar : BaseColor.WHITE;
 
                 agregarDato(table, String.valueOf(correlativo++), Element.ALIGN_CENTER, fondoFila, fDatos);
-//                agregarDato(table, idProveedor,  Element.ALIGN_LEFT,   fondoFila, fDatos);
                 agregarDato(table, proveedor,    Element.ALIGN_LEFT,   fondoFila, fDatos);
                 agregarDato(table, fecha,        Element.ALIGN_CENTER, fondoFila, fDatos);
                 agregarDato(table, numeroDoc,    Element.ALIGN_LEFT,   fondoFila, fDatos);
@@ -218,15 +290,137 @@ public class AutorizarPagosCorrientesPDF extends Window {
                 agregarDato(table, anticipos,    Element.ALIGN_RIGHT,  fondoFila, fMonto);
                 agregarDato(table, cheque,       Element.ALIGN_RIGHT,  fondoFila, fMonto);
                 agregarDato(table, noCheque,     Element.ALIGN_CENTER, fondoFila, fDatosBold);
+                agregarDato(table, partida,      Element.ALIGN_LEFT,   fondoFila, fDatos);
 
                 totalLiquidar += (anticipo + montoCheque);
                 filaIndex++;
             }
 
             // ── Fila de total ─────────────────────────────────────────────────
-            agregarCeldaTotal(table, "TOTAL", Element.ALIGN_RIGHT, 5);
+            agregarCeldaTotal(table, "TOTAL", Element.ALIGN_RIGHT, 6);
             agregarCeldaTotal(table, df.format(totalLiquidar), Element.ALIGN_RIGHT, 1);
-            agregarCeldaTotal(table, "",      Element.ALIGN_LEFT,  1);
+            agregarCeldaTotal(table, "",      Element.ALIGN_LEFT,  2);
+
+            document.add(table);
+        }
+
+        // ── Tabla de anticipos OC ────────────────────────────────────────────
+
+        private void escribirTablaOC(Document document) throws DocumentException {
+
+            // Columnas: No. | NOC | Proveedor | Fecha | Moneda | Anticipo | #Cheque | C.Costos | Cód. Partida
+            PdfPTable table = new PdfPTable(9);
+            float[] colWidths = {0.35f, 1.20f, 2.80f, 1.00f, 1.00f, 1.30f, 1.00f, 1.20f, 2.20f};
+            table.setWidths(colWidths);
+            table.setWidthPercentage(100);
+            table.setSplitRows(true);
+            table.setHeaderRows(1);
+            table.setSpacingBefore(4f);
+
+            agregarEncabezado(table, "No.",          Element.ALIGN_CENTER);
+            agregarEncabezado(table, "NOC",          Element.ALIGN_LEFT);
+            agregarEncabezado(table, "PROVEEDOR",    Element.ALIGN_LEFT);
+            agregarEncabezado(table, "FECHA",        Element.ALIGN_CENTER);
+            agregarEncabezado(table, "MONEDA",       Element.ALIGN_CENTER);
+            agregarEncabezado(table, "ANTICIPO",     Element.ALIGN_RIGHT);
+            agregarEncabezado(table, "#CHEQUE",      Element.ALIGN_CENTER);
+            agregarEncabezado(table, "C.COSTOS",     Element.ALIGN_CENTER);
+            agregarEncabezado(table, "CÓD. PARTIDA", Element.ALIGN_LEFT);
+
+            int correlativo = 1;
+            int filaIndex   = 0;
+            double totalAnticipo = 0.00;
+
+            for (Object itemId : containerOC.getItemIds()) {
+                String noCheque = nvl(containerOC.getContainerProperty(itemId,
+                        AutorizarPagosCorrientesView.OC_CHEQUE_OC_PROPERTY).getValue());
+                if (noCheque.isEmpty()) continue;
+
+                String noc        = nvl(containerOC.getContainerProperty(itemId, AutorizarPagosCorrientesView.OC_NOC_PROPERTY).getValue());
+                String proveedor  = nvl(containerOC.getContainerProperty(itemId, AutorizarPagosCorrientesView.OC_PROVEEDOR_OC_PROPERTY).getValue());
+                String fecha      = nvl(containerOC.getContainerProperty(itemId, AutorizarPagosCorrientesView.OC_FECHA_OC_PROPERTY).getValue());
+                String moneda     = nvl(containerOC.getContainerProperty(itemId, AutorizarPagosCorrientesView.OC_MONEDA_OC_PROPERTY).getValue());
+                String anticipo   = nvl(containerOC.getContainerProperty(itemId, AutorizarPagosCorrientesView.OC_ANTICIPO_OC_PROPERTY).getValue());
+                double montoNum   = parseDouble(containerOC.getContainerProperty(itemId, AutorizarPagosCorrientesView.OC_ANTICIPO_SF_OC_PROPERTY).getValue());
+                String ccostos  = nvl(containerOC.getContainerProperty(itemId, AutorizarPagosCorrientesView.OC_CENTROS_COSTO_PROPERTY).getValue());
+                String partida  = nvl(containerOC.getContainerProperty(itemId, AutorizarPagosCorrientesView.OC_CODIGO_PARTIDA_PAGO_PROPERTY).getValue());
+
+                boolean filaImpar = (filaIndex % 2 == 0);
+                BaseColor fondoFila = filaImpar ? colorFilaImpar : BaseColor.WHITE;
+
+                agregarDato(table, String.valueOf(correlativo++), Element.ALIGN_CENTER, fondoFila, fDatos);
+                agregarDato(table, noc,      Element.ALIGN_LEFT,   fondoFila, fDatos);
+                agregarDato(table, proveedor, Element.ALIGN_LEFT,  fondoFila, fDatos);
+                agregarDato(table, fecha,    Element.ALIGN_CENTER, fondoFila, fDatos);
+                agregarDato(table, moneda,   Element.ALIGN_CENTER, fondoFila, fDatos);
+                agregarDato(table, anticipo, Element.ALIGN_RIGHT,  fondoFila, fMonto);
+                agregarDato(table, noCheque, Element.ALIGN_CENTER, fondoFila, fDatosBold);
+                agregarDato(table, ccostos,  Element.ALIGN_CENTER, fondoFila, fDatos);
+                agregarDato(table, partida,  Element.ALIGN_LEFT,   fondoFila, fDatos);
+
+                totalAnticipo += montoNum;
+                filaIndex++;
+            }
+
+            agregarCeldaTotal(table, "TOTAL",                     Element.ALIGN_RIGHT, 5);
+            agregarCeldaTotal(table, df.format(totalAnticipo),    Element.ALIGN_RIGHT, 1);
+            agregarCeldaTotal(table, "",                          Element.ALIGN_LEFT,  3);
+
+            document.add(table);
+        }
+
+        // ── Tabla de liquidaciones ───────────────────────────────────────────
+
+        private void escribirTablaLiquidaciones(Document document) throws DocumentException {
+
+            // Columnas: No. | Liquidación | Liquidador | Monto | # Cheque | Cód. Partida
+            PdfPTable table = new PdfPTable(6);
+            float[] colWidths = {0.35f, 1.20f, 3.50f, 1.50f, 1.00f, 2.20f};
+            table.setWidths(colWidths);
+            table.setWidthPercentage(100);
+            table.setSplitRows(true);
+            table.setHeaderRows(1);
+            table.setSpacingBefore(4f);
+
+            agregarEncabezado(table, "No.",          Element.ALIGN_CENTER);
+            agregarEncabezado(table, "LIQUIDACIÓN",  Element.ALIGN_CENTER);
+            agregarEncabezado(table, "LIQUIDADOR",   Element.ALIGN_LEFT);
+            agregarEncabezado(table, "MONTO",        Element.ALIGN_RIGHT);
+            agregarEncabezado(table, "#CHEQUE",      Element.ALIGN_CENTER);
+            agregarEncabezado(table, "CÓD. PARTIDA", Element.ALIGN_LEFT);
+
+            int correlativo = 1;
+            int filaIndex   = 0;
+            double totalMonto = 0.00;
+
+            for (Object itemId : containerLiq.getItemIds()) {
+                String noCheque = nvl(containerLiq.getContainerProperty(itemId,
+                        AutorizarPagosCorrientesView.LIQ_CHEQUE_PROPERTY).getValue());
+                if (noCheque.isEmpty()) continue;
+
+                String liquidacion = nvl(containerLiq.getContainerProperty(itemId, AutorizarPagosCorrientesView.LIQ_LIQUIDACION_PROPERTY).getValue());
+                String liquidador  = nvl(containerLiq.getContainerProperty(itemId, AutorizarPagosCorrientesView.LIQ_LIQUIDADOR_PROPERTY).getValue());
+                String monto       = nvl(containerLiq.getContainerProperty(itemId, AutorizarPagosCorrientesView.LIQ_MONTO_PROPERTY).getValue());
+                double montoNum    = parseDouble(containerLiq.getContainerProperty(itemId, AutorizarPagosCorrientesView.LIQ_MONTO_SF_PROPERTY).getValue());
+                String partida     = nvl(containerLiq.getContainerProperty(itemId, AutorizarPagosCorrientesView.LIQ_CODIGO_PARTIDA_PROPERTY).getValue());
+
+                boolean filaImpar = (filaIndex % 2 == 0);
+                BaseColor fondoFila = filaImpar ? colorFilaImpar : BaseColor.WHITE;
+
+                agregarDato(table, String.valueOf(correlativo++), Element.ALIGN_CENTER, fondoFila, fDatos);
+                agregarDato(table, liquidacion, Element.ALIGN_CENTER, fondoFila, fDatos);
+                agregarDato(table, liquidador,  Element.ALIGN_LEFT,   fondoFila, fDatos);
+                agregarDato(table, monto,       Element.ALIGN_RIGHT,  fondoFila, fMonto);
+                agregarDato(table, noCheque,    Element.ALIGN_CENTER, fondoFila, fDatosBold);
+                agregarDato(table, partida,     Element.ALIGN_LEFT,   fondoFila, fDatos);
+
+                totalMonto += montoNum;
+                filaIndex++;
+            }
+
+            agregarCeldaTotal(table, "TOTAL",               Element.ALIGN_RIGHT, 3);
+            agregarCeldaTotal(table, df.format(totalMonto), Element.ALIGN_RIGHT, 1);
+            agregarCeldaTotal(table, "",                    Element.ALIGN_LEFT,  2);
 
             document.add(table);
         }

@@ -31,7 +31,9 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
     static final String N5_PROPERTY = "N5";
     static final String PROVEEDOR_PROPERTY = "Banco";
     static final String NOCUENTA_PROPERTY = "No Cuenta";
-    static final String MONEDA_PROPERTY = "Moneda";
+    static final String MONEDA_PROPERTY     = "Moneda";
+    static final String PRINCIPAL_PROPERTY  = "Principal";
+    static final String PLANILLA_PROPERTY   = "Planilla";
 
     public IndexedContainer container = new IndexedContainer();
     Grid cuentasGrid;
@@ -55,6 +57,7 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
         setSpacing(true);
 
         createTablaCuentasContables();
+        asegurarColumnasCuentasBancos();
         llenarTablaCuentas();
         createButtons();
 
@@ -76,6 +79,8 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
         container.addContainerProperty(MONEDA_PROPERTY, String.class, null);
         container.addContainerProperty(ID_EMPRESA_PROPERTY, String.class, null);
         container.addContainerProperty(EMPRESA_PROPERTY, String.class, null);
+        container.addContainerProperty(PRINCIPAL_PROPERTY, String.class, "No");
+        container.addContainerProperty(PLANILLA_PROPERTY, String.class, "No");
 
         cuentasGrid = new Grid("Listado de cuentas", container);
         cuentasGrid.setImmediate(true);
@@ -99,6 +104,8 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
         cuentasGrid.getColumn(NOCUENTA_PROPERTY).setExpandRatio(2);
         cuentasGrid.getColumn(MONEDA_PROPERTY).setExpandRatio(2);
         cuentasGrid.getColumn(EMPRESA_PROPERTY).setExpandRatio(4);
+        cuentasGrid.getColumn(PRINCIPAL_PROPERTY).setExpandRatio(1);
+        cuentasGrid.getColumn(PLANILLA_PROPERTY).setExpandRatio(1);
 
         reportLayout.addComponent(cuentasGrid);
         reportLayout.setComponentAlignment(cuentasGrid, Alignment.MIDDLE_CENTER);
@@ -236,6 +243,8 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
                     container.getContainerProperty(itemId, N5_PROPERTY).setValue(rsRecords.getString("N5"));
                     container.getContainerProperty(itemId, NOCUENTA_PROPERTY).setValue(rsRecords.getString("NoCuenta"));
                     container.getContainerProperty(itemId, MONEDA_PROPERTY).setValue(rsRecords.getString("Moneda"));
+                    container.getContainerProperty(itemId, PRINCIPAL_PROPERTY).setValue("1".equals(rsRecords.getString("EsPrincipal")) ? "Sí" : "No");
+                    container.getContainerProperty(itemId, PLANILLA_PROPERTY).setValue("1".equals(rsRecords.getString("EsPlanilla")) ? "Sí" : "No");
 
                 } while (rsRecords.next());
             }
@@ -249,5 +258,30 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
     public void enter(ViewChangeListener.ViewChangeEvent event) {
         ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " Cuentas contables de Bancos");
         Page.getCurrent().setTitle("Sopdi - Cuentas Banco");
+        llenarTablaCuentas();
+    }
+
+    private void asegurarColumnasCuentasBancos() {
+        String[][] columnas = {
+                {"EsPrincipal", "TINYINT(1) NOT NULL DEFAULT 0"},
+                {"EsPlanilla",  "TINYINT(1) NOT NULL DEFAULT 0"},
+        };
+        for (String[] col : columnas) {
+            try {
+                Statement st = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+                ResultSet rs = st.executeQuery(
+                        "SELECT COUNT(*) FROM information_schema.COLUMNS"
+                        + " WHERE TABLE_SCHEMA = DATABASE()"
+                        + " AND TABLE_NAME = 'contabilidad_cuentas_bancos'"
+                        + " AND COLUMN_NAME = '" + col[0] + "'");
+                boolean existe = rs.next() && rs.getInt(1) > 0;
+                rs.close();
+                if (!existe) {
+                    st.executeUpdate("ALTER TABLE contabilidad_cuentas_bancos ADD COLUMN " + col[0] + " " + col[1]);
+                }
+            } catch (Exception ex) {
+                System.out.println("No se pudo asegurar columna contabilidad_cuentas_bancos." + col[0] + ": " + ex.getMessage());
+            }
+        }
     }
 }

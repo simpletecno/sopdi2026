@@ -55,6 +55,8 @@ public class CuentasContablesDefault {
     private String ivaRetenidoPorPagar;
     private String tituloAccion;
     private String tituloAccion2;
+    private String acreedorActivo;
+    private String acreedorPasivo;
 
     public String getIdEmpresa() {
         return idEmpresa;
@@ -465,6 +467,12 @@ public class CuentasContablesDefault {
     public void setTituloAccion2(String tituloAccion2) {
         this.tituloAccion2 = tituloAccion2;
     }
+
+    public String getAcreedorActivo() { return acreedorActivo; }
+    public void setAcreedorActivo(String acreedorActivo) { this.acreedorActivo = acreedorActivo; }
+
+    public String getAcreedorPasivo() { return acreedorPasivo; }
+    public void setAcreedorPasivo(String acreedorPasivo) { this.acreedorPasivo = acreedorPasivo; }
 }
 
 

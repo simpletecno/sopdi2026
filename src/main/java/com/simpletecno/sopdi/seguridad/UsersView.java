@@ -22,6 +22,7 @@ import com.vaadin.ui.HorizontalLayout;
 import com.vaadin.ui.Label;
 import com.vaadin.ui.MenuBar;
 import com.vaadin.ui.Notification;
+import com.vaadin.ui.TabSheet;
 import com.vaadin.ui.Table;
 import com.vaadin.ui.TextField;
 import com.vaadin.ui.UI;
@@ -34,7 +35,6 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,72 +46,64 @@ import org.vaadin.dialogs.ConfirmDialog;
  */
 @SuppressWarnings("serial")
 public class UsersView extends VerticalLayout implements View {
-    
-    public Statement stQuery = null;
+
+    public Statement stQuery    = null;
     public ResultSet rsRecords  = null;
     public ResultSet rsRecords1 = null;
-    
-    protected static final String CODIGO_PROPERTY    = "Id";
-    protected static final String EMPRESA_PROPERTY   = "Empresa";
-    protected static final String DIVISION_PROPERTY   = "División o Depto.";
-    protected static final String USUARIO_PROPERTY   = "Usuario";
-    protected static final String NOMBRE_PROPERTY    = "Nombre";
-    protected static final String PERFIL_PROPERTY    = "Perfil";
-    protected static final String ESTATUS_PROPERTY   = "Estatus";
-    protected static final String OPTIONS_PROPERTY = "-";
 
-    Button newBtn;
-    Button exportExcelBtn;
+    protected static final String CODIGO_PROPERTY   = "Id";
+    protected static final String EMPRESA_PROPERTY  = "Empresa";
+    protected static final String DIVISION_PROPERTY = "División o Depto.";
+    protected static final String USUARIO_PROPERTY  = "Usuario";
+    protected static final String NOMBRE_PROPERTY   = "Nombre";
+    protected static final String PERFIL_PROPERTY   = "Perfil";
+    protected static final String ESTATUS_PROPERTY  = "Estatus";
+    protected static final String OPTIONS_PROPERTY  = "-";
 
+    Button    newBtn;
+    Button    exportExcelBtn;
     TextField nombreTxt;
-    public Table usersTable;
-            
-    final UI mainUI = UI.getCurrent();
-       
-    public UsersView() {
-        
-        setResponsive(true);
-        MarginInfo marginInfo = new MarginInfo(true,true,false,true); 
 
-        HorizontalLayout filterLayout = new HorizontalLayout();
-        filterLayout.setMargin(false);
-        filterLayout.setSpacing(true);
-        filterLayout.addStyleName("rcorners3");
-        filterLayout.setResponsive(true);
-        
-        addComponent(filterLayout);
-        setComponentAlignment(filterLayout, Alignment.TOP_CENTER);
+    /** Referencia de compatibilidad — apunta a activeTable. */
+    public Table usersTable;
+    Table    activeTable;
+    Table    inactiveTable;
+    TabSheet tabSheet;
+
+    final UI mainUI = UI.getCurrent();
+
+    public UsersView() {
+
+        setSizeFull();
+        setSpacing(true);
+        setMargin(new MarginInfo(true, true, false, true));
+
+        // ── Barra superior ────────────────────────────────────────────
+        HorizontalLayout topBar = new HorizontalLayout();
+        topBar.setWidth("100%");
+        topBar.setSpacing(true);
+        topBar.addStyleName("rcorners3");
+        topBar.setDefaultComponentAlignment(Alignment.MIDDLE_LEFT);
 
         Label viewCaption = new Label("Usuarios del sistema");
-
         viewCaption.setStyleName(ValoTheme.LABEL_H3);
-        
+
         nombreTxt = new TextField("Nombre");
         nombreTxt.setDescription("Buscar por nombre");
-        nombreTxt.setWidth("100%");
         nombreTxt.addValueChangeListener(new Property.ValueChangeListener() {
             public void valueChange(Property.ValueChangeEvent event) {
                 fillReportTable();
             }
         });
-        
-//        nombreTxt.focus();
 
-        filterLayout.addComponent(viewCaption);        
-        filterLayout.addComponent(nombreTxt);
-
-        createReportTable();
-                            
-        newBtn    = new Button("Nuevo");
+        newBtn = new Button("Nuevo");
         newBtn.setIcon(FontAwesome.PLUS_CIRCLE);
-        newBtn.setWidth(130,Sizeable.UNITS_PIXELS);
-//        newBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-        newBtn.setDescription("Registrar nuevo cliente");
-        newBtn.addListener ( new Button.ClickListener()
-        {
+        newBtn.setWidth(130, Sizeable.UNITS_PIXELS);
+        newBtn.setDescription("Registrar nuevo usuario");
+        newBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
+        newBtn.addListener(new Button.ClickListener() {
             @Override
-            public void buttonClick ( Button.ClickEvent event )
-            {
+            public void buttonClick(Button.ClickEvent event) {
                 UserForm userForm = new UserForm();
                 userForm.idUsuario = 0;
                 userForm.nombreTxt.focus();
@@ -119,238 +111,254 @@ public class UsersView extends VerticalLayout implements View {
             }
         });
 
-        exportExcelBtn    = new Button("Excel");
+        exportExcelBtn = new Button("Excel");
         exportExcelBtn.setIcon(FontAwesome.FILE_EXCEL_O);
-        exportExcelBtn.setWidth(120,Sizeable.UNITS_PIXELS);
-        exportExcelBtn.addListener ( new Button.ClickListener()
-        {
+        exportExcelBtn.setWidth(120, Sizeable.UNITS_PIXELS);
+        exportExcelBtn.addListener(new Button.ClickListener() {
             @Override
-            public void buttonClick ( Button.ClickEvent event )
-            {
-                if(usersTable.size() > 0) {
-//                    PronetWebPayMain.getInstance().mainWindow.getWindow().showNotification("EN CONSTRUCCION!");            
-                    exportToExcel();
+            public void buttonClick(Button.ClickEvent event) {
+                Table current = getVisibleTable();
+                if (current.size() > 0) {
+                    exportToExcel(current);
                 }
             }
         });
-        
-        HorizontalLayout buttonsLayout = new HorizontalLayout();
-        buttonsLayout.setSpacing(true);
-        buttonsLayout.setMargin(true);
-        buttonsLayout.addComponent(newBtn);
-        buttonsLayout.addComponent(exportExcelBtn);
 
-        addComponent(buttonsLayout);
-        setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
+        topBar.addComponent(viewCaption);
+        topBar.addComponent(nombreTxt);
+        topBar.addComponent(newBtn);
+        topBar.addComponent(exportExcelBtn);
+        topBar.setExpandRatio(nombreTxt, 1);
+
+        addComponent(topBar);
+
+        // ── TabSheet ──────────────────────────────────────────────────
+        activeTable   = buildTable();
+        inactiveTable = buildTable();
+        usersTable    = activeTable;
+
+        VerticalLayout activeWrapper = new VerticalLayout();
+        activeWrapper.setSizeFull();
+        activeWrapper.addComponent(activeTable);
+        activeWrapper.setExpandRatio(activeTable, 1);
+
+        VerticalLayout inactiveWrapper = new VerticalLayout();
+        inactiveWrapper.setSizeFull();
+        inactiveWrapper.addComponent(inactiveTable);
+        inactiveWrapper.setExpandRatio(inactiveTable, 1);
+
+        tabSheet = new TabSheet();
+        tabSheet.setSizeFull();
+        tabSheet.addStyleName("usuarios-tabsheet");
+        tabSheet.addTab(activeWrapper,   "Usuarios Activos")
+                .setIcon(FontAwesome.USERS);
+        tabSheet.addTab(inactiveWrapper, "Usuarios Inactivos")
+                .setIcon(FontAwesome.USER_TIMES);
+
+        addComponent(tabSheet);
+        setExpandRatio(tabSheet, 1);
+
+        Page.getCurrent().getStyles().add(
+            ".usuarios-tabsheet .v-tabsheet-tabitem {"
+            + "  border-radius: 8px 8px 0 0;"
+            + "  border: 1px solid #c9c9c9;"
+            + "  border-bottom: none;"
+            + "  margin-right: 3px;"
+            + "  background: #f5f5f5;"
+            + "}"
+            + ".usuarios-tabsheet .v-tabsheet-tabitem-selected {"
+            + "  border-color: #1d89bf;"
+            + "  background: #fff;"
+            + "}"
+            + ".usuarios-tabsheet .v-tabsheet-tabitem .v-caption {"
+            + "  font-size: 14px;"
+            + "  font-weight: 600;"
+            + "  padding: 7px 16px;"
+            + "  color: #444;"
+            + "}"
+            + ".usuarios-tabsheet .v-tabsheet-tabitem-selected .v-caption {"
+            + "  color: #1d89bf;"
+            + "}");
 
         fillReportTable();
     }
-            
-    public void createReportTable() {
 
-        HorizontalLayout reportLayout = new HorizontalLayout();
-        reportLayout.setWidth("95%");
-        reportLayout.addStyleName("rcorners3");
-        reportLayout.setResponsive(true);
-
-        usersTable = new Table("Usuarios del sistema ");
-
-        reportLayout.addComponent(usersTable);
-        reportLayout.setComponentAlignment(usersTable, Alignment.MIDDLE_CENTER);
-
-        usersTable.setWidth("100%");
-        usersTable.setResponsive(true);
-        usersTable.setPageLength(20);
-        
-        usersTable.setImmediate(true);
-        usersTable.setSelectable(true);
-        
-        usersTable.addContainerProperty(CODIGO_PROPERTY,    String.class, null);
-        usersTable.addContainerProperty(EMPRESA_PROPERTY,   String.class, null);
-        usersTable.addContainerProperty(DIVISION_PROPERTY,   String.class, null);
-        usersTable.addContainerProperty(USUARIO_PROPERTY,   String.class, null);
-        usersTable.addContainerProperty(NOMBRE_PROPERTY,    String.class, null);
-//        usersTable.addContainerProperty(EMAIL_PROPERTY,     String.class, null);
-        usersTable.addContainerProperty(PERFIL_PROPERTY,    String.class, null);
-        usersTable.addContainerProperty(ESTATUS_PROPERTY,   String.class, null);
-        usersTable.addContainerProperty(OPTIONS_PROPERTY,   MenuBar.class, null);
-
-        usersTable.setColumnAlignments(Table.Align.CENTER, Table.Align.LEFT, Table.Align.LEFT, Table.Align.LEFT,
-                Table.Align.LEFT,   /*Table.Align.LEFT,*/  Table.Align.LEFT,
+    private Table buildTable() {
+        Table t = new Table();
+        t.setSizeFull();
+        t.setPageLength(15);
+        t.setImmediate(true);
+        t.setSelectable(true);
+        t.addContainerProperty(CODIGO_PROPERTY,   String.class,  null);
+        t.addContainerProperty(EMPRESA_PROPERTY,  String.class,  null);
+        t.addContainerProperty(DIVISION_PROPERTY, String.class,  null);
+        t.addContainerProperty(USUARIO_PROPERTY,  String.class,  null);
+        t.addContainerProperty(NOMBRE_PROPERTY,   String.class,  null);
+        t.addContainerProperty(PERFIL_PROPERTY,   String.class,  null);
+        t.addContainerProperty(ESTATUS_PROPERTY,  String.class,  null);
+        t.addContainerProperty(OPTIONS_PROPERTY,  MenuBar.class, null);
+        t.setColumnAlignments(
+                Table.Align.CENTER, Table.Align.LEFT,   Table.Align.LEFT,
+                Table.Align.LEFT,   Table.Align.LEFT,   Table.Align.LEFT,
                 Table.Align.CENTER, Table.Align.CENTER);
-
-        addComponent(reportLayout);        
-        setComponentAlignment(reportLayout, Alignment.MIDDLE_CENTER);
+        return t;
     }
 
+    /** Retorna la tabla de la pestaña actualmente visible. */
+    private Table getVisibleTable() {
+        if (tabSheet == null || tabSheet.getSelectedTab() == null) return activeTable;
+        return tabSheet.getTabPosition(tabSheet.getTab(tabSheet.getSelectedTab())) == 0
+                ? activeTable : inactiveTable;
+    }
+
+    /** @deprecated Solo por compatibilidad con llamadas externas. */
+    public void createReportTable() { /* no-op: tablas creadas en constructor */ }
+
     public void fillReportTable() {
-        
-        usersTable.removeAllItems();        
-        usersTable.setFooterVisible(false);
-                
-        String queryString = "";
-        
-        queryString =  "Select Usr.*, Emp.Nombre EmpresaNombre ";
-        queryString += " From  usuario Usr";
-        queryString += " Inner Join empresa Emp On Emp.IdEmpresa = Usr.IdEmpresa";
-        queryString += " Where Usr.IdEmpresa  > 0"; //solo para tener los And's
-        if(((SopdiUI) mainUI).sessionInformation.getStrUserProfile().compareTo("DESARROLLADOR") == 0) {
-            queryString += " And Usr.IdEmpresa = " + ((SopdiUI)mainUI).sessionInformation.getStrCompanyId();
+
+        activeTable.removeAllItems();
+        inactiveTable.removeAllItems();
+
+        String queryString  = "Select Usr.*, Emp.Nombre EmpresaNombre ";
+               queryString += " From  usuario Usr";
+               queryString += " Inner Join empresa Emp On Emp.IdEmpresa = Usr.IdEmpresa";
+               queryString += " Where Usr.IdEmpresa > 0";
+        if (((SopdiUI) mainUI).sessionInformation.getStrUserProfile().compareTo("DESARROLLADOR") == 0) {
+            queryString += " And Usr.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrCompanyId();
         }
-        if(nombreTxt != null) {
-            if(!nombreTxt.getValue().trim().isEmpty()) {
-                queryString += " And Usr.Nombre Like '%" + nombreTxt.getValue().trim() + "%'";
-            }
+        if (nombreTxt != null && !nombreTxt.getValue().trim().isEmpty()) {
+            queryString += " And Usr.Nombre Like '%" + nombreTxt.getValue().trim() + "%'";
         }
         queryString += " Order By Usr.IdEmpresa, Usr.Nombre";
 
-//System.out.println("\n\n"+queryString);
-
         try {
-            
-            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-            rsRecords = stQuery.executeQuery (queryString);
+            stQuery = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection()
+                    .createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            rsRecords = stQuery.executeQuery(queryString);
 
-            if(rsRecords.next()) { //  encontrado
+            MenuBar.Command cmdActive   = buildMenuCommand(activeTable);
+            MenuBar.Command cmdInactive = buildMenuCommand(inactiveTable);
 
-                // Define a common menu command for all the menu items.
-                MenuBar.Command mycommand = new MenuBar.Command() {
-                    @Override
-                    public void menuSelected(MenuBar.MenuItem selectedItem) {
-                        if(usersTable.getValue() != null) {
-                            MenuBar menuBar = (MenuBar)usersTable.getContainerProperty(usersTable.getValue(), OPTIONS_PROPERTY).getValue();
-                            if(menuBar.getItems().get(0).getChildren().contains(selectedItem)) {
-                                String msg = selectedItem.getId() + "  ";
-                                msg += usersTable.getContainerProperty(usersTable.getValue(), NOMBRE_PROPERTY).getValue();
-                                Notification.show(msg, Notification.Type.TRAY_NOTIFICATION);
+            while (rsRecords.next()) {
+                boolean esActivo  = "ACTIVO".equalsIgnoreCase(rsRecords.getString("Estatus"));
+                Table   destino   = esActivo ? activeTable   : inactiveTable;
+                MenuBar.Command cmd = esActivo ? cmdActive   : cmdInactive;
 
-                                if(selectedItem.getId() == 3) { // editar
-                                    UserForm userForm = new UserForm();
-                                    userForm.idUsuario = Integer.parseInt(String.valueOf(usersTable.getValue()));
-                                    userForm.fillUserData();
-                                    userForm.nombreTxt.focus();
-                                    UI.getCurrent().addWindow(userForm);
-                                }
-                                if(selectedItem.getId() == 5) { // permisos
-                                    UsuarioPermisosForm usuarioPermisosForm =
-                                            new UsuarioPermisosForm(
-                                                    Integer.parseInt(String.valueOf(usersTable.getValue())),
-                                                    String.valueOf(usersTable.getContainerProperty(usersTable.getValue(), NOMBRE_PROPERTY).getValue()));
-                                    UI.getCurrent().addWindow(usuarioPermisosForm);
-                                }
-                                if(selectedItem.getId() == 7) { // proyectos asignados
-                                    ProjectsSelectionWindow projectsSelectionWindow =
-                                            new ProjectsSelectionWindow(String.valueOf(usersTable.getValue()));
-                                    UI.getCurrent().addWindow(projectsSelectionWindow);
-                                }
-                                if(selectedItem.getId() == 9) { // empresas asignadas
-                                    UsuarioPermisosEmpresaForm usuarioPermisosEmpresaForm =
-                                            new UsuarioPermisosEmpresaForm(
-                                                    Integer.parseInt(String.valueOf(usersTable.getValue())),
-                                                    String.valueOf(usersTable.getContainerProperty(usersTable.getValue(), NOMBRE_PROPERTY).getValue()));
-                                    UI.getCurrent().addWindow(usuarioPermisosEmpresaForm);
-                                }
-                                if(selectedItem.getId() == 11) { // tipos ordenes de compra asignados
-                                    UsuarioPermisosOrdenCompraForm usuarioPermisosOrdenCompraForm =
-                                            new UsuarioPermisosOrdenCompraForm(
-                                                    Integer.parseInt(String.valueOf(usersTable.getValue())),
-                                                    String.valueOf(usersTable.getContainerProperty(usersTable.getValue(), NOMBRE_PROPERTY).getValue()));
-                                    UI.getCurrent().addWindow(usuarioPermisosOrdenCompraForm);
-                                }
-                                if(selectedItem.getId() == 13) { // eliminar
-                                    ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de eliminar el registro?",
-                                        "SI", "NO", new ConfirmDialog.Listener() {
+                MenuBar contactMenu = new MenuBar();
+                contactMenu.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
+                contactMenu.addStyleName(ValoTheme.MENUBAR_SMALL);
+                contactMenu.addStyleName(ValoTheme.MENU_APPEAR_ON_HOVER);
+                contactMenu.setSizeUndefined();
+                contactMenu.setData(rsRecords.getInt("IdUsuario"));
+                MenuBar.MenuItem menuItem = contactMenu.addItem("", FontAwesome.EDIT, null);
+                menuItem.addItem("Editar",                               FontAwesome.EYE,           cmd);
+                menuItem.addSeparator();
+                menuItem.addItem("Permisos asignados",                   FontAwesome.CHECK,         cmd);
+                menuItem.addSeparator();
+                menuItem.addItem("Proyectos asignados",                  FontAwesome.COG,           cmd);
+                menuItem.addSeparator();
+                menuItem.addItem("Empresas Asignadas",                   FontAwesome.BUILDING,      cmd);
+                menuItem.addSeparator();
+                menuItem.addItem("Tipos de Ordenes de Compra Asignados", FontAwesome.CC_MASTERCARD, cmd);
+                menuItem.addSeparator();
+                menuItem.addItem("Eliminar",                             FontAwesome.TRASH,         cmd);
 
-                                        public void onClose(ConfirmDialog dialog) {
-                                            if (dialog.isConfirmed()) {
-                                                Notification.show("NO DISPONIBLE EN ESTA VERSION!", Notification.Type.WARNING_MESSAGE);
-                                            }
-                                        }
-                                    });
-                                }
-                            }
-                            else {
-                                Notification.show("Por favor, seleccione el registro correspondiente.", Notification.Type.WARNING_MESSAGE);
-                            }
-                        }
-                    }  
-                };
-                                
-                SimpleDateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-                
-                do {
-
-                    MenuBar contactMenu = new MenuBar();
-                    contactMenu.setCaption("Menú");
-                    contactMenu.addStyleName(ValoTheme.MENUBAR_BORDERLESS);
-                    contactMenu.addStyleName(ValoTheme.MENUBAR_SMALL);
-                    contactMenu.addStyleName(ValoTheme.MENU_APPEAR_ON_HOVER);
-                    contactMenu.setSizeUndefined();
-                    contactMenu.setData(rsRecords.getInt("IdUsuario"));
-                    MenuBar.MenuItem menuItem = contactMenu.addItem("", FontAwesome.EDIT, null);
-                    menuItem.addItem("Editar", FontAwesome.EYE, mycommand);                    
-                    menuItem.addSeparator();
-                    menuItem.addItem("Permisos asignados", FontAwesome.CHECK, mycommand);
-                    menuItem.addSeparator();
-                    menuItem.addItem("Proyectos asignados", FontAwesome.COG, mycommand);
-                    menuItem.addSeparator();
-                    menuItem.addItem("Empresas Asignadas", FontAwesome.BUILDING, mycommand);
-                    menuItem.addSeparator();
-                    menuItem.addItem("Tipos de Ordenes de Compra Asignados", FontAwesome.CC_MASTERCARD, mycommand);
-                    menuItem.addSeparator();
-                    menuItem.addItem("Eliminar", FontAwesome.TRASH, mycommand);
-                    
-                    usersTable.addItem(new Object[] {    
-                        rsRecords.getString("IdUsuario"),
-                        rsRecords.getString("EmpresaNombre"),
-                        rsRecords.getString("Division"),
-                        rsRecords.getString("Usuario"),
-                        rsRecords.getString("Nombre"),
-//                        rsRecords.getString("Email"),
-                        rsRecords.getString("Perfil"),
-                        rsRecords.getString("Estatus"),
-                        contactMenu
-                    }, rsRecords.getInt("IdUsuario"));
-
-                }while(rsRecords.next());
-
-                if(rsRecords.first()) {
-                    usersTable.select(rsRecords.getInt("IdUsuario"));
-                }
+                destino.addItem(new Object[]{
+                    rsRecords.getString("IdUsuario"),
+                    rsRecords.getString("EmpresaNombre"),
+                    rsRecords.getString("Division"),
+                    rsRecords.getString("Usuario"),
+                    rsRecords.getString("Nombre"),
+                    rsRecords.getString("Perfil"),
+                    rsRecords.getString("Estatus"),
+                    contactMenu
+                }, rsRecords.getInt("IdUsuario"));
             }
-            else {
+
+            if (activeTable.size() == 0 && inactiveTable.size() == 0) {
                 UserForm userForm = new UserForm();
                 userForm.idUsuario = 0;
                 userForm.usuarioTxt.focus();
                 UI.getCurrent().addWindow(userForm);
-
-                Notification.show("No ha creado ningun usuario asesor para este proyecto,  por favor ingrese un usuario asesor.", Notification.Type.WARNING_MESSAGE);
+                Notification.show("No ha creado ningún usuario. Por favor ingrese un usuario.",
+                        Notification.Type.WARNING_MESSAGE);
             }
-        } 
-        catch (Exception ex) {
+
+        } catch (Exception ex) {
             Logger.getLogger(UsersView.class.getName()).log(Level.SEVERE, null, ex);
-            System.out.println("Error al intentar leer registros de usuarios : " + ex.getMessage());
-            Notification.show("Error al intentar leer registros usuarios..!", Notification.Type.ERROR_MESSAGE);
+            Notification.show("Error al intentar leer registros de usuarios.", Notification.Type.ERROR_MESSAGE);
         }
+    }
 
-    } 
-        
+    private MenuBar.Command buildMenuCommand(final Table table) {
+        return new MenuBar.Command() {
+            @Override
+            public void menuSelected(MenuBar.MenuItem selectedItem) {
+                if (table.getValue() == null) {
+                    Notification.show("Por favor, seleccione el registro correspondiente.", Notification.Type.WARNING_MESSAGE);
+                    return;
+                }
+                MenuBar menuBar = (MenuBar) table.getContainerProperty(table.getValue(), OPTIONS_PROPERTY).getValue();
+                if (!menuBar.getItems().get(0).getChildren().contains(selectedItem)) {
+                    Notification.show("Por favor, seleccione el registro correspondiente.", Notification.Type.WARNING_MESSAGE);
+                    return;
+                }
+
+                int    itemId      = selectedItem.getId();
+                int    idUsuarioSel = Integer.parseInt(String.valueOf(table.getValue()));
+                String nombreSel   = String.valueOf(table.getContainerProperty(table.getValue(), NOMBRE_PROPERTY).getValue());
+
+                Notification.show(itemId + "  " + nombreSel, Notification.Type.TRAY_NOTIFICATION);
+
+                if (itemId == 3) { // editar
+                    UserForm userForm = new UserForm();
+                    userForm.idUsuario = idUsuarioSel;
+                    userForm.fillUserData();
+                    userForm.nombreTxt.focus();
+                    UI.getCurrent().addWindow(userForm);
+                }
+                if (itemId == 5) { // permisos
+                    UI.getCurrent().addWindow(
+                            new UsuarioPermisosForm(idUsuarioSel, nombreSel));
+                }
+                if (itemId == 7) { // proyectos asignados
+                    UI.getCurrent().addWindow(
+                            new ProjectsSelectionWindow(String.valueOf(table.getValue())));
+                }
+                if (itemId == 9) { // empresas asignadas
+                    UI.getCurrent().addWindow(
+                            new UsuarioPermisosEmpresaForm(idUsuarioSel, nombreSel));
+                }
+                if (itemId == 11) { // tipos ordenes de compra
+                    UI.getCurrent().addWindow(
+                            new UsuarioPermisosOrdenCompraForm(idUsuarioSel, nombreSel));
+                }
+                if (itemId == 13) { // eliminar
+                    ConfirmDialog.show(UI.getCurrent(), "Confirme:", "¿Está seguro de eliminar el registro?",
+                            "SI", "NO", new ConfirmDialog.Listener() {
+                                public void onClose(ConfirmDialog dialog) {
+                                    if (dialog.isConfirmed()) {
+                                        Notification.show("NO DISPONIBLE EN ESTA VERSION!", Notification.Type.WARNING_MESSAGE);
+                                    }
+                                }
+                            });
+                }
+            }
+        };
+    }
+
     public boolean exportToExcel() {
-        ExcelExport excelExport;
+        return exportToExcel(getVisibleTable());
+    }
 
-        excelExport = new ExcelExport(usersTable);
+    private boolean exportToExcel(Table table) {
+        ExcelExport excelExport = new ExcelExport(table);
         excelExport.excludeCollapsedColumns();
         excelExport.setExportFileName("SOPDI_Usuarios.xls");
-
         new Utileria();
-        String mainTitle = "SOPDI - USUARIOS AL: "  + Utileria.getFechaYYYYMMDD_1(new Date());
-  
-        excelExport.setReportTitle(mainTitle);
-
+        excelExport.setReportTitle("SOPDI - USUARIOS AL: " + Utileria.getFechaYYYYMMDD_1(new Date()));
         excelExport.export();
-        
         return true;
-
     }
 
     /**
@@ -362,33 +370,27 @@ public class UsersView extends VerticalLayout implements View {
         private final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
         public ShowExcelFile(File fileToOpen) {
-            try {           
-               
+            try {
                 FileOutputStream fost = new FileOutputStream(fileToOpen);
-
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            
         }
 
         @Override
         public InputStream getStream() {
-            // Here we return the pdf contents as a byte-array
             return new ByteArrayInputStream(os.toByteArray());
-        }    
+        }
     }
-    
+
     void setTableTitle(String tableTitle) {
-        if(usersTable != null) {
-            usersTable.setCaption(tableTitle);
-            usersTable.setDescription(tableTitle);
-        }            
+        if (activeTable   != null) activeTable.setCaption(tableTitle);
+        if (inactiveTable != null) inactiveTable.setCaption(tableTitle);
     }
 
     @Override
     public void enter(ViewChangeListener.ViewChangeEvent event) {
-        Page.getCurrent().setTitle("Sopdi - USUARIOS ");
-
+        Page.getCurrent().setTitle("Sopdi - USUARIOS");
+        ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(" USUARIOS DEL SISTEMA");
     }
 }

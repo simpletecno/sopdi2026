@@ -92,7 +92,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
     String queryString = "";
 
     OptionGroup ordenCambioOg = new OptionGroup();
-    CheckBox archivadoChbx = new CheckBox("Archivados");
+    OptionGroup estadoOg = new OptionGroup();
 
     public InspectionsTaskTrackView() {
         this.mainUI = UI.getCurrent();
@@ -121,18 +121,19 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
         });
         ordenCambioOg.setDescription("OC=Orden de Cambio");
 
-//        archivadoChbx.addStyleName(ValoTheme.CHECKBOX_LARGE);
-        archivadoChbx.addValueChangeListener(e -> {
-            fillInspectionsTaskGrid();
-        });
+        estadoOg.setStyleName("horizontal");
+        estadoOg.addItems("Activas", "Autorizadas", "Archivadas");
+        estadoOg.select("Autorizadas");
+        estadoOg.setDescription("Filtrar por estado de la tarea");
+        estadoOg.addValueChangeListener(e -> fillInspectionsTaskGrid());
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setSpacing(true);
         titleLayout.setWidth("100%");
 
-        titleLayout.addComponents(ordenCambioOg, archivadoChbx);
+        titleLayout.addComponents(ordenCambioOg, estadoOg);
         titleLayout.setComponentAlignment(ordenCambioOg, Alignment.MIDDLE_RIGHT);
-        titleLayout.setComponentAlignment(archivadoChbx, Alignment.MIDDLE_RIGHT);
+        titleLayout.setComponentAlignment(estadoOg, Alignment.MIDDLE_RIGHT);
         titleLayout.addComponent(refreshBtn);
         titleLayout.setComponentAlignment(refreshBtn, Alignment.MIDDLE_RIGHT);
 
@@ -809,7 +810,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
 
     public void fillInspectionsTaskGrid() {
 
-        if (taskContainer == null) {
+        if (taskContainer == null || footer == null) {
             return;
         }
         taskContainer.removeAllContainerFilters();
@@ -834,13 +835,16 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
         queryString += " AND Tare.RechazadoFecha IS NULL";
         queryString += " AND VisI.FechaYHoraInicio >= '2022-01-01 00:00:00'";
         //"Sin Orden de cambio", "Con Orden de cambio", "Todas"
-        if(String.valueOf(ordenCambioOg.getValue()).equals("Sin Orden de cambio")) {
+        if(String.valueOf(ordenCambioOg.getValue()).equals("Sin OC")) {
             queryString += " AND Tare.IdVisitaInspeccionTarea NOT IN (SELECT IdVisitaInspeccionTarea FROM visita_inspeccion_tarea_oc)";
         }
-        else if(String.valueOf(ordenCambioOg.getValue()).equals("Con Orden de cambio")) {
+        else if(String.valueOf(ordenCambioOg.getValue()).equals("Con OC")) {
             queryString += " AND Tare.IdVisitaInspeccionTarea IN (SELECT IdVisitaInspeccionTarea FROM visita_inspeccion_tarea_oc)";
         }
-        if(archivadoChbx.getValue()) {
+        if ("Autorizadas".equals(estadoOg.getValue())) {
+            queryString += " AND Tare.Estatus = 'AUTORIZADA'";
+            queryString += " AND Tare.Archivado = 0";
+        } else if ("Archivadas".equals(estadoOg.getValue())) {
             queryString += " AND Tare.Archivado = 1";
         } else {
             queryString += " AND Tare.Archivado = 0";

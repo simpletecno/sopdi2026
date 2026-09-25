@@ -221,6 +221,32 @@ public class PagoProveedorWindow extends Window {
         montoChequeTxt = buildNumberField("Monto para cheque");
         montoChequeTxt.setWidth("100%");
 
+        // ── Lógica de complemento automático ─────────────────────────────────
+        montoAnticipoTxt.addValueChangeListener(e -> {
+            if (montoAnticipoTxt.isReadOnly()) return;
+            double anticipo = montoAnticipoTxt.getDoubleValueDoNotThrow();
+            double maxAnticipo = Math.min(saldoAnticipos, saldoDocumento);
+            if (anticipo > maxAnticipo) {
+                anticipo = maxAnticipo;
+                montoAnticipoTxt.setValue(anticipo);
+            }
+            double cheque = Math.max(0, saldoDocumento - anticipo);
+            montoChequeTxt.setValue(cheque);
+        });
+
+        montoChequeTxt.addValueChangeListener(e -> {
+            double cheque = montoChequeTxt.getDoubleValueDoNotThrow();
+            if (cheque > saldoDocumento) {
+                cheque = saldoDocumento;
+                montoChequeTxt.setValue(cheque);
+            }
+            if (!montoAnticipoTxt.isReadOnly()) {
+                double anticipo = Math.max(0, saldoDocumento - cheque);
+                anticipo = Math.min(anticipo, saldoAnticipos);
+                montoAnticipoTxt.setValue(anticipo);
+            }
+        });
+
         VerticalLayout card = new VerticalLayout();
         card.addStyleName("ppw-card");
         card.setWidth("100%");
@@ -303,14 +329,17 @@ public class PagoProveedorWindow extends Window {
     public void setSaldoAnticipos(double saldo) {
         saldoAnticiposLbl.setValue("Saldo anticipos:  " + moneda + " " + NUMBER_FORMAT.format(saldo));
         saldoAnticipos = saldo;
+        montoAnticipoTxt.setReadOnly(saldo <= 0);
     }
 
     public void setMontoAnticipo(double monto) {
-        montoAnticipoTxt.setReadOnly(false);
         montoAnticipoTxt.setValue(monto);
-        if(monto == 0) {
-            montoAnticipoTxt.setReadOnly(true);
-        }
+    }
+
+    @Override
+    public void attach() {
+        super.attach();
+        montoAnticipoTxt.focus();
     }
 
     public void setMontoCheque(double monto) {
@@ -340,4 +369,5 @@ public class PagoProveedorWindow extends Window {
     public double getSaldoAnticipos() {
         return saldoAnticipos;
     }
+
 }

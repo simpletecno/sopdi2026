@@ -68,7 +68,7 @@ public class ReporteLiquidacionPDF extends Window {
 
         this.idEmpresa = idEmpresa;
         this.empresaNombre = empresaNombre;
-        this.empresaNombre = empresaNit;
+        this.empresaNit = empresaNit;
         this.idLiquidacion = idLiquidacion;
         this.liquidador = liquidador;
 

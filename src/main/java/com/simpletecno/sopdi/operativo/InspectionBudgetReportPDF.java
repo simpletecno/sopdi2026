@@ -491,39 +491,54 @@ public class InspectionBudgetReportPDF extends Window {
 //System.out.println("\npreviusTask="+previusTask);
                             if(!previusTask.isEmpty()) {
 //System.out.println("entro a print total...");
-                                c1 = new PdfPCell(new Paragraph("", smallBold10));
-                                c1.setHorizontalAlignment(Element.ALIGN_CENTER);
-                                c1.setVerticalAlignment(Element.ALIGN_CENTER);
-                                c1.setBorderWidth(0);
-                                secondTable.addCell(c1);
+                                totalDiasHabiles += diasHabiles;
 
+                                document.add(secondTable);
+
+                                PdfPTable totalesTabla = new PdfPTable(5);
+                                totalesTabla.setSplitRows(false);
+                                totalesTabla.setKeepTogether(true);
+                                totalesTabla.setHeaderRows(0);
+                                totalesTabla.setWidthPercentage(95);
+                                totalesTabla.setWidths(new float[]{.5f, 4.0f, 1.5f, 1.5f, 1.5f});
+
+                                c1 = new PdfPCell(new Paragraph("", smallBold10));
+                                c1.setBorderWidth(0);
+                                totalesTabla.addCell(c1);
                                 c1 = new PdfPCell(new Paragraph("Dias Habiles de Trabajo:", smallBold10));
                                 c1.setHorizontalAlignment(Element.ALIGN_RIGHT);
                                 c1.setVerticalAlignment(Element.ALIGN_RIGHT);
                                 c1.setBorderWidth(0);
-                                secondTable.addCell(c1);
-
+                                totalesTabla.addCell(c1);
                                 c1 = new PdfPCell(new Paragraph("" + diasHabiles, smallBold10));
                                 c1.setHorizontalAlignment(Element.ALIGN_LEFT);
                                 c1.setVerticalAlignment(Element.ALIGN_LEFT);
                                 c1.setBorderWidth(0);
-                                secondTable.addCell(c1);
-
-                                c1 = new PdfPCell(new Paragraph("", smallBold10));
+                                totalesTabla.addCell(c1);
+                                c1 = new PdfPCell(new Paragraph("Sub Total Sin IVA:", smallBold10));
+                                c1.setBorderWidth(0);
                                 c1.setHorizontalAlignment(Element.ALIGN_RIGHT);
                                 c1.setVerticalAlignment(Element.ALIGN_RIGHT);
-                                c1.setBorderWidth(0);
-                                secondTable.addCell(c1);
-
+                                totalesTabla.addCell(c1);
                                 c1 = new PdfPCell(new Paragraph("$ " + df1.format(taskTotal), smallBold10));
                                 c1.setHorizontalAlignment(Element.ALIGN_RIGHT);
                                 c1.setVerticalAlignment(Element.ALIGN_RIGHT);
                                 c1.setBorderWidth(1);
-                                secondTable.addCell(c1);
+                                totalesTabla.addCell(c1);
 
-                                totalDiasHabiles += diasHabiles;
+                                c1 = new PdfPCell(new Paragraph("Sub Total con IVA:", smallBold10));
+//                                c1.setColspan(4);
+                                c1.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                                c1.setVerticalAlignment(Element.ALIGN_RIGHT);
+                                c1.setBorderWidth(0);
+                                totalesTabla.addCell(c1);
+                                c1 = new PdfPCell(new Paragraph("$ " + df1.format(taskTotal * 1.12), smallBold10));
+                                c1.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                                c1.setVerticalAlignment(Element.ALIGN_RIGHT);
+                                c1.setBorderWidth(1);
+                                totalesTabla.addCell(c1);
 
-                                document.add(secondTable);
+                                document.add(totalesTabla);
 
                             //// ------------ Chequeo de Autorizacion
 
@@ -697,39 +712,62 @@ public class InspectionBudgetReportPDF extends Window {
                         diasHabiles = rsRecords.getInt("DiasHabiles");
                     } while(rsRecords.next());
 
-                    c1 = new PdfPCell(new Paragraph("", smallBold10));
-                    c1.setHorizontalAlignment(Element.ALIGN_CENTER);
-                    c1.setVerticalAlignment(Element.ALIGN_CENTER);
-                    c1.setBorderWidth(0);
-                    secondTable.addCell(c1);
+                    totalDiasHabiles += diasHabiles;
 
+                    document.add(secondTable);
+
+                    PdfPTable totalesTabla = new PdfPTable(5);
+                    totalesTabla.setSplitRows(false);
+                    totalesTabla.setKeepTogether(true);
+                    totalesTabla.setHeaderRows(0);
+                    totalesTabla.setWidthPercentage(95);
+                    totalesTabla.setWidths(new float[]{.5f, 4.0f, 1.5f, 1.5f, 1.5f});
+
+                    c1 = new PdfPCell(new Paragraph("", smallBold10));
+                    c1.setBorderWidth(0);
+                    totalesTabla.addCell(c1);
                     c1 = new PdfPCell(new Paragraph("Dias Habiles de Trabajo:", smallBold10));
                     c1.setHorizontalAlignment(Element.ALIGN_RIGHT);
                     c1.setVerticalAlignment(Element.ALIGN_RIGHT);
                     c1.setBorderWidth(0);
-                    secondTable.addCell(c1);
-
+                    totalesTabla.addCell(c1);
                     c1 = new PdfPCell(new Paragraph("" + diasHabiles, smallBold10));
                     c1.setHorizontalAlignment(Element.ALIGN_LEFT);
                     c1.setVerticalAlignment(Element.ALIGN_LEFT);
                     c1.setBorderWidth(0);
-                    secondTable.addCell(c1);
-
-                    c1 = new PdfPCell(new Paragraph("", smallBold10));
+                    totalesTabla.addCell(c1);
+                    c1 = new PdfPCell(new Paragraph("Sub Total sin IVA:", smallBold10));
                     c1.setHorizontalAlignment(Element.ALIGN_RIGHT);
                     c1.setVerticalAlignment(Element.ALIGN_RIGHT);
                     c1.setBorderWidth(0);
-                    secondTable.addCell(c1);
-
+                    totalesTabla.addCell(c1);
                     c1 = new PdfPCell(new Paragraph("$ " + df1.format(taskTotal), smallBold10));
                     c1.setHorizontalAlignment(Element.ALIGN_RIGHT);
                     c1.setVerticalAlignment(Element.ALIGN_RIGHT);
                     c1.setBorderWidth(1);
-                    secondTable.addCell(c1);
+                    totalesTabla.addCell(c1);
 
-                    totalDiasHabiles += diasHabiles;
+                    c1 = new PdfPCell(new Paragraph("", smallBold10));
+                    c1.setBorderWidth(0);
+                    totalesTabla.addCell(c1);
+                    c1 = new PdfPCell(new Paragraph("", smallBold10));
+                    c1.setBorderWidth(0);
+                    totalesTabla.addCell(c1);
+                    c1 = new PdfPCell(new Paragraph("", smallBold10));
+                    c1.setBorderWidth(0);
+                    totalesTabla.addCell(c1);
+                    c1 = new PdfPCell(new Paragraph("Sub Total con IVA:", smallBold10));
+                    c1.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                    c1.setVerticalAlignment(Element.ALIGN_RIGHT);
+                    c1.setBorderWidth(0);
+                    totalesTabla.addCell(c1);
+                    c1 = new PdfPCell(new Paragraph("$ " + df1.format(taskTotal * 1.12), smallBold10));
+                    c1.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                    c1.setVerticalAlignment(Element.ALIGN_RIGHT);
+                    c1.setBorderWidth(1);
+                    totalesTabla.addCell(c1);
 
-                    document.add(secondTable);
+                    document.add(totalesTabla);
 
                 /// --- Autorizacion
                     document.add(addWhiteSpace());
@@ -783,6 +821,25 @@ public class InspectionBudgetReportPDF extends Window {
                 c1.setBorderWidth(1);
                 totalTable.addCell(c1);
 
+                c1 = new PdfPCell(new Paragraph("", smallBold10));
+                c1.setBorderWidth(0);
+                totalTable.addCell(c1);
+                c1 = new PdfPCell(new Paragraph("", smallBold10));
+                c1.setBorderWidth(0);
+                totalTable.addCell(c1);
+                c1 = new PdfPCell(new Paragraph("", smallBold10));
+                c1.setBorderWidth(0);
+                totalTable.addCell(c1);
+                c1 = new PdfPCell(new Paragraph("**TOTAL + IVA**", smallBold10));
+                c1.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                c1.setVerticalAlignment(Element.ALIGN_RIGHT);
+                c1.setBorderWidth(0);
+                totalTable.addCell(c1);
+                c1 = new PdfPCell(new Paragraph("$ " + df1.format(granTotal * 1.12), smallBold10));
+                c1.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                c1.setVerticalAlignment(Element.ALIGN_RIGHT);
+                c1.setBorderWidth(1);
+                totalTable.addCell(c1);
 
                 document.add(totalTable);
 
@@ -803,45 +860,42 @@ public class InspectionBudgetReportPDF extends Window {
             try {
 
                 Paragraph preface = new Paragraph();
-
-                // We add one empty line
-                addEmptyLine(preface, 1);
+                preface.add(new Paragraph("Condiciones:", this.smallBold10));
+                preface.add(new Paragraph("*Presupuesto debe ser aprobado antes de la ejecución de los trabajos.", small10));
+                preface.add(new Paragraph("*Presupuesto tiene validéz de 7 días y podrá variar luego de este período.", small10));
+                preface.add(new Paragraph("*Al ser aprobado el presupuesto, el cliente debe proceder al pago de los trabajos en las oficinas de Castaños, S.A. en los siguientes 15 días calendario luego de ser aprobado el presupuesto.", small10));
+                preface.add(new Paragraph("*Todos los montos NO incluyen el IVA.", small10));
                 document.add(preface);
-                
-                Paragraph line1 = new Paragraph("Condiciones:", this.smallBold10);
-                line1.setAlignment(Element.ALIGN_LEFT);
-                preface.add(line1);
-                Paragraph line2 = new Paragraph("*Presupuesto debe ser aprobado antes de la ejecución de los trabajos.", small10);
-                line2.setAlignment(Element.ALIGN_LEFT);
-                preface.add(line2);
-                Paragraph line3 = new Paragraph("*Presupuesto tiene validéz de 7 días y podrá variar luego de este período.", small10);
-                line3.setAlignment(Element.ALIGN_LEFT);
-                preface.add(line3);
-                Paragraph line4 = new Paragraph("*Al ser aprobado el presupuesto, el cliente debe proceder al pago de los trabajos en las oficinas de Castaños, S.A.", small10);
-                line4.setAlignment(Element.ALIGN_LEFT);
-                preface.add(line4);
-                Paragraph line5 = new Paragraph(" en los siguientes 15 días calendario luego de ser aprogado el presupuesto.", small10);
-                line5.setAlignment(Element.ALIGN_LEFT);
-                preface.add(line5);
-                Paragraph line6 = new Paragraph("*Todos los montos NO incluyen el IVA.", small10);
-                line6.setAlignment(Element.ALIGN_LEFT);
-                preface.add(line6);
 
-                 addEmptyLine(preface, 1);
+                PdfPTable firmasTabla = new PdfPTable(2);
+                firmasTabla.setKeepTogether(true);
+                firmasTabla.setSplitRows(false);
+                firmasTabla.setHeaderRows(0);
+                firmasTabla.setWidthPercentage(100);
+                firmasTabla.setSpacingBefore(8f);
 
-                Paragraph line7 = new Paragraph("Nombre Autoriza    :  ________________________________________________________", smallBold10);
-                line7.setAlignment(Element.ALIGN_LEFT);
-                preface.add(line7);
+                PdfPCell fc;
+                fc = new PdfPCell(new Paragraph("Nombre Autoriza/Rechaza :  ________________________________", smallBold10));
+                fc.setHorizontalAlignment(Element.ALIGN_LEFT);
+                fc.setBorderWidth(0);
+                fc.setPaddingBottom(6f);
+                firmasTabla.addCell(fc);
+                fc = new PdfPCell(new Paragraph(""));
+                fc.setBorderWidth(0);
+                firmasTabla.addCell(fc);
 
-                addEmptyLine(preface, 1);
+                fc = new PdfPCell(new Paragraph("Firma de quien Autoriza :  ________________________________", smallBold10));
+                fc.setHorizontalAlignment(Element.ALIGN_LEFT);
+                fc.setBorderWidth(0);
+                fc.setPaddingBottom(4f);
+                firmasTabla.addCell(fc);
+                fc = new PdfPCell(new Paragraph("Firma de quien Rechaza :  ________________________________", smallBold10));
+                fc.setHorizontalAlignment(Element.ALIGN_LEFT);
+                fc.setBorderWidth(0);
+                fc.setPaddingBottom(4f);
+                firmasTabla.addCell(fc);
 
-                Paragraph line8 = new Paragraph("Firma Autorización :  ________________________________________________________", smallBold10);
-                line8.setAlignment(Element.ALIGN_LEFT);
-                preface.add(line8);
-
-//                addEmptyLine(preface, 1);
-
-                document.add(preface);
+                document.add(firmasTabla);
                 
                 
 

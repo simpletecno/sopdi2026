@@ -828,4 +828,26 @@
     // ── AutorizarPagosCorrientesView: Dark / Light toggle ──────────────────
     @import "autorizar-pagos-dark-light";
 
+    // ── ProveedorForm / ProveedorEmpresaForm: ventana con fondo oscuro ─────
+    .v-window-proveedor-window {
+        .v-window-outerheader {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2563a8 100%);
+            border-radius: 14px 14px 0 0;
+        }
+        .v-window-header {
+            color: #ffffff;
+            font-weight: 700;
+            letter-spacing: .3px;
+        }
+        .v-window-closebox {
+            color: rgba(255, 255, 255, 0.85);
+        }
+        .v-window-closebox:hover {
+            color: #ffffff;
+        }
+        > .v-window-contents {
+            background: #f0f4fa;
+        }
+    }
+
 }

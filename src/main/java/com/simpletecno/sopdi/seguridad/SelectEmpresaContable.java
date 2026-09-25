@@ -101,122 +101,148 @@ public class SelectEmpresaContable extends Window {
 
     // ── Estilos CSS ──────────────────────────────────────────────────────────
     private void injectStyles() {
-        // Vaadin 7: se usa Page.getCurrent().getStyles() para inyectar CSS global.
         Page.getCurrent().getStyles().add(
-                /* Fondo semitransparente sobre el overlay del modal */
-                ".sec-root {" +
-                        "  background: transparent;" +
-                        "}" +
 
-                        /* Card central con sombra y bordes redondeados */
-                        ".sec-card {" +
-                        "  background: #ffffff;" +
-                        "  border-radius: 12px;" +
-                        "  box-shadow: 0 8px 40px rgba(0,0,0,0.18);" +
-                        "  padding: 18px !important;" +
-                        "}" +
+            /* ── Card central ────────────────────────────────────────────── */
+            ".sec-root { background: transparent; }" +
 
-                        /* Encabezado */
-                        ".sec-header {" +
-                        "  border-bottom: 2px solid #1976D2;" +
-                        "  padding-bottom: 12px;" +
-                        "  margin-bottom: 8px;" +
-                        "  width: 100%;" +
-                        "}" +
+            ".sec-card {" +
+            "  background: #ffffff;" +
+            "  border-radius: 14px;" +
+            "  box-shadow: 0 12px 48px rgba(0,0,0,0.22);" +
+            "  padding: 22px !important;" +
+            "  max-height: 92vh;" +
+            "  overflow-y: auto;" +
+            "}" +
 
-                        /* Ícono decorativo del encabezado */
-                        ".sec-icon {" +
-                        "  font-size: 32px;" +
-                        "  color: #1976D2;" +
-                        "  line-height: 1;" +
-                        "}" +
+            /* ── Encabezado ───────────────────────────────────────────────── */
+            ".sec-header {" +
+            "  border-bottom: 2px solid #1976D2;" +
+            "  padding-bottom: 14px;" +
+            "  margin-bottom: 10px;" +
+            "  width: 100%;" +
+            "}" +
 
-                        /* Título principal */
-                        ".sec-title {" +
-                        "  color: #1565C0;" +
-                        "  font-size: 20px !important;" +
-                        "  font-weight: 700 !important;" +
-                        "  margin: 0 !important;" +
-                        "  line-height: 1.2 !important;" +
-                        "}" +
+            ".sec-icon { font-size: 34px; color: #1976D2; line-height: 1; }" +
 
-                        /* Sub-texto bajo el título */
-                        ".sec-subtitle {" +
-                        "  color: #607D8B;" +
-                        "  font-size: 13px !important;" +
-                        "  margin: 2px 0 0 0 !important;" +
-                        "}" +
+            ".sec-title {" +
+            "  color: #1565C0;" +
+            "  font-size: 20px !important;" +
+            "  font-weight: 700 !important;" +
+            "  margin: 0 !important;" +
+            "  line-height: 1.2 !important;" +
+            "}" +
 
-                        /* Etiqueta de sección (encima de cada tabla) */
-                        ".sec-section-label {" +
-                        "  color: #1976D2;" +
-                        "  font-size: 12px !important;" +
-                        "  font-weight: 600 !important;" +
-                        "  letter-spacing: 0.08em;" +
-                        "  text-transform: uppercase;" +
-                        "  margin-bottom: 1px !important;" +
-                        "}" +
+            ".sec-subtitle {" +
+            "  color: #607D8B;" +
+            "  font-size: 13px !important;" +
+            "  margin: 3px 0 0 0 !important;" +
+            "}" +
 
-                        /* Card: scroll si la pantalla es pequeña */
-                        ".sec-card {" +
-                        "  max-height: 92vh;" +
-                        "  overflow-y: auto;" +
-                        "}" +
+            ".sec-section-label {" +
+            "  color: #1976D2;" +
+            "  font-size: 12px !important;" +
+            "  font-weight: 600 !important;" +
+            "  letter-spacing: 0.08em;" +
+            "  text-transform: uppercase;" +
+            "  margin-bottom: 2px !important;" +
+            "}" +
 
-                        /* Tablas: quitar bordes extra de Valo y aplicar estilo propio */
-                        ".sec-card .v-table-body {" +
-                        "  border: 1px solid #E3E8EF !important;" +
-                        "  border-radius: 8px;" +
-                        "}" +
-                        ".sec-card .v-table-header-wrap {" +
-                        "  background: #F0F4F8 !important;" +
-                        "  border-bottom: 2px solid #BBDEFB !important;" +
-                        "}" +
-                        ".sec-card .v-table-row:hover td {" +
-                        "  background: #E3F2FD !important;" +
-                        "  cursor: pointer;" +
-                        "}" +
-                        ".sec-card .v-table-row-selected td {" +
-                        "  background: #BBDEFB !important;" +
-                        "  color: #0D47A1 !important;" +
-                        "  font-weight: 600;" +
-                        "}" +
+            /* ── Tabla: cabecera ──────────────────────────────────────────── */
+            ".sec-card .v-table-header-wrap {" +
+            "  background: #37474F !important;" +
+            "  border-bottom: 2px solid #263238 !important;" +
+            "}" +
+            ".sec-card .v-table-header-wrap .v-table-caption-container {" +
+            "  color: #ECEFF1 !important;" +
+            "  font-weight: 600 !important;" +
+            "  font-size: 12px !important;" +
+            "  text-transform: uppercase;" +
+            "  letter-spacing: 0.05em;" +
+            "}" +
 
-                        /* Área de botones */
-                        ".sec-btn-area {" +
-                        "  border-top: 1px solid #E3E8EF;" +
-                        "  padding-top: 16px;" +
-                        "  margin-top: 4px;" +
-                        "}" +
+            /* ── Tabla: cuerpo ────────────────────────────────────────────── */
+            ".sec-card .v-table-body {" +
+            "  border: 1px solid #BBDEFB !important;" +
+            "  border-top: none !important;" +
+            "}" +
 
-                        /* Botón Aceptar */
-                        ".sec-btn-accept.v-button {" +
-                        "  background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%) !important;" +
-                        "  color: #ffffff !important;" +
-                        "  border: none !important;" +
-                        "  border-radius: 6px !important;" +
-                        "  font-weight: 600 !important;" +
-                        "  padding: 0 28px !important;" +
-                        "  height: 38px !important;" +
-                        "  box-shadow: 0 2px 8px rgba(25,118,210,0.35) !important;" +
-                        "  transition: box-shadow 0.2s;" +
-                        "}" +
-                        ".sec-btn-accept.v-button:hover {" +
-                        "  box-shadow: 0 4px 16px rgba(25,118,210,0.5) !important;" +
-                        "}" +
+            /* Filas normales */
+            ".sec-card .v-table-body .v-table-row td," +
+            ".sec-card .v-table-body .v-table-row-odd td {" +
+            "  background: #ffffff !important;" +
+            "  color: #263238 !important;" +
+            "  border-bottom: 1px solid #EEF2F7 !important;" +
+            "  transition: background 0.15s, color 0.15s;" +
+            "}" +
 
-                        /* Botón Salir */
-                        ".sec-btn-exit.v-button {" +
-                        "  color: #607D8B !important;" +
-                        "  border: 1px solid #CFD8DC !important;" +
-                        "  border-radius: 6px !important;" +
-                        "  background: transparent !important;" +
-                        "  height: 38px !important;" +
-                        "  padding: 0 20px !important;" +
-                        "}" +
-                        ".sec-btn-exit.v-button:hover {" +
-                        "  background: #F5F5F5 !important;" +
-                        "}"
+            ".sec-card .v-table-body .v-table-row-odd td {" +
+            "  background: #F8FBFF !important;" +
+            "}" +
+
+            /* Hover — alta prioridad, texto siempre visible */
+            ".sec-card .v-table-body .v-table-row:hover td," +
+            ".sec-card .v-table-body .v-table-row-odd:hover td {" +
+            "  background: #E3F2FD !important;" +
+            "  color: #0D47A1 !important;" +
+            "  cursor: pointer;" +
+            "}" +
+
+            /* ── SELECCIÓN: .v-selected es la clase real de Vaadin 7 ──────── */
+            ".sec-card .v-table-body .v-table-row.v-selected td," +
+            ".sec-card .v-table-body .v-table-row-odd.v-selected td {" +
+            "  background: #1565C0 !important;" +
+            "  color: #ffffff !important;" +
+            "  font-weight: 600 !important;" +
+            "  border-bottom-color: #1976D2 !important;" +
+            "}" +
+
+            /* Seleccionado + hover: mantener colores de selección legibles */
+            ".sec-card .v-table-body .v-table-row.v-selected:hover td," +
+            ".sec-card .v-table-body .v-table-row-odd.v-selected:hover td {" +
+            "  background: #1976D2 !important;" +
+            "  color: #ffffff !important;" +
+            "}" +
+
+            /* ── Área de botones ──────────────────────────────────────────── */
+            ".sec-btn-area {" +
+            "  border-top: 1px solid #E3E8EF;" +
+            "  padding-top: 16px;" +
+            "  margin-top: 6px;" +
+            "}" +
+
+            /* Botón Aceptar */
+            ".sec-btn-accept.v-button {" +
+            "  background: linear-gradient(135deg, #1976D2 0%, #0D47A1 100%) !important;" +
+            "  color: #ffffff !important;" +
+            "  border: none !important;" +
+            "  border-radius: 7px !important;" +
+            "  font-weight: 700 !important;" +
+            "  padding: 0 32px !important;" +
+            "  height: 40px !important;" +
+            "  box-shadow: 0 3px 10px rgba(21,101,192,0.40) !important;" +
+            "  letter-spacing: 0.03em;" +
+            "  transition: box-shadow 0.2s, transform 0.1s;" +
+            "}" +
+            ".sec-btn-accept.v-button:hover {" +
+            "  box-shadow: 0 6px 18px rgba(21,101,192,0.55) !important;" +
+            "  transform: translateY(-1px);" +
+            "}" +
+            ".sec-btn-accept.v-button:active { transform: translateY(0); }" +
+
+            /* Botón Salir */
+            ".sec-btn-exit.v-button {" +
+            "  color: #546E7A !important;" +
+            "  border: 1px solid #B0BEC5 !important;" +
+            "  border-radius: 7px !important;" +
+            "  background: transparent !important;" +
+            "  height: 40px !important;" +
+            "  padding: 0 20px !important;" +
+            "}" +
+            ".sec-btn-exit.v-button:hover {" +
+            "  background: #ECEFF1 !important;" +
+            "  border-color: #78909C !important;" +
+            "}"
         );
     }
 
