@@ -1152,6 +1152,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                     + " FROM contabilidad_conciliacion_bancaria"
                     + " WHERE IdCuentaBanco = " + idCuentaBanco
                     + "   AND IdEmpresa = " + empresaId
+                    + "   AND Estatus = 'FINALIZADA'"
                     + " ORDER BY AnioMes DESC LIMIT 1";
             try (java.sql.Statement stConc = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
                  java.sql.ResultSet rsConc = stConc.executeQuery(sqlConc)) {
