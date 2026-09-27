@@ -67,7 +67,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
     static final String FECHA_PROPERTY = "Fecha";
     static final String NUMERO_FACTURA_PROPERTY = "Número";
     static final String SALDO_PROPERTY = "Saldo";
-    static final String ANTIGUEDAD_PROPERTY = "Antiguedad";
+    static final String ANTIGUEDAD_PROPERTY = "Dias";
     static final String A_LIQUIDAR_PROPERTY = "A liquidar";
     static final String CHEQUE_PROPERTY = "# Cheque";
     static final String A_LIQUIDAR_ANTICIPOS_PROPERTY = "Anticipos";
@@ -182,10 +182,13 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         crearTabSheet();
         crearBotones();
 
-        llenarGridBancos();
-        llenarGridPorPagar();
-        llenarGridAnticipOC();
-        llenarGridLiquidacion();
+        llenarGridBancos(); // auto-selects principal → fires selection listener → recargarGridsDocumentos()
+        if (cuentasBancosGrid.getSelectedRows().isEmpty()) {
+            // No hay cuenta principal: cargar sin filtro de moneda
+            llenarGridPorPagar();
+            llenarGridAnticipOC();
+            llenarGridLiquidacion();
+        }
     }
 
     public void createGridCuentasBancos() {
@@ -214,6 +217,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         cuentasBancosGrid.getColumn(NUEVO_SALDOSF_PROPERTY).setHidable(true).setHidden(true);
         cuentasBancosGrid.getColumn(PAGOSSF_PROPERTY).setHidable(true).setHidden(true);
         cuentasBancosGrid.getColumn(ID_NOMENCLATURA_PROPERTY).setHidable(true).setHidden(true);
+        cuentasBancosGrid.getColumn(BANCO_PROPERTY).setWidth(90);
 
         cuentasBancosGrid.getColumn(CUENTA_BANCARIA_PROPERTY).setExpandRatio(1);
         cuentasBancosGrid.getColumn(BANCO_PROPERTY).setExpandRatio(2);
@@ -241,10 +245,12 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                     if (otherMonedaProperty != null && String.valueOf(otherMonedaProperty.getValue()).equals(moneda)) {
                         Notification.show("Solo puede haber una cuenta bancaria de la misma moneda.", Notification.Type.WARNING_MESSAGE);
                         cuentasBancosGrid.deselectAll();
-                        break;
+                        return;
                     }
                 }
             }
+            // Selección válida: recargar grids por moneda de la cuenta seleccionada
+            recargarGridsDocumentos();
         });
 
         mainLayout.addComponent(cuentasBancosGrid);
@@ -268,6 +274,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         porPagarContainer.addContainerProperty(CODIGO_PARTIDA_PROPERTY, String.class, "");
         porPagarContainer.addContainerProperty(CODIGO_CC_PROPERTY, String.class, "");
         porPagarContainer.addContainerProperty(SALDOSF_PROPERTY, String.class, "0.00");
+        porPagarContainer.addContainerProperty(ANTICIPO_DISPONIBLE_PROPERTY, String.class, "0.00");
         porPagarContainer.addContainerProperty(A_LIQUIDAR_ANTICIPOSSF_PROPERTY, String.class, "0.00");
         porPagarContainer.addContainerProperty(A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY, String.class, "0.00");
         porPagarContainer.addContainerProperty(NOMBRE_PROVEEDOR_PROPERTY, String.class, "");
@@ -275,7 +282,6 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         porPagarContainer.addContainerProperty(CODIGO_PARTIDA_PAGO_PROPERTY, String.class, "");
         porPagarContainer.addContainerProperty(FECHA_CHEQUE_PROPERTY, String.class, "");
         porPagarContainer.addContainerProperty(SELECCIONAR_PROPERTY, String.class, "☐");
-        porPagarContainer.addContainerProperty(ANTICIPO_DISPONIBLE_PROPERTY, String.class, "0.00");
         porPagarContainer.addContainerProperty(ANTICIPO_DISPONIBLESF_PROPERTY, String.class, "0.00");
 
         porPagarGrid = new Grid("Cuentas por pagar", porPagarContainer);
@@ -647,6 +653,10 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             queryString += " AND   orden_compra.Anticipo > 0";
             queryString += " AND   orden_compra.IdEmpresa =" + empresaId;
             queryString += " AND   proveedor_empresa.IdEmpresa = " + empresaId;
+            String monedaInOC = buildMonedaInClause();
+            if (!monedaInOC.isEmpty()) {
+                queryString += " AND orden_compra.Moneda IN (" + monedaInOC + ")";
+            }
 
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
@@ -1058,6 +1068,11 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
     public void llenarGridLiquidacion() {
         liquidacionContainer.removeAllItems();
 
+        // Liquidaciones siempre son QUETZALES — no mostrar si no hay cuenta Q seleccionada
+        if (!buildMonedaInClause().isEmpty() && !getMonedasCuentasSeleccionadas().contains("QUETZALES")) {
+            return;
+        }
+
         String cuentaLiq = ((SopdiUI) mainUI).cuentasContablesDefault.getLiquidacionesCajaChicha();
 
         // Sub-query para obtener el saldo real por CodigoCC
@@ -1390,6 +1405,10 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         queryString += " AND   Estatus <> 'ANULADO'";
         if (!((SopdiUI) mainUI).sessionInformation.getStrUserProfileName().equals("ADMINISTRADOR")) {
             queryString += " AND IdProveedor In (SELECT IdProveedor FROM proveedor_empresa WHERE ESAUTORIZADOPAGAR = 1 AND IdEmpresa = " + empresaId + ")";
+        }
+        String monedaInPP = buildMonedaInClause();
+        if (!monedaInPP.isEmpty()) {
+            queryString += " AND MonedaDocumento IN (" + monedaInPP + ")";
         }
         queryString += " ORDER by contabilidad_partida.IdProveedor, contabilidad_partida.Fecha";
 
@@ -2427,6 +2446,34 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             }
         }
         return false;
+    }
+
+    private Set<String> getMonedasCuentasSeleccionadas() {
+        Set<String> monedas = new LinkedHashSet<>();
+        for (Object bancoId : cuentasBancosGrid.getSelectedRows()) {
+            if (cuentasBancosContainer.getItem(bancoId) == null) continue;
+            String m = nvlC(cuentasBancosContainer.getContainerProperty(bancoId, MONEDA_PROPERTY).getValue()).toUpperCase();
+            if (!m.isEmpty()) monedas.add(m);
+        }
+        return monedas;
+    }
+
+    /** Devuelve el fragmento SQL para IN clause, e.g. 'QUETZALES','DOLARES'. Vacío si no hay selección. */
+    private String buildMonedaInClause() {
+        Set<String> monedas = getMonedasCuentasSeleccionadas();
+        if (monedas.isEmpty()) return "";
+        StringBuilder sb = new StringBuilder();
+        for (String m : monedas) {
+            if (sb.length() > 0) sb.append(",");
+            sb.append("'").append(m).append("'");
+        }
+        return sb.toString();
+    }
+
+    private void recargarGridsDocumentos() {
+        llenarGridPorPagar();
+        llenarGridAnticipOC();
+        llenarGridLiquidacion();
     }
 
     // ── Handlers de selección (checkbox) ─────────────────────────────────────
