@@ -351,6 +351,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         TextField anticiposEditorField = new TextField();
         anticiposEditorField.setImmediate(true);
         anticiposEditorField.setNullRepresentation("0.00");
+
         porPagarGrid.getColumn(A_LIQUIDAR_ANTICIPOS_PROPERTY).setEditorField(anticiposEditorField);
 
         TextField chequeMontoEditorField = new TextField();
@@ -362,6 +363,16 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             if (updatingInline[0]) return;
             Object editedId = porPagarGrid.getEditedItemId();
             if (editedId == null) return;
+            // Guardia: si la fila no tiene ☑, revertimos el cambio restaurando desde el SF
+            if (!"☑".equals(nvlC(porPagarContainer.getContainerProperty(editedId, SELECCIONAR_PROPERTY).getValue()))) {
+                updatingInline[0] = true;
+                try {
+                    double sf = parseMontoSF(porPagarContainer.getContainerProperty(editedId, A_LIQUIDAR_ANTICIPOSSF_PROPERTY).getValue());
+                    porPagarContainer.getContainerProperty(editedId, A_LIQUIDAR_ANTICIPOS_PROPERTY).setValue(numberFormat.format(sf));
+                    anticiposEditorField.setValue(numberFormat.format(sf));
+                } finally { updatingInline[0] = false; }
+                return;
+            }
             double saldoDoc     = parseMontoSF(porPagarContainer.getContainerProperty(editedId, SALDOSF_PROPERTY).getValue());
             double anticipoDisp = parseMontoSF(porPagarContainer.getContainerProperty(editedId, ANTICIPO_DISPONIBLESF_PROPERTY).getValue());
             double montoAnticipo = parseMontoSF(e.getProperty().getValue());
@@ -386,6 +397,16 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             if (updatingInline[0]) return;
             Object editedId = porPagarGrid.getEditedItemId();
             if (editedId == null) return;
+            // Guardia: si la fila no tiene ☑, revertimos el cambio restaurando desde el SF
+            if (!"☑".equals(nvlC(porPagarContainer.getContainerProperty(editedId, SELECCIONAR_PROPERTY).getValue()))) {
+                updatingInline[0] = true;
+                try {
+                    double sf = parseMontoSF(porPagarContainer.getContainerProperty(editedId, A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).getValue());
+                    porPagarContainer.getContainerProperty(editedId, A_LIQUIDAR_MONTO_CHEQUE_PROPERTY).setValue(numberFormat.format(sf));
+                    chequeMontoEditorField.setValue(numberFormat.format(sf));
+                } finally { updatingInline[0] = false; }
+                return;
+            }
             double saldoDoc          = parseMontoSF(porPagarContainer.getContainerProperty(editedId, SALDOSF_PROPERTY).getValue());
             double montoAnticipoActual = parseMontoSF(porPagarContainer.getContainerProperty(editedId, A_LIQUIDAR_ANTICIPOSSF_PROPERTY).getValue());
             double maxCheque         = Math.max(0, saldoDoc - montoAnticipoActual);
