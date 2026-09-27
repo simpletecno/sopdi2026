@@ -312,9 +312,68 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             }
         });
 
-        porPagarGrid.getColumn(A_LIQUIDAR_PROPERTY)
-                .setRenderer(new ButtonRenderer(this::onALiquidarButtonClick))
-                .setWidth(120);
+        porPagarGrid.getColumn(A_LIQUIDAR_PROPERTY).setWidth(90).setHidden(true);
+        porPagarGrid.getColumn(A_LIQUIDAR_ANTICIPOS_PROPERTY).setWidth(110);
+        porPagarGrid.getColumn(A_LIQUIDAR_MONTO_CHEQUE_PROPERTY).setWidth(110);
+
+        porPagarGrid.setEditorEnabled(true);
+        porPagarGrid.setEditorBuffered(false);
+
+        boolean[] updatingInline = {false};
+
+        TextField anticiposEditorField = new TextField();
+        anticiposEditorField.setImmediate(true);
+        anticiposEditorField.setNullRepresentation("0.00");
+        porPagarGrid.getColumn(A_LIQUIDAR_ANTICIPOS_PROPERTY).setEditorField(anticiposEditorField);
+
+        TextField chequeMontoEditorField = new TextField();
+        chequeMontoEditorField.setImmediate(true);
+        chequeMontoEditorField.setNullRepresentation("0.00");
+        porPagarGrid.getColumn(A_LIQUIDAR_MONTO_CHEQUE_PROPERTY).setEditorField(chequeMontoEditorField);
+
+        anticiposEditorField.addValueChangeListener(e -> {
+            if (updatingInline[0]) return;
+            Object editedId = porPagarGrid.getEditedItemId();
+            if (editedId == null) return;
+            double saldoDoc = parseMontoSF(porPagarContainer.getContainerProperty(editedId, SALDOSF_PROPERTY).getValue());
+            double montoAnticipo = parseMontoSF(e.getProperty().getValue());
+            if (montoAnticipo < 0) montoAnticipo = 0;
+            if (montoAnticipo > saldoDoc) montoAnticipo = saldoDoc;
+            double montoCheque = Math.max(0, saldoDoc - montoAnticipo);
+            String monedaSimbolo = nvlC(porPagarContainer.getContainerProperty(editedId, MONEDA_PROPERTY).getValue()).startsWith("Q") ? "Q." : "$.";
+            updatingInline[0] = true;
+            try {
+                porPagarContainer.getContainerProperty(editedId, A_LIQUIDAR_ANTICIPOSSF_PROPERTY).setValue(numberFormat2.format(montoAnticipo));
+                porPagarContainer.getContainerProperty(editedId, A_LIQUIDAR_MONTO_CHEQUE_PROPERTY).setValue(numberFormat.format(montoCheque));
+                porPagarContainer.getContainerProperty(editedId, A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).setValue(numberFormat2.format(montoCheque));
+                porPagarContainer.getContainerProperty(editedId, A_LIQUIDAR_PROPERTY).setValue(monedaSimbolo + numberFormat.format(montoAnticipo + montoCheque));
+                chequeMontoEditorField.setValue(numberFormat.format(montoCheque));
+            } finally {
+                updatingInline[0] = false;
+            }
+        });
+
+        chequeMontoEditorField.addValueChangeListener(e -> {
+            if (updatingInline[0]) return;
+            Object editedId = porPagarGrid.getEditedItemId();
+            if (editedId == null) return;
+            double saldoDoc = parseMontoSF(porPagarContainer.getContainerProperty(editedId, SALDOSF_PROPERTY).getValue());
+            double montoCheque = parseMontoSF(e.getProperty().getValue());
+            if (montoCheque < 0) montoCheque = 0;
+            if (montoCheque > saldoDoc) montoCheque = saldoDoc;
+            double montoAnticipo = Math.max(0, saldoDoc - montoCheque);
+            String monedaSimbolo = nvlC(porPagarContainer.getContainerProperty(editedId, MONEDA_PROPERTY).getValue()).startsWith("Q") ? "Q." : "$.";
+            updatingInline[0] = true;
+            try {
+                porPagarContainer.getContainerProperty(editedId, A_LIQUIDAR_ANTICIPOS_PROPERTY).setValue(numberFormat.format(montoAnticipo));
+                porPagarContainer.getContainerProperty(editedId, A_LIQUIDAR_ANTICIPOSSF_PROPERTY).setValue(numberFormat2.format(montoAnticipo));
+                porPagarContainer.getContainerProperty(editedId, A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).setValue(numberFormat2.format(montoCheque));
+                porPagarContainer.getContainerProperty(editedId, A_LIQUIDAR_PROPERTY).setValue(monedaSimbolo + numberFormat.format(montoAnticipo + montoCheque));
+                anticiposEditorField.setValue(numberFormat.format(montoAnticipo));
+            } finally {
+                updatingInline[0] = false;
+            }
+        });
 
         HeaderRow filterRow = porPagarGrid.appendHeaderRow();
 
@@ -569,17 +628,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             cuentasBancosContainer.getContainerProperty(finalCuentaItemId, PAGOSSF_PROPERTY).setValue(numberFormat2.format(pagos + montoAnticipo));
         };
 
-        if (!chequeExistente.isEmpty()) {
-            // Reutiliza cheque existente — no pedir fecha de nuevo
-            asignarCheque.run();
-        } else {
-            // Nuevo cheque — pedir fecha
-            pedirFechaCheque(fecha -> {
-                anticiposOCContainer.getContainerProperty(event.getItemId(), OC_FECHA_CHEQUE_PROPERTY)
-                        .setValue(Utileria.getFechaYYYYMMDD_1(fecha));
-                asignarCheque.run();
-            });
-        }
+        asignarCheque.run();
     }
 
     public void llenarGridAnticipOC() {
@@ -794,6 +843,17 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                     for (Object itemId : porPagarContainer.getItemIds()) {
                         porPagarContainer.getContainerProperty(itemId, FECHA_CHEQUE_PROPERTY).setValue(fechaSQL);
                     }
+                    for (Object itemId : anticiposOCContainer.getItemIds()) {
+                        if (!nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_CHEQUE_OC_PROPERTY).getValue()).isEmpty()) {
+                            anticiposOCContainer.getContainerProperty(itemId, OC_FECHA_CHEQUE_PROPERTY).setValue(fechaSQL);
+                        }
+                    }
+                    for (Object itemId : liquidacionContainer.getItemIds()) {
+                        if (!nvlC(liquidacionContainer.getContainerProperty(itemId, LIQ_CHEQUE_PROPERTY).getValue()).isEmpty()) {
+                            liquidacionContainer.getContainerProperty(itemId, LIQ_FECHA_CHEQUE_PROPERTY).setValue(fechaSQL);
+                        }
+                    }
+                    asignarChequesTabPorPagar();
                     aplicarPagosCorrientes();
                 });
             }
@@ -844,6 +904,71 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             cuentasBancosContainer.getContainerProperty(itemId, NUEVO_SALDO_PROPERTY).setValue("0.00");
             cuentasBancosContainer.getContainerProperty(itemId, NUEVO_SALDOSF_PROPERTY).setValue("0.00");
             cuentasBancosContainer.getContainerProperty(itemId, ULTIMO_CHEQUE_PROPERTY).setValue(obtenerUltimoCheque(String.valueOf(cuentasBancosContainer.getContainerProperty(itemId, ID_CUENTABANCO_PROPERTY).getValue())));
+        }
+    }
+
+    /**
+     * Asigna número de cheque a las filas de Tab 1 (por pagar) que tienen montoCheque > 0.
+     * Se invoca desde btnAutorizarPagos, después de que el usuario confirmó la fecha.
+     * Reutiliza el cheque cuando el mismo proveedor ya tiene uno asignado en otra fila.
+     */
+    private void asignarChequesTabPorPagar() {
+        for (Object itemId : porPagarContainer.getItemIds()) {
+            double montoCheque = parseMontoSF(porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).getValue());
+            if (montoCheque <= 0) continue;
+
+            String monedaDoc = nvlC(porPagarContainer.getContainerProperty(itemId, MONEDA_PROPERTY).getValue());
+            Object cuentaItemId = null;
+            for (Object bancoId : cuentasBancosContainer.getItemIds()) {
+                if (cuentasBancosGrid.isSelected(bancoId)) {
+                    if (nvlC(cuentasBancosContainer.getContainerProperty(bancoId, MONEDA_PROPERTY).getValue()).equalsIgnoreCase(monedaDoc)) {
+                        cuentaItemId = bancoId;
+                        break;
+                    }
+                }
+            }
+            if (cuentaItemId == null) continue;
+
+            // Si ya tiene cheque asignado, no sobreescribir
+            if (!nvlC(porPagarContainer.getContainerProperty(itemId, CHEQUE_PROPERTY).getValue()).isEmpty()) continue;
+
+            String idProveedor = nvlC(porPagarContainer.getContainerProperty(itemId, ID_PROVEEDOR_PROPERTY).getValue());
+
+            // Reusar cheque si el mismo proveedor ya tiene uno asignado en otra fila
+            String chequeExistente = "";
+            for (Object itemId2 : porPagarContainer.getItemIds()) {
+                if (itemId2.equals(itemId)) continue;
+                if (nvlC(porPagarContainer.getContainerProperty(itemId2, ID_PROVEEDOR_PROPERTY).getValue()).equals(idProveedor)) {
+                    String ch = nvlC(porPagarContainer.getContainerProperty(itemId2, CHEQUE_PROPERTY).getValue());
+                    if (!ch.isEmpty()) { chequeExistente = ch; break; }
+                }
+            }
+
+            if (!chequeExistente.isEmpty()) {
+                porPagarContainer.getContainerProperty(itemId, CHEQUE_PROPERTY).setValue(chequeExistente);
+            } else {
+                String uckStr = nvlC(cuentasBancosContainer.getContainerProperty(cuentaItemId, ULTIMO_CHEQUE_PROPERTY).getValue());
+                if (uckStr.isEmpty()) {
+                    Notification.show("Sin chequera activa para cuenta " + monedaDoc + ".", Notification.Type.WARNING_MESSAGE);
+                    continue;
+                }
+                int ultimoCheque = Integer.parseInt(uckStr);
+                if (!numeroChequeEnChequera(ultimoCheque + 1,
+                        nvlC(cuentasBancosContainer.getContainerProperty(cuentaItemId, ID_CUENTABANCO_PROPERTY).getValue()))) {
+                    Notification.show("No hay cheques disponibles en chequera para " + monedaDoc + ".", Notification.Type.WARNING_MESSAGE);
+                    continue;
+                }
+                String noCheque = String.valueOf(ultimoCheque + 1);
+                porPagarContainer.getContainerProperty(itemId, CHEQUE_PROPERTY).setValue(noCheque);
+                cuentasBancosContainer.getContainerProperty(cuentaItemId, ULTIMO_CHEQUE_PROPERTY).setValue(noCheque);
+
+                double saldoBco = parseMontoSF(cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDOSF_PROPERTY).getValue());
+                double pagos    = parseMontoSF(cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOSSF_PROPERTY).getValue());
+                cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDO_PROPERTY).setValue(numberFormat.format(saldoBco - montoCheque));
+                cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDOSF_PROPERTY).setValue(numberFormat2.format(saldoBco - montoCheque));
+                cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOS_PROPERTY).setValue(numberFormat.format(pagos + montoCheque));
+                cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOSSF_PROPERTY).setValue(numberFormat2.format(pagos + montoCheque));
+            }
         }
     }
 
@@ -1010,15 +1135,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             cuentasBancosContainer.getContainerProperty(finalCuentaItemId, PAGOSSF_PROPERTY).setValue(numberFormat2.format(pagos + finalMontoLiq));
         };
 
-        if (!chequeExistente.isEmpty()) {
-            asignarCheque.run();
-        } else {
-            pedirFechaCheque(fecha -> {
-                liquidacionContainer.getContainerProperty(event.getItemId(), LIQ_FECHA_CHEQUE_PROPERTY)
-                        .setValue(Utileria.getFechaYYYYMMDD_1(fecha));
-                asignarCheque.run();
-            });
-        }
+        asignarCheque.run();
     }
 
     public void llenarGridLiquidacion() {
