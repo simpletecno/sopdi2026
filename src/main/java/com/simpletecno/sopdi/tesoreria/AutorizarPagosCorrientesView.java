@@ -288,7 +288,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
 
         porPagarGrid.getColumn(CODIGO_PARTIDA_PROPERTY).setHidable(true).setHidden(true);
         porPagarGrid.getColumn(CODIGO_CC_PROPERTY).setHidable(true).setHidden(true);
-        porPagarGrid.getColumn(FECHA_PROPERTY).setHidable(true);
+        porPagarGrid.getColumn(FECHA_PROPERTY).setHidable(true).setHidden(true);
         porPagarGrid.getColumn(SALDOSF_PROPERTY).setHidden(true);
         porPagarGrid.getColumn(ID_PROVEEDOR_PROPERTY).setHidable(true).setHidden(true);
         porPagarGrid.getColumn(A_LIQUIDAR_ANTICIPOSSF_PROPERTY).setHidable(true).setHidden(true);
@@ -453,6 +453,18 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         saldoFacturaTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
         saldoFacturaTxt.setWidth("8em");
         saldoFacturaTxt.setReadOnly(false);
+
+        porPagarGrid.setColumnOrder(
+                PROVEEDOR_PROPERTY,
+                FECHA_PROPERTY,
+                ANTIGUEDAD_PROPERTY,
+                NUMERO_FACTURA_PROPERTY,
+                SALDO_PROPERTY,
+                A_LIQUIDAR_ANTICIPOS_PROPERTY,
+                A_LIQUIDAR_MONTO_CHEQUE_PROPERTY,
+                CHEQUE_PROPERTY,
+                ANTICIPO_DISPONIBLE_PROPERTY,
+                SELECCIONAR_PROPERTY);
         // porPagarGrid se agrega al TabSheet en crearTabSheet()
     }
 
@@ -536,6 +548,19 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             anticiposOCContainer.getContainerProperty(editedId, OC_SELECCIONAR_PROPERTY).setValue(montoPagar > 0 ? "☑" : "☐");
             ocPagarEditorField.setValue(monedaSimbolo + numberFormat.format(montoPagar));
         });
+        anticiposOCGrid.setColumnOrder(
+                OC_NOC_PROPERTY,
+                OC_TIPO_PROPERTY,
+                OC_PROVEEDOR_OC_PROPERTY,
+                OC_FECHA_OC_PROPERTY,
+                OC_MONEDA_OC_PROPERTY,
+                OC_CENTROS_COSTO_PROPERTY,
+                OC_ANTICIPO_OC_PROPERTY,
+                OC_MONTO_PAGAR_PROPERTY,
+                OC_CHEQUE_OC_PROPERTY,
+                OC_RESPONSABLE_OC_PROPERTY,
+                OC_ESTADO_OC_PROPERTY,
+                OC_SELECCIONAR_PROPERTY);
         // anticiposOCGrid se agrega al TabSheet en crearTabSheet()
     }
 
@@ -581,8 +606,13 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             anticiposOCContainer.getContainerProperty(event.getItemId(), OC_MONTO_PAGAR_PROPERTY).setValue("0.00");
             anticiposOCContainer.getContainerProperty(event.getItemId(), OC_MONTO_PAGARSF_PROPERTY).setValue("0.00");
         } else {
-            double anticipo = parseMontoSF(anticiposOCContainer.getContainerProperty(event.getItemId(), OC_ANTICIPO_SF_OC_PROPERTY).getValue());
             String moneda = nvlC(anticiposOCContainer.getContainerProperty(event.getItemId(), OC_MONEDA_OC_PROPERTY).getValue());
+            if (!cuentaBancariaSeleccionadaParaMoneda(moneda)) {
+                Notification.show("Seleccione una cuenta bancaria en " + moneda + " antes de marcar este anticipo.",
+                        Notification.Type.WARNING_MESSAGE);
+                return;
+            }
+            double anticipo = parseMontoSF(anticiposOCContainer.getContainerProperty(event.getItemId(), OC_ANTICIPO_SF_OC_PROPERTY).getValue());
             String s = moneda.startsWith("Q") ? "Q." : "$.";
             anticiposOCContainer.getContainerProperty(event.getItemId(), OC_SELECCIONAR_PROPERTY).setValue("☑");
             anticiposOCContainer.getContainerProperty(event.getItemId(), OC_MONTO_PAGAR_PROPERTY).setValue(s + numberFormat.format(anticipo));
@@ -1002,6 +1032,13 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         filterCell.setComponent(filterField);
 
         liquidacionGrid.getColumn(LIQ_MONTO_PROPERTY).setWidth(130);
+
+        liquidacionGrid.setColumnOrder(
+                LIQ_LIQUIDACION_PROPERTY,
+                LIQ_LIQUIDADOR_PROPERTY,
+                LIQ_MONTO_PROPERTY,
+                LIQ_CHEQUE_PROPERTY,
+                LIQ_SELECCIONAR_PROPERTY);
     }
 
     private void onSeleccionarLiquidacionClick(ClickableRenderer.RendererClickEvent event) {
@@ -1009,6 +1046,11 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         if ("☑".equals(sel)) {
             liquidacionContainer.getContainerProperty(event.getItemId(), LIQ_SELECCIONAR_PROPERTY).setValue("☐");
         } else {
+            if (!cuentaBancariaSeleccionadaParaMoneda("QUETZALES")) {
+                Notification.show("Seleccione una cuenta bancaria en QUETZALES antes de marcar esta liquidación.",
+                        Notification.Type.WARNING_MESSAGE);
+                return;
+            }
             liquidacionContainer.getContainerProperty(event.getItemId(), LIQ_SELECCIONAR_PROPERTY).setValue("☑");
         }
     }
@@ -2377,6 +2419,16 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         return value == null ? "" : String.valueOf(value).trim();
     }
 
+    private boolean cuentaBancariaSeleccionadaParaMoneda(String moneda) {
+        for (Object bancoId : cuentasBancosContainer.getItemIds()) {
+            if (cuentasBancosGrid.isSelected(bancoId)) {
+                String monedaBanco = nvlC(cuentasBancosContainer.getContainerProperty(bancoId, MONEDA_PROPERTY).getValue());
+                if (monedaBanco.equalsIgnoreCase(moneda)) return true;
+            }
+        }
+        return false;
+    }
+
     // ── Handlers de selección (checkbox) ─────────────────────────────────────
 
     private void onSeleccionarPorPagarClick(ClickableRenderer.RendererClickEvent event) {
@@ -2389,8 +2441,13 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).setValue("0.00");
             porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_PROPERTY).setValue("0.00");
         } else {
-            double saldo = parseMontoSF(porPagarContainer.getContainerProperty(event.getItemId(), SALDOSF_PROPERTY).getValue());
             String moneda = nvlC(porPagarContainer.getContainerProperty(event.getItemId(), MONEDA_PROPERTY).getValue());
+            if (!cuentaBancariaSeleccionadaParaMoneda(moneda)) {
+                Notification.show("Seleccione una cuenta bancaria en " + moneda + " antes de marcar este documento.",
+                        Notification.Type.WARNING_MESSAGE);
+                return;
+            }
+            double saldo = parseMontoSF(porPagarContainer.getContainerProperty(event.getItemId(), SALDOSF_PROPERTY).getValue());
             String s = moneda.startsWith("Q") ? "Q." : "$.";
             porPagarContainer.getContainerProperty(event.getItemId(), SELECCIONAR_PROPERTY).setValue("☑");
             porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_MONTO_CHEQUE_PROPERTY).setValue(numberFormat.format(saldo));
