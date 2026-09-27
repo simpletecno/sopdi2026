@@ -218,7 +218,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         cuentasBancosGrid.getColumn(PAGOSSF_PROPERTY).setHidable(true).setHidden(true);
         cuentasBancosGrid.getColumn(ID_NOMENCLATURA_PROPERTY).setHidable(true).setHidden(true);
         cuentasBancosGrid.getColumn(CUENTA_BANCARIA_PROPERTY).setWidth(130);
-        cuentasBancosGrid.getColumn(BANCO_PROPERTY).setWidth(150);
+        cuentasBancosGrid.getColumn(BANCO_PROPERTY).setWidth(200);
 
 //        cuentasBancosGrid.getColumn(CUENTA_BANCARIA_PROPERTY).setExpandRatio(1);
         cuentasBancosGrid.getColumn(BANCO_PROPERTY).setExpandRatio(2);
@@ -314,7 +314,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         porPagarGrid.getColumn(SALDO_PROPERTY).setWidth(110);
         porPagarGrid.getColumn(A_LIQUIDAR_PROPERTY).setWidth(110);
         porPagarGrid.getColumn(CHEQUE_PROPERTY).setWidth(80);
-        porPagarGrid.getColumn(ANTIGUEDAD_PROPERTY).setWidth(90);
+        porPagarGrid.getColumn(ANTIGUEDAD_PROPERTY).setWidth(80);
 
         porPagarGrid.setCellStyleGenerator((Grid.CellReference cellReference) -> {
             if (SALDO_PROPERTY.equals(cellReference.getPropertyId())) {
@@ -343,7 +343,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 .setRenderer(new ButtonRenderer(this::onSeleccionarPorPagarClick))
                 .setWidth(46);
 
-        porPagarGrid.setEditorEnabled(true);
+        porPagarGrid.setEditorEnabled(false); // se habilita dinámicamente desde onSeleccionarPorPagarClick
         porPagarGrid.setEditorBuffered(false);
 
         boolean[] updatingInline = {false};
@@ -898,7 +898,9 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_ANTICIPOSSF_PROPERTY).setValue("0.00");
             porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).setValue("0.00");
             porPagarContainer.getContainerProperty(itemId, CHEQUE_PROPERTY).setValue("");
+            porPagarContainer.getContainerProperty(itemId, SELECCIONAR_PROPERTY).setValue("☐");
         }
+        porPagarGrid.setEditorEnabled(false);
         for (Object itemId : anticiposOCContainer.getItemIds()) {
             anticiposOCContainer.getContainerProperty(itemId, OC_CHEQUE_OC_PROPERTY).setValue("");
             anticiposOCContainer.getContainerProperty(itemId, OC_SELECCIONAR_PROPERTY).setValue("☐");
@@ -1485,6 +1487,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
             Notification.show("Error al listar tabla por pagar: " + ex, Notification.Type.ERROR_MESSAGE);
         }
+        porPagarGrid.setEditorEnabled(false);
     }
 
     // =========================================================================
@@ -2490,6 +2493,8 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_MONTO_CHEQUE_PROPERTY).setValue("0.00");
             porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).setValue("0.00");
             porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_PROPERTY).setValue("0.00");
+            // deshabilitar editor si ya no queda ninguna fila seleccionada
+            actualizarEditorPorPagar();
         } else {
             String moneda = nvlC(porPagarContainer.getContainerProperty(event.getItemId(), MONEDA_PROPERTY).getValue());
             if (!cuentaBancariaSeleccionadaParaMoneda(moneda)) {
@@ -2508,7 +2513,20 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_MONTO_CHEQUE_PROPERTY).setValue(numberFormat.format(cheque));
             porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).setValue(numberFormat2.format(cheque));
             porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_PROPERTY).setValue(s + numberFormat.format(anticipo + cheque));
+            porPagarGrid.setEditorEnabled(true); // habilitar editor al seleccionar la fila
         }
+    }
+
+    /** Habilita el editor inline solo si hay al menos una fila con ☑ en Tab 1. */
+    private void actualizarEditorPorPagar() {
+        boolean haySeleccionados = false;
+        for (Object id : porPagarContainer.getItemIds()) {
+            if ("☑".equals(nvlC(porPagarContainer.getContainerProperty(id, SELECCIONAR_PROPERTY).getValue()))) {
+                haySeleccionados = true;
+                break;
+            }
+        }
+        porPagarGrid.setEditorEnabled(haySeleccionados);
     }
 
     // ── Asignación de cheques en btnAutorizarPagos ────────────────────────────
