@@ -799,6 +799,80 @@
         border-radius: 12px;
     }
 
+    /* ── apc-tabs: tabs de AutorizarPagosCorrientesView ─────────────────────── */
+    .apc-tabs.v-tabsheet > .v-tabsheet-tabbar-wrapper > .v-tabsheet-tabbar {
+        background: #E8EDF4;
+        padding: 8px 10px 0 10px;
+        border-bottom: 2px solid #2C5F9E;
+        gap: 6px;
+    }
+
+    /* Cada celda tiene margen derecho para separación visual */
+    .apc-tabs .v-tabsheet-tabitemcell {
+        margin-right: 4px;
+    }
+
+    /* Caption base: borde, fondo, padding, esquinas superiores */
+    .apc-tabs .v-tabsheet-tabitemcell .v-caption {
+        border: 1px solid #B0BEC5;
+        border-bottom: none;
+        border-radius: 8px 8px 0 0;
+        background: #F5F8FC;
+        color: #37474F;
+        font-weight: 600;
+        font-size: 13px;
+        padding: 7px 16px 8px 14px !important;
+        letter-spacing: 0.01em;
+        transition: background 0.15s, color 0.15s;
+        display: flex !important;
+        align-items: center;
+        gap: 7px;
+        white-space: nowrap;
+    }
+
+    /* Icono dentro del caption */
+    .apc-tabs .v-tabsheet-tabitemcell .v-caption .v-icon {
+        font-size: 15px !important;
+        margin-right: 5px;
+        vertical-align: middle;
+        opacity: 0.75;
+    }
+
+    /* Hover */
+    .apc-tabs .v-tabsheet-tabitemcell:not(.v-tabsheet-tabitemcell-selected) .v-caption:hover {
+        background: #DDE8F4;
+        color: #1A3A6E;
+        border-color: #90A4AE;
+        cursor: pointer;
+    }
+
+    /* Tab activo */
+    .apc-tabs .v-tabsheet-tabitemcell-selected .v-caption {
+        background: #ffffff !important;
+        color: #1A3A6E !important;
+        border-color: #2C5F9E !important;
+        border-bottom: 2px solid #ffffff !important;
+        box-shadow: 0 -2px 6px rgba(44,95,158,0.15);
+        margin-bottom: -2px;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Icono en tab activo */
+    .apc-tabs .v-tabsheet-tabitemcell-selected .v-caption .v-icon {
+        opacity: 1;
+        color: #1A3A6E;
+    }
+
+    /* Área de contenido con borde coherente */
+    .apc-tabs.v-tabsheet > .v-tabsheet-content-wrapper {
+        border: 1px solid #B0BEC5;
+        border-top: none;
+        background: #ffffff;
+        border-radius: 0 0 8px 8px;
+        padding: 10px 8px 8px 8px;
+    }
+
     /* Login */
     .loginview {
         background: radial-gradient(circle at top, #f7fbff 0%, #eaf1fb 45%, #d9e4f5 100%);

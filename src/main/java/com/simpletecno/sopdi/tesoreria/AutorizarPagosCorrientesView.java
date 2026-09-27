@@ -100,7 +100,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
     static final String OC_CODIGO_PARTIDA_PAGO_PROPERTY = "OC_PartidaPago";
 
     // --- Selección y columnas extendidas ---
-    static final String SELECCIONAR_PROPERTY           = "Sel";
+    static final String SELECCIONAR_PROPERTY           = "Seleccionar";
     static final String ANTICIPO_DISPONIBLE_PROPERTY   = "Anticipo Disp.";
     static final String ANTICIPO_DISPONIBLESF_PROPERTY = "AnticipoDispSF";
 
@@ -341,7 +341,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         porPagarGrid.getColumn(ANTICIPO_DISPONIBLE_PROPERTY).setWidth(105);
         porPagarGrid.getColumn(SELECCIONAR_PROPERTY)
                 .setRenderer(new ButtonRenderer(this::onSeleccionarPorPagarClick))
-                .setWidth(46);
+                .setWidth(60);
 
         HeaderRow filterRow = porPagarGrid.appendHeaderRow();
 
@@ -455,7 +455,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
 
         anticiposOCGrid.getColumn(OC_SELECCIONAR_PROPERTY)
                 .setRenderer(new ButtonRenderer(this::onSeleccionarOCClick))
-                .setWidth(46);
+                .setWidth(60);
         anticiposOCGrid.getColumn(OC_NOC_PROPERTY).setWidth(90);
         anticiposOCGrid.getColumn(OC_TIPO_PROPERTY).setWidth(120);
         anticiposOCGrid.getColumn(OC_PROVEEDOR_OC_PROPERTY).setExpandRatio(1);
@@ -494,6 +494,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
     private void crearTabSheet() {
         TabSheet tabSheet = new TabSheet();
         tabSheet.setWidth("100%");
+        tabSheet.addStyleName("apc-tabs");
 
         VerticalLayout tab1Layout = new VerticalLayout();
         tab1Layout.setWidth("100%");
@@ -1032,7 +1033,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
 
         liquidacionGrid.getColumn(LIQ_SELECCIONAR_PROPERTY)
                 .setRenderer(new ButtonRenderer(this::onSeleccionarLiquidacionClick))
-                .setWidth(46);
+                .setWidth(60);
 
         liquidacionGrid.setCellStyleGenerator(cell -> {
             if (LIQ_MONTO_PROPERTY.equals(cell.getPropertyId())) return "rightalign";
