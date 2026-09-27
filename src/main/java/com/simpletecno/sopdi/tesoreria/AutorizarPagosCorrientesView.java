@@ -921,7 +921,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             porPagarContainer.getContainerProperty(itemId, CHEQUE_PROPERTY).setValue("");
             porPagarContainer.getContainerProperty(itemId, SELECCIONAR_PROPERTY).setValue("☐");
         }
-        porPagarGrid.setEditorEnabled(false);
+        setEditorPorPagarSafe(false);
         for (Object itemId : anticiposOCContainer.getItemIds()) {
             anticiposOCContainer.getContainerProperty(itemId, OC_CHEQUE_OC_PROPERTY).setValue("");
             anticiposOCContainer.getContainerProperty(itemId, OC_SELECCIONAR_PROPERTY).setValue("☐");
@@ -1508,7 +1508,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
             Notification.show("Error al listar tabla por pagar: " + ex, Notification.Type.ERROR_MESSAGE);
         }
-        porPagarGrid.setEditorEnabled(false);
+        setEditorPorPagarSafe(false);
     }
 
     // =========================================================================
@@ -2547,7 +2547,18 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 break;
             }
         }
-        porPagarGrid.setEditorEnabled(haySeleccionados);
+        setEditorPorPagarSafe(haySeleccionados);
+    }
+
+    /** Habilita/deshabilita el editor de Tab 1 de forma segura:
+     *  Vaadin 7 lanza IllegalStateException si se intenta deshabilitar mientras hay una fila en edición. */
+    private void setEditorPorPagarSafe(boolean enabled) {
+        if (!enabled && porPagarGrid.getEditedItemId() != null) {
+            // El editor está activo; no se puede deshabilitar ahora.
+            // Las guardias en los value-change listeners protegen las filas sin ☑.
+            return;
+        }
+        porPagarGrid.setEditorEnabled(enabled);
     }
 
     // ── Asignación de cheques en btnAutorizarPagos ────────────────────────────
