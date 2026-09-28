@@ -21,19 +21,24 @@ import java.sql.Statement;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.Page;
+import java.text.DecimalFormat;
 
 public class CuentasContablesBancosView extends VerticalLayout implements View {
 
-    static final String ID_CUENTABANCO_PROPERTY = "Id";
-    static final String ID_EMPRESA_PROPERTY = "Id Empresa";
-    static final String EMPRESA_PROPERTY = "Empresa";
-    static final String ID_NOMENCLATURA_PROPERTY = "Id Nomenclatura";
-    static final String N5_PROPERTY = "N5";
-    static final String PROVEEDOR_PROPERTY = "Banco";
-    static final String NOCUENTA_PROPERTY = "No Cuenta";
-    static final String MONEDA_PROPERTY     = "Moneda";
-    static final String PRINCIPAL_PROPERTY  = "Principal";
-    static final String PLANILLA_PROPERTY   = "Planilla";
+    static final String ID_CUENTABANCO_PROPERTY    = "Id";
+    static final String ID_EMPRESA_PROPERTY        = "Id Empresa";
+    static final String EMPRESA_PROPERTY           = "Empresa";
+    static final String ID_NOMENCLATURA_PROPERTY   = "Id Nomenclatura";
+    static final String N5_PROPERTY                = "N5";
+    static final String PROVEEDOR_PROPERTY         = "Banco";
+    static final String NOCUENTA_PROPERTY          = "No Cuenta";
+    static final String MONEDA_PROPERTY            = "Moneda";
+    static final String PRINCIPAL_PROPERTY         = "Principal";
+    static final String PLANILLA_PROPERTY          = "Planilla";
+    static final String SALDO_CONTABLE_PROPERTY    = "Saldo Contable";
+    static final String ULT_CONCILIACION_PROPERTY  = "Ult. Conciliación";
+
+    static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#,###,##0.00");
 
     public IndexedContainer container = new IndexedContainer();
     Grid cuentasGrid;
@@ -66,7 +71,7 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
     public void createTablaCuentasContables() {
 
         HorizontalLayout reportLayout = new HorizontalLayout();
-        reportLayout.setWidth("75%");
+        reportLayout.setWidth("100%");
         reportLayout.addStyleName("rcorners3");
         reportLayout.setResponsive(true);
         reportLayout.setMargin(true);
@@ -81,6 +86,8 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
         container.addContainerProperty(EMPRESA_PROPERTY, String.class, null);
         container.addContainerProperty(PRINCIPAL_PROPERTY, String.class, "No");
         container.addContainerProperty(PLANILLA_PROPERTY, String.class, "No");
+        container.addContainerProperty(SALDO_CONTABLE_PROPERTY, String.class, "0.00");
+        container.addContainerProperty(ULT_CONCILIACION_PROPERTY, String.class, "—");
 
         cuentasGrid = new Grid("Listado de cuentas", container);
         cuentasGrid.setImmediate(true);
@@ -96,16 +103,20 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
         cuentasGrid.getColumn(ID_EMPRESA_PROPERTY).setHidable(true).setHidden(true);
         cuentasGrid.getColumn(ID_NOMENCLATURA_PROPERTY).setHidable(true).setHidden(true);
 
-        cuentasGrid.getColumn(ID_CUENTABANCO_PROPERTY).setExpandRatio(1);
-        cuentasGrid.getColumn(ID_NOMENCLATURA_PROPERTY).setExpandRatio(1);
-        cuentasGrid.getColumn(ID_EMPRESA_PROPERTY).setExpandRatio(1);
-        cuentasGrid.getColumn(N5_PROPERTY).setExpandRatio(4);
-        cuentasGrid.getColumn(PROVEEDOR_PROPERTY).setExpandRatio(3);
-        cuentasGrid.getColumn(NOCUENTA_PROPERTY).setExpandRatio(2);
-        cuentasGrid.getColumn(MONEDA_PROPERTY).setExpandRatio(2);
-        cuentasGrid.getColumn(EMPRESA_PROPERTY).setExpandRatio(4);
-        cuentasGrid.getColumn(PRINCIPAL_PROPERTY).setExpandRatio(1);
-        cuentasGrid.getColumn(PLANILLA_PROPERTY).setExpandRatio(1);
+        cuentasGrid.getColumn(N5_PROPERTY).setExpandRatio(3);
+        cuentasGrid.getColumn(PROVEEDOR_PROPERTY).setWidth(180);
+        cuentasGrid.getColumn(NOCUENTA_PROPERTY).setWidth(150);
+        cuentasGrid.getColumn(MONEDA_PROPERTY).setWidth(100);
+        cuentasGrid.getColumn(EMPRESA_PROPERTY).setExpandRatio(2);
+        cuentasGrid.getColumn(PRINCIPAL_PROPERTY).setWidth(80);
+        cuentasGrid.getColumn(PLANILLA_PROPERTY).setWidth(80);
+        cuentasGrid.getColumn(SALDO_CONTABLE_PROPERTY).setWidth(140);
+        cuentasGrid.getColumn(ULT_CONCILIACION_PROPERTY).setWidth(140);
+
+        cuentasGrid.setCellStyleGenerator(cell -> {
+            if (SALDO_CONTABLE_PROPERTY.equals(cell.getPropertyId())) return "rightalign";
+            return null;
+        });
 
         reportLayout.addComponent(cuentasGrid);
         reportLayout.setComponentAlignment(cuentasGrid, Alignment.MIDDLE_CENTER);
@@ -246,6 +257,14 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
                     container.getContainerProperty(itemId, PRINCIPAL_PROPERTY).setValue("1".equals(rsRecords.getString("EsPrincipal")) ? "Sí" : "No");
                     container.getContainerProperty(itemId, PLANILLA_PROPERTY).setValue("1".equals(rsRecords.getString("EsPlanilla")) ? "Sí" : "No");
 
+                    String idCuenta = rsRecords.getString("IdCuentaBanco");
+                    String idNom    = rsRecords.getString("IdNomenclatura");
+                    String moneda   = rsRecords.getString("Moneda");
+                    String simb     = (moneda != null && moneda.startsWith("Q")) ? "Q." : "$.";
+                    double[] saldoYFecha = calcularSaldoYUltimaConciliacion(idCuenta, idNom);
+                    container.getContainerProperty(itemId, SALDO_CONTABLE_PROPERTY).setValue(simb + NUMBER_FORMAT.format(saldoYFecha[0]));
+                    container.getContainerProperty(itemId, ULT_CONCILIACION_PROPERTY).setValue(formatearAnioMes((long) saldoYFecha[1]));
+
                 } while (rsRecords.next());
             }
         } catch (Exception ex) {
@@ -259,6 +278,58 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
         ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " Cuentas contables de Bancos");
         Page.getCurrent().setTitle("Sopdi - Cuentas Banco");
         llenarTablaCuentas();
+    }
+
+    /**
+     * Devuelve [saldoContable, anioMes] para una cuenta bancaria.
+     * saldoContable = SaldoFinalContable última conciliación + movimientos posteriores.
+     * anioMes = valor numérico YYYYMM (0 si no hay conciliación).
+     */
+    private double[] calcularSaldoYUltimaConciliacion(String idCuentaBanco, String idNomenclatura) {
+        double saldo = 0;
+        long anioMes = 0;
+        try {
+            String sqlConc = "SELECT SaldoFinalContable, AnioMes"
+                    + " FROM contabilidad_conciliacion_bancaria"
+                    + " WHERE IdCuentaBanco = " + idCuentaBanco
+                    + "   AND IdEmpresa = " + empresaId
+                    + "   AND Estatus = 'FINALIZADA'"
+                    + " ORDER BY AnioMes DESC LIMIT 1";
+            double saldoConc = 0;
+            String anioMesConcStr = null;
+            try (Statement st = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+                 ResultSet rs = st.executeQuery(sqlConc)) {
+                if (rs.next()) {
+                    saldoConc = rs.getDouble("SaldoFinalContable");
+                    anioMesConcStr = rs.getString("AnioMes");
+                    anioMes = Long.parseLong(anioMesConcStr);
+                }
+            }
+            String filtroFecha = (anioMesConcStr != null)
+                    ? " AND cp.Fecha > LAST_DAY(STR_TO_DATE(CONCAT('" + anioMesConcStr + "','01'),'%Y%m%d'))"
+                    : "";
+            String sqlMov = "SELECT COALESCE(SUM(cp.Debe - cp.Haber), 0) AS Movimiento"
+                    + " FROM contabilidad_partida cp"
+                    + " WHERE cp.IdNomenclatura = " + idNomenclatura
+                    + "   AND cp.IdEmpresa = " + empresaId
+                    + "   AND cp.Estatus <> 'ANULADO'"
+                    + filtroFecha;
+            try (Statement st = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+                 ResultSet rs = st.executeQuery(sqlMov)) {
+                if (rs.next()) saldo = saldoConc + rs.getDouble("Movimiento");
+            }
+        } catch (Exception ex) {
+            System.out.println("Error calcularSaldoYUltimaConciliacion: " + ex.getMessage());
+        }
+        return new double[]{saldo, anioMes};
+    }
+
+    /** Convierte YYYYMM a formato MM/YYYY. Devuelve "—" si anioMes es 0. */
+    private String formatearAnioMes(long anioMes) {
+        if (anioMes == 0) return "—";
+        String s = String.valueOf(anioMes);
+        if (s.length() == 6) return s.substring(4, 6) + "/" + s.substring(0, 4);
+        return s;
     }
 
     private void asegurarColumnasCuentasBancos() {
