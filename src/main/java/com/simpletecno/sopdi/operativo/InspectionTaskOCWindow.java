@@ -830,9 +830,17 @@ public class InspectionTaskOCWindow extends Window {
             stPreparedQuery.executeUpdate();
             rsRecords2 = stPreparedQuery.getGeneratedKeys();
 
-            rsRecords2.next();
-
-            String recordKey = rsRecords2.getString(1);
+            String recordKey;
+            if (rsRecords2.next()) {
+                recordKey = rsRecords2.getString(1);
+            } else {
+                rsRecords2 = stQuery.executeQuery("SELECT LAST_INSERT_ID() AS insert_id");
+                if (rsRecords2.next()) {
+                    recordKey = rsRecords2.getString("insert_id");
+                } else {
+                    throw new SQLException("No se obtuvo el ID generado para visita_inspeccion_tarea_oc.");
+                }
+            }
 
             Object itemObject = ocContainer.addItem();
 

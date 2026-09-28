@@ -226,7 +226,7 @@ public class FacturaVentaAnularForm extends Window {
                             queryString +=  " Fecha, Origen, Descripcion, Saldo, Creditos, AlertasInfile, AlertasSat, ";
                             queryString +=  " InformacionAdicional, UUID, Serie, Numero, JsonResponse, CodigoPartida, IdEmpresa, Estado) ";
                             queryString +=  " VALUES (";
-                            queryString +=  "'" +Utileria.getFechaYYYYMMDDHHMMSS(infileClient.getFechaHoraCertificacion()) + "'";
+                            queryString +=  "'" +Utileria.getFechaYYYYMMDDHHMMSS(infileClient.getFechaHoraEmision()) + "'";
                             queryString +=  ", '" + infileClient.getOrigen() + "'";
                             queryString +=  ", '" + infileClient.getDescripcion() + "'";
                             queryString +=  ", '" + infileClient.getSaldo() + "'";

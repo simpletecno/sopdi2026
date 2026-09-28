@@ -2033,6 +2033,41 @@ System.out.println("Empleado=[" + idProveedor + "] liquidoRecibir=[" + liquidoRe
                     queryString += ", " + null + ")";
                 }
 
+                // PROVISION INDEMNIZACION
+                if((double)item.getItemProperty(INDEMNIZACION).getValue() > 0
+                        && "EXENTA".equals(((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyRegimen())) {
+                    queryString += ",(";
+                    queryString += ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+                    queryString += ",'INGRESADO'";
+                    queryString += ",'" + codigoPartida + "'";
+                    queryString += ",'" + codigoCC + "'";
+                    queryString += ",'PLANILLA'";
+                    queryString += ",'" + fecha + "'";
+                    queryString += "," + item.getItemProperty(IDEMPLEADO).getValue();
+                    queryString += ",''";//nitproveedor
+                    queryString += ",'" + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
+                    queryString += ",'" + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
+                    queryString += "," + item.getItemProperty(LIQUIDO).getValue();
+                    queryString += ",'" + String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CORRELATIVO_PLANILLA).getValue()) + "'";  //serie documento
+                    queryString += ",'" + String.valueOf(item.getItemProperty(IDEMPLEADO).getValue()) + String.format("%03d", Integer.valueOf(String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CORRELATIVO_PLANILLA).getValue()))) + "'";  //numero documento
+                    queryString += ",''"; //tipodoca
+                    queryString += ",''"; //doca
+                    queryString += "," + ((SopdiUI) mainUI).cuentasContablesDefault.getProvisionIndemnizacion(); // PROVISION INDEMNIZACION
+                    queryString += ",'QUETZALES'";
+                    queryString += "," + (double)item.getItemProperty(INDEMNIZACION).getValue();
+                    queryString += ",0.00"; //HABER
+                    queryString += "," + (double)item.getItemProperty(INDEMNIZACION).getValue();
+                    queryString += ",0.00"; //HABER Q.
+                    queryString += ",1.0";
+                    queryString += "," + item.getItemProperty(LIQUIDO).getValue();
+                    queryString += ",'PLANILLA SUELDO POR PAGAR " + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
+                    queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+                    queryString += ",current_timestamp";
+                    queryString += ",0";
+                    queryString += ",'0'";
+                    queryString += ", " + null + ")";
+                }
+
                 // CUOTA PATRONAL IGSS
                 if((double)item.getItemProperty(PROVISION_PATIGSS).getValue() > 0 ) {
                     queryString += ",(";
@@ -2295,6 +2330,41 @@ System.out.println("Empleado=[" + idProveedor + "] liquidoRecibir=[" + liquidoRe
                     queryString += "," + (double)item.getItemProperty(PROVISION_AG_B14).getValue();
                     queryString += ",0.00"; //DEBE Q.
                     queryString += "," + (double)item.getItemProperty(PROVISION_AG_B14).getValue();
+                    queryString += ",1.0";
+                    queryString += "," + item.getItemProperty(LIQUIDO).getValue();
+                    queryString += ",'PLANILLA SUELDO POR PAGAR " + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
+                    queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+                    queryString += ",current_timestamp";
+                    queryString += ",0";
+                    queryString += ",'0'";
+                    queryString += ", " + null + ")";
+                }
+
+                // PROVISION INDEMNIZACION
+                if((double)item.getItemProperty(INDEMNIZACION).getValue() > 0
+                        && "EXENTA".equals(((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyRegimen())) {
+                    queryString += ",(";
+                    queryString += ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+                    queryString += ",'INGRESADO'";
+                    queryString += ",'" + codigoPartida + "'";
+                    queryString += ",'" + codigoCC + "'";
+                    queryString += ",'PLANILLA'";
+                    queryString += ",'" + fecha + "'";
+                    queryString += "," + item.getItemProperty(IDEMPLEADO).getValue();
+                    queryString += ",''";//nitproveedor
+                    queryString += ",'" + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
+                    queryString += ",'" + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
+                    queryString += "," + item.getItemProperty(LIQUIDO).getValue();
+                    queryString += ",'" + String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CORRELATIVO_PLANILLA).getValue()) + "'";  //serie documento
+                    queryString += ",'" + String.valueOf(item.getItemProperty(IDEMPLEADO).getValue()) + String.format("%03d", Integer.valueOf(String.valueOf(planillaContainer.getContainerProperty(planillaGrid.getSelectedRow(), CORRELATIVO_PLANILLA).getValue()))) + "'";  //numero documento
+                    queryString += ",''"; //tipodoca
+                    queryString += ",''"; //doca
+                    queryString += "," + ((SopdiUI) mainUI).cuentasContablesDefault.getProvisionIndemnizacion(); // PROVISION INDEMNIZACION
+                    queryString += ",'QUETZALES'";
+                    queryString += ",0.00"; //DEBE
+                    queryString += "," + (double)item.getItemProperty(INDEMNIZACION).getValue();
+                    queryString += ",0.00"; //DEBE Q.
+                    queryString += "," + (double)item.getItemProperty(INDEMNIZACION).getValue();
                     queryString += ",1.0";
                     queryString += "," + item.getItemProperty(LIQUIDO).getValue();
                     queryString += ",'PLANILLA SUELDO POR PAGAR " + String.valueOf(item.getItemProperty(EMPLEADO).getValue()) + "'";
@@ -2687,7 +2757,6 @@ System.out.println("Empleado=[" + idProveedor + "] liquidoRecibir=[" + liquidoRe
         }
 
         long dias_trabajados = TimeUnit.DAYS.convert(diffInMillies, TimeUnit.MILLISECONDS) + 1;
-
         indemnizacion = promedio[0] + promedio[1];
         indemnizacion += (promedio[2] / 12) * 2; // Agregado de una doseaba parte del bono 14 y el aguinaldo, ya que es un derecho del trabajador y se le debe pagar en caso de despido injustificado
         indemnizacion = Utileria.round(indemnizacion*dias_trabajados/365);
