@@ -791,6 +791,7 @@ System.out.println("-->\nqueryStringDetalleEstimacion: " + queryString);
             PdfPTable reportTable2;
             PdfPCell c2 = null;
 
+            document.newPage();
             document.add(new Paragraph("       Datos para el proveedor", smallBold14));
             LineSeparator objectName = new LineSeparator();
             document.add(objectName);

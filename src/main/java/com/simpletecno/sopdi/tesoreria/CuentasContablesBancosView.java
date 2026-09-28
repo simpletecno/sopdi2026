@@ -193,6 +193,27 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
                     }
 
                     try {
+                        // Validar que no existan partidas contables no anuladas para esta cuenta
+                        String idNom = String.valueOf(container.getContainerProperty(
+                                cuentasGrid.getSelectedRow(), ID_NOMENCLATURA_PROPERTY).getValue());
+
+                        String sqlPartidas = "SELECT COUNT(*) AS TOTAL FROM contabilidad_partida"
+                                + " WHERE IdNomenclatura = " + idNom
+                                + " AND IdEmpresa = " + idEmpresa
+                                + " AND Estatus <> 'ANULADO'";
+                        Statement stVal = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+                        ResultSet rsVal = stVal.executeQuery(sqlPartidas);
+                        if (rsVal.next() && rsVal.getInt("TOTAL") > 0) {
+                            Notification.show(
+                                    "No se puede eliminar: existen " + rsVal.getInt("TOTAL") +
+                                    " partida(s) contable(s) activa(s) asociada(s) a esta cuenta bancaria.",
+                                    Notification.Type.WARNING_MESSAGE);
+                            rsVal.close();
+                            stVal.close();
+                            return;
+                        }
+                        rsVal.close();
+                        stVal.close();
 
                         queryString = "DELETE FROM contabilidad_cuentas_bancos";
                         queryString += " WHERE IdCuentaBanco = " + idCuentaBanco;
@@ -205,7 +226,7 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
                         llenarTablaCuentas();
 
                     } catch (SQLException ex) {
-                        System.out.println("Error al buscar registros en contabilidad_cuentas_bancos" + ex.getMessage());
+                        System.out.println("Error al eliminar cuenta bancaria: " + ex.getMessage());
                         ex.printStackTrace();
                     }
                 }
