@@ -27,6 +27,7 @@ import com.wcs.wcslib.vaadin.widget.multifileupload.ui.UploadFinishedHandler;
 import com.wcs.wcslib.vaadin.widget.multifileupload.ui.UploadStateWindow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.vaadin.dialogs.ConfirmDialog;
 import org.vaadin.ui.NumberField;
 
 import java.io.*;
@@ -122,11 +123,16 @@ public class OrdenCompraForm extends Window {
     double diferencia = 0.00;
     double retencionIsr = 0.00;
 
+    String codigoCc = "";
+    String documento = "";
+    Object selectedItem;
+
     String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
-    public OrdenCompraForm(String idOrdenCompra) {
+    public OrdenCompraForm(Object selectedItem, String idOrdenCompra) {
         this.mainUI = UI.getCurrent();
+        this.selectedItem = selectedItem;
         this.idOrdenCompra = idOrdenCompra;
 
         setWidth("95%");
@@ -473,12 +479,14 @@ public class OrdenCompraForm extends Window {
         montos2Layout.setExpandRatio(porcentajeToleranciaTxt, 1);
 
         nombreChequeTxt = new TextField();
+        nombreChequeTxt.setDescription("Nombre cheque");
         nombreChequeTxt.setInputPrompt("Nombre en cheque");
         nombreChequeTxt.setWidth("100%");
         nombreChequeTxt.setValue("");
 
         cuentaContableCbx = new ComboBox();
         cuentaContableCbx.setInputPrompt("Cuenta Contable");
+        cuentaContableCbx.setDescription("Cuenta Contable");
         cuentaContableCbx.setWidth("100%");
         cuentaContableCbx.setFilteringMode(FilteringMode.CONTAINS);
         cuentaContableCbx.setInvalidAllowed(false);
@@ -488,6 +496,7 @@ public class OrdenCompraForm extends Window {
 
         razonTxt = new TextField();
         razonTxt.setInputPrompt("Razón");
+        razonTxt.setDescription("Razon");
         razonTxt.setWidth("100%");
         razonTxt.setValue("");
 
@@ -728,7 +737,6 @@ public class OrdenCompraForm extends Window {
 
         Button printBtn = new Button("Imprimir OC");
         printBtn.setIcon(FontAwesome.PRINT);
-        printBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
         printBtn.setDescription("Imprimir Orden de Compra.");
         printBtn.addClickListener((Button.ClickListener) event -> {
             queryString = " SELECT * ";
@@ -774,15 +782,68 @@ public class OrdenCompraForm extends Window {
             }
         });
 
+        Button delBtn = new Button("Eliminar orden");
+        delBtn.setIcon(FontAwesome.TRASH);
+        delBtn.addStyleName(ValoTheme.BUTTON_DANGER);
+        delBtn.setDescription("Eliminar Orden.");
+        delBtn.addClickListener((Button.ClickListener) event -> ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de Eliminar esta orden de compra?",
+                "SI", "NO", new ConfirmDialog.Listener() {
+
+                    public void onClose(ConfirmDialog dialog) {
+                        if (dialog.isConfirmed()) {
+
+                            if(!codigoCc.trim().isEmpty()){
+                                Notification.show("No se puede eliminar esta orden de compra, ya que tiene un anticipo asociado.", Notification.Type.WARNING_MESSAGE);
+                                return;
+                            }
+                            if(!documento.trim().isEmpty()){
+                                Notification.show("No se puede eliminar esta orden de compra, ya que tiene un DOCUMENTO asociado.", Notification.Type.WARNING_MESSAGE);
+                                return;
+                            }
+
+                            try {
+                                queryString = "DELETE FROM orden_compra_detalle";
+                                queryString += " WHERE IdOrdenCompra = " + idOrdenCompra;
+
+                                stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+                                stQuery.execute(queryString);
+
+                                queryString = "DELETE FROM orden_compra";
+                                queryString += " WHERE Id = " + idOrdenCompra;
+
+                                stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+                                stQuery.execute(queryString);
+
+                                ((OrdenCompraView)UI.getCurrent().getNavigator().getCurrentView()).ordenCompraContainer.removeItem(selectedItem);
+
+                                Notification notif = new Notification("Registro eliminado exitosamente!.", Notification.Type.TRAY_NOTIFICATION);
+                                notif.setDelayMsec(1500);
+                                notif.setPosition(Position.MIDDLE_CENTER);
+                                notif.setIcon(FontAwesome.CHECK);
+                                notif.show(Page.getCurrent());
+
+                            } catch (Exception e) {
+                                System.out.println("Error el intentar eliminar registro");
+                                e.printStackTrace();
+                            }
+                        } else {
+                            Notification.show("Operación cacelada!", Notification.Type.WARNING_MESSAGE);
+                        }
+                        close();
+                    }
+                }));
+
         HorizontalLayout buttonsLayout = new HorizontalLayout();
         buttonsLayout.setWidth("100%");
         buttonsLayout.setSpacing(true);
         buttonsLayout.setMargin(false);
 
-        buttonsLayout.addComponents(salirBtn, singleUpload, printBtn, guardarBtn);
+        buttonsLayout.addComponents(salirBtn, singleUpload, printBtn, guardarBtn, delBtn);
         buttonsLayout.setComponentAlignment(salirBtn, Alignment.BOTTOM_LEFT);
         buttonsLayout.setComponentAlignment(singleUpload, Alignment.BOTTOM_CENTER);
+        buttonsLayout.setComponentAlignment(printBtn, Alignment.BOTTOM_CENTER);
         buttonsLayout.setComponentAlignment(guardarBtn, Alignment.BOTTOM_CENTER);
+        buttonsLayout.setComponentAlignment(delBtn, Alignment.BOTTOM_RIGHT);
 
         rightLayout.addComponent(idccGrid);
         rightLayout.setComponentAlignment(idccGrid, Alignment.TOP_CENTER);
@@ -1799,6 +1860,8 @@ public class OrdenCompraForm extends Window {
                 if(rsRecords2.getString("Estado").equals("CERRADA")) {
                     guardarBtn.setEnabled(false);
                 }
+                codigoCc = rsRecords2.getString("CodigoCCAnticipo");
+                documento = rsRecords2.getString("CodigoCCDocumento");
             }
         } catch (Exception ex) {
             System.out.println("Error al listar tablea orden compra detalle:" + ex);

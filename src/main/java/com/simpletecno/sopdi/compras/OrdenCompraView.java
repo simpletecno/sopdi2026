@@ -285,6 +285,7 @@ public class OrdenCompraView extends VerticalLayout implements View {
                     }
                     OrdenCompraForm ordenForm =
                             new OrdenCompraForm(
+                                    ordenCompraGrid.getSelectedRow(),
                                     String.valueOf(ordenCompraContainer.getContainerProperty(ordenCompraGrid.getSelectedRow(), ID_PROPERTY).getValue())
                             );
                     UI.getCurrent().addWindow(ordenForm);
@@ -306,7 +307,7 @@ public class OrdenCompraView extends VerticalLayout implements View {
         newBtn.addClickListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
-                OrdenCompraForm ordenForm = new OrdenCompraForm("");
+                OrdenCompraForm ordenForm = new OrdenCompraForm(0,"");
                 UI.getCurrent().addWindow(ordenForm);
                 ordenForm.center();
             }

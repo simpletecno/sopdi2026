@@ -576,6 +576,7 @@ public class VisitasView extends VerticalLayout implements View {
         motivoCbx.addItem("Consejo Administración").getItemProperty("Codigo").setValue("8");
         motivoCbx.addItem("Cliente").getItemProperty("Codigo").setValue("9");
         motivoCbx.addItem("Cierre Centro Costo").getItemProperty("Codigo").setValue("10");
+        motivoCbx.addItem("Cambio de proveedor").getItemProperty("Codigo").setValue("11");
 
         visitasCbx = new ComboBox("Visitas :");
         visitasCbx.addContainerProperty("Codigo", String.class, "");
