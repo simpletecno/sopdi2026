@@ -36,7 +36,7 @@ public class CuentasContablesBancosView extends VerticalLayout implements View {
     static final String PRINCIPAL_PROPERTY         = "Principal";
     static final String PLANILLA_PROPERTY          = "Planilla";
     static final String SALDO_CONTABLE_PROPERTY    = "Saldo Contable";
-    static final String ULT_CONCILIACION_PROPERTY  = "Ult. Conciliación";
+    static final String ULT_CONCILIACION_PROPERTY  = "Conciliado hasta";
 
     static final DecimalFormat NUMBER_FORMAT = new DecimalFormat("#,###,##0.00");
 

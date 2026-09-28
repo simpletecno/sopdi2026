@@ -574,7 +574,7 @@ public class OrdenCompraForm extends Window {
 
         idccGrid.addSelectionListener((SelectionEvent.SelectionListener) event -> {
             // iterar por todos los items, verificar si están seleccionados y sumar totales
-            anticipoTxt.setReadOnly(!anticipoTxt.isReadOnly());
+//            anticipoTxt.setReadOnly(!anticipoTxt.isReadOnly());
             montoTxt.setReadOnly(!montoTxt.isReadOnly());
             montoTxt.setValue(0.00);
             anticipoTxt.setValue(0.00);
@@ -590,8 +590,10 @@ public class OrdenCompraForm extends Window {
             }//end for
             if (tipoOrdenCompraCbx.getValue().equals("1") || tipoOrdenCompraCbx.getValue().equals("2")) {
                 montoTxt.setReadOnly(!montoTxt.isReadOnly());
-                anticipoTxt.setValue(Double.parseDouble(new DecimalFormat("#######.##").format((montoTxt.getDoubleValueDoNotThrow() * (porcentajeAnticipo / 100)))));
-                anticipoTxt.setReadOnly(!anticipoTxt.isReadOnly());
+                if(porcentajeAnticipo > 0) {
+                    anticipoTxt.setValue(Double.parseDouble(new DecimalFormat("#######.##").format((montoTxt.getDoubleValueDoNotThrow() * (porcentajeAnticipo / 100)))));
+                }
+//                anticipoTxt.setReadOnly(!anticipoTxt.isReadOnly());
                 footerRow.getCell(TOTAL_PROPERTY).setText(numberFormat.format(montoTxt.getDoubleValueDoNotThrow()));
             }
             else {
@@ -724,13 +726,60 @@ public class OrdenCompraForm extends Window {
         acceptedMimeTypes.add("application/x-xls");
         //       singleUpload.setAcceptedMimeTypes(acceptedMimeTypes);
 
+        Button printBtn = new Button("Imprimir OC");
+        printBtn.setIcon(FontAwesome.PRINT);
+        printBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+        printBtn.setDescription("Imprimir Orden de Compra.");
+        printBtn.addClickListener((Button.ClickListener) event -> {
+            queryString = " SELECT * ";
+            queryString += " FROM orden_compra";
+            queryString += " INNER JOIN tipo_orden_compra ON orden_compra.IdTipoOrdenCompra = tipo_orden_compra.Id";
+            queryString += " INNER JOIN proveedor_empresa ON orden_compra.IdProveedor = proveedor_empresa.IdProveedor";
+            queryString += " WHERE orden_compra.Id = " + idOrdenCompra;
+            queryString += " AND proveedor_empresa.IdEmpresa = " + empresaId;
+
+            try {
+                stQuery2 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+                rsRecords2 = stQuery2.executeQuery(queryString);
+
+                if (rsRecords2.next()) { //  encontrado
+                    if(rsRecords2.getString("orden_compra.IdTipoOrdenCompra").equals("1") || rsRecords2.getString("orden_compra.IdTipoOrdenCompra").equals("2")) {
+                        OrdenCompraEstimacionPDF pdfOrdenCompra =
+                                new OrdenCompraEstimacionPDF(
+                                        rsRecords2.getString("orden_compra.Id"),
+                                        rsRecords2.getString("orden_compra.IdTipoOrdenCompra"),
+                                        rsRecords2.getString("tipo_orden_compra.Descripcion"),
+                                        rsRecords2.getString("proveedor_empresa.IdProveedor") + " " + rsRecords2.getString("proveedor_empresa.Nombre"),
+                                        rsRecords2.getDouble("orden_compra.Anticipo")
+                                );
+                        UI.getCurrent().addWindow(pdfOrdenCompra);
+                        pdfOrdenCompra.center();
+                    } else { //eventual, recurrente
+                        OrdenCompraPDF pdfOrdenCompra =
+                                new OrdenCompraPDF(
+                                        rsRecords2.getString("Id"),
+                                        rsRecords2.getString("IdTipoOrdenCompra"),
+                                        rsRecords2.getString("tipo_orden_compra.Descripcion"),
+                                        rsRecords2.getString("proveedor_empresa.IdProveedor") + " " + rsRecords2.getString("proveedor_empresa.Nombre"),
+                                        rsRecords2.getDouble("orden_compra.Anticipo")
+                                );
+                        UI.getCurrent().addWindow(pdfOrdenCompra);
+                        pdfOrdenCompra.center();
+                    }
+
+                }
+            } catch (Exception ex) {
+                System.out.println("Error al listar tablea orden compra detalle:" + ex);
+                ex.printStackTrace();
+            }
+        });
 
         HorizontalLayout buttonsLayout = new HorizontalLayout();
         buttonsLayout.setWidth("100%");
         buttonsLayout.setSpacing(true);
         buttonsLayout.setMargin(false);
 
-        buttonsLayout.addComponents(salirBtn, singleUpload, guardarBtn);
+        buttonsLayout.addComponents(salirBtn, singleUpload, printBtn, guardarBtn);
         buttonsLayout.setComponentAlignment(salirBtn, Alignment.BOTTOM_LEFT);
         buttonsLayout.setComponentAlignment(singleUpload, Alignment.BOTTOM_CENTER);
         buttonsLayout.setComponentAlignment(guardarBtn, Alignment.BOTTOM_CENTER);
@@ -745,7 +794,9 @@ public class OrdenCompraForm extends Window {
 
     private void recalcularMontos() {
         anticipoTxt.setReadOnly(false);
-        anticipoTxt.setValue(Double.parseDouble(new DecimalFormat("#######.##").format((montoTxt.getDoubleValueDoNotThrow() * (porcentajeAnticipo / 100)))));
+        if(porcentajeAnticipo > 0) {
+            anticipoTxt.setValue(Double.parseDouble(new DecimalFormat("#######.##").format((montoTxt.getDoubleValueDoNotThrow() * (porcentajeAnticipo / 100)))));
+        }
         retencionIsrTxt.setReadOnly(false);
         retencionIsrTxt.setValue(0.0);
         retencionIsrTxt.setReadOnly(true);

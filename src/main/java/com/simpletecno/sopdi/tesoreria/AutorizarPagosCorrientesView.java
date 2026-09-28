@@ -5,7 +5,6 @@ import com.simpletecno.sopdi.utilerias.Utileria;
 import com.vaadin.data.Property;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.util.filter.SimpleStringFilter;
-import com.vaadin.event.SelectionEvent;
 import com.vaadin.event.SelectionEvent.SelectionListener;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
@@ -70,7 +69,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
     static final String ANTIGUEDAD_PROPERTY = "Dias";
     static final String A_LIQUIDAR_PROPERTY = "A liquidar";
     static final String CHEQUE_PROPERTY = "# Cheque";
-    static final String A_LIQUIDAR_ANTICIPOS_PROPERTY = "Anticipos";
+    static final String A_LIQUIDAR_ANTICIPOS_PROPERTY = "Anticipo";
     static final String A_LIQUIDAR_MONTO_CHEQUE_PROPERTY = "Cheque";
     static final String CODIGO_PARTIDA_PROPERTY = "Codigo partida";
     static final String CODIGO_CC_PROPERTY = "CodigoCC";
@@ -88,13 +87,12 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
     static final String OC_PROVEEDOR_OC_PROPERTY = "Proveedor";
     static final String OC_FECHA_OC_PROPERTY = "Fecha";
     static final String OC_MONEDA_OC_PROPERTY = "Moneda";
-    static final String OC_ANTICIPO_OC_PROPERTY = "Anticipo";
+    static final String OC_ANTICIPO_OC_PROPERTY = "Solicitado";
     static final String OC_ANTICIPO_SF_OC_PROPERTY = "AnticipoSFOC";
     static final String OC_IDPROVEEDOR_OC_PROPERTY = "OC_IdProveedor";
     static final String OC_CHEQUE_OC_PROPERTY = "# Cheque";
     static final String OC_RESPONSABLE_OC_PROPERTY = "Responsable";
     static final String OC_RAZON_OC_PROPERTY = "Razon";
-    static final String OC_ESTADO_OC_PROPERTY = "Estado";
     static final String OC_NOMBRE_PROVEEDOR_OC_PROPERTY = "OC_NombreProveedor";
     static final String OC_CENTROS_COSTO_PROPERTY = "C. Costos";
     static final String OC_CODIGO_PARTIDA_PAGO_PROPERTY = "OC_PartidaPago";
@@ -104,11 +102,11 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
     static final String ANTICIPO_DISPONIBLE_PROPERTY   = "Anticipo Disp.";
     static final String ANTICIPO_DISPONIBLESF_PROPERTY = "AnticipoDispSF";
 
-    static final String OC_SELECCIONAR_PROPERTY        = "OC_Sel";
+    static final String OC_SELECCIONAR_PROPERTY        = "Seleccionar";
     static final String OC_MONTO_PAGAR_PROPERTY        = "Pagar";
     static final String OC_MONTO_PAGARSF_PROPERTY      = "OC_MontoAPagarSF";
 
-    static final String LIQ_SELECCIONAR_PROPERTY       = "Liq_Sel";
+    static final String LIQ_SELECCIONAR_PROPERTY       = "Seleccionar";
 
     // --- Liquidaciones (Tab 3) ---
     static final String FECHA_CHEQUE_PROPERTY         = "FechaCheque";
@@ -134,25 +132,17 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
     IndexedContainer liquidacionContainer = new IndexedContainer();
     Grid liquidacionGrid;
 
-    Button autorizarBtn;
-    boolean darkModeActive = false;
-
     NumberField saldoFacturaTxt;
-    NumberField totalUtilizarAnticiposTxt;
-    NumberField montoPendienteChequeTxt;
 
     double totalMontoQuetzales = 0.00;
     double totalSaldoQueztales = 0.00;
     double totalMontoDolares = 0.00;
     double totalSaldoDolares = 0.00;
-    double saldoFacturaSeleccionada = 0.00;
 
     UI mainUI;
     Statement stQuery, stQuery1;
     ResultSet rsRecords, rsRecords1;
     String queryString;
-
-    String codigoPartidaFactura = "";
 
     /** Almacena el saldo remanente de cada anticipo (CodigoCC → saldo) tras su aplicación parcial o total. */
     Map<String, Double> anticiposOcupadosMap = new HashMap<>();
@@ -341,7 +331,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         porPagarGrid.getColumn(ANTICIPO_DISPONIBLE_PROPERTY).setWidth(105);
         porPagarGrid.getColumn(SELECCIONAR_PROPERTY)
                 .setRenderer(new ButtonRenderer(this::onSeleccionarPorPagarClick))
-                .setWidth(60);
+                .setWidth(100);
 
         HeaderRow filterRow = porPagarGrid.appendHeaderRow();
 
@@ -411,8 +401,8 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 ANTICIPO_DISPONIBLE_PROPERTY,
                 A_LIQUIDAR_ANTICIPOS_PROPERTY,
                 A_LIQUIDAR_MONTO_CHEQUE_PROPERTY,
-                CHEQUE_PROPERTY,
-                SELECCIONAR_PROPERTY);
+                SELECCIONAR_PROPERTY,
+                CHEQUE_PROPERTY);
         // porPagarGrid se agrega al TabSheet en crearTabSheet()
     }
 
@@ -427,15 +417,14 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         anticiposOCContainer.addContainerProperty(OC_ANTICIPO_OC_PROPERTY, String.class, "0.00");
         anticiposOCContainer.addContainerProperty(OC_ANTICIPO_SF_OC_PROPERTY, String.class, "0.00");
         anticiposOCContainer.addContainerProperty(OC_IDPROVEEDOR_OC_PROPERTY, String.class, "");
+        anticiposOCContainer.addContainerProperty(OC_SELECCIONAR_PROPERTY, String.class, "☐");
         anticiposOCContainer.addContainerProperty(OC_CHEQUE_OC_PROPERTY, String.class, "");
         anticiposOCContainer.addContainerProperty(OC_RESPONSABLE_OC_PROPERTY, String.class, "");
         anticiposOCContainer.addContainerProperty(OC_RAZON_OC_PROPERTY, String.class, "");
-        anticiposOCContainer.addContainerProperty(OC_ESTADO_OC_PROPERTY, String.class, "");
         anticiposOCContainer.addContainerProperty(OC_NOMBRE_PROVEEDOR_OC_PROPERTY, String.class, "");
         anticiposOCContainer.addContainerProperty(OC_CENTROS_COSTO_PROPERTY, String.class, "");
         anticiposOCContainer.addContainerProperty(OC_CODIGO_PARTIDA_PAGO_PROPERTY, String.class, "");
         anticiposOCContainer.addContainerProperty(OC_FECHA_CHEQUE_PROPERTY, String.class, "");
-        anticiposOCContainer.addContainerProperty(OC_SELECCIONAR_PROPERTY, String.class, "☐");
         anticiposOCContainer.addContainerProperty(OC_MONTO_PAGAR_PROPERTY, String.class, "0.00");
         anticiposOCContainer.addContainerProperty(OC_MONTO_PAGARSF_PROPERTY, String.class, "0.00");
 
@@ -446,27 +435,31 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         anticiposOCGrid.setHeightMode(HeightMode.ROW);
         anticiposOCGrid.setHeightByRows(7);
 
+        anticiposOCGrid.getColumn(OC_NOC_PROPERTY).setHidable(true).setHidden(true);
         anticiposOCGrid.getColumn(OC_ID_PROPERTY).setHidable(true).setHidden(true);
         anticiposOCGrid.getColumn(OC_ANTICIPO_SF_OC_PROPERTY).setHidable(true).setHidden(true);
         anticiposOCGrid.getColumn(OC_IDPROVEEDOR_OC_PROPERTY).setHidable(true).setHidden(true);
         anticiposOCGrid.getColumn(OC_NOMBRE_PROVEEDOR_OC_PROPERTY).setHidable(true).setHidden(true);
         anticiposOCGrid.getColumn(OC_CODIGO_PARTIDA_PAGO_PROPERTY).setHidable(true).setHidden(true);
         anticiposOCGrid.getColumn(OC_MONTO_PAGARSF_PROPERTY).setHidable(true).setHidden(true);
+        anticiposOCGrid.getColumn(OC_RESPONSABLE_OC_PROPERTY).setHidable(true).setHidden(true);
+        anticiposOCGrid.getColumn(OC_RAZON_OC_PROPERTY).setHidable(true).setHidden(true);
+        anticiposOCGrid.getColumn(OC_CENTROS_COSTO_PROPERTY).setHidable(true).setHidden(true);
+        anticiposOCGrid.getColumn(OC_FECHA_CHEQUE_PROPERTY).setHidable(true).setHidden(true);
 
         anticiposOCGrid.getColumn(OC_SELECCIONAR_PROPERTY)
                 .setRenderer(new ButtonRenderer(this::onSeleccionarOCClick))
-                .setWidth(60);
+                .setWidth(100);
         anticiposOCGrid.getColumn(OC_NOC_PROPERTY).setWidth(90);
         anticiposOCGrid.getColumn(OC_TIPO_PROPERTY).setWidth(120);
-        anticiposOCGrid.getColumn(OC_PROVEEDOR_OC_PROPERTY).setExpandRatio(1);
+        anticiposOCGrid.getColumn(OC_PROVEEDOR_OC_PROPERTY).setWidth(300);
         anticiposOCGrid.getColumn(OC_FECHA_OC_PROPERTY).setWidth(90);
         anticiposOCGrid.getColumn(OC_MONEDA_OC_PROPERTY).setWidth(90);
-        anticiposOCGrid.getColumn(OC_CENTROS_COSTO_PROPERTY).setWidth(150);
+        anticiposOCGrid.getColumn(OC_CENTROS_COSTO_PROPERTY).setWidth(100).setHidden(true).setHidable(true);
         anticiposOCGrid.getColumn(OC_ANTICIPO_OC_PROPERTY).setWidth(110);
         anticiposOCGrid.getColumn(OC_MONTO_PAGAR_PROPERTY).setWidth(110);
         anticiposOCGrid.getColumn(OC_CHEQUE_OC_PROPERTY).setWidth(80);
         anticiposOCGrid.getColumn(OC_RESPONSABLE_OC_PROPERTY).setWidth(120);
-        anticiposOCGrid.getColumn(OC_ESTADO_OC_PROPERTY).setWidth(80);
 
         anticiposOCGrid.setCellStyleGenerator((Grid.CellReference cellReference) -> {
             if (OC_ANTICIPO_OC_PROPERTY.equals(cellReference.getPropertyId())) return "rightalign";
@@ -484,10 +477,9 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 OC_CENTROS_COSTO_PROPERTY,
                 OC_ANTICIPO_OC_PROPERTY,
                 OC_MONTO_PAGAR_PROPERTY,
+                OC_SELECCIONAR_PROPERTY,
                 OC_CHEQUE_OC_PROPERTY,
-                OC_RESPONSABLE_OC_PROPERTY,
-                OC_ESTADO_OC_PROPERTY,
-                OC_SELECCIONAR_PROPERTY);
+                OC_RESPONSABLE_OC_PROPERTY);
         // anticiposOCGrid se agrega al TabSheet en crearTabSheet()
     }
 
@@ -506,18 +498,10 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         tab2Layout.setSpacing(true);
         tab2Layout.addComponent(anticiposOCGrid);
 
-        Label tab2Hint = new Label("Haga clic en el monto de Anticipo para asignar cheque. El cheque cubre el total del anticipo.");
-        tab2Hint.addStyleName(ValoTheme.LABEL_SMALL);
-        tab2Layout.addComponent(tab2Hint);
-
         VerticalLayout tab3Layout = new VerticalLayout();
         tab3Layout.setWidth("100%");
         tab3Layout.setSpacing(true);
         tab3Layout.addComponent(liquidacionGrid);
-
-        Label tab3Hint = new Label("Haga clic en el Monto para asignar cheque. Incluye liquidaciones autorizadas pendientes de pago.");
-        tab3Hint.addStyleName(ValoTheme.LABEL_SMALL);
-        tab3Layout.addComponent(tab3Hint);
 
         tabSheet.addTab(tab1Layout, "Cuentas por pagar", FontAwesome.FILE_TEXT_O);
         tabSheet.addTab(tab2Layout, "Solicitudes de Anticipos OC", FontAwesome.SHOPPING_CART);
@@ -653,7 +637,6 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             queryString += " orden_compra.Fecha AS OC_Fecha, orden_compra.Moneda AS OC_Moneda,";
             queryString += " orden_compra.Total AS OC_Total, orden_compra.Anticipo AS OC_Anticipo,";
             queryString += " orden_compra.Responsable AS OC_Responsable, orden_compra.Razon AS OC_Razon,";
-            queryString += " orden_compra.Estado AS OC_Estado,";
             queryString += " proveedor_empresa.Nombre AS ProveedorNombre,";
             queryString += " tipo_orden_compra.Descripcion AS TipoOrdenCompra,";
             queryString += " (SELECT GROUP_CONCAT(DISTINCT ocd.idcc ORDER BY ocd.idcc SEPARATOR ' / ')";
@@ -694,7 +677,6 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                     anticiposOCContainer.getContainerProperty(itemId, OC_MONTO_PAGARSF_PROPERTY).setValue("0.00");
                     anticiposOCContainer.getContainerProperty(itemId, OC_RESPONSABLE_OC_PROPERTY).setValue(rsRecords.getString("OC_Responsable"));
                     anticiposOCContainer.getContainerProperty(itemId, OC_RAZON_OC_PROPERTY).setValue(rsRecords.getString("OC_Razon"));
-                    anticiposOCContainer.getContainerProperty(itemId, OC_ESTADO_OC_PROPERTY).setValue(rsRecords.getString("OC_Estado"));
                     anticiposOCContainer.getContainerProperty(itemId, OC_NOMBRE_PROVEEDOR_OC_PROPERTY).setValue(rsRecords.getString("ProveedorNombre"));
                     String cc = rsRecords.getString("OC_CC");
                     anticiposOCContainer.getContainerProperty(itemId, OC_CENTROS_COSTO_PROPERTY).setValue(cc != null ? cc : "");
@@ -737,8 +719,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 String.valueOf(porPagarContainer.getContainerProperty(event.getItemId(), MONEDA_PROPERTY).getValue()));
 
         PagoProveedorWindow win = new PagoProveedorWindow();
-        win.setCaption("Pagar a proveedor : " +
-                porPagarContainer.getContainerProperty(event.getItemId(), PROVEEDOR_PROPERTY).getValue());
+        win.setCaption(String.valueOf(porPagarContainer.getContainerProperty(event.getItemId(), PROVEEDOR_PROPERTY).getValue()));
         win.setMoneda(String.valueOf(porPagarContainer.getContainerProperty(event.getItemId(), MONEDA_PROPERTY).getValue())
                 .startsWith("Q") ? "Q." : "$.");
         win.setSaldoDocumento(saldoDoc);
@@ -878,26 +859,9 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             }
         });
 
-        Button btnTema = new Button("Modo oscuro", FontAwesome.MOON_O);
-        btnTema.addStyleName("apc-theme-toggle");
-        btnTema.setDescription("Cambiar entre modo claro y modo oscuro");
-        btnTema.addClickListener((Button.ClickListener) event -> {
-            darkModeActive = !darkModeActive;
-            if (darkModeActive) {
-                AutorizarPagosCorrientesView.this.addStyleName("apc-dark");
-                btnTema.setCaption("Modo claro");
-                btnTema.setIcon(FontAwesome.SUN_O);
-            } else {
-                AutorizarPagosCorrientesView.this.removeStyleName("apc-dark");
-                btnTema.setCaption("Modo oscuro");
-                btnTema.setIcon(FontAwesome.MOON_O);
-            }
-        });
-
-        buttonsLayout.addComponents(btnClear, btnAutorizarPagos, btnTema);
+        buttonsLayout.addComponents(btnClear, btnAutorizarPagos);
         buttonsLayout.setComponentAlignment(btnClear, Alignment.TOP_LEFT);
         buttonsLayout.setComponentAlignment(btnAutorizarPagos, Alignment.TOP_RIGHT);
-        buttonsLayout.setComponentAlignment(btnTema, Alignment.TOP_RIGHT);
         mainLayout.addComponent(buttonsLayout);
         mainLayout.setComponentAlignment(buttonsLayout, Alignment.BOTTOM_CENTER);
     }
@@ -1027,13 +991,13 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         liquidacionGrid.getColumn(LIQ_FECHA_CHEQUE_PROPERTY).setHidable(true).setHidden(true);
 
         liquidacionGrid.getColumn(LIQ_LIQUIDACION_PROPERTY).setWidth(100);
-        liquidacionGrid.getColumn(LIQ_LIQUIDADOR_PROPERTY).setExpandRatio(1);
+        liquidacionGrid.getColumn(LIQ_LIQUIDADOR_PROPERTY).setWidth(300);
         liquidacionGrid.getColumn(LIQ_MONTO_PROPERTY).setWidth(130);
         liquidacionGrid.getColumn(LIQ_CHEQUE_PROPERTY).setWidth(80);
 
         liquidacionGrid.getColumn(LIQ_SELECCIONAR_PROPERTY)
                 .setRenderer(new ButtonRenderer(this::onSeleccionarLiquidacionClick))
-                .setWidth(60);
+                .setWidth(100);
 
         liquidacionGrid.setCellStyleGenerator(cell -> {
             if (LIQ_MONTO_PROPERTY.equals(cell.getPropertyId())) return "rightalign";
@@ -2635,8 +2599,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                     nvlC(porPagarContainer.getContainerProperty(event.getItemId(), ID_PROVEEDOR_PROPERTY).getValue()), moneda);
 
             PagoProveedorWindow win = new PagoProveedorWindow();
-            win.setCaption("Pagar a proveedor : " +
-                    porPagarContainer.getContainerProperty(event.getItemId(), PROVEEDOR_PROPERTY).getValue());
+            win.setCaption(String.valueOf(porPagarContainer.getContainerProperty(event.getItemId(), PROVEEDOR_PROPERTY).getValue()));
             win.setMoneda(moneda.startsWith("Q") ? "Q." : "$.");
             win.setSaldoDocumento(saldoDoc);
             win.setSaldoDocumento(numberFormat.format(saldoDoc));
