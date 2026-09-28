@@ -163,7 +163,7 @@ public class HeaderFooterPageEventOrdenCompra extends PdfPageEventHelper {
             c1.setBorderWidth(0);
             firstTable.addCell(c1);
 
-            c1 = new PdfPCell(new Paragraph("Creado por : " + creadoUsuario, smallBold12));
+            c1 = new PdfPCell(new Paragraph("Impreso por : " + creadoUsuario, smallBold12));
             c1.setHorizontalAlignment(Element.ALIGN_RIGHT);
             c1.setVerticalAlignment(Element.ALIGN_RIGHT);
             c1.setBorderWidth(0);

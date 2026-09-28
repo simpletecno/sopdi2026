@@ -44,7 +44,7 @@ public class PagoProveedorWindow extends Window {
         setResizable(false);
         setDraggable(true);
         setCaption("Pagar a proveedor");
-        setWidth("460px");
+        setWidth("350px");
         setHeightUndefined();
 
         mainLayout = new VerticalLayout();
@@ -55,7 +55,6 @@ public class PagoProveedorWindow extends Window {
 
         setContent(mainLayout);
 
-        buildHeader();
         buildForm();
         buildActionBar();
     }
@@ -165,38 +164,6 @@ public class PagoProveedorWindow extends Window {
         );
     }
 
-    // ── Header ───────────────────────────────────────────────────────────────
-    private void buildHeader() {
-        Label iconLbl = new Label(FontAwesome.MONEY.getHtml(), ContentMode.HTML);
-        iconLbl.addStyleName("ppw-header-icon");
-        iconLbl.setSizeUndefined();
-
-        Label titleLbl = new Label("Pagar a proveedor");
-        titleLbl.addStyleName("ppw-header-title");
-        titleLbl.setSizeUndefined();
-
-        Label subLbl = new Label("Indique los montos a aplicar y confirme el pago");
-        subLbl.addStyleName("ppw-header-sub");
-        subLbl.setSizeUndefined();
-
-        VerticalLayout textCol = new VerticalLayout();
-        textCol.setMargin(false);
-        textCol.setSpacing(false);
-        textCol.addComponents(titleLbl, subLbl);
-
-        HorizontalLayout header = new HorizontalLayout();
-        header.addStyleName("ppw-header");
-        header.setWidth("100%");
-        header.setSpacing(true);
-        header.setMargin(false);
-        header.addComponents(iconLbl, textCol);
-        header.setExpandRatio(textCol, 1f);
-        header.setComponentAlignment(iconLbl,  Alignment.MIDDLE_LEFT);
-        header.setComponentAlignment(textCol,  Alignment.MIDDLE_LEFT);
-
-        mainLayout.addComponent(header);
-    }
-
     // ── Formulario ───────────────────────────────────────────────────────────
     private void buildForm() {
         // -- Etiqueta saldo documento
@@ -210,7 +177,7 @@ public class PagoProveedorWindow extends Window {
         saldoAnticiposLbl.setWidth("100%");
 
         // -- Campo: monto a liquidar con anticipos
-        montoAnticipoTxt = buildNumberField("Monto liquidar con anticipos");
+        montoAnticipoTxt = buildNumberField("Monto anticipo");
         montoAnticipoTxt.setWidth("100%");
 
         Label divider = new Label("<hr/>", ContentMode.HTML);
@@ -218,7 +185,7 @@ public class PagoProveedorWindow extends Window {
         divider.setWidth("100%");
 
         // -- Campo: monto para cheque
-        montoChequeTxt = buildNumberField("Monto para cheque");
+        montoChequeTxt = buildNumberField("Monto cheque");
         montoChequeTxt.setWidth("100%");
 
         // ── Lógica de complemento automático ─────────────────────────────────
@@ -247,12 +214,16 @@ public class PagoProveedorWindow extends Window {
             }
         });
 
+        HorizontalLayout montosLayout = new HorizontalLayout(montoAnticipoTxt, montoChequeTxt);
+        montosLayout.setSpacing(true);
+        montosLayout.setWidth("100%");
+
         VerticalLayout card = new VerticalLayout();
         card.addStyleName("ppw-card");
         card.setWidth("100%");
         card.setSpacing(true);
         card.setMargin(false);
-        card.addComponents(saldoDocumentoLbl, saldoAnticiposLbl, montoAnticipoTxt, divider, montoChequeTxt);
+        card.addComponents(saldoDocumentoLbl, saldoAnticiposLbl, divider, montosLayout);
 
         mainLayout.addComponent(card);
     }
