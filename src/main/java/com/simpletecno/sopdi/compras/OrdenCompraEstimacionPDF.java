@@ -282,10 +282,13 @@ public class OrdenCompraEstimacionPDF extends Window {
             c2.setFixedHeight(10f);
             reportTable2.addCell(c2);
 
-            queryString = " SELECT ODD.*";
+            queryString = " SELECT ODD.IdOrdenCompra, ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion";
+            queryString += " ODD.Cantidad, ODD.Precio, ODD.Total";
             queryString += " FROM orden_compra_detalle ODD";
 //            queryString += " INNER JOIN project On project.Numero = PIDX.IdProject And project.Estatus = 'ACTIVO' AND project.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
             queryString += " WHERE ODD.IdOrdenCompra = " + idOrdenCompra;
+            queryString += " GROUP BY ODD.IdOrdenCompra, ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion, ";
+            queryString += " ODD.Cantidad, ODD.Precio, ODD.Total";
 
 System.out.println("-->\nqueryStringDetalleEstimacion: " + queryString);
 
@@ -527,9 +530,12 @@ System.out.println("-->\nqueryStringDetalleEstimacion: " + queryString);
             c2.setFixedHeight(10f);
             reportTable2.addCell(c2);
 
-            queryString = "  SELECT * ";
+            queryString = "  SELECT ODD.IdOrdenCompra, ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion,";
+            queryString += "  ODD.Cantidad, ODD.Precio, ODD.Total";
             queryString += " FROM orden_compra_detalle ODD ";
             queryString += " WHERE ODD.IdOrdenCompra = " + idOrdenCompra;
+            queryString += " GROUP BY ODD.IdOrdenCompra, ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion, ODD.PluPrv, ODD.PluPrvDes,";
+            queryString += " ODD.IdProject, ODD.Cantidad, ODD.Precio, ODD.Total";
 
             Logger.getLogger(OrdenCompraEstimacionPDF.class.getName()).log(Level.INFO, queryString);
 
@@ -870,9 +876,12 @@ System.out.println("-->\nqueryStringDetalleEstimacion: " + queryString);
             c2.setFixedHeight(10f);
             reportTable2.addCell(c2);
 
-            queryString = "  SELECT * ";
+            queryString = "  SELECT ODD.IdOrdenCompra, ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion, ODD.PluPrv, ODD.PluPrvDes,";
+            queryString += " ODD.IdProject, ODD.Cantidad, ODD.Precio, ODD.Total, ODD.CreadoFechaYHora, ODD.CreadoUsuario";
             queryString += " FROM orden_compra_detalle ODD ";
             queryString += " WHERE ODD.IdOrdenCompra = " + idOrdenCompra;
+            queryString += " GROUP BY ODD.IdOrdenCompra, ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion, ODD.PluPrv, ODD.PluPrvDes,";
+            queryString += " ODD.IdProject, ODD.Cantidad, ODD.Precio, ODD.Total, ODD.CreadoFechaYHora, ODD.CreadoUsuario";
 
 Logger.getLogger(OrdenCompraEstimacionPDF.class.getName()).log(Level.INFO, queryString);
 

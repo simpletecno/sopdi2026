@@ -1020,10 +1020,11 @@ public class OrdenCompraForm extends Window {
 
     private void llenarComboCuentaContable() {
 
-        queryString = " SELECT * FROM contabilidad_nomenclatura";
+        queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
         queryString += " WHERE Estatus = 'HABILITADA'";
 //        queryString += " AND Tipo IN ('SERVICIO', 'PRODUCTO', 'VENTA')";
 //        queryString += " AND ID1=6"; //egresos
+        queryString += " AND IdEmpresa = " + empresaId;
         queryString += " ORDER BY N5";
 
         try {
@@ -1164,10 +1165,12 @@ public class OrdenCompraForm extends Window {
 //                BigDecimal totalCuentaDolares = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
 
                 do {
+
                     if(   (rsRecords.getDouble("TotalTotal") > 0)
                             && (rsRecords.getDouble("TotalTotal") - getSaldo(
                             rsRecords.getString("Idex"),
-                            rsRecords.getString("IdCC")) > 0)
+                            rsRecords.getString("IdCC"),
+                            rsRecords.getString("NoCuenta")) > 0)
                     ) {
 
                         Object itemId = idccContainer.addItem();
@@ -1378,7 +1381,8 @@ public class OrdenCompraForm extends Window {
 
     private double getSaldo(
             String IDEX,
-            String CENTROCOSTO) {
+            String CENTROCOSTO,
+            String cuenta) {
 
         String
                 queryString =  "SELECT SUM(DOCA.Total) TotalTotal ";
@@ -1389,6 +1393,7 @@ public class OrdenCompraForm extends Window {
         queryString += " AND DOCA.IdEmpresa   = " + empresaId;
         queryString += " AND DOCA.IdProveedor = " + proveedorCbx.getValue();
         queryString += " AND DOCA.Moneda = '" + monedaCbx.getValue() + "'";
+        queryString += " ANd DOCA.NoCuenta = '" + cuenta + "'";
 
 //        System.out.println(queryString);
 
