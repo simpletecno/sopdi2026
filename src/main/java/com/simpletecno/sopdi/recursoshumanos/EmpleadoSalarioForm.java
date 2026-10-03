@@ -60,6 +60,8 @@ public class EmpleadoSalarioForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public EmpleadoSalarioForm(String idEmpleado) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idEmpleado = idEmpleado;
         this.mainUI = UI.getCurrent();
 

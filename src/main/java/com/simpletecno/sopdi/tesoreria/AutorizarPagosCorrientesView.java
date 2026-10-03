@@ -3,6 +3,7 @@ package com.simpletecno.sopdi.tesoreria;
 import com.simpletecno.sopdi.SopdiUI;
 import com.simpletecno.sopdi.utilerias.Utileria;
 import com.vaadin.data.Property;
+import com.vaadin.data.fieldgroup.FieldGroup;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.data.util.filter.SimpleStringFilter;
 import com.vaadin.event.SelectionEvent.SelectionListener;
@@ -149,6 +150,19 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
 
     static DecimalFormat numberFormat = new DecimalFormat("#,###,##0.00");
     static DecimalFormat numberFormat2 = new DecimalFormat("######0.00");
+
+    // ── Editor inline cuentas por pagar ───────────────────────────────────────
+    private final TextField editorAnticipoField   = new TextField();
+    private final TextField editorChequeField     = new TextField();
+    private boolean         updatingEditorFields  = false;
+    private double          editorSaldoDoc        = 0;
+    private double          editorSaldoAnticipos  = 0;
+    private Object          currentEditorItemId   = null;
+
+    // ── Editor inline anticipos OC ─────────────────────────────────────────────
+    private final TextField editorOCMontoField    = new TextField();
+    private double          editorOCMaxMonto      = 0;
+    private Object          currentEditorOCItemId = null;
 
     String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
@@ -403,6 +417,123 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 A_LIQUIDAR_MONTO_CHEQUE_PROPERTY,
                 SELECCIONAR_PROPERTY,
                 CHEQUE_PROPERTY);
+
+        // ── Editor inline: solo Anticipo y Cheque son editables ───────────────
+        porPagarGrid.setEditorEnabled(true);
+        porPagarGrid.setEditorSaveCaption("Confirmar");
+        porPagarGrid.setEditorCancelCaption("Cancelar");
+
+        for (Grid.Column col : porPagarGrid.getColumns()) {
+            String pid = String.valueOf(col.getPropertyId());
+            col.setEditable(A_LIQUIDAR_ANTICIPOS_PROPERTY.equals(pid)
+                         || A_LIQUIDAR_MONTO_CHEQUE_PROPERTY.equals(pid));
+        }
+
+        editorAnticipoField.setImmediate(true);
+        editorAnticipoField.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
+        editorAnticipoField.addValueChangeListener(e -> {
+            if (updatingEditorFields || currentEditorItemId == null) return;
+            updatingEditorFields = true;
+            try {
+                double anticipo = parseMontoSF(editorAnticipoField.getValue());
+                if (anticipo < 0) anticipo = 0;
+                if (anticipo > editorSaldoAnticipos) anticipo = editorSaldoAnticipos;
+                editorChequeField.setValue(numberFormat.format(Math.max(0, editorSaldoDoc - anticipo)));
+            } finally { updatingEditorFields = false; }
+        });
+
+        editorChequeField.setImmediate(true);
+        editorChequeField.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
+        editorChequeField.addValueChangeListener(e -> {
+            if (updatingEditorFields || currentEditorItemId == null) return;
+            updatingEditorFields = true;
+            try {
+                double cheque = parseMontoSF(editorChequeField.getValue());
+                if (cheque < 0) cheque = 0;
+                if (cheque > editorSaldoDoc) cheque = editorSaldoDoc;
+                if (editorSaldoAnticipos > 0) {
+                    double anticipo = Math.min(editorSaldoAnticipos, Math.max(0, editorSaldoDoc - cheque));
+                    editorAnticipoField.setValue(numberFormat.format(anticipo));
+                }
+            } finally { updatingEditorFields = false; }
+        });
+
+        porPagarGrid.getColumn(A_LIQUIDAR_ANTICIPOS_PROPERTY).setEditorField(editorAnticipoField);
+        porPagarGrid.getColumn(A_LIQUIDAR_MONTO_CHEQUE_PROPERTY).setEditorField(editorChequeField);
+
+        porPagarGrid.getEditorFieldGroup().addCommitHandler(new FieldGroup.CommitHandler() {
+            @Override
+            public void preCommit(FieldGroup.CommitEvent commitEvent) throws FieldGroup.CommitException {
+                if (currentEditorItemId == null) return;
+                double montoAnticipo = parseMontoSF(editorAnticipoField.getValue());
+                double montoCheque   = parseMontoSF(editorChequeField.getValue());
+                if (montoAnticipo + montoCheque <= 0) {
+                    throw new FieldGroup.CommitException("Los montos deben ser mayores a cero.");
+                }
+            }
+
+            @Override
+            public void postCommit(FieldGroup.CommitEvent commitEvent) throws FieldGroup.CommitException {
+                Object itemId = currentEditorItemId;
+                if (itemId == null) return;
+                double montoAnticipo = parseMontoSF(editorAnticipoField.getValue());
+                double montoCheque   = parseMontoSF(editorChequeField.getValue());
+                String moneda        = nvlC(porPagarContainer.getContainerProperty(itemId, MONEDA_PROPERTY).getValue());
+
+                porPagarContainer.getContainerProperty(itemId, SELECCIONAR_PROPERTY).setValue("☑");
+                porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_PROPERTY).setValue(numberFormat.format(montoAnticipo + montoCheque));
+                porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_ANTICIPOS_PROPERTY).setValue(numberFormat.format(montoAnticipo));
+                porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_ANTICIPOSSF_PROPERTY).setValue(numberFormat2.format(montoAnticipo));
+                porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_MONTO_CHEQUE_PROPERTY).setValue(numberFormat.format(montoCheque));
+                porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).setValue(numberFormat2.format(montoCheque));
+
+                if (montoCheque > 0) {
+                    Object cuentaItemId = null;
+                    for (Object bancoId : cuentasBancosContainer.getItemIds()) {
+                        if (cuentasBancosGrid.isSelected(bancoId)
+                                && nvlC(cuentasBancosContainer.getContainerProperty(bancoId, MONEDA_PROPERTY).getValue()).equalsIgnoreCase(moneda)) {
+                            cuentaItemId = bancoId;
+                            break;
+                        }
+                    }
+                    if (cuentaItemId != null) {
+                        String idProv = nvlC(porPagarContainer.getContainerProperty(itemId, ID_PROVEEDOR_PROPERTY).getValue());
+                        String chequeExistente = "";
+                        for (Object id2 : porPagarContainer.getItemIds()) {
+                            if (id2.equals(itemId)) continue;
+                            if (nvlC(porPagarContainer.getContainerProperty(id2, ID_PROVEEDOR_PROPERTY).getValue()).equals(idProv)) {
+                                String ch = nvlC(porPagarContainer.getContainerProperty(id2, CHEQUE_PROPERTY).getValue());
+                                if (!ch.isEmpty()) { chequeExistente = ch; break; }
+                            }
+                        }
+                        if (!chequeExistente.isEmpty()) {
+                            porPagarContainer.getContainerProperty(itemId, CHEQUE_PROPERTY).setValue(chequeExistente);
+                        } else {
+                            String uckStr = nvlC(cuentasBancosContainer.getContainerProperty(cuentaItemId, ULTIMO_CHEQUE_PROPERTY).getValue());
+                            if (uckStr.isEmpty()) {
+                                Notification.show("La cuenta bancaria no tiene chequera activa.", Notification.Type.WARNING_MESSAGE);
+                            } else {
+                                int uck = Integer.parseInt(uckStr);
+                                if (!numeroChequeEnChequera(uck + 1, nvlC(cuentasBancosContainer.getContainerProperty(cuentaItemId, ID_CUENTABANCO_PROPERTY).getValue()))) {
+                                    Notification.show("Sin cheques disponibles en chequera.", Notification.Type.WARNING_MESSAGE);
+                                } else {
+                                    String noCheque = String.valueOf(uck + 1);
+                                    porPagarContainer.getContainerProperty(itemId, CHEQUE_PROPERTY).setValue(noCheque);
+                                    cuentasBancosContainer.getContainerProperty(cuentaItemId, ULTIMO_CHEQUE_PROPERTY).setValue(noCheque);
+                                    double saldoBco = parseMontoSF(cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDOSF_PROPERTY).getValue());
+                                    double pagos    = parseMontoSF(cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOSSF_PROPERTY).getValue());
+                                    cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDO_PROPERTY).setValue(numberFormat.format(saldoBco - montoCheque));
+                                    cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDOSF_PROPERTY).setValue(numberFormat2.format(saldoBco - montoCheque));
+                                    cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOS_PROPERTY).setValue(numberFormat.format(pagos + montoCheque));
+                                    cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOSSF_PROPERTY).setValue(numberFormat2.format(pagos + montoCheque));
+                                }
+                            }
+                        }
+                    }
+                }
+                currentEditorItemId = null;
+            }
+        });
         // porPagarGrid se agrega al TabSheet en crearTabSheet()
     }
 
@@ -480,6 +611,87 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 OC_SELECCIONAR_PROPERTY,
                 OC_CHEQUE_OC_PROPERTY,
                 OC_RESPONSABLE_OC_PROPERTY);
+
+        // ── Editor inline: solo Monto a pagar es editable ─────────────────────
+        anticiposOCGrid.setEditorEnabled(true);
+        anticiposOCGrid.setEditorSaveCaption("Confirmar");
+        anticiposOCGrid.setEditorCancelCaption("Cancelar");
+
+        for (Grid.Column col : anticiposOCGrid.getColumns()) {
+            col.setEditable(OC_MONTO_PAGAR_PROPERTY.equals(String.valueOf(col.getPropertyId())));
+        }
+
+        editorOCMontoField.setImmediate(true);
+        editorOCMontoField.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
+        anticiposOCGrid.getColumn(OC_MONTO_PAGAR_PROPERTY).setEditorField(editorOCMontoField);
+
+        anticiposOCGrid.getEditorFieldGroup().addCommitHandler(new FieldGroup.CommitHandler() {
+            @Override
+            public void preCommit(FieldGroup.CommitEvent commitEvent) throws FieldGroup.CommitException {
+                if (currentEditorOCItemId == null) return;
+                double monto = parseMontoSF(editorOCMontoField.getValue());
+                if (monto <= 0)
+                    throw new FieldGroup.CommitException("El monto debe ser mayor a cero.");
+                if (monto > editorOCMaxMonto)
+                    throw new FieldGroup.CommitException("El monto supera el máximo permitido (" + numberFormat.format(editorOCMaxMonto) + ").");
+            }
+
+            @Override
+            public void postCommit(FieldGroup.CommitEvent commitEvent) throws FieldGroup.CommitException {
+                Object itemId = currentEditorOCItemId;
+                if (itemId == null) return;
+                double montoPagar = parseMontoSF(editorOCMontoField.getValue());
+                String moneda     = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_MONEDA_OC_PROPERTY).getValue());
+                String s          = moneda.startsWith("Q") ? "Q." : "$.";
+
+                anticiposOCContainer.getContainerProperty(itemId, OC_SELECCIONAR_PROPERTY).setValue("☑");
+                anticiposOCContainer.getContainerProperty(itemId, OC_MONTO_PAGAR_PROPERTY).setValue(s + numberFormat.format(montoPagar));
+                anticiposOCContainer.getContainerProperty(itemId, OC_MONTO_PAGARSF_PROPERTY).setValue(numberFormat2.format(montoPagar));
+
+                Object cuentaItemId = null;
+                for (Object bancoId : cuentasBancosContainer.getItemIds()) {
+                    if (cuentasBancosGrid.isSelected(bancoId)
+                            && nvlC(cuentasBancosContainer.getContainerProperty(bancoId, MONEDA_PROPERTY).getValue()).equalsIgnoreCase(moneda)) {
+                        cuentaItemId = bancoId; break;
+                    }
+                }
+                if (cuentaItemId != null) {
+                    String idProv = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_IDPROVEEDOR_OC_PROPERTY).getValue());
+                    String chequeExistente = "";
+                    for (Object id2 : anticiposOCContainer.getItemIds()) {
+                        if (id2.equals(itemId)) continue;
+                        if (nvlC(anticiposOCContainer.getContainerProperty(id2, OC_IDPROVEEDOR_OC_PROPERTY).getValue()).equals(idProv)) {
+                            String ch = nvlC(anticiposOCContainer.getContainerProperty(id2, OC_CHEQUE_OC_PROPERTY).getValue());
+                            if (!ch.isEmpty()) { chequeExistente = ch; break; }
+                        }
+                    }
+                    if (!chequeExistente.isEmpty()) {
+                        anticiposOCContainer.getContainerProperty(itemId, OC_CHEQUE_OC_PROPERTY).setValue(chequeExistente);
+                    } else {
+                        String uckStr = nvlC(cuentasBancosContainer.getContainerProperty(cuentaItemId, ULTIMO_CHEQUE_PROPERTY).getValue());
+                        if (uckStr.isEmpty()) {
+                            Notification.show("La cuenta bancaria no tiene chequera activa.", Notification.Type.WARNING_MESSAGE);
+                        } else {
+                            int uck = Integer.parseInt(uckStr);
+                            if (!numeroChequeEnChequera(uck + 1, nvlC(cuentasBancosContainer.getContainerProperty(cuentaItemId, ID_CUENTABANCO_PROPERTY).getValue()))) {
+                                Notification.show("Sin cheques disponibles en chequera.", Notification.Type.WARNING_MESSAGE);
+                            } else {
+                                String noCheque = String.valueOf(uck + 1);
+                                anticiposOCContainer.getContainerProperty(itemId, OC_CHEQUE_OC_PROPERTY).setValue(noCheque);
+                                cuentasBancosContainer.getContainerProperty(cuentaItemId, ULTIMO_CHEQUE_PROPERTY).setValue(noCheque);
+                                double saldoBco = parseMontoSF(cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDOSF_PROPERTY).getValue());
+                                double pagos    = parseMontoSF(cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOSSF_PROPERTY).getValue());
+                                cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDO_PROPERTY).setValue(numberFormat.format(saldoBco - montoPagar));
+                                cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDOSF_PROPERTY).setValue(numberFormat2.format(saldoBco - montoPagar));
+                                cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOS_PROPERTY).setValue(numberFormat.format(pagos + montoPagar));
+                                cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOSSF_PROPERTY).setValue(numberFormat2.format(pagos + montoPagar));
+                            }
+                        }
+                    }
+                }
+                currentEditorOCItemId = null;
+            }
+        });
         // anticiposOCGrid se agrega al TabSheet en crearTabSheet()
     }
 
@@ -552,7 +764,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             anticiposOCContainer.getContainerProperty(event.getItemId(), OC_MONTO_PAGAR_PROPERTY).setValue("0.00");
             anticiposOCContainer.getContainerProperty(event.getItemId(), OC_MONTO_PAGARSF_PROPERTY).setValue("0.00");
         } else {
-            // ── Seleccionar: abrir PedirMontoWindow ────────────────────────────
+            // ── Seleccionar: editar monto inline en el grid ────────────────────
             String moneda = nvlC(anticiposOCContainer.getContainerProperty(event.getItemId(), OC_MONEDA_OC_PROPERTY).getValue());
             if (!cuentaBancariaSeleccionadaParaMoneda(moneda)) {
                 Notification.show("Seleccione una cuenta bancaria en " + moneda + " antes de marcar este anticipo.",
@@ -560,68 +772,11 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 return;
             }
             double anticipo = parseMontoSF(anticiposOCContainer.getContainerProperty(event.getItemId(), OC_ANTICIPO_SF_OC_PROPERTY).getValue());
-            String s = moneda.startsWith("Q") ? "Q." : "$.";
-            String noc = nvlC(anticiposOCContainer.getContainerProperty(event.getItemId(), OC_NOC_PROPERTY).getValue());
 
-            PedirMontoWindow win = new PedirMontoWindow();
-            win.setCaption("Anticipo OC " + noc + " — " +
-                    anticiposOCContainer.getContainerProperty(event.getItemId(), OC_PROVEEDOR_OC_PROPERTY).getValue());
-            win.setMaxMonto(anticipo, s);
-            win.setMonto(anticipo);
-
-            win.getAceptarBtn().addClickListener(e -> {
-                double montoPagar = win.getMonto();
-
-                // ── Guardar monto ──────────────────────────────────────────
-                anticiposOCContainer.getContainerProperty(event.getItemId(), OC_SELECCIONAR_PROPERTY).setValue("☑");
-                anticiposOCContainer.getContainerProperty(event.getItemId(), OC_MONTO_PAGAR_PROPERTY).setValue(s + numberFormat.format(montoPagar));
-                anticiposOCContainer.getContainerProperty(event.getItemId(), OC_MONTO_PAGARSF_PROPERTY).setValue(numberFormat2.format(montoPagar));
-
-                // ── Asignar cheque ─────────────────────────────────────────
-                Object cuentaItemId = null;
-                for (Object bancoId : cuentasBancosContainer.getItemIds()) {
-                    if (cuentasBancosGrid.isSelected(bancoId)
-                            && nvlC(cuentasBancosContainer.getContainerProperty(bancoId, MONEDA_PROPERTY).getValue()).equalsIgnoreCase(moneda)) {
-                        cuentaItemId = bancoId; break;
-                    }
-                }
-                if (cuentaItemId != null) {
-                    String idProv = nvlC(anticiposOCContainer.getContainerProperty(event.getItemId(), OC_IDPROVEEDOR_OC_PROPERTY).getValue());
-                    String chequeExistente = "";
-                    for (Object id2 : anticiposOCContainer.getItemIds()) {
-                        if (id2.equals(event.getItemId())) continue;
-                        if (nvlC(anticiposOCContainer.getContainerProperty(id2, OC_IDPROVEEDOR_OC_PROPERTY).getValue()).equals(idProv)) {
-                            String ch = nvlC(anticiposOCContainer.getContainerProperty(id2, OC_CHEQUE_OC_PROPERTY).getValue());
-                            if (!ch.isEmpty()) { chequeExistente = ch; break; }
-                        }
-                    }
-                    if (!chequeExistente.isEmpty()) {
-                        anticiposOCContainer.getContainerProperty(event.getItemId(), OC_CHEQUE_OC_PROPERTY).setValue(chequeExistente);
-                    } else {
-                        String uckStr = nvlC(cuentasBancosContainer.getContainerProperty(cuentaItemId, ULTIMO_CHEQUE_PROPERTY).getValue());
-                        if (uckStr.isEmpty()) {
-                            Notification.show("La cuenta bancaria no tiene chequera activa.", Notification.Type.WARNING_MESSAGE);
-                        } else {
-                            int uck = Integer.parseInt(uckStr);
-                            if (!numeroChequeEnChequera(uck + 1, nvlC(cuentasBancosContainer.getContainerProperty(cuentaItemId, ID_CUENTABANCO_PROPERTY).getValue()))) {
-                                Notification.show("Sin cheques disponibles en chequera.", Notification.Type.WARNING_MESSAGE);
-                            } else {
-                                String noCheque = String.valueOf(uck + 1);
-                                anticiposOCContainer.getContainerProperty(event.getItemId(), OC_CHEQUE_OC_PROPERTY).setValue(noCheque);
-                                cuentasBancosContainer.getContainerProperty(cuentaItemId, ULTIMO_CHEQUE_PROPERTY).setValue(noCheque);
-                                double saldoBco = parseMontoSF(cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDOSF_PROPERTY).getValue());
-                                double pagos    = parseMontoSF(cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOSSF_PROPERTY).getValue());
-                                cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDO_PROPERTY).setValue(numberFormat.format(saldoBco - montoPagar));
-                                cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDOSF_PROPERTY).setValue(numberFormat2.format(saldoBco - montoPagar));
-                                cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOS_PROPERTY).setValue(numberFormat.format(pagos + montoPagar));
-                                cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOSSF_PROPERTY).setValue(numberFormat2.format(pagos + montoPagar));
-                            }
-                        }
-                    }
-                }
-            });
-            UI.getCurrent().addWindow(win);
-            win.center();
+            editorOCMaxMonto      = anticipo;
+            currentEditorOCItemId = event.getItemId();
+            anticiposOCGrid.editItem(event.getItemId());
+            editorOCMontoField.setValue(numberFormat.format(anticipo));
         }
     }
 
@@ -2585,7 +2740,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).setValue("0.00");
             porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_PROPERTY).setValue("0.00");
         } else {
-            // ── Seleccionar: abrir PagoProveedorWindow ────────────────────────
+            // ── Seleccionar: editar montos inline en el grid ──────────────────
             String moneda = nvlC(porPagarContainer.getContainerProperty(event.getItemId(), MONEDA_PROPERTY).getValue());
             if (!cuentaBancariaSeleccionadaParaMoneda(moneda)) {
                 Notification.show("Seleccione una cuenta bancaria en " + moneda + " antes de marcar este documento.",
@@ -2598,80 +2753,11 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             double saldoAnticipos = getAnticiposProveedor(
                     nvlC(porPagarContainer.getContainerProperty(event.getItemId(), ID_PROVEEDOR_PROPERTY).getValue()), moneda);
 
-            PagoProveedorWindow win = new PagoProveedorWindow();
-            win.setCaption(String.valueOf(porPagarContainer.getContainerProperty(event.getItemId(), PROVEEDOR_PROPERTY).getValue()));
-            win.setMoneda(moneda.startsWith("Q") ? "Q." : "$.");
-            win.setSaldoDocumento(saldoDoc);
-            win.setSaldoDocumento(numberFormat.format(saldoDoc));
-            win.setSaldoAnticipos(saldoAnticipos);
-            win.setMontoAnticipo(Math.min(anticipoDisp, saldoDoc));
-            win.setMontoCheque(Math.max(0, saldoDoc - Math.min(anticipoDisp, saldoDoc)));
-
-            win.getAceptarBtn().addClickListener(e -> {
-                double montoAnticipo = win.getMontoAnticipo();
-                double montoCheque   = win.getMontoCheque();
-                if (montoAnticipo + montoCheque <= 0) return;
-
-                // ── Guardar montos ──────────────────────────────────────────
-                porPagarContainer.getContainerProperty(event.getItemId(), SELECCIONAR_PROPERTY).setValue("☑");
-                porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_PROPERTY).setValue(numberFormat.format(montoAnticipo + montoCheque));
-                porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_ANTICIPOS_PROPERTY).setValue(numberFormat.format(montoAnticipo));
-                porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_ANTICIPOSSF_PROPERTY).setValue(numberFormat2.format(montoAnticipo));
-                porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_MONTO_CHEQUE_PROPERTY).setValue(numberFormat.format(montoCheque));
-                porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).setValue(numberFormat2.format(montoCheque));
-
-                // ── Asignar número de cheque si montoCheque > 0 ────────────
-                if (montoCheque > 0) {
-                    Object cuentaItemId = null;
-                    for (Object bancoId : cuentasBancosContainer.getItemIds()) {
-                        if (cuentasBancosGrid.isSelected(bancoId)
-                                && nvlC(cuentasBancosContainer.getContainerProperty(bancoId, MONEDA_PROPERTY).getValue()).equalsIgnoreCase(moneda)) {
-                            cuentaItemId = bancoId;
-                            break;
-                        }
-                    }
-                    if (cuentaItemId != null) {
-                        // Reusar cheque si el mismo proveedor ya tiene uno asignado
-                        String idProv = nvlC(porPagarContainer.getContainerProperty(event.getItemId(), ID_PROVEEDOR_PROPERTY).getValue());
-                        String chequeExistente = "";
-                        for (Object id2 : porPagarContainer.getItemIds()) {
-                            if (id2.equals(event.getItemId())) continue;
-                            if (nvlC(porPagarContainer.getContainerProperty(id2, ID_PROVEEDOR_PROPERTY).getValue()).equals(idProv)) {
-                                String ch = nvlC(porPagarContainer.getContainerProperty(id2, CHEQUE_PROPERTY).getValue());
-                                if (!ch.isEmpty()) { chequeExistente = ch; break; }
-                            }
-                        }
-
-                        if (!chequeExistente.isEmpty()) {
-                            // Reusar — sin actualizar saldo bancario (ya descontado por el primer doc)
-                            porPagarContainer.getContainerProperty(event.getItemId(), CHEQUE_PROPERTY).setValue(chequeExistente);
-                        } else {
-                            String uckStr = nvlC(cuentasBancosContainer.getContainerProperty(cuentaItemId, ULTIMO_CHEQUE_PROPERTY).getValue());
-                            if (uckStr.isEmpty()) {
-                                Notification.show("La cuenta bancaria no tiene chequera activa.", Notification.Type.WARNING_MESSAGE);
-                            } else {
-                                int uck = Integer.parseInt(uckStr);
-                                if (!numeroChequeEnChequera(uck + 1, nvlC(cuentasBancosContainer.getContainerProperty(cuentaItemId, ID_CUENTABANCO_PROPERTY).getValue()))) {
-                                    Notification.show("Sin cheques disponibles en chequera.", Notification.Type.WARNING_MESSAGE);
-                                } else {
-                                    String noCheque = String.valueOf(uck + 1);
-                                    porPagarContainer.getContainerProperty(event.getItemId(), CHEQUE_PROPERTY).setValue(noCheque);
-                                    cuentasBancosContainer.getContainerProperty(cuentaItemId, ULTIMO_CHEQUE_PROPERTY).setValue(noCheque);
-                                    double saldoBco = parseMontoSF(cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDOSF_PROPERTY).getValue());
-                                    double pagos    = parseMontoSF(cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOSSF_PROPERTY).getValue());
-                                    cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDO_PROPERTY).setValue(numberFormat.format(saldoBco - montoCheque));
-                                    cuentasBancosContainer.getContainerProperty(cuentaItemId, NUEVO_SALDOSF_PROPERTY).setValue(numberFormat2.format(saldoBco - montoCheque));
-                                    cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOS_PROPERTY).setValue(numberFormat.format(pagos + montoCheque));
-                                    cuentasBancosContainer.getContainerProperty(cuentaItemId, PAGOSSF_PROPERTY).setValue(numberFormat2.format(pagos + montoCheque));
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            UI.getCurrent().addWindow(win);
-            win.center();
+            editorSaldoDoc       = saldoDoc;
+            editorSaldoAnticipos = saldoAnticipos;
+            currentEditorItemId  = event.getItemId();
+            porPagarGrid.editItem(event.getItemId());
+            editorAnticipoField.setValue(numberFormat.format(Math.min(anticipoDisp, saldoDoc)));
         }
     }
 

@@ -48,6 +48,7 @@ public class CambiarEstatusOrdenForm extends Window {
     Button salirBtn;
 
     public CambiarEstatusOrdenForm(String idOrdenCompra, String estatus) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         this.mainUI = UI.getCurrent();
         this.idOrdenCompra = idOrdenCompra;

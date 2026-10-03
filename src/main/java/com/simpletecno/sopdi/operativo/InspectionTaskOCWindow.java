@@ -116,6 +116,8 @@ public class InspectionTaskOCWindow extends Window {
             String cliente,
             String lote
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idOC = idOC;
         this.tareaId = tareaId;
         this.codigoTarea = codigoTarea;

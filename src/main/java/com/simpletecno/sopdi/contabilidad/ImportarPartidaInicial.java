@@ -89,6 +89,8 @@ public class ImportarPartidaInicial extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public ImportarPartidaInicial() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.mainUI = UI.getCurrent();
 
         setWidth("70%");

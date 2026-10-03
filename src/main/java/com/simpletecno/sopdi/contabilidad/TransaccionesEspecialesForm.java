@@ -80,7 +80,8 @@ public class TransaccionesEspecialesForm extends Window {
             String empresa,
             String codigoPartida,
             String tipoDocumento,
-            int editar) { // 1 es nuevo y 2 es editar
+            int editar) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null); // 1 es nuevo y 2 es editar
 
         this.empresa = empresa;
         this.codigoPartida = codigoPartida;

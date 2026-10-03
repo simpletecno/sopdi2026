@@ -40,6 +40,8 @@ public class ProgramaTrabajoCalificarElegirWindow extends Window {
             Object selectedRow,
             IndexedContainer container
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.tipo = tipo;
         this.idPlanTrabajoIdex = idPlanTrabajoIdex;
         this.selectedRow = selectedRow;

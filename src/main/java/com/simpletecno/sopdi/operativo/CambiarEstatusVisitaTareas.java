@@ -42,6 +42,8 @@ public class CambiarEstatusVisitaTareas extends Window {
     Statement stQuery;
 
     public CambiarEstatusVisitaTareas(String idTarea) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idTarea = idTarea;
         this.mainUI = UI.getCurrent();
         setResponsive(true);      

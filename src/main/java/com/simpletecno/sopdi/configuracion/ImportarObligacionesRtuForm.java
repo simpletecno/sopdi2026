@@ -70,6 +70,7 @@ public class ImportarObligacionesRtuForm extends Window {
     private MultiFileUpload upload;
 
     public ImportarObligacionesRtuForm(String idEmpresa, String nombreEmpresa, Runnable onImported) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.idEmpresa = idEmpresa;
         this.onImported = onImported;
         this.mainUI = UI.getCurrent();

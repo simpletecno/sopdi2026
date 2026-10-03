@@ -91,6 +91,7 @@ public class ProgramaTrabajoCalificarForm extends Window {
             String centroCosto,
             String idex,
             String descripcion) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.mainUI = UI.getCurrent();
         this.idPlanTrabajoIdex = idPlanTrabajoIdex;
         this.tipo = tipo;

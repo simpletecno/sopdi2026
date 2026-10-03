@@ -56,6 +56,8 @@ public class TicketSoporteForm extends Window {
     UI mainUI;
     
     public TicketSoporteForm() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.mainUI = UI.getCurrent();
 
         setResponsive(true);

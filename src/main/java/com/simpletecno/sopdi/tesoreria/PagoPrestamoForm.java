@@ -115,6 +115,8 @@ public class PagoPrestamoForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public PagoPrestamoForm(String codigoPartidaSeleccionado, String cuentaLiquidar, Date fechaPago) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.mainUI = UI.getCurrent();
         this.codigoPartidaSeleccionado = codigoPartidaSeleccionado;

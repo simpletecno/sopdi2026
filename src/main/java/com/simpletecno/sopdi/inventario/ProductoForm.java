@@ -44,6 +44,7 @@ public class ProductoForm extends Window {
     Button salirBtn;
 
     public ProductoForm(String idProducto) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.mainUI = UI.getCurrent();
         this.idProducto = idProducto;
         setWidth("68%");

@@ -93,6 +93,8 @@ public class InspectionTaskOCForm extends Window {
             boolean esNuevoDesdeSeleccionado,
             String lote
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.itemObject = itemObject;
         this.indexedContainer = indexedContainer;
         this.grid = grid;

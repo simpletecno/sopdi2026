@@ -65,6 +65,8 @@ public class OrdenCompraAnticiposForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public OrdenCompraAnticiposForm() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.mainUI = UI.getCurrent();
         setWidth("85%");
         setHeightUndefined();
@@ -321,6 +323,7 @@ public class OrdenCompraAnticiposForm extends Window {
             queryString += " WHERE orden_compra.CodigoCCAnticipo = '' AND orden_compra.CodigoCCDocumento = ''";
             queryString += " AND   orden_compra.IdEmpresa =" + empresaId;
             queryString += " AND   proveedor_empresa.IdEmpresa = " + empresaId;
+            queryString += " AND   orden_compra.Anticipo > 0";
 
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);

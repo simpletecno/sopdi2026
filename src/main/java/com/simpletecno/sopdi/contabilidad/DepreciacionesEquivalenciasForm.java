@@ -60,6 +60,7 @@ public class DepreciacionesEquivalenciasForm extends Window {
 
     public DepreciacionesEquivalenciasForm() {
         super("Administrar Equivalencias");
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         center();
         setModal(true);
         setWidth("800px");

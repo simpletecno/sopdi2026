@@ -47,6 +47,7 @@ public class ProveedorPluForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public ProveedorPluForm() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.mainUI = UI.getCurrent();
         setResponsive(true);
         setModal(true);

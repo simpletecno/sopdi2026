@@ -75,6 +75,7 @@ public class EmpresasContablesForm extends Window {
     StreamResource logoStreamResource = null;
 
     public EmpresasContablesForm() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.mainUI = UI.getCurrent();
         asegurarColumnasParametros();
         setResponsive(true);

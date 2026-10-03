@@ -65,6 +65,8 @@ public class AutorizarPagoDevolucionClienteForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public AutorizarPagoDevolucionClienteForm() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.mainUI = UI.getCurrent();
         setResponsive(true);
         setWidth("85%");

@@ -62,6 +62,7 @@ public class SeguimientoWindow extends Window {
             String registroNombre,
             String estatus,
             String mailTo) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         this.mainUI = UI.getCurrent();
         if (mainUI.getNavigator().getCurrentView().getClass().getSimpleName().compareTo("InspectionsTaskTrackView") == 0

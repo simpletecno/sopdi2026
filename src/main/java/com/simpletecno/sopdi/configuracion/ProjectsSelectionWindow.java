@@ -56,6 +56,8 @@ public class ProjectsSelectionWindow extends Window {
     String idUsuario;
     
     public ProjectsSelectionWindow(String idUsuario) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         mainUI = UI.getCurrent();
         this.idUsuario = idUsuario;

@@ -45,6 +45,8 @@ public class FacturaVentaAnularForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public FacturaVentaAnularForm(String codigoPartida, String codigoCC, String tipoDocumento, int cuota){
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.codigoPartida = codigoPartida;
         this.codigoCC = codigoCC;
         this.tipoDocumento = tipoDocumento;

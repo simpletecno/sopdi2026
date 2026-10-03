@@ -62,6 +62,8 @@ public class ReporteDocumentosPDF extends Window {
             String empresaNombre,
             String empresaNit,
             String tipoReporte) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.idEmpresa = idEmpresa;
         this.empresaNombre = empresaNombre;

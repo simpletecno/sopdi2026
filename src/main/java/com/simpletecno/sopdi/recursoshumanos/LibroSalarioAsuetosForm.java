@@ -36,6 +36,8 @@ public class LibroSalarioAsuetosForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public LibroSalarioAsuetosForm(int anio){
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.anio = anio;
 
         this.mainUI = UI.getCurrent();

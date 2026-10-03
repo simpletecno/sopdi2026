@@ -52,6 +52,8 @@ public class ProveedorPluView extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public ProveedorPluView() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         Responsive.makeResponsive(this);
         this.mainUI = UI.getCurrent();

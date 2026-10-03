@@ -81,6 +81,8 @@ public class CuentaCorrienteDocumentosView extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public CuentaCorrienteDocumentosView() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         mainLayout = new VerticalLayout();
         mainLayout.setSpacing(true);
         mainLayout.setResponsive(true);

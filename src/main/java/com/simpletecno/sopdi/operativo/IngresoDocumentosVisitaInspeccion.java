@@ -71,6 +71,8 @@ public class IngresoDocumentosVisitaInspeccion extends Window {
     EnvironmentVars enviromentsVars;
 
     public IngresoDocumentosVisitaInspeccion(String codigoVisita) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         enviromentsVars = new EnvironmentVars();
 
         this.codigoVisita = codigoVisita;

@@ -119,6 +119,7 @@ public class PagoDocumentoVentaForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public PagoDocumentoVentaForm() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         this.mainUI = UI.getCurrent();
         setResponsive(true);

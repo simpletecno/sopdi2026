@@ -109,6 +109,8 @@ public class PagoPlanillaForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public PagoPlanillaForm(String idProveedor, Date fechaPago) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.idProveedor = idProveedor;
         this.fechaPago = fechaPago;

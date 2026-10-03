@@ -109,6 +109,8 @@ public final class IntegracionItemCostos extends Window {
     VerticalLayout mainLayout;
 
     public IntegracionItemCostos(String projecNumber) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.projectNumber = projecNumber;
 

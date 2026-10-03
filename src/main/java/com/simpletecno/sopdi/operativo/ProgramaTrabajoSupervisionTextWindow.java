@@ -43,6 +43,8 @@ public class ProgramaTrabajoSupervisionTextWindow extends Window {
             String caracteristica,
             IndexedContainer container
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idPlanTrabajoIdex = idPlanTrabajoIdex;
         this.idCaracteristica =  idCaracteristica;
         this.caracteristica = caracteristica;

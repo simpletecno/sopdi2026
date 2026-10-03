@@ -87,6 +87,7 @@ public class ProgramaTrabajoCheckForm extends Window {
             String codigoEstilo,
             String idNivel
             ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.mainUI = UI.getCurrent();
         this.idPlanTrabajoIdex = idPlanTrabajoIdex;
         this.centroCosto = centroCosto;

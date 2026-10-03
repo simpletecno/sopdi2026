@@ -53,6 +53,8 @@ public class CostCenterForm extends Window {
     UI mainUI;
     
     public CostCenterForm() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.mainUI = UI.getCurrent();
         
         setWidth("60%");

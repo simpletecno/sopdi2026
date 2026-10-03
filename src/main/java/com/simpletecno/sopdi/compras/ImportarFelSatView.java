@@ -268,7 +268,7 @@ public class ImportarFelSatView extends VerticalLayout implements View {
                     if (String.valueOf(facturasFelGrid.getContainerDataSource()
                             .getItem(facturasFelGrid.getSelectedRow()).getItemProperty("tipoDte")
                             .getValue()).equals("NOTA DE CREDITO COMPRA")) {
-                        llenarComboDoctoAfecta();
+                        abrirSelectorFacturaParaNotaCredito();
                     }
                     formLayout.setCaption("Datos para contabilizar documento : "
                             + facturasFelContainer.getContainerProperty(facturasFelGrid.getSelectedRow(), "serie")
@@ -862,13 +862,19 @@ public class ImportarFelSatView extends VerticalLayout implements View {
                 Notification.show("POR FAVOR ELIJA UN DOCUMENTO DEL LISTADO.", Notification.Type.WARNING_MESSAGE);
                 return;
             }
+            String tipoDteSelected = String.valueOf(facturasFelContainer
+                    .getContainerProperty(facturasFelGrid.getSelectedRow(), "tipoDte").getValue());
+            if ("NOTA DE CREDITO COMPRA".equals(tipoDteSelected)) {
+                Notification.show("Para NOTA DE CRÉDITO use el selector de facturas que se abre al seleccionar la fila.",
+                        Notification.Type.WARNING_MESSAGE);
+                abrirSelectorFacturaParaNotaCredito();
+                return;
+            }
             if(proveedorAbastoCbx.getValue() == null) {
                 Notification.show("Debe seleccionar si es proveedor o abasto.", Notification.Type.WARNING_MESSAGE);
                 proveedorAbastoCbx.focus();
                 return;
             }
-
-            //Notification.show("ACCION SUSPENDIDA TEMPORALMENTE. POR FAVOR CONTACTE AL ADMINISTRADOR DEL SISTEMA.", Notification.Type.WARNING_MESSAGE);
             contabilizarForzada(
                     facturasFelGrid.getSelectedRow(),
                     Integer.parseInt(facturasFelContainer.getContainerProperty(facturasFelGrid.getSelectedRow(), "id").getValue().toString())
@@ -1000,6 +1006,36 @@ public class ImportarFelSatView extends VerticalLayout implements View {
             Notification.show("Error al leer documentos afectados : " + ex1.getMessage());
             ex1.printStackTrace();
         }
+    }
+
+    /** Abre la ventana de selección de factura para aplicar la nota de crédito. */
+    private void abrirSelectorFacturaParaNotaCredito() {
+        Object selectedRow = facturasFelGrid.getSelectedRow();
+        if (selectedRow == null) return;
+        com.vaadin.data.Item selectedItem = facturasFelGrid.getContainerDataSource().getItem(selectedRow);
+        if (selectedItem == null) return;
+
+        String idProveedor = String.valueOf(selectedItem.getItemProperty("idProveedor").getValue());
+        String moneda      = String.valueOf(selectedItem.getItemProperty("moneda").getValue());
+        int    idDocumento = Integer.parseInt(String.valueOf(selectedItem.getItemProperty("id").getValue()));
+
+        SeleccionarFacturaNotaCreditoWindow win =
+                new SeleccionarFacturaNotaCreditoWindow(mainUI, empresaId, idProveedor, moneda);
+
+        win.getAplicarBtn().addClickListener(e -> {
+            String codigoCC        = win.getSelectedCodigoCC();
+            String codigoPartida   = win.getSelectedCodigoPartida();
+
+            if (codigoCC.isEmpty() || codigoPartida.isEmpty()) {
+                Notification.show("Seleccione una factura antes de aplicar.", Notification.Type.WARNING_MESSAGE);
+                return;
+            }
+            win.close();
+            contabilizarNotaCredito(selectedRow, idDocumento, codigoCC, codigoPartida);
+        });
+
+        UI.getCurrent().addWindow(win);
+        win.center();
     }
 
     public void llenarGridOrdenCompra() {
@@ -2347,6 +2383,186 @@ System.out.println("TEMPORALLOG=queryStringInsertDOCA=" + queryStringDOCA);
         } catch (Exception ex1) {
             ex1.printStackTrace();
             Notification.show("Error al contabilizar documento." + ex1.getMessage(), Notification.Type.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Contabiliza una NOTA DE CREDITO COMPRA usando el CodigoCC y CentroCosto
+     * de la factura original seleccionada, de modo que el saldo del proveedor
+     * (SUM Haber-Debe para ese CodigoCC) disminuya correctamente.
+     *
+     * Entradas (inversas a la factura):
+     *   DEBE  Proveedores  — reduce la cuenta por pagar
+     *   HABER IVA por cobrar (si aplica)
+     *   HABER Otros Arbitrios (si aplica)
+     *   HABER Gasto/Costo
+     */
+    public void contabilizarNotaCredito(Object itemId, int idDocumento,
+                                        String codigoCCFactura, String codigoPartidaFactura) {
+        String fechaEmision = "", idProveedor = "0", nitProveedor = "0", nombreProveedor = "";
+        String numero = "", serie = "", monto = "0", costo = "0";
+        double iva = 0, otrosImpuestos = 0, tasaCambio = 1.0;
+        String moneda = "QUETZALES";
+
+        try {
+            stQuery  = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
+            stQuery1 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
+
+            rsRecords = stQuery.executeQuery("SELECT * FROM documentos_fel_sat WHERE Id = " + idDocumento);
+            rsRecords.next();
+
+            String tipoDocumento = rsRecords.getString("TipoDTE");
+            fechaEmision    = rsRecords.getString("FechaEmision");
+            idProveedor     = rsRecords.getString("IdProveedor");
+            nitProveedor    = rsRecords.getString("NitProveedor");
+            nombreProveedor = rsRecords.getString("NombreProveedor");
+            moneda          = rsRecords.getString("Moneda");
+            numero          = rsRecords.getString("Numero");
+            serie           = rsRecords.getString("Serie");
+            monto           = rsRecords.getString("Monto");
+            iva             = rsRecords.getDouble("Iva");
+            costo           = rsRecords.getString("Costo");
+            otrosImpuestos  = rsRecords.getDouble("IDP") + rsRecords.getDouble("TurismoHospedaje")
+                    + rsRecords.getDouble("TurismoPasajes") + rsRecords.getDouble("TimbrePrensa")
+                    + rsRecords.getDouble("Bomberos")       + rsRecords.getDouble("TasaMunicipal")
+                    + rsRecords.getDouble("BebidasAlcoholicas") + rsRecords.getDouble("Tabaco")
+                    + rsRecords.getDouble("Cemento")        + rsRecords.getDouble("BebidasNoAlcoholicas")
+                    + rsRecords.getDouble("TarifaPortuaria");
+
+            tasaCambio = ((SopdiUI) mainUI).getTasaCambioDelDia(fechaEmision);
+            if (moneda.equals("QUETZALES")) tasaCambio = 1.00;
+
+            // ── Generar nuevo CodigoPartida para la NC ────────────────────────
+            String dia = fechaEmision.substring(8, 10);
+            String mes = fechaEmision.substring(5, 7);
+            String año = fechaEmision.substring(0, 4);
+            String codigoPartida = empresaId + año + mes + dia + "1";
+
+            rsRecords1 = stQuery1.executeQuery(
+                    " SELECT codigoPartida FROM contabilidad_partida" +
+                    " WHERE codigoPartida LIKE '" + codigoPartida + "%'" +
+                    " ORDER BY codigoPartida DESC");
+            if (rsRecords1.next()) {
+                String ult = rsRecords1.getString("codigoPartida");
+                codigoPartida += String.format("%03d",
+                        Integer.parseInt(ult.substring(12, 15)) + 1);
+            } else {
+                codigoPartida += "001";
+            }
+
+            // ── Leer línea de costo de la partida ORIGINAL por CodigoPartida ──
+            // El CodigoCC de la línea HABER (proveedor) es distinto al CodigoPartida
+            // que comparten las líneas DEBE (IVA, costo). Se busca la última DEBE
+            // por CodigoPartida para obtener IdNomenclatura, IdCentroCosto y
+            // CodigoCentroCosto del gasto.
+            rsRecords1 = stQuery1.executeQuery(
+                    " SELECT IdNomenclatura, IdCentroCosto, CodigoCentroCosto" +
+                    " FROM contabilidad_partida" +
+                    " WHERE CodigoPartida = '" + codigoPartidaFactura + "'" +
+                    " AND IdEmpresa = " + empresaId +
+                    " AND Debe > 0" +
+                    " AND Estatus NOT IN ('ANULADO','ANULADA')" +
+                    " ORDER BY IdPartida DESC LIMIT 1");
+
+            if (!rsRecords1.next()) {
+                Notification.show("No se encontró la línea de gasto en la partida original. Verifique la partida " + codigoPartidaFactura + ".",
+                        Notification.Type.ERROR_MESSAGE);
+                return;
+            }
+            String idNomenclatura    = rsRecords1.getString("IdNomenclatura");
+            String idCentroCosto     = rsRecords1.getString("IdCentroCosto");
+            String codigoCentroCosto = rsRecords1.getString("CodigoCentroCosto");
+            if (idCentroCosto  == null) idCentroCosto     = "0";
+            if (codigoCentroCosto == null) codigoCentroCosto = "";
+
+            // ── Columnas INSERT compartidas ───────────────────────────────────
+            String cols = " INSERT INTO contabilidad_partida (IdEmpresa, Estatus, CodigoPartida, CodigoCC,"
+                    + " TipoDocumento, Fecha, NITProveedor, IdProveedor, NombreProveedor,"
+                    + " SerieDocumento, NumeroDocumento, IdNomenclatura, MonedaDocumento, Debe, Haber,"
+                    + " DebeQuetzales, HaberQuetzales, TipoCambio, MontoDocumento, Saldo,"
+                    + " IdLiquidador, IdLiquidacion, Descripcion, IdCentroCosto, CodigoCentroCosto,"
+                    + " IdOrdenCompra, CreadoUsuario, CreadoFechaYHora) VALUES";
+
+            String desc = tipoDocumento + " " + nombreProveedor.replace("'", "") + " " + serie + " " + numero;
+            String tail0 = "," + tasaCambio + "," + monto + "," + monto  // TipoCambio, MontoDoc, Saldo
+                    + ",0,0,'" + desc + "',0,'',0"
+                    + "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId() + ",current_timestamp)";
+            String tailCC = "," + tasaCambio + "," + monto + "," + monto
+                    + ",0,0,'" + desc + "'," + idCentroCosto + ",'" + codigoCentroCosto + "',0"
+                    + "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId() + ",current_timestamp)";
+
+            // Cabecera común (IdEmpresa, Estatus, CodigoPartida, CodigoCC diferente por entrada, ...)
+            String headBase = empresaId + ",'INGRESADO','" + codigoPartida + "'"
+                    + ",'" + tipoDocumento + "','" + fechaEmision + "','" + nitProveedor + "'," + idProveedor
+                    + ",'" + nombreProveedor.replace("'", "") + "','" + serie + "','" + numero + "'";
+
+            // ── DEBE Proveedores — usa CodigoCC de la línea HABER original ────
+            // Esto reduce el saldo SUM(Haber-Debe) del proveedor para esa factura.
+            queryString = cols + " (" + empresaId + ",'INGRESADO','" + codigoPartida + "','" + codigoCCFactura + "',"
+                    + headBase.substring(headBase.indexOf(",'" + tipoDocumento));
+            // rebuild más limpio:
+            queryString = cols + " (" + empresaId + ",'INGRESADO','" + codigoPartida + "','" + codigoCCFactura + "'"
+                    + ",'" + tipoDocumento + "','" + fechaEmision + "','" + nitProveedor + "'," + idProveedor
+                    + ",'" + nombreProveedor.replace("'", "") + "','" + serie + "','" + numero + "'";
+            if (proveedorAbastoCbx.getValue() != null && "Abastos".equals(proveedorAbastoCbx.getValue().toString())) {
+                queryString += "," + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getAbastos();
+            } else {
+                queryString += "," + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getProveedores();
+            }
+            queryString += ",'" + moneda + "'," + monto + ",0.00"
+                    + "," + tasaCambio * Double.parseDouble(monto) + ",0.00" + tail0;
+
+            // ── HABER IVA — CodigoCC = nuevo codigoPartida de la NC ──────────
+            if (iva > 0 && !((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyRegimen().equals("EXENTA")) {
+                queryString += ",(" + empresaId + ",'INGRESADO','" + codigoPartida + "','" + codigoPartida + "'"
+                        + ",'" + tipoDocumento + "','" + fechaEmision + "','" + nitProveedor + "'," + idProveedor
+                        + ",'" + nombreProveedor.replace("'", "") + "','" + serie + "','" + numero + "'"
+                        + "," + ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getIvaPorCobrar()
+                        + ",'" + moneda + "',0.00," + iva
+                        + ",0.00," + tasaCambio * iva + tail0;
+            }
+
+            // ── HABER OtrosArbitrios — CodigoCC = nuevo codigoPartida de la NC
+            String otrosArbNom = ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getOtrosArbitrios();
+            if (otrosImpuestos > 0 && otrosArbNom != null && !otrosArbNom.isEmpty()
+                    && !((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyRegimen().equals("EXENTA")) {
+                queryString += ",(" + empresaId + ",'INGRESADO','" + codigoPartida + "','" + codigoPartida + "'"
+                        + ",'" + tipoDocumento + "','" + fechaEmision + "','" + nitProveedor + "'," + idProveedor
+                        + ",'" + nombreProveedor.replace("'", "") + "','" + serie + "','" + numero + "'"
+                        + "," + otrosArbNom
+                        + ",'" + moneda + "',0.00," + otrosImpuestos
+                        + ",0.00," + tasaCambio * otrosImpuestos + tail0;
+            }
+
+            // ── HABER Costo/Gasto — CodigoCC = nuevo codigoPartida de la NC ──
+            queryString += ",(" + empresaId + ",'INGRESADO','" + codigoPartida + "','" + codigoPartida + "'"
+                    + ",'" + tipoDocumento + "','" + fechaEmision + "','" + nitProveedor + "'," + idProveedor
+                    + ",'" + nombreProveedor.replace("'", "") + "','" + serie + "','" + numero + "'"
+                    + "," + idNomenclatura
+                    + ",'" + moneda + "',0.00," + costo
+                    + ",0.00," + tasaCambio * Double.parseDouble(costo) + tailCC;
+
+            stQuery.executeUpdate(queryString);
+
+            stQuery.executeUpdate("UPDATE documentos_fel_sat SET"
+                    + " Accion='Nota de Crédito'"
+                    + ",ModificadoUsuario=" + ((SopdiUI) mainUI).sessionInformation.getStrUserId()
+                    + ",ModificadoFechaYHora=current_timestamp"
+                    + ",Contabilizada='S'"
+                    + " WHERE Id = " + idDocumento);
+
+            facturasContabilizadas++;
+            facturasFelContainer.removeItem(itemId);
+
+            Notification.show("Nota de crédito contabilizada. Código de partida = " + codigoPartida,
+                    Notification.Type.TRAY_NOTIFICATION);
+
+            verificarPartida(codigoPartida);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Notification.show("Error al contabilizar nota de crédito: " + ex.getMessage(),
+                    Notification.Type.ERROR_MESSAGE);
         }
     }
 

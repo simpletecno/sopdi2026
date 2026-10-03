@@ -36,6 +36,7 @@ public class ClasificacionCuentasCostoForm extends Window {
     Button guardarBtn;
 
     public ClasificacionCuentasCostoForm(String clasificacion) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         this.idClasificacion = clasificacion;
         this.mainUI = UI.getCurrent();

@@ -85,6 +85,7 @@ public class IngresoDepositoVentaMonedaForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public IngresoDepositoVentaMonedaForm(String idDeposito) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         this.idDeposito = idDeposito;
         this.mainUI = UI.getCurrent();

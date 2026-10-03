@@ -65,6 +65,8 @@ public class ReporteLiquidacionPDF extends Window {
             String empresaNit,
             String idLiquidacion, 
             String liquidador) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.idEmpresa = idEmpresa;
         this.empresaNombre = empresaNombre;

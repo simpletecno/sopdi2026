@@ -75,6 +75,8 @@ public class FacturasVentaPDF extends Window {
             IndexedContainer documentosContainer, 
             String desde, 
             String hasta) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idEmpresa = idEmpresa;
         this.empresaNombre = empresaNombre;
         this.empresaNit = empresaNit;

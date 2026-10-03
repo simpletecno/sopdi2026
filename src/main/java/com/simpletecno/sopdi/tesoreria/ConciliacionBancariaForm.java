@@ -94,6 +94,8 @@ public class ConciliacionBancariaForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public ConciliacionBancariaForm(String idConciliacion) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idConciliacion = idConciliacion;
         this.mainUI = UI.getCurrent();
 

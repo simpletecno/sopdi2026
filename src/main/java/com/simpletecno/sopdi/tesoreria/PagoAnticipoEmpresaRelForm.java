@@ -110,6 +110,8 @@ public class PagoAnticipoEmpresaRelForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public PagoAnticipoEmpresaRelForm(String codigoPartidaSeleccionado, Date fechaPago) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.mainUI = UI.getCurrent();
         this.codigoPartidaSeleccionado = codigoPartidaSeleccionado;

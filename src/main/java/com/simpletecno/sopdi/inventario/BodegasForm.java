@@ -36,6 +36,7 @@ public class BodegasForm extends Window {
     Button salirBtn;
 
     public BodegasForm(String idBodega) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         this.mainUI = UI.getCurrent();
         this.idBodega = idBodega;

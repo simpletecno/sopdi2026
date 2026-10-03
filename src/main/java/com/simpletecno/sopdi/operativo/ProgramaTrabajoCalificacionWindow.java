@@ -85,6 +85,8 @@ public final class ProgramaTrabajoCalificacionWindow extends Window {
             String idex,
             String descripcion
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.programaTrabajoIdex = programaTrabajoIdex;
         this.centroCosto = centroCosto;

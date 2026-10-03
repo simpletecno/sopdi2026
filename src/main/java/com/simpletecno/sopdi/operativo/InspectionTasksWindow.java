@@ -71,6 +71,8 @@ public class InspectionTasksWindow extends Window {
             String descripcionVisita,
             String idCentroCostoDefault,
             String cliente) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.visitaInspeccionId = visitaInspeccionId;
         this.codigoVisita = codigoVisita;
         this.descripcionVisita = descripcionVisita;

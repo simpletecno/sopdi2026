@@ -53,6 +53,8 @@ public class InspectionTaskAuthorWindow extends Window {
             String tareaId,
             String codigoTarea,
             String descripcionTarea) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.autorizar = autorizar;
         this.tareaId = tareaId;
         this.codigoTarea = codigoTarea;

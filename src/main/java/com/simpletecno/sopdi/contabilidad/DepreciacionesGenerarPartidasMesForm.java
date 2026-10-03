@@ -55,6 +55,7 @@ public class DepreciacionesGenerarPartidasMesForm extends Window {
     private String idEmpresa;
 
     public DepreciacionesGenerarPartidasMesForm() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         center();
         setModal(true);

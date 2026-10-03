@@ -69,6 +69,7 @@ public class IngresoBancosTrasladosForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public IngresoBancosTrasladosForm(String empresa, String codigoPartida) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.empresa = empresa;
         this.codigoPartida = codigoPartida;
 

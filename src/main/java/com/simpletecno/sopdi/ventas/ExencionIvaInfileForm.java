@@ -114,6 +114,7 @@ public class ExencionIvaInfileForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public ExencionIvaInfileForm(String empresa, String codigoPartida, String tipoDocumento) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.codigoPartida = this.codigoCCFactura = codigoPartida;
         this.tipoDocumento = tipoDocumento;
         this.mainUI = UI.getCurrent();

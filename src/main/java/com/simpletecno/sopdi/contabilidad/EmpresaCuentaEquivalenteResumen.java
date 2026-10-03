@@ -37,6 +37,8 @@ public class EmpresaCuentaEquivalenteResumen extends Window {
 
     public EmpresaCuentaEquivalenteResumen(int idEmpresa, int idProveedor, int idNomenclatura, String nomenclaturaNombre,
                                            int idEmpresa_1, int idProveedor_1, int idNomenclatura_1, String nomenclaturaNombre_1) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.mainUI = UI.getCurrent();
 
         this.idEmpresa = idEmpresa;

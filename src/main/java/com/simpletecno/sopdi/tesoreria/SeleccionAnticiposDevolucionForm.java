@@ -108,6 +108,7 @@ public class SeleccionAnticiposDevolucionForm extends Window {
 
     public SeleccionAnticiposDevolucionForm(SeleccionListener seleccionListener) {
         this(seleccionListener, null);
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
     }
 
     public SeleccionAnticiposDevolucionForm(SeleccionListener seleccionListener, String idProveedorFiltro) {

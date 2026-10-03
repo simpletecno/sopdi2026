@@ -73,6 +73,8 @@ public class EstimacionPDF extends Window {
             IndexedContainer estimacionContainer,
             MultiSelectionModel selection,
             FooterRow footerRow) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idEmpresa = idEmpresa;
         this.empresaNombre = empresaNombre;
         this.empresaNit = empresaNit;

@@ -105,6 +105,7 @@ public class IngresoReembolsoSueldo extends Window {
     static final String SALDO_DOCUMENTO_PROPERTY = "Saldo";
 
     public IngresoReembolsoSueldo() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         this.mainUI = UI.getCurrent();
         setResponsive(true);

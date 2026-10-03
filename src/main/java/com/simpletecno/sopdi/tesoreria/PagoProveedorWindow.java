@@ -38,6 +38,7 @@ public class PagoProveedorWindow extends Window {
 
     // ────────────────────────────────────────────────────────────────────────
     public PagoProveedorWindow() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         injectStyles();
 
         setModal(true);

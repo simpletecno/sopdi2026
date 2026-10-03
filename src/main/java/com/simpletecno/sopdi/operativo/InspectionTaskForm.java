@@ -77,6 +77,8 @@ public class InspectionTaskForm extends Window {
 
     public InspectionTaskForm(String idVisita, String idTarea,
             String codigoVisita, String idCentroCosto, boolean siEditarCentroCosto) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idVisita = idVisita;
         this.idTarea = idTarea;
         this.codigoVisita = codigoVisita;

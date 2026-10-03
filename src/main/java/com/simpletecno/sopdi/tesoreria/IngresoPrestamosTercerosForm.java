@@ -80,6 +80,7 @@ public class IngresoPrestamosTercerosForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public IngresoPrestamosTercerosForm(String codigoPartida) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.codigoPartida = codigoPartida;
 
         this.mainUI = UI.getCurrent();

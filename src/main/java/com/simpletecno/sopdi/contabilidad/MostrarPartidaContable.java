@@ -66,6 +66,7 @@ public class MostrarPartidaContable extends Window {
             String nombre,
             String documento
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         this.codigoPartida = codigoPartida;
         this.descripcion = descripcion;

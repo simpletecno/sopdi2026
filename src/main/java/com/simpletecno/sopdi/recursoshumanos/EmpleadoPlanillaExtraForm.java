@@ -49,6 +49,7 @@ public class EmpleadoPlanillaExtraForm extends Window {
             String nombreEmpleado,
             String idEmpleado,
             int tipo) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         this.mainUI = UI.getCurrent();
         this.selectedItemId = selectedItem;

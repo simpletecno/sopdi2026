@@ -51,6 +51,8 @@ public class EmpleadoAsistenciaPDF extends Window {
             String fechaPlan,
             IndexedContainer asistenciaContainer
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.fechaPlan = fechaPlan;
         this.asistenciaContainer = asistenciaContainer;

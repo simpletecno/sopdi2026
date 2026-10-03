@@ -70,6 +70,8 @@ public class OrdenCompraPDF extends Window {
             String proveedorNombre,
             double anticipo
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idOrdenCompra = idOrdenCompra;
         this.tipoOrdenCompra = tipoOrdenCompra;
         this.nombreTipoOrdenCompra = nombreTipoOrdenCompra;

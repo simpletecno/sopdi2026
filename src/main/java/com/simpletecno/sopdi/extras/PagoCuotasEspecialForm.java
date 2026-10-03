@@ -29,6 +29,7 @@ public class PagoCuotasEspecialForm extends Window {
     static final String CORREO_PROPERTY = "CORREO";
 
     public PagoCuotasEspecialForm (ComboBox cbx){
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.mainUI = UI.getCurrent();
         setResponsive(true);
         setWidth("50%");

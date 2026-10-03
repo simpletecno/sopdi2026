@@ -64,6 +64,8 @@ public class InspectionBudgetReportPDF extends Window {
     public int totalDiasHabiles = 0;
     long linea = 0;
     public InspectionBudgetReportPDF(String idVisitaInspeccion) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
            
         this.idVisitaInspeccion = idVisitaInspeccion;
         

@@ -73,6 +73,8 @@ public class EstimacionesDetalleWindow extends Window {
             String idCC,
             String idex
         ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.mainUI = UI.getCurrent();
         
         mainLayout = new VerticalLayout();

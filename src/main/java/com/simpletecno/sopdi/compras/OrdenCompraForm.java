@@ -1751,6 +1751,7 @@ public class OrdenCompraForm extends Window {
                             notif.setPosition(Position.MIDDLE_CENTER);
                             notif.setIcon(FontAwesome.WARNING);
                             notif.show(Page.getCurrent());
+                            continue;
                         }
                     }
                     else { // compra ESTIMACION, eventual, recurrente

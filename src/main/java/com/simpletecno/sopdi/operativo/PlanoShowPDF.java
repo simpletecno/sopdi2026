@@ -23,6 +23,8 @@ public class PlanoShowPDF extends Window {
     public PlanoShowPDF(
             String planoFile
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.planoFile = planoFile;
 

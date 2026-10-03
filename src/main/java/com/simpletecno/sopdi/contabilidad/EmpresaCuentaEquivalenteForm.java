@@ -58,6 +58,7 @@ public class EmpresaCuentaEquivalenteForm extends Window {
     Button salirBtn;
 
     public EmpresaCuentaEquivalenteForm() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.mainUI = UI.getCurrent();
         setResponsive(true);
         setModal(true);

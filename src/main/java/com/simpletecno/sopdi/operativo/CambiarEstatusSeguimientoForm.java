@@ -49,6 +49,7 @@ public class CambiarEstatusSeguimientoForm extends Window {
     Button salirBtn;
 
     public CambiarEstatusSeguimientoForm(String idVisita, String estatus, String codigoVista) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         this.mainUI = UI.getCurrent();
         this.idTareaSeguimiento = idVisita;

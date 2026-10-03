@@ -86,6 +86,8 @@ public class CargarProjectTareas extends Window {
     UI mainUI;
 
     public CargarProjectTareas() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         setWidth("85%");
 //        setHeight("70%");

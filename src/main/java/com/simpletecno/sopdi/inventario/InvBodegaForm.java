@@ -43,6 +43,8 @@ public class InvBodegaForm extends Window {
     UI mainUI;
     
     public InvBodegaForm(int idInvBodega, String invBodegaNombre) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idInvBodega = idInvBodega;
         this.mainUI = UI.getCurrent();
        
