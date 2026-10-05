@@ -421,24 +421,22 @@ public class EmpleadoView extends VerticalLayout implements View {
 
         rightLayout.addStyleName("rcorners3");
         rightLayout.addStyleName("empleado-detalle");
-        rightLayout.setWidth("100%");
-        rightLayout.setHeightUndefined();
+        rightLayout.setSizeFull();
         rightLayout.setSpacing(true);
 
         mainLayout.addComponent(rightLayout);
 
         TabSheet empleadoTabs = new TabSheet();
-        empleadoTabs.setWidth("100%");
-        empleadoTabs.setHeightUndefined();
+        empleadoTabs.setSizeFull();
         empleadoTabs.addStyleName("empleado-tabs");
 
         FormLayout datosPersonalesForm = crearTabFormulario();
         FormLayout datosLaboralesForm = crearTabFormulario();
         FormLayout vacacionesForm = crearTabFormulario();
 
-        empleadoTabs.addTab(datosPersonalesForm, "Datos personales", FontAwesome.USER);
-        empleadoTabs.addTab(datosLaboralesForm, "Datos laborales", FontAwesome.BRIEFCASE);
-        empleadoTabs.addTab(vacacionesForm, "Vacaciones y liquidación", FontAwesome.CALENDAR);
+        empleadoTabs.addTab(crearPanelScrollTab(datosPersonalesForm), "Datos personales", FontAwesome.USER);
+        empleadoTabs.addTab(crearPanelScrollTab(datosLaboralesForm), "Datos laborales", FontAwesome.BRIEFCASE);
+        empleadoTabs.addTab(crearPanelScrollTab(vacacionesForm), "Vacaciones y liquidación", FontAwesome.CALENDAR);
 
         formularioEstadoLbl.addStyleName(ValoTheme.LABEL_H2);
         formularioEstadoLbl.addStyleName(ValoTheme.LABEL_COLORED);
@@ -565,6 +563,7 @@ public class EmpleadoView extends VerticalLayout implements View {
 
         buttonsLayout.addComponent(saveBtn);
         buttonsLayout.setComponentAlignment(saveBtn,Alignment.MIDDLE_CENTER);
+        rightLayout.setExpandRatio(empleadoTabs, 1.0f);
 
     }
 
@@ -576,6 +575,15 @@ public class EmpleadoView extends VerticalLayout implements View {
         formulario.setSpacing(true);
         formulario.addStyleName("empleado-tab-form");
         return formulario;
+    }
+
+    private Panel crearPanelScrollTab(FormLayout formulario) {
+        Panel scrollPanel = new Panel();
+        scrollPanel.setSizeFull();
+        scrollPanel.addStyleName(ValoTheme.PANEL_BORDERLESS);
+        scrollPanel.addStyleName("empleado-tab-scroll");
+        scrollPanel.setContent(formulario);
+        return scrollPanel;
     }
 
     private void aplicarEstiloInhabilitado(Boolean inhabilitado) {
