@@ -692,7 +692,6 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
 
     public boolean documentoCeritficaroInfile(ComboBox proveedorCbx){
         String correo;
-        Date fechaEmision = fechaDt.getValue();
 
         if (proveedorCbx.getContainerProperty(proveedorCbx.getValue(), CORREO_PROPERTY).getValue() == null) {
             correo = "";
@@ -721,17 +720,6 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
             return false;
         }
 
-
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_YEAR, -5);  // hoy - 5 días
-        Date fechaLimite = cal.getTime();
-
-        // fechaEmision es más de 5 días antes que hoy
-        if (fechaEmision.before(fechaLimite)) {
-            fechaEmision = fechaLimite;
-        }
-
-
         infileClient = new InfileClient(((SopdiUI)mainUI).sessionInformation.getInfileEmisor());
         return infileClient.generarDocumentoBase(
                 receptor,
@@ -739,7 +727,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
                 productoList,
                 exentoIva ?"RDON":"FACT",
                 "",
-                fechaEmision,
+                fechaDocumentoVenta,
                 "GTQ",
                 1.00
         );
@@ -764,13 +752,16 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
             calcularCuotasAPagar(montoSobrante);
         }
 
-        Date fechaInicial = new Date();
         Calendar cal = Calendar.getInstance();
-        cal.setTime(fechaInicial);
-        cal.add(Calendar.DAY_OF_YEAR, -5);
+        cal.add(Calendar.DAY_OF_YEAR, -5);  // hoy - 5 días
+        Date fechaLimite = cal.getTime();
 
         // Si pasan 5 dias
-        fechaDocumentoVenta = fechaDt.getValue().before(cal.getTime()) ? fechaInicial : fechaDt.getValue();
+        if (fechaDt.getValue().before(fechaLimite)) {
+            fechaDocumentoVenta = fechaLimite;
+        } else {
+            fechaDocumentoVenta = fechaDt.getValue();
+        }
 
 
         BigDecimal base = toMoney(BigDecimal.valueOf(montoTotal).divide(IVA_DIVISOR, 2, RoundingMode.HALF_UP));

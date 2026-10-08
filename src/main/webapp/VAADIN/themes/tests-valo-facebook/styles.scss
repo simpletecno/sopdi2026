@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-@import "variables_modern";
+@import "_variables";
 @import "../tests-valo/_valotest";
 
 .tests-valo-facebook {
@@ -729,10 +729,21 @@
     }
 
     .empleado-tabs .v-tabsheet-content {
-        min-height: 520px;
-        max-height: 620px;
-        overflow-y: auto;
         background: #ffffff;
+    }
+
+    .empleado-tab-scroll.v-panel {
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: #ffffff;
+    }
+
+    .empleado-tab-scroll > .v-panel-content {
+        border: none !important;
+        background: #ffffff;
+        overflow-y: auto !important;
+        padding: 0 !important;
     }
 
     .empleado-tabs .v-tabsheet-tabitemcell {

@@ -19,10 +19,11 @@ import org.vaadin.ui.NumberField;
 
 import javax.mail.MessagingException;
 import java.io.File;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
@@ -37,7 +38,14 @@ public class FacturaVentaInfileForm extends Window {
     static final String DIRECCION_PROPERTY = "DIRECCION";
     static final String CORREO_PROPERTY = "CORREO";
 
-    static DecimalFormat numberFormat = new DecimalFormat("######0.00");
+    private static final int MONEY_SCALE = 2;
+    private static final RoundingMode MONEY_ROUNDING = RoundingMode.HALF_UP;
+    private static final BigDecimal ZERO_MONEY = BigDecimal.ZERO.setScale(MONEY_SCALE, MONEY_ROUNDING);
+    private static final BigDecimal IVA_RATE = new BigDecimal("0.12");
+    private static final BigDecimal IVA_DIVISOR = BigDecimal.ONE.add(IVA_RATE);
+    private static final BigDecimal ISR_BASE_LIMIT = new BigDecimal("30000.00");
+    private static final BigDecimal ISR_FIRST_RATE = new BigDecimal("0.05");
+    private static final BigDecimal ISR_SECOND_RATE = new BigDecimal("0.07");
 
     Panel centerContentPanel;
 
@@ -71,8 +79,8 @@ public class FacturaVentaInfileForm extends Window {
 
     String codigoPartida = "";
 
-    Double ivaMontoTotal = 0.0d;
-    Double netoMontoTotal = 0.0d;
+    BigDecimal ivaMontoTotal = ZERO_MONEY;
+    BigDecimal netoMontoTotal = ZERO_MONEY;
 
     boolean exenta;
 
@@ -139,6 +147,54 @@ public class FacturaVentaInfileForm extends Window {
         createDocumentHeader();
         createDocumentDetail();
         createDocumentFoother();
+    }
+
+    private BigDecimal decimalValue(NumberField field) {
+        if (field == null || field.getValue() == null) {
+            return BigDecimal.ZERO;
+        }
+
+        String value = String.valueOf(field.getValue()).trim()
+                .replace(",", "")
+                .replace("Q.", "")
+                .replace("$.", "");
+
+        if (value.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        try {
+            return new BigDecimal(value);
+        } catch (NumberFormatException ex) {
+            return BigDecimal.valueOf(field.getDoubleValueDoNotThrow());
+        }
+    }
+
+    private BigDecimal money(BigDecimal value) {
+        return (value == null ? BigDecimal.ZERO : value).setScale(MONEY_SCALE, MONEY_ROUNDING);
+    }
+
+    private BigDecimal moneyValue(NumberField field) {
+        return money(decimalValue(field));
+    }
+
+    private String sqlMoney(BigDecimal value) {
+        return money(value).toPlainString();
+    }
+
+    private String sqlDecimal(BigDecimal value) {
+        if (value == null) {
+            return "0";
+        }
+        return value.stripTrailingZeros().toPlainString();
+    }
+
+    private void setMoneyValue(NumberField field, BigDecimal value) {
+        field.setValue(sqlMoney(value));
+    }
+
+    private BigDecimal toQuetzales(BigDecimal monto, BigDecimal tasaCambio) {
+        return money(monto.multiply(tasaCambio));
     }
 
     private void createDocumentHeader() {
@@ -693,7 +749,7 @@ public class FacturaVentaInfileForm extends Window {
             rsRecords = stQuery.executeQuery(queryString);
 
             if (rsRecords.next()) {
-                totalFacturadoMesTxt.setValue(rsRecords.getDouble("TOTALFACTURADO"));
+                setMoneyValue(totalFacturadoMesTxt, money(rsRecords.getBigDecimal("TOTALFACTURADO")));
             }
 
         } catch (Exception ex) {
@@ -707,54 +763,55 @@ public class FacturaVentaInfileForm extends Window {
 
 
     private void calcularMontos() {
-        Double total = 0.0d;
+        BigDecimal total = ZERO_MONEY;
         if(montoTxt == null) {
             return;
         }
 
-        montoTxt.setValue(0.0);
-        ivaTxt.setValue(0.0);
-        isrTxt.setValue(0.0);
+        setMoneyValue(montoTxt, ZERO_MONEY);
+        setMoneyValue(ivaTxt, ZERO_MONEY);
+        setMoneyValue(isrTxt, ZERO_MONEY);
 
-        netoMontoTotal = 0.0;
-        ivaMontoTotal = 0.0;
+        netoMontoTotal = ZERO_MONEY;
+        ivaMontoTotal = ZERO_MONEY;
 
         exenta = true;
         verificarFrases();
 
         for (ProductoVenta productoVenta : productoVentaList) {
-            if(productoVenta.calcularMontos() > 0){
+            BigDecimal monto = productoVenta.calcularMontos();
+            if(monto.compareTo(BigDecimal.ZERO) > 0){
                 exenta = exenta && productoVenta.getProducto().tieneFrase(InfileClient.EXENTOIVA_FRASE);
-                double monto = productoVenta.calcularMontos();
-                total += monto;
-                netoMontoTotal += monto / 1.12;
-                ivaMontoTotal += monto - (monto / 1.12);
+                total = money(total.add(monto));
+                BigDecimal neto = money(monto.divide(IVA_DIVISOR, MONEY_SCALE, MONEY_ROUNDING));
+                netoMontoTotal = money(netoMontoTotal.add(neto));
+                ivaMontoTotal = money(ivaMontoTotal.add(monto.subtract(neto)));
             }
         }
 
-        montoTxt.setValue(numberFormat.format(total));
+        setMoneyValue(montoTxt, total);
 
 
-        double base = Double.valueOf(Utileria.format((montoTxt.getDoubleValueDoNotThrow() / 1.12)));
+        BigDecimal base = money(total.divide(IVA_DIVISOR, MONEY_SCALE, MONEY_ROUNDING));
 
         if(exenta) {
-            base  = montoTxt.getDoubleValueDoNotThrow();
+            base = total;
         }
         else {
-            ivaTxt.setValue(Double.valueOf(Utileria.format((base * 0.12))));
+            setMoneyValue(ivaTxt, base.multiply(IVA_RATE));
         }
 
-        if(base <= 30000.00) {
-            isrTxt.setValue(Double.valueOf(Utileria.format((base * 0.05))));
+        if(base.compareTo(ISR_BASE_LIMIT) <= 0) {
+            setMoneyValue(isrTxt, base.multiply(ISR_FIRST_RATE));
         }
         else {
-            double isr1 = 30000.00 * 0.05;
-            double isr2 = (base - 30000.00) * 0.07;
-            isrTxt.setValue(Double.valueOf(Utileria.format(isr1 + isr2)));
+            BigDecimal isr1 = ISR_BASE_LIMIT.multiply(ISR_FIRST_RATE);
+            BigDecimal isr2 = base.subtract(ISR_BASE_LIMIT).multiply(ISR_SECOND_RATE);
+            setMoneyValue(isrTxt, isr1.add(isr2));
         }
 
         if(!((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyRegimen().equals("Opcional Simplificado sobre Ingresos de Actividades Lucrativas")) {
-            isrTxt.setValue(0.00);
+            setMoneyValue(isrTxt, ZERO_MONEY);
         }
 
     }
@@ -861,7 +918,7 @@ public class FacturaVentaInfileForm extends Window {
             return false;
         }
 
-        if (this.montoTxt.getDoubleValueDoNotThrow() == 0) {
+        if (moneyValue(montoTxt).compareTo(BigDecimal.ZERO) == 0) {
             Notification.show("Por favor ingrese el monto de la factura.", Notification.Type.WARNING_MESSAGE);
             montoTxt.focus();
             return false;
@@ -922,7 +979,7 @@ public class FacturaVentaInfileForm extends Window {
         List<Producto> productoList = new ArrayList<>();
 
         for (ProductoVenta productoVenta : productoVentaList) {
-            if (productoVenta.calcularMontos() > 0){
+            if (productoVenta.calcularMontos().compareTo(BigDecimal.ZERO) > 0){
                 productoList.add(productoVenta.getProducto());
             }
 
@@ -942,7 +999,7 @@ public class FacturaVentaInfileForm extends Window {
                 "",
                 fechaDt.getValue(),
                 monedaCbx.getValue().toString().equals("DOLARES")?"USD":"GTQ",
-                tasaCambioTxt.getDoubleValueDoNotThrow()
+                decimalValue(tasaCambioTxt).doubleValue()
                 );
 
     }
@@ -966,6 +1023,14 @@ public class FacturaVentaInfileForm extends Window {
             }
         }
 
+        BigDecimal montoDocumento = moneyValue(montoTxt);
+        BigDecimal tasaCambio = decimalValue(tasaCambioTxt);
+        BigDecimal montoDocumentoQ = toQuetzales(montoDocumento, tasaCambio);
+        BigDecimal ivaMonto = moneyValue(ivaTxt);
+        BigDecimal ivaMontoQ = toQuetzales(ivaMonto, tasaCambio);
+        BigDecimal isrMonto = moneyValue(isrTxt);
+        BigDecimal isrMontoQ = toQuetzales(isrMonto, tasaCambio);
+
         queryString = " INSERT INTO proveedor_cuentacorriente (IdEmpresa,IdProveedor, Fecha,";
         queryString += " TipoDocumento, SerieDocumento,NumeroDocumento, MonedaDocumento, ";
         queryString += " Monto, MontoQuetzales, TipoCambio ";
@@ -983,9 +1048,9 @@ public class FacturaVentaInfileForm extends Window {
         queryString += ",UPPER('" + serieTxt.getValue().trim() + "')";
         queryString += ",'" + numeroTxt.getValue().trim() + "'";
         queryString += ",'" + monedaCbx.getValue() + "'";
-        queryString += ", " + montoTxt.getDoubleValueDoNotThrow();
-        queryString += "," + Utileria.format(montoTxt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
-        queryString += ", " + tasaCambioTxt.getValue();
+        queryString += ", " + sqlMoney(montoDocumento);
+        queryString += "," + sqlMoney(montoDocumentoQ);
+        queryString += ", " + sqlDecimal(tasaCambio);
         queryString += ", " + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
         queryString += ",'" + Utileria.getFechaYYYYMMDD_1(new Date()) + "'";
         queryString += ", " + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
@@ -1029,13 +1094,13 @@ public class FacturaVentaInfileForm extends Window {
         queryString += "," + ((SopdiUI) mainUI).cuentasContablesDefault.getClientes();
 
         queryString += ",'" + monedaCbx.getValue() + "'";
-        queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTODOCUMENTO
-        queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //DEBE
+        queryString += "," + sqlMoney(montoDocumento); //MONTODOCUMENTO
+        queryString += "," + sqlMoney(montoDocumento); //DEBE
         queryString += ",0.00"; //HABER
-        queryString += "," + Utileria.format(montoTxt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+        queryString += "," + sqlMoney(montoDocumentoQ);
         queryString += ",0.00"; //HABER Q.
-        queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
-        queryString += "," + montoTxt.getDoubleValueDoNotThrow(); // SALDO
+        queryString += "," + sqlDecimal(tasaCambio);
+        queryString += "," + sqlMoney(montoDocumento); // SALDO
         if(!((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyRegimen().equals("EXENTA")) {
             queryString += ",'FACTURA VENTA " + clienteCbx.getItem(clienteCbx.getValue()).getItemProperty(NOMBRESINCODIGO_PROPERTY).getValue() + "'";
         }
@@ -1069,7 +1134,13 @@ public class FacturaVentaInfileForm extends Window {
         queryString += ",null)"; // IdProducto
 
         for (ProductoVenta productoVenta : productoVentaList) {
-            if (productoVenta.calcularMontos() != 0) {
+            BigDecimal productoMonto = productoVenta.calcularMontos();
+            if (productoMonto.compareTo(BigDecimal.ZERO) != 0) {
+                BigDecimal productoHaber = exenta
+                        ? productoMonto
+                        : money(productoMonto.divide(IVA_DIVISOR, MONEY_SCALE, MONEY_ROUNDING));
+                BigDecimal productoHaberQ = toQuetzales(productoHaber, tasaCambio);
+
                 queryString += ",(";
                 queryString += empresaId;
                 queryString += ",'INGRESADO'";
@@ -1089,20 +1160,12 @@ public class FacturaVentaInfileForm extends Window {
                 queryString += ",'" + numeroTxt.getValue().trim() + "'";
                 queryString += "," + productoVenta.getIdNomenclatura();
                 queryString += ",'" + monedaCbx.getValue() + "'";
-                queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTODOCUMENTO
+                queryString += "," + sqlMoney(montoDocumento); //MONTODOCUMENTO
                 queryString += ",0.00"; //DEBE
-                if (!exenta) {
-                    queryString += "," + Utileria.format(productoVenta.calcularMontos() / 1.12); // HABER
-                } else {
-                    queryString += "," + Utileria.format(productoVenta.calcularMontos()); // HABER
-                }
+                queryString += "," + sqlMoney(productoHaber); // HABER
                 queryString += ",0.00"; //DEBE Q.
-                if (!exenta) {
-                    queryString += "," + Utileria.format((productoVenta.calcularMontos() / 1.12) * tasaCambioTxt.getDoubleValueDoNotThrow());
-                } else {
-                    queryString += "," + Utileria.format(productoVenta.calcularMontos() * tasaCambioTxt.getDoubleValueDoNotThrow());
-                }
-                queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
+                queryString += "," + sqlMoney(productoHaberQ);
+                queryString += "," + sqlDecimal(tasaCambio);
                 queryString += ",0.00"; //SALDO
                 if (!((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyRegimen().equals("EXENTA")) {
                     queryString += ",'FACTURA VENTA " + clienteCbx.getItem(clienteCbx.getValue()).getItemProperty(NOMBRESINCODIGO_PROPERTY).getValue() + "'";
@@ -1150,12 +1213,12 @@ System.out.println("entra a insertar linea del iva.  exenta=" + exenta + " getIv
             queryString += ",'" + numeroTxt.getValue().trim() + "'";
             queryString += "," + ((SopdiUI) mainUI).cuentasContablesDefault.getIvaPorPagar();
             queryString += ",'" + monedaCbx.getValue() + "'";
-            queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTODOCUMENTO
+            queryString += "," + sqlMoney(montoDocumento); //MONTODOCUMENTO
             queryString += ",0.00"; //DEBE
-            queryString += "," + ivaTxt.getDoubleValueDoNotThrow(); // HABER
+            queryString += "," + sqlMoney(ivaMonto); // HABER
             queryString += ",0.00"; //DEBE Q.
-            queryString += "," + Utileria.format(ivaTxt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
-            queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
+            queryString += "," + sqlMoney(ivaMontoQ);
+            queryString += "," + sqlDecimal(tasaCambio);
             queryString += ",0.00"; //SALDO
             queryString += ",'FACTURA VENTA " + clienteCbx.getItem(clienteCbx.getValue()).getItemProperty(NOMBRESINCODIGO_PROPERTY).getValue() + "'";
             queryString += ",'NO'"; //referencia
@@ -1206,12 +1269,12 @@ System.out.println("entra a insertar linea del iva.  exenta=" + exenta + " getIv
                 queryString += ",'" + numeroTxt.getValue().trim() + "'";
                 queryString += "," + ((SopdiUI) mainUI).cuentasContablesDefault.getIsrGasto();
                 queryString += ",'" + monedaCbx.getValue() + "'";
-                queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTODOCUMENTO
-                queryString += "," + isrTxt.getDoubleValueDoNotThrow(); // DEBE
+                queryString += "," + sqlMoney(montoDocumento); //MONTODOCUMENTO
+                queryString += "," + sqlMoney(isrMonto); // DEBE
                 queryString += ",0.00"; //HABER
-                queryString += "," + Utileria.format(isrTxt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
+                queryString += "," + sqlMoney(isrMontoQ);
                 queryString += ",0.00"; //HABER Q.
-                queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
+                queryString += "," + sqlDecimal(tasaCambio);
                 queryString += ",0.00"; //SALDO
                 queryString += ",'FACTURA VENTA " + clienteCbx.getItem(clienteCbx.getValue()).getItemProperty(NOMBRESINCODIGO_PROPERTY).getValue() + "'";
                 queryString += ",'NO'"; //referencia
@@ -1256,12 +1319,12 @@ System.out.println("entra a insertar linea del iva.  exenta=" + exenta + " getIv
                 queryString += ",'" + numeroTxt.getValue().trim() + "'";
                 queryString += "," + ((SopdiUI) mainUI).cuentasContablesDefault.getIsrOpcionalMensualPorPagar();
                 queryString += ",'" + monedaCbx.getValue() + "'";
-                queryString += "," + montoTxt.getDoubleValueDoNotThrow(); //MONTODOCUMENTO
+                queryString += "," + sqlMoney(montoDocumento); //MONTODOCUMENTO
                 queryString += ",0.00"; //DEBE
-                queryString += "," + isrTxt.getDoubleValueDoNotThrow(); // HABER
+                queryString += "," + sqlMoney(isrMonto); // HABER
                 queryString += ",0.00"; //DEBE Q.
-                queryString += "," + Utileria.format(isrTxt.getDoubleValueDoNotThrow() * tasaCambioTxt.getDoubleValueDoNotThrow());
-                queryString += "," + tasaCambioTxt.getDoubleValueDoNotThrow();
+                queryString += "," + sqlMoney(isrMontoQ);
+                queryString += "," + sqlDecimal(tasaCambio);
                 queryString += ",0.00"; //SALDO
                 queryString += ",'FACTURA VENTA " + clienteCbx.getItem(clienteCbx.getValue()).getItemProperty(NOMBRESINCODIGO_PROPERTY).getValue() + "'";
                 queryString += ",'NO'"; //referencia
@@ -1572,7 +1635,7 @@ System.out.println("entra a insertar linea del iva.  exenta=" + exenta + " getIv
                 // Construye tu objeto ProductoNota como antes
                 Producto p = new Producto(
                         dto.nombreProducto,
-                        0.00,
+                        ZERO_MONEY,
                         0,
                         dto.nombreProducto,
                         dto.infileTipo
@@ -1587,16 +1650,18 @@ System.out.println("entra a insertar linea del iva.  exenta=" + exenta + " getIv
 
 
 
-        public double calcularMontos() {
-            double monto = 0.00;
+        public BigDecimal calcularMontos() {
+            BigDecimal monto = ZERO_MONEY;
             try {
-                if (cantidadTxt.getDoubleValueDoNotThrow() > 0 && haberTxt.getDoubleValueDoNotThrow() >= 0) {
-                    monto = cantidadTxt.getDoubleValueDoNotThrow() * haberTxt.getDoubleValueDoNotThrow();
+                BigDecimal cantidad = decimalValue(cantidadTxt);
+                BigDecimal haber = moneyValue(haberTxt);
+                if (cantidad.compareTo(BigDecimal.ZERO) > 0 && haber.compareTo(BigDecimal.ZERO) >= 0) {
+                    monto = cantidad.multiply(haber);
                 }
             } catch (Exception e) {
                 System.out.println("Error al calcular montos: " + e.getMessage());
             }
-            return Utileria.round(monto);
+            return money(monto);
         }
 
         public String getIdNomenclatura() {
@@ -1630,8 +1695,8 @@ System.out.println("entra a insertar linea del iva.  exenta=" + exenta + " getIv
                     } else {
                         p.setComentario("");
                     }
-                    p.setCantidad((int) cantidadTxt.getDoubleValueDoNotThrow());
-                    p.setMonto(haberTxt.getDoubleValueDoNotThrow());
+                    p.setCantidad(decimalValue(cantidadTxt).intValue());
+                    p.setMonto(moneyValue(haberTxt));
                     return p;
                 }
             }
