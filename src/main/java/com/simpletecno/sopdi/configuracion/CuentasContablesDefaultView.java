@@ -1,6 +1,8 @@
 package com.simpletecno.sopdi.configuracion;
 
 import com.simpletecno.sopdi.SopdiUI;
+import com.vaadin.data.util.IndexedContainer;
+import com.vaadin.data.util.filter.SimpleStringFilter;
 import com.vaadin.navigator.View;
 import com.vaadin.navigator.ViewChangeListener;
 import com.vaadin.server.FontAwesome;
@@ -14,7 +16,7 @@ import com.vaadin.ui.themes.ValoTheme;
 
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.Set;
+import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -31,7 +33,28 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
     TabSheet tabSheet;
     TabSheet.Tab nomenclaturaTab;
     TabSheet.Tab cuentasDefaultTab;
-    TwinColSelect miNomenclaturaSelect;
+
+    private static final String[] CUENTAS_DEFAULT_COLUMNS = {
+            "Proveedores", "Clientes", "Instituciones", "BancosMonedaLocal", "BancosMonedaExtranjera",
+            "AnticiposProveedor", "AnticiposClientes", "LiquidacionesCajaChicha", "Compras", "Ventas", "Abastos",
+            "Enganches", "IvaPorCobrar", "IvaPorPagar", "EfectivoEnTransito", "DiferencialCambiario", "Prestamos",
+            "InteresesPrestamo", "InteresesDevengados", "AnticipoHonorarios", "AnticipoSueldos", "SueldosPorPagar",
+            "IsrGasto", "IsrPorPagar", "IsrRetenidoPorPagar", "IsrOpcionalMensualPorPagar", "Redondeo",
+            "MultasYRectificaciones", "CuotaPatronalIgssPorPagar", "CuotaLaboralIgssPorPagar", "CuotaPatronalIgss",
+            "OtrosArbitrios", "ProvisionCompras", "ServiciosBancos", "ChequesDevueltos",
+            "PerdidasGananciasEjercicioAnterior", "SueldoOrdinario", "SueldoExtraordinario", "Bono37_2001",
+            "Bono78_89", "Aguinaldo", "Bono14", "Indemnizacion", "ProvisionAguinaldo", "ProvisionBono14",
+            "ProvisionIndemnizacion", "TituloAccion", "TituloAccion2", "ChequesTesoreria", "AcreedorActivo",
+            "AcreedorPasivo"
+    };
+
+    private final IndexedContainer nomenclaturaMasterContainer = new IndexedContainer();
+    private final IndexedContainer miNomenclaturaContainer = new IndexedContainer();
+    private Grid gridNomenclaturaMaster;
+    private Grid gridMiNomenclatura;
+    private Button btnAgregarNomenclatura;
+    private Button btnQuitarNomenclatura;
+    private CheckBox chkNomenclaturaInhabilitada;
 
     ComboBox cuentaContable1Cbx;
     ComboBox cuentaContable2Cbx;
@@ -146,46 +169,158 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
         verticalLayout.setWidth("100%");
         verticalLayout.setHeight("100%");
 
-        miNomenclaturaSelect = new TwinColSelect();
-        miNomenclaturaSelect.setLeftColumnCaption("Nomenclatura Master :");
-        miNomenclaturaSelect.setRightColumnCaption("Mi nomenclatura :");
-        miNomenclaturaSelect.setImmediate(true);
-        miNomenclaturaSelect.setNullSelectionAllowed(false);
-        miNomenclaturaSelect.setNewItemsAllowed(false);
-        miNomenclaturaSelect.setWidth("100%");
-        miNomenclaturaSelect.setHeight("100%");
-        miNomenclaturaSelect.setRows(30);
-        miNomenclaturaSelect.addStyleName("mybigcaption");
+        crearPropiedadesNomenclatura(nomenclaturaMasterContainer);
+        crearPropiedadesNomenclatura(miNomenclaturaContainer);
+
+        gridNomenclaturaMaster = new Grid("Nomenclatura Master", nomenclaturaMasterContainer);
+        gridNomenclaturaMaster.setSizeFull();
+        gridNomenclaturaMaster.setSelectionMode(Grid.SelectionMode.MULTI);
+        configurarGridNomenclatura(gridNomenclaturaMaster, nomenclaturaMasterContainer);
+
+        gridMiNomenclatura = new Grid("Mi Nomenclatura", miNomenclaturaContainer);
+        gridMiNomenclatura.setSizeFull();
+        gridMiNomenclatura.setSelectionMode(Grid.SelectionMode.MULTI);
+        configurarGridNomenclatura(gridMiNomenclatura, miNomenclaturaContainer);
+
+        btnAgregarNomenclatura = new Button(">>");
+        btnAgregarNomenclatura.setDescription("Agregar a Mi Nomenclatura");
+        btnAgregarNomenclatura.addStyleName(ValoTheme.BUTTON_PRIMARY);
+        btnAgregarNomenclatura.addClickListener(e -> agregarNomenclatura());
+
+        btnQuitarNomenclatura = new Button("<<");
+        btnQuitarNomenclatura.setDescription("Quitar de Mi Nomenclatura");
+        btnQuitarNomenclatura.addStyleName(ValoTheme.BUTTON_PRIMARY);
+        btnQuitarNomenclatura.addClickListener(e -> quitarNomenclatura());
+
+        VerticalLayout middleButtons = new VerticalLayout(btnAgregarNomenclatura, btnQuitarNomenclatura);
+        middleButtons.setSpacing(true);
+        middleButtons.setMargin(true);
+        middleButtons.setWidthUndefined();
+        middleButtons.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
+
+        HorizontalLayout gridsRow = new HorizontalLayout();
+        gridsRow.setSizeFull();
+        gridsRow.setSpacing(true);
+        gridsRow.addComponents(gridNomenclaturaMaster, middleButtons, gridMiNomenclatura);
+        gridsRow.setComponentAlignment(middleButtons, Alignment.MIDDLE_CENTER);
+        gridsRow.setExpandRatio(gridNomenclaturaMaster, 2.0f);
+        gridsRow.setExpandRatio(gridMiNomenclatura, 2.0f);
+
+        chkNomenclaturaInhabilitada = new CheckBox("Ver inhabilitadas");
+        chkNomenclaturaInhabilitada.addValueChangeListener(e -> loadNomenclaturaData());
+
+        HorizontalLayout bottomLayout = new HorizontalLayout(chkNomenclaturaInhabilitada);
+        bottomLayout.setSpacing(true);
+        bottomLayout.setWidth("100%");
+        bottomLayout.setComponentAlignment(chkNomenclaturaInhabilitada, Alignment.MIDDLE_RIGHT);
+
+        gridNomenclaturaMaster.addSelectionListener(e -> refreshNomenclaturaButtonsState());
+        gridMiNomenclatura.addSelectionListener(e -> refreshNomenclaturaButtonsState());
+
+        verticalLayout.addComponents(gridsRow, bottomLayout);
+        verticalLayout.setExpandRatio(gridsRow, 1.0f);
+
+        loadNomenclaturaData();
+        refreshNomenclaturaButtonsState();
+
+        return verticalLayout;
+    }
+
+    private void crearPropiedadesNomenclatura(IndexedContainer container) {
+        if (!container.getContainerPropertyIds().contains("IdNomenclatura")) {
+            container.addContainerProperty("IdNomenclatura", String.class, "");
+            container.addContainerProperty("NoCuenta", String.class, "");
+            container.addContainerProperty("N5", String.class, "");
+            container.addContainerProperty("Tipo", String.class, "");
+            container.addContainerProperty("CodigoCC", String.class, "");
+        }
+    }
+
+    private void configurarGridNomenclatura(Grid grid, IndexedContainer container) {
+        grid.setColumns("NoCuenta", "N5", "Tipo", "CodigoCC", "IdNomenclatura");
+        grid.getColumn("NoCuenta").setHeaderCaption("Cuenta");
+        grid.getColumn("N5").setHeaderCaption("Nombre");
+        grid.getColumn("Tipo").setHeaderCaption("Tipo");
+        grid.getColumn("CodigoCC").setHeaderCaption("Codigo CC");
+        grid.getColumn("IdNomenclatura").setHeaderCaption("Id");
+
+        Grid.HeaderRow filterRow = grid.appendHeaderRow();
+        addNomenclaturaFilter(grid, container, filterRow, "NoCuenta");
+        addNomenclaturaFilter(grid, container, filterRow, "N5");
+        addNomenclaturaFilter(grid, container, filterRow, "Tipo");
+        addNomenclaturaFilter(grid, container, filterRow, "CodigoCC");
+    }
+
+    private void addNomenclaturaFilter(Grid grid, IndexedContainer container, Grid.HeaderRow filterRow, String propertyId) {
+        Grid.HeaderCell cell = filterRow.getCell(propertyId);
+
+        TextField filterField = new TextField();
+        filterField.addStyleName(ValoTheme.TEXTFIELD_TINY);
+        filterField.setInputPrompt("Filtrar");
+        filterField.setColumns(12);
+        filterField.addTextChangeListener(change -> {
+            container.removeContainerFilters(propertyId);
+            grid.deselectAll();
+            if (!change.getText().isEmpty()) {
+                container.addContainerFilter(new SimpleStringFilter(propertyId, change.getText(), true, false));
+            }
+            refreshNomenclaturaButtonsState();
+        });
+
+        cell.setComponent(filterField);
+    }
+
+    private void loadNomenclaturaData() {
+        if (gridNomenclaturaMaster != null) {
+            gridNomenclaturaMaster.deselectAll();
+        }
+        if (gridMiNomenclatura != null) {
+            gridMiNomenclatura.deselectAll();
+        }
+
+        nomenclaturaMasterContainer.removeContainerFilters("NoCuenta");
+        nomenclaturaMasterContainer.removeContainerFilters("N5");
+        nomenclaturaMasterContainer.removeContainerFilters("Tipo");
+        nomenclaturaMasterContainer.removeContainerFilters("CodigoCC");
+        miNomenclaturaContainer.removeContainerFilters("NoCuenta");
+        miNomenclaturaContainer.removeContainerFilters("N5");
+        miNomenclaturaContainer.removeContainerFilters("Tipo");
+        miNomenclaturaContainer.removeContainerFilters("CodigoCC");
+
+        nomenclaturaMasterContainer.removeAllItems();
+        miNomenclaturaContainer.removeAllItems();
+
+        String estatus = chkNomenclaturaInhabilitada != null && chkNomenclaturaInhabilitada.getValue()
+                ? "INHABILITADA"
+                : "HABILITADA";
+        String idEmpresa = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
 
         String queryString = "SELECT * FROM contabilidad_nomenclatura ";
-        queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " WHERE Estatus = '" + estatus + "'";
+        queryString += " AND IdNomenclatura NOT IN (";
+        queryString += " SELECT IdNomenclatura FROM contabilidad_nomenclatura_empresa";
+        queryString += " WHERE IdEmpresa = " + idEmpresa;
+        queryString += " )";
         queryString += " ORDER BY NoCuenta";
 
         try {
-
             stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
             rsRecords = stQuery.executeQuery(queryString);
-            if (rsRecords.next()) {
-                do {
-                    String id = rsRecords.getString("IdNomenclatura");
-                    String nombre = rsRecords.getString("NoCuenta") + " " + rsRecords.getString("N5");
 
-                    miNomenclaturaSelect.addItem(id);
-                    miNomenclaturaSelect.setItemCaption(id, nombre);
-                } while (rsRecords.next());
+            while (rsRecords.next()) {
+                addNomenclaturaItem(nomenclaturaMasterContainer);
+            }
 
-                queryString = "SELECT * ";
-                queryString += " FROM contabilidad_nomenclatura_empresa ";
-                queryString += " WHERE Estatus = 'HABILITADA'";
-                queryString += " AND IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
-                queryString += " ORDER BY NoCuenta";
+            queryString = "SELECT * ";
+            queryString += " FROM contabilidad_nomenclatura_empresa ";
+            queryString += " WHERE Estatus = '" + estatus + "'";
+            queryString += " AND IdEmpresa = " + idEmpresa;
+            queryString += " ORDER BY NoCuenta";
 
-                rsRecords = stQuery.executeQuery(queryString);
-                if (rsRecords.next()) {
-                    do {
-                        miNomenclaturaSelect.select(rsRecords.getString("IdNomenclatura"));
-                    } while (rsRecords.next());
-                }
+            rsRecords = stQuery.executeQuery(queryString);
+
+            while (rsRecords.next()) {
+                addNomenclaturaItem(miNomenclaturaContainer);
             }
 
         } catch (Exception ex1) {
@@ -194,9 +329,178 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
                     "ERROR AL INTENTAR BUSCAR CATALOGO DE MI NOMENCLATURA DE CUENTAS CONTABLES", ex1);
             ex1.printStackTrace();
         }
-        verticalLayout.addComponents(miNomenclaturaSelect, createButtonsTab1());
 
-        return verticalLayout;
+        refreshNomenclaturaButtonsState();
+    }
+
+    private void addNomenclaturaItem(IndexedContainer container) throws Exception {
+        Object itemId = container.addItem();
+        if (itemId != null) {
+            container.getContainerProperty(itemId, "IdNomenclatura").setValue(rsRecords.getString("IdNomenclatura"));
+            container.getContainerProperty(itemId, "NoCuenta").setValue(rsRecords.getString("NoCuenta"));
+            container.getContainerProperty(itemId, "N5").setValue(rsRecords.getString("N5"));
+            container.getContainerProperty(itemId, "Tipo").setValue(rsRecords.getString("Tipo"));
+            container.getContainerProperty(itemId, "CodigoCC").setValue(rsRecords.getString("CodigoCC"));
+        }
+    }
+
+    private void refreshNomenclaturaButtonsState() {
+        if (btnAgregarNomenclatura != null) {
+            boolean inhabilitadas = chkNomenclaturaInhabilitada != null && chkNomenclaturaInhabilitada.getValue();
+            btnAgregarNomenclatura.setEnabled(!inhabilitadas
+                    && gridNomenclaturaMaster != null
+                    && gridNomenclaturaMaster.getSelectedRows() != null
+                    && !gridNomenclaturaMaster.getSelectedRows().isEmpty());
+        }
+
+        if (btnQuitarNomenclatura != null) {
+            btnQuitarNomenclatura.setEnabled(gridMiNomenclatura != null
+                    && gridMiNomenclatura.getSelectedRows() != null
+                    && !gridMiNomenclatura.getSelectedRows().isEmpty());
+        }
+    }
+
+    private void agregarNomenclatura() {
+        Collection<Object> selected = gridNomenclaturaMaster.getSelectedRows();
+        if (selected == null || selected.isEmpty()) {
+            Notification.show("Selecciona una o mas cuentas del maestro.", Notification.Type.WARNING_MESSAGE);
+            return;
+        }
+
+        if (chkNomenclaturaInhabilitada.getValue()) {
+            Notification.show("No se permite agregar cuentas inhabilitadas.", Notification.Type.WARNING_MESSAGE);
+            return;
+        }
+
+        String idEmpresa = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+        String idList = selectedNomenclaturaIds(selected, nomenclaturaMasterContainer);
+        if (idList.isEmpty()) {
+            Notification.show("Selecciona una o mas cuentas del maestro.", Notification.Type.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+
+            String queryString = "INSERT INTO contabilidad_nomenclatura_empresa (IdEmpresa, IdNomenclatura, ";
+            queryString += "Reporte, ID1,N1,ID2,N2,ID3,N3,ID4,N4,ID5,NoCuenta,N5,";
+            queryString += "FiltrarIngresoDocumentos, FiltrarFormularioLiquidacion, Tipo, CodigoCC, Estatus)";
+            queryString += " SELECT " + idEmpresa + ", IdNomenclatura, ";
+            queryString += "Reporte, ID1,N1,ID2,N2,ID3,N3,ID4,N4,ID5,NoCuenta,N5,";
+            queryString += "FiltrarIngresoDocumentos, FiltrarFormularioLiquidacion, Tipo, CodigoCC, Estatus ";
+            queryString += " FROM contabilidad_nomenclatura ";
+            queryString += " WHERE Estatus = 'HABILITADA'";
+            queryString += " AND IdNomenclatura IN (" + idList + ")";
+            queryString += " AND IdNomenclatura NOT IN (";
+            queryString += " SELECT IdNomenclatura FROM contabilidad_nomenclatura_empresa";
+            queryString += " WHERE IdEmpresa = " + idEmpresa;
+            queryString += " )";
+
+            int moved = stQuery.executeUpdate(queryString);
+            Notification.show("Agregadas: " + moved, Notification.Type.TRAY_NOTIFICATION);
+            loadNomenclaturaData();
+            refreshCuentasContablesDefault();
+
+        } catch (Exception ex1) {
+            System.out.println("Error al agregar a mi nomenclatura: " + ex1.getMessage());
+            Notification.show("Error al agregar a mi nomenclatura: " + ex1.getMessage(), Notification.Type.ERROR_MESSAGE);
+            ex1.printStackTrace();
+        }
+    }
+
+    private void quitarNomenclatura() {
+        Collection<Object> selected = gridMiNomenclatura.getSelectedRows();
+        if (selected == null || selected.isEmpty()) {
+            Notification.show("Selecciona una o mas cuentas de Mi Nomenclatura.", Notification.Type.WARNING_MESSAGE);
+            return;
+        }
+
+        String idEmpresa = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+        String idList = selectedNomenclaturaIds(selected, miNomenclaturaContainer);
+        if (idList.isEmpty()) {
+            Notification.show("Selecciona una o mas cuentas de Mi Nomenclatura.", Notification.Type.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+
+            if (tieneHistorialContable(idEmpresa, idList)) {
+                Notification.show("CUENTAS CON HISTORIAL CONTABLE EN LA EMPRESA, NO SE PERMITE QUITAR.",
+                        Notification.Type.WARNING_MESSAGE);
+                return;
+            }
+
+            if (estaEnCuentasDefault(idEmpresa, idList)) {
+                Notification.show("CUENTAS USADAS EN CUENTAS CONTABLES DEFAULT, NO SE PERMITE QUITAR.",
+                        Notification.Type.WARNING_MESSAGE);
+                return;
+            }
+
+            String queryString = "DELETE FROM contabilidad_nomenclatura_empresa";
+            queryString += " WHERE IdNomenclatura IN (" + idList + ")";
+            queryString += " AND IdEmpresa = " + idEmpresa;
+
+            int moved = stQuery.executeUpdate(queryString);
+            Notification.show("Quitadas: " + moved, Notification.Type.TRAY_NOTIFICATION);
+            loadNomenclaturaData();
+            refreshCuentasContablesDefault();
+
+        } catch (Exception ex1) {
+            System.out.println("Error al quitar de mi nomenclatura: " + ex1.getMessage());
+            Notification.show("Error al quitar de mi nomenclatura: " + ex1.getMessage(), Notification.Type.ERROR_MESSAGE);
+            ex1.printStackTrace();
+        }
+    }
+
+    private boolean tieneHistorialContable(String idEmpresa, String idList) throws Exception {
+        String queryString = "SELECT * FROM contabilidad_partida";
+        queryString += " WHERE IdNomenclatura IN (" + idList + ")";
+        queryString += " AND IdEmpresa = " + idEmpresa;
+
+        rsRecords = stQuery.executeQuery(queryString);
+        return rsRecords.next();
+    }
+
+    private boolean estaEnCuentasDefault(String idEmpresa, String idList) throws Exception {
+        String queryString = "SELECT * FROM cuentas_contables_default";
+        queryString += " WHERE IdEmpresa = " + idEmpresa;
+        queryString += " AND (";
+
+        for (String column : CUENTAS_DEFAULT_COLUMNS) {
+            queryString += column + " IN (" + idList + ") OR ";
+        }
+
+        queryString = queryString.substring(0, queryString.length() - 4);
+        queryString += ")";
+
+        rsRecords = stQuery.executeQuery(queryString);
+        return rsRecords.next();
+    }
+
+    private String selectedNomenclaturaIds(Collection<Object> selected, IndexedContainer container) {
+        String idList = "";
+
+        for (Object itemId : selected) {
+            Object id = container.getContainerProperty(itemId, "IdNomenclatura").getValue();
+            if (id != null && !id.toString().trim().isEmpty()) {
+                idList += id + ",";
+            }
+        }
+
+        if (idList.isEmpty()) {
+            return "";
+        }
+
+        return idList.substring(0, idList.length() - 1);
+    }
+
+    private void refreshCuentasContablesDefault() {
+        if (cuentaContable1Cbx != null) {
+            llenarComboCuentaContable();
+        }
+
+        ((SopdiUI) mainUI).fillCuentasContablesPorDefault();
     }
 
     private Component createTablaCuentasContables() {
@@ -667,6 +971,8 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
 
     public void llenarComboCuentaContable() {
 
+        limpiarCombosCuentaContable();
+
         String
         queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
         queryString += " WHERE Estatus = 'HABILITADA'";
@@ -841,6 +1147,71 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
         }
     }
 
+    private void limpiarCombosCuentaContable() {
+        for (ComboBox comboBox : getCuentaContableComboBoxes()) {
+            if (comboBox != null) {
+                comboBox.setValue(null);
+                comboBox.removeAllItems();
+            }
+        }
+    }
+
+    private ComboBox[] getCuentaContableComboBoxes() {
+        return new ComboBox[]{
+                cuentaContable1Cbx,
+                cuentaContable2Cbx,
+                cuentaContable3Cbx,
+                cuentaContable4Cbx,
+                cuentaContable5Cbx,
+                cuentaContable6Cbx,
+                cuentaContable7Cbx,
+                cuentaContable8Cbx,
+                cuentaContable9Cbx,
+                cuentaContable10Cbx,
+                cuentaContable11Cbx,
+                cuentaContable12Cbx,
+                cuentaContable13Cbx,
+                cuentaContable14Cbx,
+                cuentaContable15Cbx,
+                cuentaContable16Cbx,
+                cuentaContable17Cbx,
+                cuentaContable18Cbx,
+                cuentaContable19Cbx,
+                cuentaContable20Cbx,
+                cuentaContable21Cbx,
+                cuentaContable22Cbx,
+                cuentaContable23Cbx,
+                cuentaContable24Cbx,
+                cuentaContable25Cbx,
+                cuentaContable26Cbx,
+                cuentaContable27Cbx,
+                cuentaContable28Cbx,
+                cuentaContable29Cbx,
+                cuentaContable30Cbx,
+                cuentaContable31Cbx,
+                cuentaContable32Cbx,
+                cuentaContable33Cbx,
+                cuentaContable34Cbx,
+                cuentaContable35Cbx,
+                cuentaContable36Cbx,
+                cuentaContable37Cbx,
+                cuentaContable38Cbx,
+                cuentaContable39Cbx,
+                cuentaContable40Cbx,
+                cuentaContable41Cbx,
+                cuentaContable42Cbx,
+                cuentaContable43Cbx,
+                cuentaContable44Cbx,
+                cuentaContable45Cbx,
+                cuentaContable46Cbx,
+                cuentaContable47Cbx,
+                cuentaContable48Cbx,
+                cuentaContable49Cbx,
+                cuentaContable50Cbx,
+                cuentaContable51Cbx
+        };
+    }
+
     void selectCuentasContablesPorDefault() {
         String queryString = " SELECT * ";
         queryString += " FROM cuentas_contables_default";
@@ -908,92 +1279,6 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
             System.out.println("Error al intntentar leer tabla cuentas_contables_default:  " + ex1.getMessage());
             ex1.printStackTrace();
         }
-    }
-
-    private HorizontalLayout createButtonsTab1() {
-
-        Button saveBtn = new Button("GUARDAR");
-        saveBtn.setIcon(FontAwesome.PLUS);
-        saveBtn.setWidth(140, Sizeable.UNITS_PIXELS);
-        saveBtn.setDescription("GUARDAR CAMBIOS.");
-        saveBtn.addListener(new Button.ClickListener() {
-            @Override
-            public void buttonClick(Button.ClickEvent event) {
-                try {
-                    stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-
-                    //DELETE
-                    String queryString =  "DELETE FROM contabilidad_nomenclatura_empresa ";
-                    queryString += " WHERE IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
-
-                    stQuery.executeUpdate(queryString);
-
-                    if(miNomenclaturaSelect.getValue() != null) {
-                        queryString =  "INSERT INTO contabilidad_nomenclatura_empresa (IdEmpresa, IdNomenclatura, ";
-                        queryString += "Reporte, ID1,N1,ID2,N2,ID3,N3,ID4,N4,ID5,NoCuenta,N5,";
-                        queryString += "FiltrarIngresoDocumentos, FiltrarFormularioLiquidacion, Tipo, CodigoCC)";
-                        queryString += " VALUES ";
-
-                        Set<String> seleccionados = (Set<String>)miNomenclaturaSelect.getValue();
-
-                        String subQueryString;
-
-                        //recorreger los items seleccionados del componente miNomenclaturaSelec
-                        for(Object selectedItem:seleccionados) {
-
-                            subQueryString = "SELECT * FROM contabilidad_nomenclatura ";
-                            subQueryString += " WHERE IdNomenclatura = " + selectedItem.toString();
-
-                            rsRecords = stQuery.executeQuery(subQueryString);
-                            rsRecords.next();
-
-                            queryString += "(";
-                            queryString += ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
-                            queryString += "," + selectedItem;
-                            queryString += ",'" + rsRecords.getString("Reporte") + "'";
-                            queryString += ",'" + rsRecords.getString("Id1") + "'";
-                            queryString += ",'" + rsRecords.getString("N1") + "'";
-                            queryString += ",'" + rsRecords.getString("Id2") + "'";
-                            queryString += ",'" + rsRecords.getString("N2") + "'";
-                            queryString += ",'" + rsRecords.getString("Id3") + "'";
-                            queryString += ",'" + rsRecords.getString("N3") + "'";
-                            queryString += ",'" + rsRecords.getString("Id4") + "'";
-                            queryString += ",'" + rsRecords.getString("N4") + "'";
-                            queryString += ",'" + rsRecords.getString("Id5") + "'";
-                            queryString += ",'" + rsRecords.getString("NoCuenta") + "'";
-                            queryString += ",'" + rsRecords.getString("N5") + "'";
-                            queryString += ",'" + rsRecords.getString("FiltrarIngresoDocumentos") + "'";
-                            queryString += ",'" + rsRecords.getString("FiltrarFormularioLiquidacion") + "'";
-                            queryString += ",'" + rsRecords.getString("Tipo") + "'";
-                            queryString += ",'" + rsRecords.getString("CodigoCC") + "'";
-                            queryString += "),";
-                        }
-                        queryString = queryString.substring(0, queryString.length()-1);
-                    }
-
-//System.out.println(queryString);
-
-                    stQuery.executeUpdate(queryString);
-
-                    ((SopdiUI) mainUI).fillCuentasContablesPorDefault();
-
-                    Notification.show("OPERACION EXITOSA!", Notification.Type.HUMANIZED_MESSAGE);
-
-                } catch (Exception ex) {
-                    Notification.show("Error al creaar/actualizar cuentas contables de empresa: " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
-                    System.out.println("Error en el boton guardar cambios cuentas contables de empresa.");
-                    ex.printStackTrace();
-                }
-            }
-        });
-
-        HorizontalLayout buttonsLayout = new HorizontalLayout();
-        buttonsLayout.setSpacing(true);
-        buttonsLayout.setMargin(false);
-        buttonsLayout.addComponent(saveBtn);
-        buttonsLayout.setComponentAlignment(saveBtn, Alignment.MIDDLE_CENTER);
-
-        return buttonsLayout;
     }
 
     private HorizontalLayout createButtonsTab2() {
