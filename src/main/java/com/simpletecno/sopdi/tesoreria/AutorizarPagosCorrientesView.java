@@ -2110,7 +2110,6 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         double totalPagoAnticipoQ = 0.00;
         double acumuladoCheque   = 0.00;
         StringBuilder descripcion = new StringBuilder();
-        StringBuilder documentosPagados = new StringBuilder();
         String chequeQueryString  = "";
         String fechaSQLPrev       = "current_date"; // fecha del proveedor anterior (para diferencial cambiario)
         // Variables del proveedor anterior (para la línea de diferencial cambiario al cambiar proveedor)
@@ -2121,6 +2120,21 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         String prevDescripcion = "";
 
         porPagarContainer.sort(new String[] { ID_PROVEEDOR_PROPERTY, CHEQUE_PROPERTY }, new boolean[] { false, false });
+
+        // Pre-recorrido: por cada partida (proveedor + cheque) reunir TODOS los documentos a
+        // pagar, para construir UNA sola descripción uniforme para toda la partida contable
+        // (todas sus líneas: DEBE proveedores, anticipos y HABER banco), en vez de una
+        // descripción que crece gradualmente conforme se agregan líneas.
+        Map<String, List<String>> docsPorGrupo = new LinkedHashMap<>();
+        for (Object itemId : porPagarContainer.getItemIds()) {
+            double antPre = parseMontoSF(porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_ANTICIPOSSF_PROPERTY).getValue());
+            double chePre = parseMontoSF(porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).getValue());
+            if (antPre + chePre <= 0.00) continue;
+            String grupoKey = nvlC(porPagarContainer.getContainerProperty(itemId, ID_PROVEEDOR_PROPERTY).getValue())
+                    + "|" + nvlC(porPagarContainer.getContainerProperty(itemId, CHEQUE_PROPERTY).getValue());
+            docsPorGrupo.computeIfAbsent(grupoKey, k -> new ArrayList<>())
+                    .add(nvlC(porPagarContainer.getContainerProperty(itemId, NUMERO_FACTURA_PROPERTY).getValue()));
+        }
 
         for (Object itemId : porPagarContainer.getItemIds()) {
 
@@ -2179,9 +2193,11 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                     codigosGenerados.add(codigoPartidaPago);
                 }
                 fechaSQLPrev = fechaSQLRow; // guardar fecha de este proveedor para el siguiente cambio
-                // Nuevo proveedor: resetear lista de docs y descripción con el primer documento
-                documentosPagados = new StringBuilder(numeroDoc);
-                descripcion = new StringBuilder("PAGO DOCS: ").append(numeroDoc);
+                // Nueva partida (proveedor + cheque): construir UNA sola descripción con TODOS
+                // los documentos del grupo, uniforme para todas las líneas de la partida.
+                String docsStr = String.join(", ", docsPorGrupo.getOrDefault(idProveedor + "|" + noCheque, new ArrayList<>()));
+                descripcion = new StringBuilder("PAGO DOCS: ").append(docsStr);
+                if (!noCheque.isEmpty()) descripcion.append(" CHQ.").append(noCheque);
 
                 queryString = "INSERT INTO contabilidad_partida " + COLS;
                 queryString += "(";
@@ -2215,10 +2231,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 totalDebeQ += Double.parseDouble(debeQuetzalesCC);
             } else { //mismo proveedor
 
-                // Mismo proveedor: agregar documento a la lista acumulada
-                documentosPagados.append(", ").append(numeroDoc);
-                descripcion.append(", ").append(numeroDoc);
-
+                // Mismo proveedor+cheque: misma partida → se reutiliza la misma descripción.
                 queryString += "(";
                 queryString += empresaId;
                 queryString += ",'" + codigoPartidaPago + "'";
@@ -2344,7 +2357,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 chequeQueryString += ",0";
                 chequeQueryString += "," + (acumuladoCheque * tipoCambio);
                 chequeQueryString += ",'PAGADO'";
-                chequeQueryString += ",'" + ("PAGO DOCS: " + documentosPagados.toString() + " CHQ." + noCheque).replace("'", "").trim() + "'";
+                chequeQueryString += ",'" + descripcion.toString().replace("'", "").trim() + "'";
                 chequeQueryString += ",'" + tipoDoca + "'";
                 chequeQueryString += ",'" + numeroDoc + "'";
                 chequeQueryString += "," + idProveedor;
