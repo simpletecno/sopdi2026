@@ -87,6 +87,7 @@ public class InspectionTaskForm extends Window {
         this.siEditarCentroCosto = siEditarCentroCosto;
 
         setWidth("50%");
+        setHeightUndefined();
 
         setCaption(((SopdiUI) mainUI).sessionInformation.getStrCompanyName() + " - Ficha de tarea por visita o reunión");
         Page.getCurrent().setTitle(((SopdiUI) mainUI).sessionInformation.getStrCompanyName() + " - Ficha de tarea por visita de reunión");
@@ -98,6 +99,7 @@ public class InspectionTaskForm extends Window {
         mainLayout.setSpacing(true);
 
         tareaForm = new FormLayout();
+        tareaForm.setMargin(false);
 
         codigoTareaTxt = new TextField("Código Tarea : ");
         codigoTareaTxt.setWidth("8em");
@@ -200,7 +202,7 @@ public class InspectionTaskForm extends Window {
 
         instruccionTxt = new TextArea("Instrucción:");
         instruccionTxt.setWidth("35em");
-        instruccionTxt.setHeight("12em");
+        instruccionTxt.setHeight("10em");
         instruccionTxt.setMaxLength(1024);
         instruccionTxt.setDescription("Ingrese hasta 1024 caracteres...");
 
@@ -209,13 +211,13 @@ public class InspectionTaskForm extends Window {
         tareaForm.addComponent(responsableCbx);
         tareaForm.addComponent(ejecutorCbx);
         tareaForm.addComponent(esTareaCbx);
+        tareaForm.addComponent(autorizadorTipoCbx);
         tareaForm.addComponent(garantiaCbx);
         tareaForm.addComponent(presupuestoCbx);
-        tareaForm.addComponent(centroCostoCbx);
-        tareaForm.addComponent(autorizadorTipoCbx);
-        tareaForm.addComponent(diasHabilesN);
         tareaForm.addComponent(equipoDibujoCbx);
         tareaForm.addComponent(visibleParaClienteCbx);
+        tareaForm.addComponent(centroCostoCbx);
+        tareaForm.addComponent(diasHabilesN);
         tareaForm.addComponent(estatusCbx);
         tareaForm.addComponent(instruccionTxt);
 
@@ -252,6 +254,7 @@ public class InspectionTaskForm extends Window {
 
         HorizontalLayout buttonsLayout = new HorizontalLayout();
         buttonsLayout.setSpacing(true);
+        buttonsLayout.setMargin(false);
 
         buttonsLayout.addComponent(salirBtn);
         buttonsLayout.setComponentAlignment(salirBtn, Alignment.BOTTOM_LEFT);

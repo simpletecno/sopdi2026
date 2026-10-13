@@ -289,7 +289,15 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         porPagarContainer.addContainerProperty(SELECCIONAR_PROPERTY, String.class, "☐");
         porPagarContainer.addContainerProperty(ANTICIPO_DISPONIBLESF_PROPERTY, String.class, "0.00");
 
-        porPagarGrid = new Grid("Cuentas por pagar", porPagarContainer);
+        porPagarGrid = new Grid("Cuentas por pagar", porPagarContainer) {
+            // Al cerrarse el editor (Cancelar o cierre programático) se vuelve a deshabilitar,
+            // de modo que el doble clic no pueda reabrirlo: solo el botón "Seleccionar" lo habilita.
+            @Override
+            protected void doCancelEditor() {
+                super.doCancelEditor();
+                if (isEditorEnabled()) setEditorEnabled(false);
+            }
+        };
 
         porPagarGrid.setWidth("100%");
         porPagarGrid.setImmediate(true);
@@ -419,7 +427,8 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 CHEQUE_PROPERTY);
 
         // ── Editor inline: solo Anticipo y Cheque son editables ───────────────
-        porPagarGrid.setEditorEnabled(true);
+        // Deshabilitado por default: solo el botón "Seleccionar" lo habilita (ver onSeleccionarPorPagarClick).
+        porPagarGrid.setEditorEnabled(false);
         porPagarGrid.setEditorSaveCaption("Confirmar");
         porPagarGrid.setEditorCancelCaption("Cancelar");
 
@@ -479,6 +488,13 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 double montoAnticipo = parseMontoSF(editorAnticipoField.getValue());
                 double montoCheque   = parseMontoSF(editorChequeField.getValue());
                 String moneda        = nvlC(porPagarContainer.getContainerProperty(itemId, MONEDA_PROPERTY).getValue());
+                String idProv        = nvlC(porPagarContainer.getContainerProperty(itemId, ID_PROVEEDOR_PROPERTY).getValue());
+
+                // Descontar el anticipo usado del "Anticipo Disp." mostrado en todos los
+                // documentos del mismo proveedor+moneda (se revierte al deseleccionar).
+                if (montoAnticipo > 0) {
+                    ajustarAnticipoDisponible(idProv, moneda, -montoAnticipo);
+                }
 
                 porPagarContainer.getContainerProperty(itemId, SELECCIONAR_PROPERTY).setValue("☑");
                 porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_PROPERTY).setValue(numberFormat.format(montoAnticipo + montoCheque));
@@ -497,7 +513,6 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                         }
                     }
                     if (cuentaItemId != null) {
-                        String idProv = nvlC(porPagarContainer.getContainerProperty(itemId, ID_PROVEEDOR_PROPERTY).getValue());
                         String chequeExistente = "";
                         for (Object id2 : porPagarContainer.getItemIds()) {
                             if (id2.equals(itemId)) continue;
@@ -559,7 +574,15 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         anticiposOCContainer.addContainerProperty(OC_MONTO_PAGAR_PROPERTY, String.class, "0.00");
         anticiposOCContainer.addContainerProperty(OC_MONTO_PAGARSF_PROPERTY, String.class, "0.00");
 
-        anticiposOCGrid = new Grid("Solicitudes de Anticipos OC", anticiposOCContainer);
+        anticiposOCGrid = new Grid("Solicitudes de Anticipos OC", anticiposOCContainer) {
+            // Ver nota en porPagarGrid: el editor se re-deshabilita al cerrarse para que
+            // el doble clic no pueda abrirlo; solo el botón "Seleccionar" lo habilita.
+            @Override
+            protected void doCancelEditor() {
+                super.doCancelEditor();
+                if (isEditorEnabled()) setEditorEnabled(false);
+            }
+        };
         anticiposOCGrid.setWidth("100%");
         anticiposOCGrid.setImmediate(true);
         anticiposOCGrid.setDescription("Marque ☑ para incluir en el pago. Doble clic para editar monto parcial.");
@@ -613,7 +636,8 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 OC_RESPONSABLE_OC_PROPERTY);
 
         // ── Editor inline: solo Monto a pagar es editable ─────────────────────
-        anticiposOCGrid.setEditorEnabled(true);
+        // Deshabilitado por default: solo el botón "Seleccionar" lo habilita (ver onSeleccionarOCClick).
+        anticiposOCGrid.setEditorEnabled(false);
         anticiposOCGrid.setEditorSaveCaption("Confirmar");
         anticiposOCGrid.setEditorCancelCaption("Cancelar");
 
@@ -775,6 +799,18 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
 
             editorOCMaxMonto      = anticipo;
             currentEditorOCItemId = event.getItemId();
+            // Si había otra fila en edición (editor abierto sin Confirmar/Cancelar), cancelarla antes.
+            if (anticiposOCGrid.isEditorActive()) {
+                anticiposOCGrid.cancelEditor();
+            }
+            // Pre-cargar el monto del anticipo en la celda "Pagar" ANTES de abrir el editor,
+            // para que el editor lo ligue a ese valor y lo muestre por default
+            // (así el usuario no tiene que escribirlo; solo confirma o lo ajusta).
+            anticiposOCContainer.getContainerProperty(event.getItemId(), OC_MONTO_PAGAR_PROPERTY).setValue(numberFormat.format(anticipo));
+            anticiposOCContainer.getContainerProperty(event.getItemId(), OC_MONTO_PAGARSF_PROPERTY).setValue(numberFormat2.format(anticipo));
+            // El editor está deshabilitado por default (para bloquear el doble clic);
+            // solo se habilita aquí, al pulsar "Seleccionar".
+            anticiposOCGrid.setEditorEnabled(true);
             anticiposOCGrid.editItem(event.getItemId());
             editorOCMontoField.setValue(numberFormat.format(anticipo));
         }
@@ -1047,6 +1083,35 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             cuentasBancosContainer.getContainerProperty(itemId, NUEVO_SALDO_PROPERTY).setValue("0.00");
             cuentasBancosContainer.getContainerProperty(itemId, NUEVO_SALDOSF_PROPERTY).setValue("0.00");
             cuentasBancosContainer.getContainerProperty(itemId, ULTIMO_CHEQUE_PROPERTY).setValue(obtenerUltimoCheque(String.valueOf(cuentasBancosContainer.getContainerProperty(itemId, ID_CUENTABANCO_PROPERTY).getValue())));
+        }
+        // Restaurar el "Anticipo Disp." mostrado al pool original de cada proveedor+moneda.
+        Map<String, Double> anticiposDisp = cargarAnticiposDisponibles();
+        for (Object itemId : porPagarContainer.getItemIds()) {
+            String idProv  = nvlC(porPagarContainer.getContainerProperty(itemId, ID_PROVEEDOR_PROPERTY).getValue());
+            String moneda  = nvlC(porPagarContainer.getContainerProperty(itemId, MONEDA_PROPERTY).getValue());
+            String simbolo = moneda.toUpperCase().startsWith("Q") ? "Q." : "$.";
+            double disp    = anticiposDisp.getOrDefault(idProv + "_" + moneda, 0.0);
+            porPagarContainer.getContainerProperty(itemId, ANTICIPO_DISPONIBLESF_PROPERTY).setValue(numberFormat2.format(disp));
+            porPagarContainer.getContainerProperty(itemId, ANTICIPO_DISPONIBLE_PROPERTY).setValue(simbolo + numberFormat.format(disp));
+        }
+    }
+
+    /**
+     * Ajusta el "Anticipo Disp." mostrado (columna visible y valor SF oculto) de todos los
+     * documentos del grid que pertenezcan al mismo proveedor y moneda, sumándoles {@code delta}
+     * (negativo al usar anticipo para pagar, positivo al revertir/deseleccionar). Nunca baja de cero.
+     */
+    private void ajustarAnticipoDisponible(String idProveedor, String moneda, double delta) {
+        if (idProveedor == null || idProveedor.isEmpty() || delta == 0) return;
+        String simbolo = (moneda != null && moneda.toUpperCase().startsWith("Q")) ? "Q." : "$.";
+        for (Object id : porPagarContainer.getItemIds()) {
+            if (!nvlC(porPagarContainer.getContainerProperty(id, ID_PROVEEDOR_PROPERTY).getValue()).equals(idProveedor)) continue;
+            if (!nvlC(porPagarContainer.getContainerProperty(id, MONEDA_PROPERTY).getValue()).equalsIgnoreCase(moneda)) continue;
+            double disp  = parseMontoSF(porPagarContainer.getContainerProperty(id, ANTICIPO_DISPONIBLESF_PROPERTY).getValue());
+            double nuevo = disp + delta;
+            if (nuevo < 0) nuevo = 0;
+            porPagarContainer.getContainerProperty(id, ANTICIPO_DISPONIBLESF_PROPERTY).setValue(numberFormat2.format(nuevo));
+            porPagarContainer.getContainerProperty(id, ANTICIPO_DISPONIBLE_PROPERTY).setValue(simbolo + numberFormat.format(nuevo));
         }
     }
 
@@ -1898,14 +1963,19 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             }
             codigosGenerados.add(codigoPartida);
 
+            // Descripción común para todas las líneas de la partida (incluye IDs de liquidaciones)
+            List<String> idsLiquidaciones = new ArrayList<>();
+            for (Object itemId : grupo) {
+                idsLiquidaciones.add(nvlC(liquidacionContainer.getContainerProperty(itemId, LIQ_ID_PROPERTY).getValue()));
+            }
+            String descComun = ("PAGO LIQUIDACION " + String.join(",", idsLiquidaciones) + " " + nombreLiq + " CHQ." + noCheque).replace("'", "").trim();
+
             // Construir INSERT: una línea DEBE por liquidación + una línea HABER con el total
             StringBuilder qry = new StringBuilder("INSERT INTO contabilidad_partida " + COLS);
 
             for (Object itemId : grupo) {
-                String idLiquidacion = nvlC(liquidacionContainer.getContainerProperty(itemId, LIQ_ID_PROPERTY).getValue());
                 String codigoCC      = nvlC(liquidacionContainer.getContainerProperty(itemId, LIQ_CODIGOCC_PROPERTY).getValue());
                 double monto         = parseMontoSF(liquidacionContainer.getContainerProperty(itemId, LIQ_MONTO_SF_PROPERTY).getValue());
-                String desc          = ("PAGO LIQUIDACION " + idLiquidacion + " " + nombreLiq + " CHQ." + noCheque).replace("'", "").trim();
 
                 // DEBE: Liquidaciones Caja Chica (cierra la deuda — una línea por liquidación)
                 qry.append("(");
@@ -1925,7 +1995,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 qry.append(",").append(monto);                   // DebeQuetzales
                 qry.append(",0");                                // HaberQuetzales
                 qry.append(",'PAGADO'");
-                qry.append(",'").append(desc).append("'");
+                qry.append(",'").append(descComun).append("'");
                 qry.append(",'CHEQUE'");
                 qry.append(",'").append(noCheque).append("'");
                 qry.append(",").append(idLiquidador);
@@ -1937,7 +2007,6 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             }
 
             // HABER: Banco — una sola línea con el total del cheque
-            String descHaber = ("PAGO LIQUIDACIONES CHQ." + noCheque + " " + nombreLiq).replace("'", "").trim();
             qry.append("(");
             qry.append(empresaId);
             qry.append(",'").append(codigoPartida).append("'");
@@ -1955,7 +2024,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             qry.append(",0");                                    // DebeQuetzales
             qry.append(",").append(totalMonto);                  // HaberQuetzales
             qry.append(",'PAGADO'");
-            qry.append(",'").append(descHaber).append("'");
+            qry.append(",'").append(descComun).append("'");
             qry.append(",'CHEQUE'");
             qry.append(",'").append(noCheque).append("'");
             qry.append(",").append(idLiquidador);
@@ -2698,6 +2767,8 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             String chequeAnterior  = nvlC(porPagarContainer.getContainerProperty(event.getItemId(), CHEQUE_PROPERTY).getValue());
             double montoAnterior   = parseMontoSF(porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).getValue());
             String monedaDoc       = nvlC(porPagarContainer.getContainerProperty(event.getItemId(), MONEDA_PROPERTY).getValue());
+            String idProvDesel      = nvlC(porPagarContainer.getContainerProperty(event.getItemId(), ID_PROVEEDOR_PROPERTY).getValue());
+            double anticipoAnterior = parseMontoSF(porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_ANTICIPOSSF_PROPERTY).getValue());
 
             // Si tenía cheque asignado, verificar si otro documento del mismo proveedor lo comparte
             if (!chequeAnterior.isEmpty() && montoAnterior > 0) {
@@ -2739,6 +2810,12 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_MONTO_CHEQUE_PROPERTY).setValue("0.00");
             porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).setValue("0.00");
             porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_PROPERTY).setValue("0.00");
+
+            // Revertir el anticipo que este documento había tomado, devolviéndolo al
+            // "Anticipo Disp." de todos los documentos del mismo proveedor+moneda.
+            if (anticipoAnterior > 0) {
+                ajustarAnticipoDisponible(idProvDesel, monedaDoc, anticipoAnterior);
+            }
         } else {
             // ── Seleccionar: editar montos inline en el grid ──────────────────
             String moneda = nvlC(porPagarContainer.getContainerProperty(event.getItemId(), MONEDA_PROPERTY).getValue());
@@ -2749,15 +2826,41 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             }
 
             double saldoDoc       = parseMontoSF(porPagarContainer.getContainerProperty(event.getItemId(), SALDOSF_PROPERTY).getValue());
-            double anticipoDisp   = parseMontoSF(porPagarContainer.getContainerProperty(event.getItemId(), ANTICIPO_DISPONIBLESF_PROPERTY).getValue());
             double saldoAnticipos = getAnticiposProveedor(
                     nvlC(porPagarContainer.getContainerProperty(event.getItemId(), ID_PROVEEDOR_PROPERTY).getValue()), moneda);
+            if (saldoAnticipos < 0) saldoAnticipos = 0;
 
             editorSaldoDoc       = saldoDoc;
             editorSaldoAnticipos = saldoAnticipos;
             currentEditorItemId  = event.getItemId();
+            // Si había otra fila en edición (editor abierto sin Confirmar/Cancelar), cancelarla antes.
+            if (porPagarGrid.isEditorActive()) {
+                porPagarGrid.cancelEditor();
+            }
+            // El editor está deshabilitado por default (para bloquear el doble clic);
+            // solo se habilita aquí, al pulsar "Seleccionar".
+            porPagarGrid.setEditorEnabled(true);
+
+            // Default: pagar con anticipo lo que alcance de los anticipos pendientes de liquidar;
+            // el resto (o el total, si no hay anticipos) va al cheque.
+            double anticipoDefault = Math.min(saldoAnticipos, saldoDoc);
+            double chequeDefault   = Math.max(0, saldoDoc - anticipoDefault);
+
+            // Pre-cargar los montos en las celdas ANTES de abrir el editor, para que el editor
+            // ligue sus campos a esos valores y los muestre ya escritos. Clave cuando el proveedor
+            // no tiene anticipo disponible: el cheque queda con el monto completo del documento.
+            porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_ANTICIPOS_PROPERTY).setValue(numberFormat.format(anticipoDefault));
+            porPagarContainer.getContainerProperty(event.getItemId(), A_LIQUIDAR_MONTO_CHEQUE_PROPERTY).setValue(numberFormat.format(chequeDefault));
+
             porPagarGrid.editItem(event.getItemId());
-            editorAnticipoField.setValue(numberFormat.format(Math.min(anticipoDisp, saldoDoc)));
+
+            updatingEditorFields = true;
+            try {
+                editorAnticipoField.setValue(numberFormat.format(anticipoDefault));
+                editorChequeField.setValue(numberFormat.format(chequeDefault));
+            } finally {
+                updatingEditorFields = false;
+            }
         }
     }
 

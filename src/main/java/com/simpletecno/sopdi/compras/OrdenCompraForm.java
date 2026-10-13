@@ -33,6 +33,8 @@ import org.vaadin.ui.NumberField;
 import java.io.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import com.simpletecno.sopdi.MyDatabaseProvider;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -98,6 +100,8 @@ public class OrdenCompraForm extends Window {
     public IndexedContainer idccContainer = new IndexedContainer();
     Grid idccGrid;
     Grid.FooterRow footerRow;
+
+    HorizontalLayout buttonsLayout = new HorizontalLayout();
 
     static final String ID_PROPERTY = "Id";
     static final String PROJECT_PROPERTY = "Project";
@@ -175,7 +179,7 @@ public class OrdenCompraForm extends Window {
 
         if (!idOrdenCompra.trim().isEmpty()) {
             llenarDatos(idOrdenCompra);
-            fillGrid();
+            fillGrid("", "");
             if(  tipoOrdenCompraCbx.getValue().equals("1") || tipoOrdenCompraCbx.getValue().equals("2") ) {
                 selectGrid();
             }
@@ -253,6 +257,9 @@ public class OrdenCompraForm extends Window {
                             break;
                     }
                     //                fillGrid();
+                    if((!tipoOrdenCompraCbx.getValue().equals("1"))) {// ESTIMACION
+                        buttonsLayout.removeComponent(singleUpload);
+                    }
                 }
             }
         });
@@ -274,7 +281,7 @@ public class OrdenCompraForm extends Window {
                         porcentajeAnticipo = porcentajeAnticipo*100;
                         porcentajeAnticipoLbl.setValue(porcentajeAnticipo + "% Anticipo");
                         diasCretidoLbl.setValue(proveedorCbx.getContainerProperty(proveedorCbx.getValue(),"DiasCredito").getValue() + " Días crédito");
-                        fillGrid();
+                        fillGrid("", "");
                     }
                     buscarAnticiposProveedor();
                     nombreChequeTxt.setValue(proveedorCbx.getItemCaption(proveedorCbx.getValue()));
@@ -739,6 +746,10 @@ public class OrdenCompraForm extends Window {
         printBtn.setIcon(FontAwesome.PRINT);
         printBtn.setDescription("Imprimir Orden de Compra.");
         printBtn.addClickListener((Button.ClickListener) event -> {
+            if (idOrdenCompra == null || idOrdenCompra.trim().isEmpty()) {
+                Notification.show("Debe guardar la orden de compra antes de imprimirla.", Notification.Type.WARNING_MESSAGE);
+                return;
+            }
             queryString = " SELECT * ";
             queryString += " FROM orden_compra";
             queryString += " INNER JOIN tipo_orden_compra ON orden_compra.IdTipoOrdenCompra = tipo_orden_compra.Id";
@@ -833,7 +844,6 @@ public class OrdenCompraForm extends Window {
                     }
                 }));
 
-        HorizontalLayout buttonsLayout = new HorizontalLayout();
         buttonsLayout.setWidth("100%");
         buttonsLayout.setSpacing(true);
         buttonsLayout.setMargin(false);
@@ -844,6 +854,10 @@ public class OrdenCompraForm extends Window {
         buttonsLayout.setComponentAlignment(printBtn, Alignment.BOTTOM_CENTER);
         buttonsLayout.setComponentAlignment(guardarBtn, Alignment.BOTTOM_CENTER);
         buttonsLayout.setComponentAlignment(delBtn, Alignment.BOTTOM_RIGHT);
+
+        if((!tipoOrdenCompraCbx.getValue().equals("1"))) {// ESTIMACION
+            buttonsLayout.removeComponent(singleUpload);
+        }
 
         rightLayout.addComponent(idccGrid);
         rightLayout.setComponentAlignment(idccGrid, Alignment.TOP_CENTER);
@@ -1078,7 +1092,7 @@ public class OrdenCompraForm extends Window {
         }
     }
 
-    private void fillGrid() {
+    private void fillGrid(String idccList, String idexLis) {
 
         if(tipoOrdenCompraCbx.getValue() == null) {
             return;
@@ -1089,116 +1103,201 @@ public class OrdenCompraForm extends Window {
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "tipoOrdenCompraCbx.getValue()=" + tipoOrdenCompraCbx.getValue());
 
         if((tipoOrdenCompraCbx.getValue().equals("1")) || (tipoOrdenCompraCbx.getValue().equals("2"))) {// ESTIMACION O COMPRA PARCIAL
-            buscarDIC();
+            buscarDIC(idccList, idexLis);
         } else buscarCC();
 
     }
 
-    private void buscarDIC() {
-        Notification notif = new Notification("BUSCANDO DATOS... POR FAVOR ESPERAR!.", Notification.Type.WARNING_MESSAGE);
-        notif.setDelayMsec(5000);
-        notif.setPosition(Position.MIDDLE_CENTER);
-        notif.setIcon(FontAwesome.CLOCK_O);
-        notif.show(Page.getCurrent());
+    private void buscarDIC(String idccList, String idexList) {
 
-        if(  tipoOrdenCompraCbx.getValue().equals("1") // estimacion
-                || tipoOrdenCompraCbx.getValue().equals("3") // constructura
-                || tipoOrdenCompraCbx.getValue().equals("4") // eventual
-                || tipoOrdenCompraCbx.getValue().equals("5") // recurrente
-        ) {
+        // --- 1. Construir query en hilo principal (requiere valores de UI y conexión actual) ---
+        final String finalQuery;
+        if (tipoOrdenCompraCbx.getValue().equals("1")
+                || tipoOrdenCompraCbx.getValue().equals("3")
+                || tipoOrdenCompraCbx.getValue().equals("4")
+                || tipoOrdenCompraCbx.getValue().equals("5")) {
 /* comentado el 18/11/2025 JA para detalle por IDEX, cuenta, area, cantidad, precio no agrupado
             queryString = "Select DITEMC.IdCC, DITEMC.Idex, PROJT.Descripcion IdexDescripcion, SUM(DITEMC.Total) TotalTotal ";
-            queryString += " From  DetalleItemsCostos DITEMC";
-            queryString += " Inner Join project PROJ On PROJ.Numero = DITEMC.IdProject And PROJ.Estatus = 'ACTIVO'";
-            queryString += " Inner Join project_tarea PROJT On PROJT.IdProject = PROJ.Id And PROJT.Idex = DITEMC.Idex";
-            queryString += " Left Join proveedor Prov On Prov.IdProveedor = DITEMC.IdProveedor";
-            queryString += " Where DITEMC.IdEmpresa = " + empresa;
-            queryString += " And DITEMC.IDCC IN " + buscarCentrosCostoDIC();
-            queryString += " And DITEMC.IdProveedor = " + proveedorCbx.getValue();
-            queryString += " And DITEMC.Tipo In ('INTINI','DOCA')";  //60111  lote 104
-            queryString += " And DITEMC.Moneda = '" + monedaCbx.getValue() + "'";
-//            queryString += " And DITEMC.Lote = 104";
-            queryString += " Group By Idcc, Idex, IdexDescripcion";
-
+            ...
  */
-            queryString = "SELECT DITEMC.IdCC, DITEMC.Idex, PROJT.Descripcion IdexDescripcion, DITEMC.NoCuenta, DITEMC.IdArea,";
-            queryString += " DITEMC.Descripcion DescripcionCuenta, DITEMC.Cantidad, DITEMC.Precio, DITEMC.Total TotalTotal,";
-            queryString += " PROJ.Numero";
-            queryString += " FROM  DetalleItemsCostos DITEMC";
-            queryString += " INNER JOIN project PROJ On PROJ.Numero = DITEMC.IdProject And PROJ.Estatus = 'ACTIVO'";
-            queryString += " INNER JOIN project_tarea PROJT On PROJT.IdProject = PROJ.Id And PROJT.Idex = DITEMC.Idex";
-            queryString += " LEFT JOIN proveedor_empresa Prov On Prov.IdProveedor = DITEMC.IdProveedor";
-            queryString += " WHERE DITEMC.IdEmpresa = " + empresaId;
-            queryString += " AND DITEMC.IDCC IN " + buscarCentrosCostoDIC();
-            queryString += " AND DITEMC.IdProveedor = " + proveedorCbx.getValue();
-            queryString += " AND DITEMC.Tipo In ('INTINI','DOCA')";  //60111  lote 104
-            queryString += " And DITEMC.Moneda = '" + monedaCbx.getValue() + "'";
-            queryString += " AND Prov.IdEmpresa = " + empresaId;
-        }
-        else { // 2=orden de compra parcial
-            queryString = "SELECT DITEMC.IdCC, DITEMC.Idex, PROJT.Descripcion IdexDescripcion, DITEMC.NoCuenta, DITEMC.IdArea,";
-            queryString += " DITEMC.Descripcion DescripcionCuenta, DITEMC.Cantidad, DITEMC.Precio, DITEMC.Total TotalTotal,";
-            queryString += " PROJ.Numero";
-            queryString += " FROM  DetalleItemsCostos DITEMC";
-            queryString += " INNER JOIN project PROJ On PROJ.Numero = DITEMC.IdProject And PROJ.Estatus = 'ACTIVO'";
-            queryString += " INNER JOIN project_tarea PROJT On PROJT.IdProject = PROJ.Id And PROJT.Idex = DITEMC.Idex";
-            queryString += " LEFT JOIN proveedor_empresa Prov On Prov.IdProveedor = DITEMC.IdProveedor";
-            queryString += " WHERE DITEMC.IdEmpresa = " + empresaId;
-            queryString += " AND DITEMC.IDCC IN " + buscarCentrosCostoDIC();
-            queryString += " AND DITEMC.IdProveedor = " + proveedorCbx.getValue();
-            queryString += " AND DITEMC.Tipo IN ('INTINI','DOCA')";  //60111  lote 104
-            queryString += " AND DITEMC.Moneda = '" + monedaCbx.getValue() + "'";
-            queryString += " AND Prov.IdEmpresa = " + empresaId;
-        }
-
-        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "TipoOrdenCompra=" + tipoOrdenCompraCbx.getValue() + " buscarDIC()Query = " + queryString);
-
-        try {
-//            Page.getCurrent().reload();
-
-            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-            rsRecords = stQuery.executeQuery(queryString);
-
-            if (rsRecords.next()) { //  encontrado
-
-//                BigDecimal totalCuentaQuetzales = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-//                BigDecimal totalCuentaDolares = new BigDecimal(0).setScale(2, BigDecimal.ROUND_HALF_UP);
-
-                do {
-
-                    if(   (rsRecords.getDouble("TotalTotal") > 0)
-                            && (rsRecords.getDouble("TotalTotal") - getSaldo(
-                            rsRecords.getString("Idex"),
-                            rsRecords.getString("IdCC"),
-                            rsRecords.getString("NoCuenta")) > 0)
-                    ) {
-
-                        Object itemId = idccContainer.addItem();
-
-                        idccContainer.getContainerProperty(itemId, IDCC_PROPERTY).setValue(rsRecords.getString("IdCC"));
-                        idccContainer.getContainerProperty(itemId, IDEX_PROPERTY).setValue(rsRecords.getString("Idex"));
-                        idccContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).setValue(rsRecords.getString("IdexDescripcion"));
-
-//comentado el 18/11/2025 JA  if( tipoOrdenCompraCbx.getValue().equals("2") ) { // compra parcial
-                        idccContainer.getContainerProperty(itemId, CUENTA_PROPERTY).setValue(rsRecords.getString("NoCuenta"));
-                        idccContainer.getContainerProperty(itemId, DESCRIPCION_CUENTA_PROPERTY).setValue(rsRecords.getString("DescripcionCuenta"));
-                        idccContainer.getContainerProperty(itemId, PROJECT_PROPERTY).setValue(rsRecords.getString("Numero"));
-                        idccContainer.getContainerProperty(itemId, AREA_PROPERTY).setValue(rsRecords.getString("IdArea"));
-                        idccContainer.getContainerProperty(itemId, CANTIDAD_PROPERTY).setValue(rsRecords.getString("Cantidad"));
-                        idccContainer.getContainerProperty(itemId, PRECIO_PROPERTY).setValue(numberFormat.format(rsRecords.getDouble("Precio")));
-//comentado el 18/11/2025 JA                        }
-                        idccContainer.getContainerProperty(itemId, TOTAL_PROPERTY).setValue(numberFormat.format(rsRecords.getDouble("TotalTotal")));
-                        idccContainer.getContainerProperty(itemId, TOTALSF_PROPERTY).setValue(rsRecords.getString("TotalTotal"));
-                    }
-
-                } while (rsRecords.next());
-
-//                gridFooter.getCell(TOTAL_PROPERTY).setText(moneyFormat.format(totalCuentaQuetzales));
+            String q = "SELECT DITEMC.IdCC, DITEMC.Idex, PROJT.Descripcion IdexDescripcion, DITEMC.NoCuenta, DITEMC.IdArea,";
+            q += " DITEMC.Descripcion DescripcionCuenta, SUM(DITEMC.Cantidad) TotalCantidad, SUM(DITEMC.Precio) TotalPrecio, SUM(DITEMC.Total) TotalTotal,";
+            q += " PROJ.Numero";
+            q += " FROM  DetalleItemsCostos DITEMC";
+            q += " INNER JOIN project PROJ On PROJ.Numero = DITEMC.IdProject And PROJ.Estatus = 'ACTIVO'";
+            q += " INNER JOIN project_tarea PROJT On PROJT.IdProject = PROJ.Id And PROJT.Idex = DITEMC.Idex";
+            q += " LEFT JOIN proveedor_empresa Prov On Prov.IdProveedor = DITEMC.IdProveedor";
+            q += " WHERE DITEMC.IdEmpresa = " + empresaId;
+            if (idccList.trim().isEmpty()) {
+                q += " AND DITEMC.IDCC IN " + buscarCentrosCostoDIC();
+            } else {
+                q += " AND DITEMC.IDCC IN " + idccList;
+                q += " AND DITEMC.IDEX IN " + idexList;
             }
-        } catch (Exception ex) {
-            Logger.getLogger(IntegracionItemCostos.class.getName()).log(Level.SEVERE, null, ex);
-            Notification.show("Error al intentar leer detalle de integracion..!", Notification.Type.ERROR_MESSAGE);
+            q += " AND DITEMC.IdProveedor = " + proveedorCbx.getValue();
+            q += " AND DITEMC.Tipo In ('INTINI','DOCA')";
+            q += " And DITEMC.Moneda = '" + monedaCbx.getValue() + "'";
+            q += " AND Prov.IdEmpresa = " + empresaId;
+            q += " GROUP BY DITEMC.IdCC, DITEMC.Idex, PROJT.Descripcion, DITEMC.NoCuenta, DITEMC.IdArea, DITEMC.Descripcion";
+            finalQuery = q;
+        } else { // 2=orden de compra parcial
+            String q = "SELECT DITEMC.IdCC, DITEMC.Idex, PROJT.Descripcion IdexDescripcion, DITEMC.NoCuenta, DITEMC.IdArea,";
+            q += " DITEMC.Descripcion DescripcionCuenta, SUM(DITEMC.Cantidad) TotalCantidad, SUM(DITEMC.Precio) TotalPrecio, SUM(DITEMC.Total) TotalTotal,";
+            q += " PROJ.Numero";
+            q += " FROM  DetalleItemsCostos DITEMC";
+            q += " INNER JOIN project PROJ On PROJ.Numero = DITEMC.IdProject And PROJ.Estatus = 'ACTIVO'";
+            q += " INNER JOIN project_tarea PROJT On PROJT.IdProject = PROJ.Id And PROJT.Idex = DITEMC.Idex";
+            q += " LEFT JOIN proveedor_empresa Prov On Prov.IdProveedor = DITEMC.IdProveedor";
+            q += " WHERE DITEMC.IdEmpresa = " + empresaId;
+            q += " AND DITEMC.IDCC IN " + buscarCentrosCostoDIC();
+            q += " AND DITEMC.IdProveedor = " + proveedorCbx.getValue();
+            q += " AND DITEMC.Tipo IN ('INTINI','DOCA')";
+            q += " AND DITEMC.Moneda = '" + monedaCbx.getValue() + "'";
+            q += " AND Prov.IdEmpresa = " + empresaId;
+            q += " GROUP BY DITEMC.IdCC, DITEMC.Idex, PROJT.Descripcion, DITEMC.NoCuenta, DITEMC.IdArea, DITEMC.Descripcion";
+            finalQuery = q;
         }
+
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO,
+                "TipoOrdenCompra=" + tipoOrdenCompraCbx.getValue() + " buscarDIC()Query = " + finalQuery);
+
+        // --- 2. Capturar valores de UI antes de salir del hilo de Vaadin ---
+        final String bgEmpresaId  = empresaId;
+        final String bgProveedorId = String.valueOf(proveedorCbx.getValue());
+        final String bgMoneda      = String.valueOf(monedaCbx.getValue());
+
+        // --- 3. Ventana modal con ProgressBar indeterminado ---
+        final UI ui = UI.getCurrent();
+
+        final Window progressWindow = new Window("Buscando datos");
+        progressWindow.setModal(true);
+        progressWindow.setResizable(false);
+        progressWindow.setClosable(false);
+        progressWindow.setWidth("320px");
+        progressWindow.center();
+
+        VerticalLayout wContent = new VerticalLayout();
+        wContent.setMargin(true);
+        wContent.setSpacing(true);
+        wContent.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
+        wContent.setWidth("100%");
+
+        Label wLabel = new Label("Por favor espere...");
+        wLabel.addStyleName(ValoTheme.LABEL_BOLD);
+
+        ProgressBar wBar = new ProgressBar();
+        wBar.setIndeterminate(true);
+        wBar.setWidth("100%");
+
+        wContent.addComponents(wLabel, wBar);
+        progressWindow.setContent(wContent);
+
+        ui.addWindow(progressWindow);
+        // Polling cada 500ms: permite que UI.access() del hilo de fondo actualice la UI
+        ui.setPollInterval(500);
+
+        // --- 4. Hilo de fondo: ejecuta query pesado con conexión independiente ---
+        new Thread(() -> {
+
+            // Acumular filas antes de tocar la UI
+            final List<String[]> rows = new ArrayList<>();
+
+            MyDatabaseProvider bgProvider = new MyDatabaseProvider();
+            Connection bgConn = bgProvider.getNewConnection();
+
+            if (bgConn == null) {
+                ui.access(() -> {
+                    Notification.show("Error de conexión a base de datos.", Notification.Type.ERROR_MESSAGE);
+                    ui.removeWindow(progressWindow);
+                    ui.setPollInterval(-1);
+                });
+                return;
+            }
+
+            try (Statement bgStmt = bgConn.createStatement();
+                 ResultSet bgRs = bgStmt.executeQuery(finalQuery)) {
+
+                while (bgRs.next()) {
+                    double totalTotal = bgRs.getDouble("TotalTotal");
+                    if (totalTotal <= 0) continue;
+
+                    double saldo = getSaldoDocaBg(bgConn,
+                            bgRs.getString("Idex"),
+                            bgRs.getString("IdCC"),
+                            bgRs.getString("NoCuenta"),
+                            bgEmpresaId, bgProveedorId, bgMoneda);
+
+                    if (totalTotal - saldo <= 0) continue;
+
+                    rows.add(new String[]{
+                            bgRs.getString("IdCC"),
+                            bgRs.getString("Idex"),
+                            bgRs.getString("IdexDescripcion"),
+                            bgRs.getString("NoCuenta"),
+                            bgRs.getString("DescripcionCuenta"),
+                            bgRs.getString("Numero"),
+                            bgRs.getString("IdArea"),
+                            bgRs.getString("TotalCantidad"),
+                            numberFormat.format(bgRs.getDouble("TotalPrecio")),
+                            numberFormat.format(bgRs.getDouble("TotalTotal")),
+                            bgRs.getString("TotalTotal")
+                    });
+                }
+
+            } catch (Exception ex) {
+                Logger.getLogger(OrdenCompraForm.class.getName()).log(Level.SEVERE, null, ex);
+                ui.access(() -> {
+                    Notification.show("Error al intentar leer detalle de integración.", Notification.Type.ERROR_MESSAGE);
+                    ui.removeWindow(progressWindow);
+                });
+                bgProvider.closeConnection();
+                return;
+            }
+
+            bgProvider.closeConnection();
+
+            // --- 5. Actualizar UI en el hilo de Vaadin ---
+            ui.access(() -> {
+                idccContainer.removeAllContainerFilters();
+                for (String[] r : rows) {
+                    Object itemId = idccContainer.addItem();
+                    idccContainer.getContainerProperty(itemId, IDCC_PROPERTY).setValue(r[0]);
+                    idccContainer.getContainerProperty(itemId, IDEX_PROPERTY).setValue(r[1]);
+                    idccContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).setValue(r[2]);
+                    idccContainer.getContainerProperty(itemId, CUENTA_PROPERTY).setValue(r[3]);
+                    idccContainer.getContainerProperty(itemId, DESCRIPCION_CUENTA_PROPERTY).setValue(r[4]);
+                    idccContainer.getContainerProperty(itemId, PROJECT_PROPERTY).setValue(r[5]);
+                    idccContainer.getContainerProperty(itemId, AREA_PROPERTY).setValue(r[6]);
+                    idccContainer.getContainerProperty(itemId, CANTIDAD_PROPERTY).setValue(r[7]);
+                    idccContainer.getContainerProperty(itemId, PRECIO_PROPERTY).setValue(r[8]);
+                    idccContainer.getContainerProperty(itemId, TOTAL_PROPERTY).setValue(r[9]);
+                    idccContainer.getContainerProperty(itemId, TOTALSF_PROPERTY).setValue(r[10]);
+                }
+                ui.removeWindow(progressWindow);
+                ui.setPollInterval(-1);
+            });
+
+        }, "buscarDIC-bg").start();
+    }
+
+    private double getSaldoDocaBg(Connection conn, String idex, String cc, String cuenta,
+                                   String empId, String provId, String moneda) {
+        String q = "SELECT SUM(DOCA.Total) TotalTotal";
+        q += " FROM DocumentosContablesAplicados DOCA";
+        q += " INNER JOIN project ON project.Numero = DOCA.IdProject AND project.Estatus = 'ACTIVO'";
+        q += " WHERE DOCA.Idex = '" + idex + "'";
+        q += " AND DOCA.IDCC = '" + cc + "'";
+        q += " AND DOCA.IdEmpresa = " + empId;
+        q += " AND DOCA.IdProveedor = " + provId;
+        q += " AND DOCA.Moneda = '" + moneda + "'";
+        q += " AND DOCA.NoCuenta = '" + cuenta + "'";
+        try (Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(q)) {
+            if (rs.next()) return rs.getDouble("TotalTotal");
+        } catch (Exception ex) {
+            Logger.getLogger(OrdenCompraForm.class.getName()).log(Level.SEVERE, "getSaldoDocaBg", ex);
+        }
+        return 0.0;
     }
 
     private void selectGrid() {
@@ -1362,7 +1461,7 @@ public class OrdenCompraForm extends Window {
             if (rsRecords.next()) { //  encontrado
 
                 do {
-                    if((rsRecords.getDouble("TotalTotal") - getSaldoIdcc(rsRecords.getString("IdCC"))) > 0) {
+                    if((rsRecords.getDouble("TotalTotal") - getSaldoDocaIdcc(rsRecords.getString("IdCC"))) > 0) {
                         centrosdecosto.append(",'").append(rsRecords.getString("IdCC")).append("'");
                     }
                 } while (rsRecords.next());
@@ -1379,7 +1478,7 @@ public class OrdenCompraForm extends Window {
         return centrosdecosto.toString();
     }
 
-    private double getSaldo(
+    private double getSaldoDoca(
             String IDEX,
             String CENTROCOSTO,
             String cuenta) {
@@ -1417,7 +1516,7 @@ public class OrdenCompraForm extends Window {
         return total;
     }
 
-    private double getSaldoIdcc(String CENTROCOSTO) {
+    private double getSaldoDocaIdcc(String CENTROCOSTO) {
 
         String
                 queryString =  "SELECT SUM(DOCA.Total) TotalTotal ";
@@ -1878,7 +1977,6 @@ public class OrdenCompraForm extends Window {
     private void cargarArchivo(File planillaFile) {
 
         singleUpload.setEnabled(false);
-        idccContainer.removeAllItems();
 
         try {
 
@@ -1893,10 +1991,8 @@ public class OrdenCompraForm extends Window {
 
             Object itemId; int recordCount = 0;
 
-            ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(false);
-
-            stQuery  = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-            stQuery1 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+            StringBuilder idccList = new StringBuilder("(''");
+            StringBuilder idexList = new StringBuilder("(''");
 
             for (int linea = 1; linea <= sheet.getLastRowNum(); linea++) {
 
@@ -1908,55 +2004,19 @@ public class OrdenCompraForm extends Window {
                     break;
                 }
 
-                itemId = idccContainer.addItem();
+                idccList.append(",'").append(rsRecords.getString("IdCC")).append("'");
+                idccList.append(",'").append(rsRecords.getString("IDEX")).append("'");
 
-                idccContainer.getContainerProperty(itemId,"IDCC").setValue(sheet.getRow(linea).getCell(0).getStringCellValue());
-                idccContainer.getContainerProperty(itemId,"IDEX").setValue(sheet.getRow(linea).getCell(1).getStringCellValue());
-
-                queryString = "SELECT DITEMC.IDCC, DITEMC.IDEX, PROJT.Descripcion IdexDescripcion, SUM(DITEMC.Total) TotalTotal ";
-                queryString += " FROM  DetalleItemsCostos DITEMC";
-                queryString += " INNER JOIN project PROJ ON PROJ.Numero = DITEMC.IdProject AND PROJ.Estatus = 'ACTIVO'";
-                queryString += " INNER JOIN project_tarea PROJT On PROJT.IdProject = PROJ.Id And PROJT.Idex = DITEMC.Idex";
-                queryString += " LEFT JOIN proveedor_empresa Prov On Prov.IdProveedor = DITEMC.IdProveedor";
-                queryString += " WHERE DITEMC.IdEmpresa = " + empresaId;
-                queryString += " AND DITEMC.IDCC = '" + sheet.getRow(linea).getCell(0).getStringCellValue() + "'";
-                queryString += " AND DITEMC.IDEX = '" + sheet.getRow(linea).getCell(1).getStringCellValue() + "'";
-                queryString += " AND DITEMC.IdProveedor = " + proveedorCbx.getValue();
-                queryString += " AND DITEMC.Tipo In ('INTINI','DOCA')";
-                queryString += " AND DITEMC.Moneda = '" + monedaCbx.getValue() + "'";
-                queryString += " AND Prov.IdEmpresa = " + empresaId;
-                queryString += " GROUP BY Idcc, Idex, IdexDescripcion";
-
-                Logger.getLogger(this.getClass().getName()).log(Level.INFO, "buscarDICCargaArchivo() = " + queryString);
-
-                try {
-                    stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-                    rsRecords = stQuery.executeQuery(queryString);
-
-                    if (rsRecords.next()) { //  encontrado
-                        idccContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).setValue(rsRecords.getString("IdexDescripcion"));
-                        idccContainer.getContainerProperty(itemId, TOTAL_PROPERTY).setValue(numberFormat.format(rsRecords.getDouble("TotalTotal")));
-                        idccContainer.getContainerProperty(itemId, TOTALSF_PROPERTY).setValue(rsRecords.getString("TotalTotal"));
-                        idccGrid.select(itemId);
-                    }
-                }
-                catch(Exception exNull) {
-                    Notification notif = new Notification("HA OCURRIDO UN ERROR DE BASE DE DATOS : " + exNull.getMessage(), Notification.Type.HUMANIZED_MESSAGE);
-                    notif.setDelayMsec(1500);
-                    notif.setPosition(Position.MIDDLE_CENTER);
-                    notif.setIcon(FontAwesome.WARNING);
-                    notif.show(Page.getCurrent());
-                    System.out.println("Error en base datos al buscar IDEX en DIC. " + exNull);
-                    exNull.printStackTrace();
-                }
                 recordCount++;
 
             } //endfor
 
-            ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().commit();
-            ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().setAutoCommit(true);
+            idccList.append(",'')");
+            idexList.append(",'')");
 
             System.out.println("...FIN...");
+
+            fillGrid(idccList.toString(), idexList.toString());
 
             Notification.show("Archivo cargado exitosamente! " + recordCount + " idex cargados.", Notification.Type.HUMANIZED_MESSAGE);
 

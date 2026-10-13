@@ -14,11 +14,15 @@ import com.vaadin.ui.*;
 
 import com.vaadin.ui.themes.ValoTheme;
 
+import com.simpletecno.sopdi.MyDatabaseProvider;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -865,127 +869,334 @@ public class InspectionTaskOCWindow extends Window {
     //    public void fillOcIdexGrid(String project) {
     public void fillOcIdexGrid() {
 
-        if (ocIdexGrid == null) {
-            return;
-        }
+        if (ocIdexGrid == null) return;
+
+        ocIdexContainer.removeAllContainerFilters();
         ocIdexContainer.removeAllItems();
-//        ocIdexGrid.select(null);
 
-        try {
+        // --- 1. Construir query en el hilo de Vaadin (usa idcc y sessionInformation) ---
+        final String bgEmpresaId = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+        final String bgIdcc      = idcc;
 
-            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+        String q = "SELECT DIC.Id, DIC.IdProject, DIC.NoCuenta, CCC.Descripcion CuentaDescripcion,";
+        q += " DIC.IdEmpresa, DIC.IdProveedor, Prov.Nombre NombreProveedor,";
+        q += " DIC.Idex, DIC.Unidad, DIC.Moneda, Lote,";
+        q += " SUM(DIC.Total / DIC.Cantidad) PrecioTotal, SUM(DIC.Cantidad) CantidadTotal, SUM(DIC.Total) TotalTotal";
+        q += " FROM  DetalleItemsCostos DIC";
+        q += " INNER JOIN proveedor_empresa Prov ON Prov.IdProveedor = DIC.IdProveedor";
+        q += " INNER JOIN centro_costo_cuenta CCC ON CCC.CodigoCuentaCentroCosto = DIC.NoCuenta";
+        q += " INNER JOIN area On area.IdArea = DIC.IdArea";
+        q += " WHERE DIC.IdProject In (Select PRJ.Numero From project PRJ WHERE PRJ.Estatus = 'ACTIVO')";
+        q += " AND DIC.Tipo In ('INTINI', 'DOCA')";
+        q += " AND DIC.IdCC = '" + bgIdcc + "'";
+        q += " AND DIC.IdEmpresa = " + bgEmpresaId;
+        q += " AND Prov.IdEmpresa = " + bgEmpresaId;
+        q += " GROUP BY DIC.IdProject, DIC.NoCuenta, DIC.IdEmpresa, DIC.IdProveedor, DIC.Idex, DIC.Lote";
+        q += " ORDER BY DIC.IdProject, DIC.Idex, DIC.NoCuenta";
+        final String mainQuery = q;
 
-            String queryString = "SELECT DIC.Id, DIC.IdProject, DIC.NoCuenta, CCC.Descripcion CuentaDescripcion, ";
-            queryString += " DIC.IdEmpresa, DIC.IdProveedor, Prov.Nombre NombreProveedor, ";
-            queryString += " DIC.Idex, DIC.Unidad, DIC.Moneda, Lote, ";
-            queryString += " SUM(DIC.Total / DIC.Cantidad) PrecioTotal, SUM(DIC.Cantidad) CantidadTotal, SUM(DIC.Total) TotalTotal";
-            queryString += " FROM  DetalleItemsCostos DIC";
-            queryString += " INNER JOIN proveedor_empresa Prov ON Prov.IdProveedor = DIC.IdProveedor";
-            queryString += " INNER JOIN centro_costo_cuenta CCC ON CCC.CodigoCuentaCentroCosto = DIC.NoCuenta";
-            queryString += " INNER JOIN area On area.IdArea = DIC.IdArea";
-            queryString += " WHERE DIC.IdProject In (Select PRJ.Numero From project PRJ WHERE PRJ.Estatus = 'ACTIVO')";
-            queryString += " AND DIC.Tipo In ('INTINI', 'DOCA')";
-            queryString += " AND DIC.IdCC = '" + idcc + "'";
-            queryString += " AND DIC.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
-            queryString += " AND Prov.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
-            queryString += " GROUP BY DIC.IdProject, DIC.NoCuenta, DIC.IdEmpresa, DIC.IdProveedor, DIC.Idex, DIC.Lote";
-            queryString += " ORDER BY DIC.IdProject, DIC.Idex, DIC.NoCuenta ";
+        // --- 2. Capturar valores del OC seleccionado antes de salir del hilo de Vaadin ---
+        final boolean hasSelectedOC = ocGrid.getSelectedRow() != null;
+        final String bgIdOC      = hasSelectedOC ? String.valueOf(ocContainer.getContainerProperty(ocGrid.getSelectedRow(), IDOC_PROPERTY).getValue()) : "0";
+        final String bgEstatusOC = hasSelectedOC ? String.valueOf(ocContainer.getContainerProperty(ocGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue()) : "";
+        final String bgCodigoOC  = hasSelectedOC ? String.valueOf(ocContainer.getContainerProperty(ocGrid.getSelectedRow(), CODIGOOC_PROPERTY).getValue()) : "0";
 
-//System.out.println(queryString);
+        // --- 3. Ventana modal con ProgressBar indeterminado ---
+        final UI ui = UI.getCurrent();
 
-            rsRecords = stQuery.executeQuery(queryString);
+        final Window progressWindow = new Window("Cargando rubros");
+        progressWindow.setModal(true);
+        progressWindow.setResizable(false);
+        progressWindow.setClosable(false);
+        progressWindow.setWidth("300px");
+        progressWindow.center();
 
-            if (rsRecords.next()) { //  encontrado
+        VerticalLayout wContent = new VerticalLayout();
+        wContent.setMargin(true);
+        wContent.setSpacing(true);
+        wContent.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
+        wContent.setWidth("100%");
 
-                double cantidadTotal = 0.00;
-                double montoTotal = 0.00;
-                double precioPromedio = 0.00;
-                Object itemId = 0;
+        Label wLabel = new Label("Por favor espere...");
+        wLabel.addStyleName(ValoTheme.LABEL_BOLD);
 
-                String idRecordProject = "0";
+        ProgressBar wBar = new ProgressBar();
+        wBar.setIndeterminate(true);
+        wBar.setWidth("100%");
 
-                do {
+        wContent.addComponents(wLabel, wBar);
+        progressWindow.setContent(wContent);
+        ui.addWindow(progressWindow);
+        ui.setPollInterval(500);
 
-                    cantidadTotal = rsRecords.getDouble("CantidadTotal");
-                    precioPromedio = rsRecords.getDouble("PrecioTotal");
-                    montoTotal = cantidadTotal * precioPromedio;
+        // --- 4. Hilo de fondo con conexión independiente ---
+        new Thread(() -> {
 
-                    montoTotal = montoTotal - getSaldoDocumentosContablesAplicados(
-                            idcc,
-                            rsRecords.getString("IdProject"),
-                            rsRecords.getString("Idex"),
-                            rsRecords.getString("NoCuenta"),
-                            rsRecords.getString("IdEmpresa"),
-                            rsRecords.getString("IdProveedor")
-                    );
+            // Índices de mainRows (String[22]):
+            // 0=Id, 1=IdProject, 2=idRecordProject, 3=Idex, 4=NoCuenta, 5=CuentaDesc,
+            // 6=Unidad, 7=IdEmpresa, 8=Lote, 9=Proveedor, 10=Moneda,
+            // 11=Cantidad, 12=Precio, 13=Total, 14=SaldoDIC, 15=UltPrecio, 16=EsNuevo,
+            // 17=OC_Cantidad, 18=OC_Precio, 19=OC_Total, 20=IDOC_det, 21=CodigoOC
+            final List<String[]> mainRows = new ArrayList<>();
+            final List<String[]> ocRows   = new ArrayList<>();
 
-                    if (montoTotal > 0.00) {
+            MyDatabaseProvider bgProvider = new MyDatabaseProvider();
+            Connection bgConn = bgProvider.getNewConnection();
 
-                        idRecordProject = getRecordIdProject(rsRecords.getString("IdProject"));
+            if (bgConn == null) {
+                ui.access(() -> {
+                    Notification.show("Error de conexión a base de datos.", Notification.Type.ERROR_MESSAGE);
+                    ui.removeWindow(progressWindow);
+                    ui.setPollInterval(-1);
+                });
+                return;
+            }
 
-                        itemId = ocIdexContainer.addItem();
+            try (Statement bgStmt = bgConn.createStatement();
+                 ResultSet bgRs = bgStmt.executeQuery(mainQuery)) {
 
-                        ocIdexContainer.getContainerProperty(itemId, ID_PROPERTY).setValue(rsRecords.getString("Id"));
-                        ocIdexContainer.getContainerProperty(itemId, PROJECT_PROPERTY).setValue(rsRecords.getString("IdProject")); //es el numero de project
-                        ocIdexContainer.getContainerProperty(itemId, IDPROJECT_PROPERTY).setValue(idRecordProject); //es el ID de project
-                        ocIdexContainer.getContainerProperty(itemId, IDEX_PROPERTY).setValue(rsRecords.getString("Idex"));
-                        ocIdexContainer.getContainerProperty(itemId, CUENTA_PROPERTY).setValue(rsRecords.getString("NoCuenta"));
-                        ocIdexContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).setValue(rsRecords.getString("CuentaDescripcion"));
-                        ocIdexContainer.getContainerProperty(itemId, UNIDAD_PROPERTY).setValue(rsRecords.getString("Unidad"));
-                        ocIdexContainer.getContainerProperty(itemId, EMPRESA_PROPERTY).setValue(rsRecords.getString("IdEmpresa"));
-                        ocIdexContainer.getContainerProperty(itemId, LOTE_PROPERTY).setValue(rsRecords.getString("Lote"));
-                        ocIdexContainer.getContainerProperty(itemId, PROVEEDOR_PROPERTY).setValue(rsRecords.getString("IdProveedor") + " " + rsRecords.getString("NombreProveedor"));
-                        ocIdexContainer.getContainerProperty(itemId, MONEDA_PROPERTY).setValue(rsRecords.getString("Moneda"));
-                        ocIdexContainer.getContainerProperty(itemId, CANTIDAD_PROPERTY).setValue(numberFormat3.format(cantidadTotal));
-                        ocIdexContainer.getContainerProperty(itemId, PRECIO_PROPERTY).setValue(numberFormat.format(precioPromedio));
-                        ocIdexContainer.getContainerProperty(itemId, TOTAL_PROPERTY).setValue(numberFormat.format(cantidadTotal * precioPromedio));
-                        ocIdexContainer.getContainerProperty(itemId, SALDO_DIC_PROPERTY).setValue(numberFormat.format(montoTotal));
-                        ocIdexContainer.getContainerProperty(itemId, ULT_PRECIO_PROPERTY).setValue(
-                                UltimoPrecio(
-                                        rsRecords.getString("IdProject"),
-                                        idcc,
-                                        rsRecords.getString("Idex"),
-                                        rsRecords.getString("NoCuenta"),
-                                        rsRecords.getString("IdEmpresa"),
-                                        rsRecords.getString("IdProveedor")
-                                )
-                        );
-                        ocIdexContainer.getContainerProperty(itemId, ES_NUEVO_PROPERTY).setValue("NO");
+                while (bgRs.next()) {
+                    double cantidadTotal = bgRs.getDouble("CantidadTotal");
+                    double precioPromedio = bgRs.getDouble("PrecioTotal");
+                    double montoTotal = cantidadTotal * precioPromedio;
 
-                        if (ocGrid.getSelectedRow() != null) { // no es nueva OC
-                            if (!buscarOC(
-                                    itemId,
-                                    idRecordProject,
-                                    idcc,
-                                    rsRecords.getString("Idex"),
-                                    rsRecords.getString("NoCuenta"),
-                                    rsRecords.getString("IdEmpresa"),
-                                    rsRecords.getString("IdProveedor"))) {
+                    montoTotal -= getSaldoDocumentosContablesAplicadosBg(bgConn,
+                            bgIdcc, bgRs.getString("IdProject"), bgRs.getString("Idex"),
+                            bgRs.getString("NoCuenta"), bgRs.getString("IdEmpresa"),
+                            bgRs.getString("IdProveedor"));
 
-                                if (   String.valueOf(ocContainer.getContainerProperty(ocGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue()).equals("EN REVISION")
-                                    || String.valueOf(ocContainer.getContainerProperty(ocGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue()).equals("AUTORIZADA")
-                                    || String.valueOf(ocContainer.getContainerProperty(ocGrid.getSelectedRow(), ESTATUS_PROPERTY).getValue()).equals("FINALIZADA")) {
-                                    ocIdexContainer.removeItem(itemId);
-                                }
+                    if (montoTotal <= 0) continue;
 
-                            }
-                        } else {
-                            itemId = ocIdexContainer.addItem();
+                    String idRecordProject = getRecordIdProjectBg(bgConn, bgRs.getString("IdProject"));
+                    String ultimoPrecio    = ultimoPrecioBg(bgConn, bgRs.getString("IdProject"),
+                            bgIdcc, bgRs.getString("Idex"), bgRs.getString("NoCuenta"),
+                            bgRs.getString("IdEmpresa"), bgRs.getString("IdProveedor"));
+
+                    // buscarOC: null = no encontrado, String[5] = {cant, precio, total, idocDet, codigoOC}
+                    String[] ocData = null;
+                    if (hasSelectedOC) {
+                        ocData = buscarOCBg(bgConn, idRecordProject, bgIdcc,
+                                bgRs.getString("Idex"), bgRs.getString("NoCuenta"),
+                                bgRs.getString("IdEmpresa"), bgRs.getString("IdProveedor"), bgIdOC);
+
+                        if (ocData == null && (bgEstatusOC.equals("EN REVISION")
+                                || bgEstatusOC.equals("AUTORIZADA")
+                                || bgEstatusOC.equals("FINALIZADA"))) {
+                            continue; // descartar fila (igual que removeItem en el código original)
                         }
-
                     }
 
-                } while (rsRecords.next());
+                    mainRows.add(new String[]{
+                            bgRs.getString("Id"),                                          // 0
+                            bgRs.getString("IdProject"),                                   // 1
+                            idRecordProject,                                               // 2
+                            bgRs.getString("Idex"),                                        // 3
+                            bgRs.getString("NoCuenta"),                                    // 4
+                            bgRs.getString("CuentaDescripcion"),                           // 5
+                            bgRs.getString("Unidad"),                                      // 6
+                            bgRs.getString("IdEmpresa"),                                   // 7
+                            bgRs.getString("Lote"),                                        // 8
+                            bgRs.getString("IdProveedor") + " " + bgRs.getString("NombreProveedor"), // 9
+                            bgRs.getString("Moneda"),                                      // 10
+                            numberFormat3.format(cantidadTotal),                           // 11
+                            numberFormat.format(precioPromedio),                           // 12
+                            numberFormat.format(cantidadTotal * precioPromedio),           // 13
+                            numberFormat.format(montoTotal),                               // 14
+                            ultimoPrecio,                                                  // 15
+                            "NO",                                                          // 16 ES_NUEVO
+                            ocData != null ? ocData[0] : "0",                             // 17 OC_CANTIDAD
+                            ocData != null ? ocData[1] : "0",                             // 18 OC_PRECIO
+                            ocData != null ? ocData[2] : "0",                             // 19 OC_TOTAL
+                            ocData != null ? ocData[3] : "0",                             // 20 IDOC_det
+                            ocData != null ? bgCodigoOC : "0"                             // 21 CODIGOOC
+                    });
+                }
 
-                agregarOcsAlGrid();
+                // agregarOcsAlGrid equivalente en fondo
+                if (hasSelectedOC) {
+                    ocRows.addAll(agregarOcsAlGridBg(bgConn, bgIdOC, bgIdcc, bgEmpresaId));
+                }
 
+            } catch (Exception ex) {
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error fillOcIdexGrid.", ex);
+                ui.access(() -> {
+                    Notification.show("ERROR DE BASE DE DATOS : " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
+                    ui.removeWindow(progressWindow);
+                    ui.setPollInterval(-1);
+                });
+                bgProvider.closeConnection();
+                return;
             }
-            ocIdexGrid.sort(OC_TOTAL_PROPERTY, SortDirection.DESCENDING);
+
+            bgProvider.closeConnection();
+
+            // --- 5. Actualizar UI en el hilo de Vaadin ---
+            ui.access(() -> {
+                for (String[] r : mainRows) {
+                    Object itemId = ocIdexContainer.addItem();
+                    ocIdexContainer.getContainerProperty(itemId, ID_PROPERTY).setValue(r[0]);
+                    ocIdexContainer.getContainerProperty(itemId, PROJECT_PROPERTY).setValue(r[1]);
+                    ocIdexContainer.getContainerProperty(itemId, IDPROJECT_PROPERTY).setValue(r[2]);
+                    ocIdexContainer.getContainerProperty(itemId, IDEX_PROPERTY).setValue(r[3]);
+                    ocIdexContainer.getContainerProperty(itemId, CUENTA_PROPERTY).setValue(r[4]);
+                    ocIdexContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).setValue(r[5]);
+                    ocIdexContainer.getContainerProperty(itemId, UNIDAD_PROPERTY).setValue(r[6]);
+                    ocIdexContainer.getContainerProperty(itemId, EMPRESA_PROPERTY).setValue(r[7]);
+                    ocIdexContainer.getContainerProperty(itemId, LOTE_PROPERTY).setValue(r[8]);
+                    ocIdexContainer.getContainerProperty(itemId, PROVEEDOR_PROPERTY).setValue(r[9]);
+                    ocIdexContainer.getContainerProperty(itemId, MONEDA_PROPERTY).setValue(r[10]);
+                    ocIdexContainer.getContainerProperty(itemId, CANTIDAD_PROPERTY).setValue(r[11]);
+                    ocIdexContainer.getContainerProperty(itemId, PRECIO_PROPERTY).setValue(r[12]);
+                    ocIdexContainer.getContainerProperty(itemId, TOTAL_PROPERTY).setValue(r[13]);
+                    ocIdexContainer.getContainerProperty(itemId, SALDO_DIC_PROPERTY).setValue(r[14]);
+                    ocIdexContainer.getContainerProperty(itemId, ULT_PRECIO_PROPERTY).setValue(r[15]);
+                    ocIdexContainer.getContainerProperty(itemId, ES_NUEVO_PROPERTY).setValue(r[16]);
+                    ocIdexContainer.getContainerProperty(itemId, OC_CANTIDAD_PROPERTY).setValue(r[17]);
+                    ocIdexContainer.getContainerProperty(itemId, OC_PRECIO_PROPERTY).setValue(r[18]);
+                    ocIdexContainer.getContainerProperty(itemId, OC_TOTAL_PROPERTY).setValue(r[19]);
+                    ocIdexContainer.getContainerProperty(itemId, IDOC_PROPERTY).setValue(r[20]);
+                    ocIdexContainer.getContainerProperty(itemId, CODIGOOC_PROPERTY).setValue(r[21]);
+
+                    if (!hasSelectedOC) {
+                        ocIdexContainer.addItem(); // comportamiento original: item vacío cuando no hay OC seleccionada
+                    }
+                }
+
+                for (String[] r : ocRows) {
+                    Object itemId = ocIdexContainer.addItem();
+                    ocIdexContainer.getContainerProperty(itemId, ID_PROPERTY).setValue(r[0]);
+                    ocIdexContainer.getContainerProperty(itemId, PROJECT_PROPERTY).setValue(r[1]);
+                    ocIdexContainer.getContainerProperty(itemId, IDEX_PROPERTY).setValue(r[2]);
+                    ocIdexContainer.getContainerProperty(itemId, CUENTA_PROPERTY).setValue(r[3]);
+                    ocIdexContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).setValue(r[4]);
+                    ocIdexContainer.getContainerProperty(itemId, UNIDAD_PROPERTY).setValue(r[5]);
+                    ocIdexContainer.getContainerProperty(itemId, EMPRESA_PROPERTY).setValue(r[6]);
+                    ocIdexContainer.getContainerProperty(itemId, LOTE_PROPERTY).setValue(r[7]);
+                    ocIdexContainer.getContainerProperty(itemId, PROVEEDOR_PROPERTY).setValue(r[8]);
+                    ocIdexContainer.getContainerProperty(itemId, MONEDA_PROPERTY).setValue(r[9]);
+                    ocIdexContainer.getContainerProperty(itemId, CANTIDAD_PROPERTY).setValue(r[10]);
+                    ocIdexContainer.getContainerProperty(itemId, PRECIO_PROPERTY).setValue(r[11]);
+                    ocIdexContainer.getContainerProperty(itemId, TOTAL_PROPERTY).setValue(r[12]);
+                    ocIdexContainer.getContainerProperty(itemId, ES_NUEVO_PROPERTY).setValue("SI");
+                }
+
+                ocIdexGrid.sort(OC_TOTAL_PROPERTY, SortDirection.DESCENDING);
+                ui.removeWindow(progressWindow);
+                ui.setPollInterval(-1);
+            });
+
+        }, "fillOcIdexGrid-bg").start();
+    }
+
+    // ── Versiones thread-safe de los helpers (aceptan Connection independiente) ────
+
+    private double getSaldoDocumentosContablesAplicadosBg(Connection conn,
+            String cc, String project, String idex, String cuenta, String empresa, String proveedor) {
+        String s = "SELECT SUM(Total) TotalTotal FROM DocumentosContablesAplicados";
+        s += " WHERE IDCC = '" + cc + "'";
+        s += " AND IdProject = " + project;
+        s += " AND Idex = '" + idex + "'";
+        s += " AND NoCuenta = '" + cuenta + "'";
+        s += " AND IdEmpresa = " + empresa;
+        s += " AND IdProveedor = " + proveedor;
+        try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(s)) {
+            if (rs.next()) return rs.getDouble("TotalTotal");
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error al listar tabla IDEX de project para OC.", ex);
-            ex.printStackTrace();
-            Notification.show("ERROR DE BASE DE DATOS : " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "getSaldoDocumentosContablesAplicadosBg", ex);
         }
+        return 0.0;
+    }
+
+    private String getRecordIdProjectBg(Connection conn, String idProject) {
+        String s = "SELECT Id FROM project WHERE Numero = " + idProject + " AND Estatus = 'ACTIVO'";
+        try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(s)) {
+            if (rs.next()) return rs.getString("Id");
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "getRecordIdProjectBg", ex);
+        }
+        return "0";
+    }
+
+    private String ultimoPrecioBg(Connection conn, String idProject, String idcc,
+            String idex, String noCuenta, String idEmpresa, String idProveedor) {
+        String s = "SELECT Precio FROM DetalleItemsCostos";
+        s += " WHERE IdCC = '" + idcc + "'";
+        s += " AND IdProject = " + idProject;
+        s += " AND Idex = '" + idex + "'";
+        s += " AND NoCuenta = '" + noCuenta + "'";
+        s += " AND IdEmpresa = " + idEmpresa;
+        s += " AND IdProveedor = " + idProveedor;
+        s += " ORDER BY ID DESC LIMIT 1";
+        try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(s)) {
+            if (rs.next()) return rs.getString("Precio");
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "ultimoPrecioBg", ex);
+        }
+        return "0.00";
+    }
+
+    /** Retorna {ocCantidad, ocPrecio, ocTotal, idocDetalle} si el rubro está en la OC, o null si no está. */
+    private String[] buscarOCBg(Connection conn, String idProject, String cc,
+            String idex, String cuenta, String empresa, String proveedor, String idOC) {
+        String s = "SELECT Cantidad, Precio, Total, IdVisitaInspeccionTareaOCDetalle";
+        s += " FROM visita_inspeccion_tarea_oc_detalle";
+        s += " WHERE IDCC = '" + cc + "'";
+        s += " AND IdProject = " + idProject;
+        s += " AND Idex = '" + idex + "'";
+        s += " AND NoCuenta = '" + cuenta + "'";
+        s += " AND IdEmpresa = " + empresa;
+        s += " AND IdProveedor = " + proveedor;
+        s += " AND IdVisitaInspeccionTareaOC = " + idOC;
+        try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(s)) {
+            if (rs.next()) {
+                return new String[]{
+                        rs.getString("Cantidad"),
+                        rs.getString("Precio"),
+                        rs.getString("Total"),
+                        rs.getString("IdVisitaInspeccionTareaOCDetalle")
+                };
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "buscarOCBg", ex);
+        }
+        return null;
+    }
+
+    /** Versión thread-safe de agregarOcsAlGrid. Retorna List<String[13]> con filas de la OC. */
+    private List<String[]> agregarOcsAlGridBg(Connection conn, String idOC, String bgIdcc, String bgEmpresaId) {
+        List<String[]> rows = new ArrayList<>();
+        String s = "SELECT DIC.IdVisitaInspeccionTareaOCDetalle, DIC.IdProject, DIC.NoCuenta,";
+        s += " CCC.Descripcion CuentaDescripcion, DIC.IdEmpresa, DIC.IdProveedor,";
+        s += " Prov.Nombre NombreProveedor, DIC.Idex, DIC.Unidad, DIC.Moneda, Lote,";
+        s += " DIC.Cantidad, DIC.Precio, DIC.Total";
+        s += " FROM  visita_inspeccion_tarea_oc_detalle DIC";
+        s += " INNER JOIN proveedor_empresa Prov ON Prov.IdProveedor = DIC.IdProveedor";
+        s += " INNER JOIN centro_costo_cuenta CCC ON CCC.CodigoCuentaCentroCosto = DIC.NoCuenta";
+        s += " WHERE DIC.IdVisitaInspeccionTareaOC = " + idOC;
+        s += " AND DIC.IdCC = '" + bgIdcc + "'";
+        s += " AND Prov.IdEmpresa = " + bgEmpresaId;
+        try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(s)) {
+            while (rs.next()) {
+                rows.add(new String[]{
+                        rs.getString("IdVisitaInspeccionTareaOCDetalle"), // 0
+                        rs.getString("IdProject"),                        // 1
+                        rs.getString("Idex"),                             // 2
+                        rs.getString("NoCuenta"),                         // 3
+                        rs.getString("CuentaDescripcion"),                // 4
+                        rs.getString("Unidad"),                           // 5
+                        rs.getString("IdEmpresa"),                        // 6
+                        rs.getString("Lote"),                             // 7
+                        rs.getString("IdProveedor") + " " + rs.getString("NombreProveedor"), // 8
+                        rs.getString("Moneda"),                           // 9
+                        numberFormat3.format(rs.getDouble("Cantidad")),   // 10
+                        numberFormat3.format(rs.getDouble("Precio")),     // 11
+                        numberFormat.format(rs.getDouble("Total"))        // 12
+                });
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "agregarOcsAlGridBg", ex);
+        }
+        return rows;
     }
 
     private String getRecordIdProject(String idProject) {
@@ -1337,7 +1548,7 @@ public class InspectionTaskOCWindow extends Window {
                 queryString = "INSERT INTO DetalleItemsCostos ";
                 queryString += " (NoCuenta, Descripcion, Precio, Cantidad, Total, IdProject, IDProveedor, ";
                 queryString += " IdCC, IdArea, Lote, Moneda, IdEmpresa, Empresa, IDTarea, RazonOC, Unidad, ";
-                queryString += " Tipo, FechaIngreso, NOC, OCInicial, IDEXAN, IDEX, CodItemPro, IDVisita) ";
+                queryString += " Tipo, FechaIngreso, OCInicial, IDEX, CodItemPro) ";
                 queryString += " VALUES ";
 
                 do {
@@ -1360,12 +1571,9 @@ public class InspectionTaskOCWindow extends Window {
                     queryString += ",'" + rsRecords2.getString("Unidad") + "'"; //16
                     queryString += ",'" + rsRecords2.getString("Tipo") + "'";
                     queryString += ",'" + rsRecords2.getString("Fecha") + "'";
-                    queryString += "," + ocContainer.getContainerProperty(ocGrid.getSelectedRows().iterator().next(), CODIGOOC_PROPERTY).getValue();
                     queryString += ",0"; //OCInicial
-                    queryString += "," + rsRecords2.getString("Idex"); //idexan
                     queryString += ",'" + rsRecords2.getString("Idex") + "'";
                     queryString += ",''"; //coditempro
-                    queryString += ",'" + codigoTarea.substring(0, codigoTarea.length()-2) + "'";
                     queryString += "),";
 
                 } while(rsRecords2.next());
