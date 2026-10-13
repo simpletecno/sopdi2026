@@ -1121,7 +1121,8 @@ public class OrdenCompraForm extends Window {
             ...
  */
             String q = "SELECT DITEMC.IdCC, DITEMC.Idex, PROJT.Descripcion IdexDescripcion, DITEMC.NoCuenta, DITEMC.IdArea,";
-            q += " DITEMC.Descripcion DescripcionCuenta, SUM(DITEMC.Cantidad) TotalCantidad, SUM(DITEMC.Precio) TotalPrecio, SUM(DITEMC.Total) TotalTotal,";
+            q += " DITEMC.Descripcion DescripcionCuenta, SUM(DITEMC.Cantidad) TotalCantidad, (SUM(DITEMC.Precio * DITEMC.Cantidad) / SUM(DITEMC.Cantidad)) TotalPrecio, ";
+            q += "  ( (SUM(DITEMC.Precio * DITEMC.Cantidad) / SUM(DITEMC.Cantidad)) * SUM(DITEMC.Cantidad) ) TotalTotal,";
             q += " PROJ.Numero";
             q += " FROM  DetalleItemsCostos DITEMC";
             q += " INNER JOIN project PROJ On PROJ.Numero = DITEMC.IdProject And PROJ.Estatus = 'ACTIVO'";
@@ -1142,7 +1143,8 @@ public class OrdenCompraForm extends Window {
             finalQuery = q;
         } else { // 2=orden de compra parcial
             String q = "SELECT DITEMC.IdCC, DITEMC.Idex, PROJT.Descripcion IdexDescripcion, DITEMC.NoCuenta, DITEMC.IdArea,";
-            q += " DITEMC.Descripcion DescripcionCuenta, SUM(DITEMC.Cantidad) TotalCantidad, SUM(DITEMC.Precio) TotalPrecio, SUM(DITEMC.Total) TotalTotal,";
+            q += " DITEMC.Descripcion DescripcionCuenta, SUM(DITEMC.Cantidad) TotalCantidad, (SUM(DITEMC.Precio) * SUM(DITEMC.Cantidad) / SUM(DITEMC.Cantidad)) TotalPrecio,";
+            q += " ( (SUM(DITEMC.Precio) * SUM(DITEMC.Cantidad) / SUM(DITEMC.Cantidad)) * SUM(DITEMC.Cantidad) )  TotalTotal,";
             q += " PROJ.Numero";
             q += " FROM  DetalleItemsCostos DITEMC";
             q += " INNER JOIN project PROJ On PROJ.Numero = DITEMC.IdProject And PROJ.Estatus = 'ACTIVO'";
@@ -1797,7 +1799,7 @@ public class OrdenCompraForm extends Window {
 
                         String cuenta = String.valueOf(item.getItemProperty(CUENTA_PROPERTY).getValue());
                         String searchQuery = "  SELECT * FROM proveedor_plu ";
-                        searchQuery += " INNER JOIN centro_costo_cuenta on centro_costo_cuenta.IdCuentaCentroCosto = proveedor_plu.IdCuentaCentroCosto ";
+                        searchQuery += " LEFT JOIN centro_costo_cuenta on centro_costo_cuenta.IdCuentaCentroCosto = proveedor_plu.IdCuentaCentroCosto ";
                         searchQuery += " WHERE proveedor_plu.IdProveedor = " + proveedorCbx.getValue();
                         searchQuery += " AND centro_costo_cuenta.CodigoCuentaCentroCosto = '" + cuenta + "'";
 
@@ -1843,15 +1845,38 @@ public class OrdenCompraForm extends Window {
                                 Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY ORDEN DE COMPRA DETALLE : " + queryString );
 
                             } while(rsRecords1.next());
-                            queryString = queryString.substring(0, queryString.length() - 1); // remove last comma
                         } else {
                             Notification notif = new Notification("NO SE HAN ENCONTRADO PRODUCTOS PLU RELACIONADOS A LA CUENTA : " + cuenta, Notification.Type.WARNING_MESSAGE);
                             notif.setDelayMsec(3000);
                             notif.setPosition(Position.MIDDLE_CENTER);
                             notif.setIcon(FontAwesome.WARNING);
                             notif.show(Page.getCurrent());
-                            continue;
+
+//                            continue;
+
+                            queryString += "(" + idOrdenCompra;
+                            queryString += ",'" + item.getItemProperty(IDCC_PROPERTY).getValue() + "'";
+                            queryString += ",'" + item.getItemProperty(IDEX_PROPERTY).getValue() + "'";
+                            queryString += ",'" + item.getItemProperty(CUENTA_PROPERTY).getValue() + "'";
+                            queryString += ",'" + item.getItemProperty(DESCRIPCION_CUENTA_PROPERTY).getValue() + "'";
+                                /*recorrer el array temporal para buscar si la cuenta y area ya tienen un plu asignado en la orden de compra
+                                      si es asi, usar ese plu y descripcion
+                                 */
+                            queryString += ",''";
+                            queryString += ",''";
+                            queryString += ",'" + item.getItemProperty(PROJECT_PROPERTY).getValue() + "'";
+                            queryString += ", " + item.getItemProperty(AREA_PROPERTY).getValue();
+                            queryString += "," + Double.parseDouble(String.valueOf(item.getItemProperty(CANTIDAD_PROPERTY).getValue()).replaceAll(",", ""));
+                            queryString += "," + Double.parseDouble(String.valueOf(item.getItemProperty(PRECIO_PROPERTY).getValue()).replaceAll(",", ""));
+                            queryString += "," + Double.parseDouble(String.valueOf(item.getItemProperty(TOTAL_PROPERTY).getValue()).replaceAll(",", ""));
+                            queryString += ",current_timestamp";
+                            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
+                            queryString += "),";
+
+                            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY ORDEN DE COMPRA DETALLE SIN PLU : " + queryString );
+
                         }
+                        queryString = queryString.substring(0, queryString.length() - 1); // remove last comma
                     }
                     else { // compra ESTIMACION, eventual, recurrente
                         queryString += "(IdOrdenCompra, IDCC, IDEX, NoCuenta, Descripcion, ";
