@@ -533,8 +533,8 @@ System.out.println("-->\nqueryStringDetalleEstimacion: " + queryString);
             reportTable2.addCell(c2);
 
             queryString = "  SELECT ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion,";
-            queryString += "  SUM(ODD.Cantidad) TotalCantidad, (SUM(ODD.Precio * ODD.Cantidad) / SUM(ODD.Cantidad)) TotalPrecio, ";
-            queryString += "  ( (SUM(ODD.Precio * ODD.Cantidad) / SUM(ODD.Cantidad)) * SUM(ODD.Cantidad) ) TotalTotal";
+            queryString += "  SUM(ODD.Cantidad) TotalCantidad, (SUM(ODD.Total) / SUM(ODD.Cantidad)) TotalPrecio, ";
+            queryString += "  ( (SUM(ODD.Total) / SUM(ODD.Cantidad)) * SUM(ODD.Cantidad) ) TotalTotal";
             queryString += " FROM orden_compra_detalle ODD ";
             queryString += " WHERE ODD.IdOrdenCompra = " + idOrdenCompra;
             queryString += " GROUP BY ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion, ODD.PluPrv, ODD.PluPrvDes ";
@@ -789,6 +789,7 @@ System.out.println("-->\nqueryStringDetalleEstimacion: " + queryString);
             } catch (Exception e) {
                 System.out.println("Error al buscar orden de compra detalle" + e);
                 e.printStackTrace();
+                Notification.show("Error al leer base de datos : " + e.getMessage(), Notification.Type.ERROR_MESSAGE);
             }
 
             document.add(reportTable2);
@@ -879,8 +880,8 @@ System.out.println("-->\nqueryStringDetalleEstimacion: " + queryString);
             reportTable2.addCell(c2);
 
             queryString = "  SELECT  ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion, ODD.PluPrv, ODD.PluPrvDes, ";
-            queryString += "  SUM(ODD.Cantidad) TotalCantidad, (SUM(ODD.Precio * ODD.Cantidad) / SUM(ODD.Cantidad)) TotalPrecio, ";
-            queryString += "  ( (SUM(ODD.Precio * ODD.Cantidad) / SUM(ODD.Cantidad)) * SUM(ODD.Cantidad) ) TotalTotal";
+            queryString += "  SUM(ODD.Cantidad) TotalCantidad, (SUM(ODD.Total) / SUM(ODD.Cantidad)) TotalPrecio, ";
+            queryString += "  ( (SUM(ODD.Total) / SUM(ODD.Cantidad)) * SUM(ODD.Cantidad) ) TotalTotal";
             queryString += " FROM orden_compra_detalle ODD ";
             queryString += " WHERE ODD.IdOrdenCompra = " + idOrdenCompra;
             queryString += " GROUP BY ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion, ODD.PluPrv, ODD.PluPrvDes ";
@@ -993,12 +994,11 @@ Logger.getLogger(OrdenCompraEstimacionPDF.class.getName()).log(Level.INFO, query
                     c2.setBorderWidthBottom(1);
                     c2.setBorderWidthRight(1);
                     reportTable2.addCell(c2);
-
-
                 }
             } catch (Exception e) {
                 System.out.println("Error al buscar orden de compra detalle" + e);
                 e.printStackTrace();
+                Notification.show("Error al leer base de datos : " + e.getMessage(), Notification.Type.ERROR_MESSAGE);
             }
 
             document.add(reportTable2);

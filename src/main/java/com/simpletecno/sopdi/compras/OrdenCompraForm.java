@@ -1121,8 +1121,8 @@ public class OrdenCompraForm extends Window {
             ...
  */
             String q = "SELECT DITEMC.IdCC, DITEMC.Idex, PROJT.Descripcion IdexDescripcion, DITEMC.NoCuenta, DITEMC.IdArea,";
-            q += " DITEMC.Descripcion DescripcionCuenta, SUM(DITEMC.Cantidad) TotalCantidad, (SUM(DITEMC.Precio * DITEMC.Cantidad) / SUM(DITEMC.Cantidad)) TotalPrecio, ";
-            q += "  ( (SUM(DITEMC.Precio * DITEMC.Cantidad) / SUM(DITEMC.Cantidad)) * SUM(DITEMC.Cantidad) ) TotalTotal,";
+            q += " DITEMC.Descripcion DescripcionCuenta, SUM(DITEMC.Cantidad) TotalCantidad, (SUM(DITEMC.Total) / SUM(DITEMC.Cantidad)) TotalPrecio, ";
+            q += "  ( (SUM(DITEMC.Total) / SUM(DITEMC.Cantidad)) * SUM(DITEMC.Cantidad) ) TotalTotal,";
             q += " PROJ.Numero";
             q += " FROM  DetalleItemsCostos DITEMC";
             q += " INNER JOIN project PROJ On PROJ.Numero = DITEMC.IdProject And PROJ.Estatus = 'ACTIVO'";
@@ -1143,8 +1143,8 @@ public class OrdenCompraForm extends Window {
             finalQuery = q;
         } else { // 2=orden de compra parcial
             String q = "SELECT DITEMC.IdCC, DITEMC.Idex, PROJT.Descripcion IdexDescripcion, DITEMC.NoCuenta, DITEMC.IdArea,";
-            q += " DITEMC.Descripcion DescripcionCuenta, SUM(DITEMC.Cantidad) TotalCantidad, (SUM(DITEMC.Precio) * SUM(DITEMC.Cantidad) / SUM(DITEMC.Cantidad)) TotalPrecio,";
-            q += " ( (SUM(DITEMC.Precio) * SUM(DITEMC.Cantidad) / SUM(DITEMC.Cantidad)) * SUM(DITEMC.Cantidad) )  TotalTotal,";
+            q += " DITEMC.Descripcion DescripcionCuenta, SUM(DITEMC.Cantidad) TotalCantidad, (SUM(DITEMC.Total) / SUM(DITEMC.Cantidad)) TotalPrecio,";
+            q += " ( (SUM(DITEMC.Total) / SUM(DITEMC.Cantidad)) * SUM(DITEMC.Cantidad) )  TotalTotal,";
             q += " PROJ.Numero";
             q += " FROM  DetalleItemsCostos DITEMC";
             q += " INNER JOIN project PROJ On PROJ.Numero = DITEMC.IdProject And PROJ.Estatus = 'ACTIVO'";
@@ -1783,7 +1783,7 @@ public class OrdenCompraForm extends Window {
 
             // eliminar todos los registros de orden_compra_detalle relacionados a la orden de compra
             // para luego insertar los registros seleccionados en el grid
-            queryString = "delete from orden_compra_detalle where IdOrdenCompra = " + idOrdenCompra;
+            queryString = "DELETE FROM orden_compra_detalle WHERE IdOrdenCompra = " + idOrdenCompra;
             stQuery.executeUpdate(queryString);
 
             for (Object itemId : idccContainer.getItemIds()) {
