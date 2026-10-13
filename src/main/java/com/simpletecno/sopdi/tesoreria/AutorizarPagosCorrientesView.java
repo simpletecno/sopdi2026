@@ -133,6 +133,12 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
     IndexedContainer liquidacionContainer = new IndexedContainer();
     Grid liquidacionGrid;
 
+    // Campos de filtro de columnas (para poder limpiarlos al generar pagos)
+    TextField porPagarFiltroProveedor;
+    TextField porPagarFiltroNumero;
+    TextField porPagarFiltroMoneda;
+    TextField liquidacionFiltroLiquidador;
+
     NumberField saldoFacturaTxt;
 
     double totalMontoQuetzales = 0.00;
@@ -358,7 +364,8 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         HeaderRow filterRow = porPagarGrid.appendHeaderRow();
 
         HeaderCell cell = filterRow.getCell(PROVEEDOR_PROPERTY);
-        TextField filterField = new TextField();
+        porPagarFiltroProveedor = new TextField();
+        TextField filterField = porPagarFiltroProveedor;
         filterField.addStyleName(ValoTheme.TEXTFIELD_TINY);
         filterField.setInputPrompt("Filtrar");
         filterField.setColumns(10);
@@ -372,7 +379,8 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         cell.setComponent(filterField);
 
         HeaderCell cell0 = filterRow.getCell(NUMERO_FACTURA_PROPERTY);
-        TextField filterField0 = new TextField();
+        porPagarFiltroNumero = new TextField();
+        TextField filterField0 = porPagarFiltroNumero;
         filterField0.addStyleName(ValoTheme.TEXTFIELD_TINY);
         filterField0.setInputPrompt("Filtrar");
         filterField0.setColumns(8);
@@ -386,7 +394,8 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         cell0.setComponent(filterField0);
 
         HeaderCell cell1 = filterRow.getCell(MONEDA_PROPERTY);
-        TextField filterField1 = new TextField();
+        porPagarFiltroMoneda = new TextField();
+        TextField filterField1 = porPagarFiltroMoneda;
         filterField1.addStyleName(ValoTheme.TEXTFIELD_TINY);
         filterField1.setInputPrompt("Filtrar");
         filterField1.setColumns(6);
@@ -1005,6 +1014,18 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         btnAutorizarPagos.setIcon(FontAwesome.CHECK_SQUARE_O);
         btnAutorizarPagos.setWidth("15em");
         btnAutorizarPagos.addClickListener((Button.ClickListener) event -> {
+            // Limpiar filtros de columnas antes de procesar: con un filtro activo,
+            // getItemIds() solo devuelve los ítems visibles y se omitirían pagos
+            // seleccionados que quedaron ocultos por el filtro.
+            porPagarContainer.removeAllContainerFilters();
+            anticiposOCContainer.removeAllContainerFilters();
+            liquidacionContainer.removeAllContainerFilters();
+            // Vaciar también el texto de los cuadros de filtro para que no quede desincronizado.
+            if (porPagarFiltroProveedor != null)    porPagarFiltroProveedor.setValue("");
+            if (porPagarFiltroNumero != null)       porPagarFiltroNumero.setValue("");
+            if (porPagarFiltroMoneda != null)        porPagarFiltroMoneda.setValue("");
+            if (liquidacionFiltroLiquidador != null) liquidacionFiltroLiquidador.setValue("");
+
             double porLiquidar = 0.00;
             for (Object itemId : porPagarContainer.getItemIds()) {
                 porLiquidar += Double.parseDouble(String.valueOf(porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_ANTICIPOSSF_PROPERTY).getValue()));
@@ -1228,7 +1249,8 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
         // Filtro por liquidador
         HeaderRow filterRow = liquidacionGrid.appendHeaderRow();
         HeaderCell filterCell = filterRow.getCell(LIQ_LIQUIDADOR_PROPERTY);
-        TextField filterField = new TextField();
+        liquidacionFiltroLiquidador = new TextField();
+        TextField filterField = liquidacionFiltroLiquidador;
         filterField.addStyleName(ValoTheme.TEXTFIELD_TINY);
         filterField.setInputPrompt("Filtrar...");
         filterField.setColumns(12);
