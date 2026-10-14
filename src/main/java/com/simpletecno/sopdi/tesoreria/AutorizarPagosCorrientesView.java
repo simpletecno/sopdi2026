@@ -1990,7 +1990,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             for (Object itemId : grupo) {
                 idsLiquidaciones.add(nvlC(liquidacionContainer.getContainerProperty(itemId, LIQ_ID_PROPERTY).getValue()));
             }
-            String descComun = ("PAGO LIQUIDACION " + String.join(",", idsLiquidaciones) + " " + nombreLiq + " CHQ." + noCheque).replace("'", "").trim();
+            String descComun = ("PAGO LIQUIDACION " + String.join(",", idsLiquidaciones) + " " + nombreLiq).replace("'", "").trim();
 
             // Construir INSERT: una línea DEBE por liquidación + una línea HABER con el total
             StringBuilder qry = new StringBuilder("INSERT INTO contabilidad_partida " + COLS);
@@ -2197,7 +2197,6 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 // los documentos del grupo, uniforme para todas las líneas de la partida.
                 String docsStr = String.join(", ", docsPorGrupo.getOrDefault(idProveedor + "|" + noCheque, new ArrayList<>()));
                 descripcion = new StringBuilder("PAGO DOCS: ").append(docsStr);
-                if (!noCheque.isEmpty()) descripcion.append(" CHQ.").append(noCheque);
 
                 queryString = "INSERT INTO contabilidad_partida " + COLS;
                 queryString += "(";
@@ -2513,7 +2512,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                 String ocId          = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_ID_PROPERTY).getValue());
                 String noc           = nvlC(anticiposOCContainer.getContainerProperty(itemId, OC_NOC_PROPERTY).getValue());
                 double montoAnticipo = parseMontoSF(anticiposOCContainer.getContainerProperty(itemId, OC_MONTO_PAGARSF_PROPERTY).getValue());
-                String descripcion   = ("ANTICIPO OC " + noc + " PROV." + nombreProveedor + " CHQ." + noCheque)
+                String descripcion   = ("ANTICIPO OC " + noc + " PROV." + nombreProveedor)
                         .replace("'", "").trim();
 
                 // Centros de costo de esta OC
@@ -2572,7 +2571,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
             }
 
             // HABER: una sola línea al banco con el total del grupo (cheque)
-            String descHaber = ("ANTICIPO OC CHQ." + noCheque + " PROV." + nombreProveedor)
+            String descHaber = ("ANTICIPO OC PROV." + nombreProveedor)
                     .replace("'", "").trim();
             insertBuilder.append(",(");
             insertBuilder.append(empresaId);
