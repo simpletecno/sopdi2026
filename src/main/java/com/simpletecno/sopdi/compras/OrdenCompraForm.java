@@ -181,9 +181,11 @@ public class OrdenCompraForm extends Window {
             llenarDatos(idOrdenCompra);
             fillGrid("", "");
             if(  tipoOrdenCompraCbx.getValue().equals("1") || tipoOrdenCompraCbx.getValue().equals("2") ) {
+                singleUpload.setVisible(true);
                 selectGrid();
             }
             else {
+                singleUpload.setVisible(false);
                 selectGridCCOnly();
             }
             recalcularMontos();
@@ -219,7 +221,7 @@ public class OrdenCompraForm extends Window {
 
         tipoOrdenCompraCbx = new ComboBox();
         tipoOrdenCompraCbx.setWidth("100%");
-        tipoOrdenCompraCbx.setInputPrompt("Tipo orden de compra");
+        tipoOrdenCompraCbx.setInputPrompt("<<Tipo orden de compra>>");
         tipoOrdenCompraCbx.setFilteringMode(FilteringMode.CONTAINS);
         tipoOrdenCompraCbx.addStyleName("combo-azul-bold");
         tipoOrdenCompraCbx.addValueChangeListener((Property.ValueChangeListener) event -> {
@@ -257,16 +259,19 @@ public class OrdenCompraForm extends Window {
                             break;
                     }
                     //                fillGrid();
-                    if((!tipoOrdenCompraCbx.getValue().equals("1"))) {// ESTIMACION
-                        buttonsLayout.removeComponent(singleUpload);
-                    }
+                }
+                if((tipoOrdenCompraCbx.getValue().equals("1"))) {// ESTIMACION
+                    singleUpload.setVisible(true);
+                }
+                else {
+                    singleUpload.setVisible(false);
                 }
             }
         });
         llenarComboTipoOrdenCompra();
 
         proveedorCbx = new ComboBox();
-        proveedorCbx.setInputPrompt("Proveedor");
+        proveedorCbx.setInputPrompt("<<Proveedor>>");
         proveedorCbx.setWidth("100%");
         proveedorCbx.setFilteringMode(FilteringMode.CONTAINS);
         proveedorCbx.addStyleName(ValoTheme.COMBOBOX_LARGE);
@@ -303,7 +308,7 @@ public class OrdenCompraForm extends Window {
         porcentajeAnticipoLbl = new Label("% Anticipo=0.00");
 
         anticipoPendienteTxt = new NumberField();
-        anticipoPendienteTxt.setInputPrompt("Anticipo pendiente");
+        anticipoPendienteTxt.setInputPrompt("<<Anticipo pendiente>>");
         anticipoPendienteTxt.setDescription("Anticipo pendiente");
         anticipoPendienteTxt.setGroupingUsed(true);
         anticipoPendienteTxt.setGroupingSeparator(',');
@@ -322,14 +327,14 @@ public class OrdenCompraForm extends Window {
         anticipoProveedorLayout.addComponents(porcentajeAnticipoLbl, anticipoPendienteTxt, diasCretidoLbl);
 
         responsableTxt = new TextField();
-        responsableTxt.setInputPrompt("Responsable");
+        responsableTxt.setInputPrompt("<<Responsable>>");
         responsableTxt.setDescription("Responsable");
         responsableTxt.setWidth("100%");
         responsableTxt.setValue(((SopdiUI)UI.getCurrent()).sessionInformation.getStrUserFullName());
         responsableTxt.setResponsive(true);
 
         contactoObraCbx = new ComboBox();
-        contactoObraCbx.setInputPrompt("Contacto en obra");
+        contactoObraCbx.setInputPrompt("<<Contacto en obra>>");
         contactoObraCbx.setDescription("Contacto en obra");
         contactoObraCbx.setWidth("100%");
         contactoObraCbx.setFilteringMode(FilteringMode.CONTAINS);
@@ -339,33 +344,33 @@ public class OrdenCompraForm extends Window {
         llenarComboContactoObra();
 
         direccionTxt = new TextField();
-        direccionTxt.setInputPrompt("Dirección de entrega");
+        direccionTxt.setInputPrompt("<<Dirección de entrega>>");
         direccionTxt.setDescription("Dirección de entrega");
         direccionTxt.setWidth("100%");
         direccionTxt.setValue("");
         //       direccionTxt.setValue("Blv. Acatán 30-98 zona 16, Residencial Siena San Isidro"); //((SopdiUI)UI.getCurrent()).sessionInformation.getStrAccountingCompanyDirection();
 
         referenciaEtregaTxt = new TextField();
-        referenciaEtregaTxt.setInputPrompt("Referencia de entrega");
+        referenciaEtregaTxt.setInputPrompt("<<Referencia de entrega>>");
         referenciaEtregaTxt.setDescription("Referencia de entrega");
         referenciaEtregaTxt.setWidth("100%");
         referenciaEtregaTxt.setValue("");
 
         cotizacionReferenciaTxt = new TextField();
-        cotizacionReferenciaTxt.setInputPrompt("Cotización referencia");
+        cotizacionReferenciaTxt.setInputPrompt("<<Cotización referencia>>");
         cotizacionReferenciaTxt.setDescription("Cotización referencia");
         cotizacionReferenciaTxt.setWidth("100%");
         cotizacionReferenciaTxt.setValue("");
 
         monedaCbx = new ComboBox();
-        monedaCbx.setInputPrompt("Moneda");
+        monedaCbx.setInputPrompt("<<Moneda>>");
         monedaCbx.addItem("QUETZALES");
         monedaCbx.addItem("DOLARES");
         monedaCbx.select("QUETZALES");
         monedaCbx.setWidth("100%");
 
         montoTxt = new NumberField();
-        montoTxt.setInputPrompt("Monto");
+        montoTxt.setInputPrompt("<<Monto>>");
         montoTxt.setDescription("Monto");
         montoTxt.setGroupingUsed(true);
         montoTxt.setGroupingSeparator(',');
@@ -381,7 +386,7 @@ public class OrdenCompraForm extends Window {
         });
 
         baseImponibleTxt = new NumberField();
-        baseImponibleTxt.setInputPrompt("Base imponible");
+        baseImponibleTxt.setInputPrompt("<<Base imponible>>");
         baseImponibleTxt.setDescription("Base imponible");
         baseImponibleTxt.setGroupingUsed(true);
         baseImponibleTxt.setGroupingSeparator(',');
@@ -394,7 +399,7 @@ public class OrdenCompraForm extends Window {
         baseImponibleTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
 
         ivaTxt = new NumberField();
-        ivaTxt.setInputPrompt("IVA");
+        ivaTxt.setInputPrompt("<<IVA>>");
         ivaTxt.setDescription("IVA");
         ivaTxt.setGroupingUsed(true);
         ivaTxt.setGroupingSeparator(',');
@@ -407,7 +412,7 @@ public class OrdenCompraForm extends Window {
         ivaTxt.addStyleName(ValoTheme.TEXTFIELD_ALIGN_RIGHT);
 
         retencionIsrTxt = new NumberField();
-        retencionIsrTxt.setInputPrompt("ISR");
+        retencionIsrTxt.setInputPrompt("<<ISR>>");
         retencionIsrTxt.setDescription("ISR");
         retencionIsrTxt.setGroupingUsed(true);
         retencionIsrTxt.setGroupingSeparator(',');
@@ -455,7 +460,7 @@ public class OrdenCompraForm extends Window {
         montos2Layout.setDefaultComponentAlignment(Alignment.MIDDLE_CENTER);
 
         anticipoTxt = new NumberField();
-        anticipoTxt.setInputPrompt("Anticipo");
+        anticipoTxt.setInputPrompt("<<Anticipo>>");
         anticipoTxt.setDescription("Anticipo");
         anticipoTxt.setGroupingUsed(true);
         anticipoTxt.setGroupingSeparator(',');
@@ -472,7 +477,7 @@ public class OrdenCompraForm extends Window {
         porcentajeToleranciaLbl.setImmediate(true);
         porcentajeToleranciaLbl.setDescription("Porcentaje tolerancia desviación");
         porcentajeToleranciaTxt = new NumberField();
-        porcentajeToleranciaTxt.setInputPrompt("Porcentaje tolerancia desviación");
+        porcentajeToleranciaTxt.setInputPrompt("<<Porcentaje tolerancia desviación>>");
         porcentajeToleranciaTxt.setDescription("Porcentaje tolerancia desviación");
         porcentajeToleranciaTxt.setDecimalSeparator('.');
         porcentajeToleranciaTxt.setImmediate(true);
@@ -487,12 +492,12 @@ public class OrdenCompraForm extends Window {
 
         nombreChequeTxt = new TextField();
         nombreChequeTxt.setDescription("Nombre cheque");
-        nombreChequeTxt.setInputPrompt("Nombre en cheque");
+        nombreChequeTxt.setInputPrompt("<<Nombre en cheque>>");
         nombreChequeTxt.setWidth("100%");
         nombreChequeTxt.setValue("");
 
         cuentaContableCbx = new ComboBox();
-        cuentaContableCbx.setInputPrompt("Cuenta Contable");
+        cuentaContableCbx.setInputPrompt("<<Cuenta Contable>>");
         cuentaContableCbx.setDescription("Cuenta Contable");
         cuentaContableCbx.setWidth("100%");
         cuentaContableCbx.setFilteringMode(FilteringMode.CONTAINS);
@@ -502,7 +507,7 @@ public class OrdenCompraForm extends Window {
         llenarComboCuentaContable();
 
         razonTxt = new TextField();
-        razonTxt.setInputPrompt("Razón");
+        razonTxt.setInputPrompt("<<Razón>>");
         razonTxt.setDescription("Razon");
         razonTxt.setWidth("100%");
         razonTxt.setValue("");
@@ -856,7 +861,7 @@ public class OrdenCompraForm extends Window {
         buttonsLayout.setComponentAlignment(delBtn, Alignment.BOTTOM_RIGHT);
 
         if((!tipoOrdenCompraCbx.getValue().equals("1"))) {// ESTIMACION
-            buttonsLayout.removeComponent(singleUpload);
+            singleUpload.setVisible(false);
         }
 
         rightLayout.addComponent(idccGrid);

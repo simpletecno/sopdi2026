@@ -62,6 +62,10 @@ public class OrdenCompraEstimacionPDF extends Window {
     ) {
         addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         setModal(true);
+        setWidth("95%");
+        setHeight("90%");
+        center();
+
         this.idOrdenCompra = idOrdenCompra;
         this.tipoOrdenCompra = tipoOrdenCompra;
         this.nombreTipoOrdenCompra = nombreTipoOrdenCompra;
@@ -71,23 +75,23 @@ public class OrdenCompraEstimacionPDF extends Window {
         mainUI = UI.getCurrent();
 
         try {
-            BrowserFrame e = new BrowserFrame();
-            e.setSizeFull();
-            setWidth("95%");
-            setHeight("90%");
-            center();
-
             fileName = "OrdenCompra" + idOrdenCompra + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName().replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "") + "_" + new Utileria().getHora() + ".pdf";
 
             StreamResource pdfResource;
             pdfResource = new StreamResource(new Pdf(fileName), fileName);
             pdfResource.setMIMEType("application/pdf");
 
+            BrowserFrame e = new BrowserFrame();
+            e.setSizeFull();
             e.setSource(pdfResource);
+
             setContent(e);
+
             // despues de llamar Pdf()  fileName y tiene la ruta completa del archivo
             File file = new File(fileName);
             file.delete();
+
+            setClosable(true);
 
         } catch (Exception allEx) {
             Notification.show("Error al generar PDF orden compra.", Type.ERROR_MESSAGE);
