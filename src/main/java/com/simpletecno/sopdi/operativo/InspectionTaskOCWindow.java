@@ -38,6 +38,9 @@ public class InspectionTaskOCWindow extends Window {
     static final String PROJECT_PROPERTY = "Project";
     static final String IDEX_PROPERTY = "IDEX";
     static final String CUENTA_PROPERTY = "Cuenta";
+    static final String NOM_ACTIVO_PROPERTY = "Cta.Activo";
+    static final String NOM_PASIVO_PROPERTY = "Cta.Pasivo";
+    static final String NOM_GASTO_PROPERTY = "Cta.Gasto";
     static final String DESCRIPCION_PROPERTY = "Descripción";
     static final String UNIDAD_PROPERTY = "Unidad";
     static final String EMPRESA_PROPERTY = "Empresa";
@@ -420,6 +423,9 @@ public class InspectionTaskOCWindow extends Window {
         ocIdexContainer.addContainerProperty(PROJECT_PROPERTY, String.class, "");
         ocIdexContainer.addContainerProperty(IDEX_PROPERTY, String.class, "");
         ocIdexContainer.addContainerProperty(CUENTA_PROPERTY, String.class, "");
+        ocIdexContainer.addContainerProperty(NOM_ACTIVO_PROPERTY, String.class, "");
+        ocIdexContainer.addContainerProperty(NOM_PASIVO_PROPERTY, String.class, "");
+        ocIdexContainer.addContainerProperty(NOM_GASTO_PROPERTY, String.class, "");
         ocIdexContainer.addContainerProperty(DESCRIPCION_PROPERTY, String.class, "");
         ocIdexContainer.addContainerProperty(UNIDAD_PROPERTY, String.class, "");
         ocIdexContainer.addContainerProperty(EMPRESA_PROPERTY, String.class, "");
@@ -499,6 +505,9 @@ public class InspectionTaskOCWindow extends Window {
         ocIdexGrid.getColumn(PROJECT_PROPERTY).setExpandRatio(1);
         ocIdexGrid.getColumn(IDEX_PROPERTY).setExpandRatio(1);
         ocIdexGrid.getColumn(CUENTA_PROPERTY).setExpandRatio(1);
+        ocIdexGrid.getColumn(NOM_ACTIVO_PROPERTY).setExpandRatio(1);
+        ocIdexGrid.getColumn(NOM_PASIVO_PROPERTY).setExpandRatio(1);
+        ocIdexGrid.getColumn(NOM_GASTO_PROPERTY).setExpandRatio(1);
         ocIdexGrid.getColumn(DESCRIPCION_PROPERTY).setExpandRatio(2);
         ocIdexGrid.getColumn(UNIDAD_PROPERTY).setExpandRatio(1);
         ocIdexGrid.getColumn(EMPRESA_PROPERTY).setExpandRatio(1);
@@ -932,11 +941,12 @@ public class InspectionTaskOCWindow extends Window {
         // --- 4. Hilo de fondo con conexión independiente ---
         new Thread(() -> {
 
-            // Índices de mainRows (String[22]):
+            // Índices de mainRows (String[25]):
             // 0=Id, 1=IdProject, 2=idRecordProject, 3=Idex, 4=NoCuenta, 5=CuentaDesc,
             // 6=Unidad, 7=IdEmpresa, 8=Lote, 9=Proveedor, 10=Moneda,
             // 11=Cantidad, 12=Precio, 13=Total, 14=SaldoDIC, 15=UltPrecio, 16=EsNuevo,
-            // 17=OC_Cantidad, 18=OC_Precio, 19=OC_Total, 20=IDOC_det, 21=CodigoOC
+            // 17=OC_Cantidad, 18=OC_Precio, 19=OC_Total, 20=IDOC_det, 21=CodigoOC,
+            // 22=NoCuentaActivo, 23=NoCuentaPasivo, 24=NoCuentaGasto
             final List<String[]> mainRows = new ArrayList<>();
             final List<String[]> ocRows   = new ArrayList<>();
 
@@ -1008,7 +1018,10 @@ public class InspectionTaskOCWindow extends Window {
                             ocData != null ? ocData[1] : "0",                             // 18 OC_PRECIO
                             ocData != null ? ocData[2] : "0",                             // 19 OC_TOTAL
                             ocData != null ? ocData[3] : "0",                             // 20 IDOC_det
-                            ocData != null ? bgCodigoOC : "0"                             // 21 CODIGOOC
+                            ocData != null ? bgCodigoOC : "0",                            // 21 CODIGOOC
+                            ocData != null ? ocData[4] : "",                              // 22 NoCuentaActivo
+                            ocData != null ? ocData[5] : "",                              // 23 NoCuentaPasivo
+                            ocData != null ? ocData[6] : ""                               // 24 NoCuentaGasto
                     });
                 }
 
@@ -1039,6 +1052,9 @@ public class InspectionTaskOCWindow extends Window {
                     ocIdexContainer.getContainerProperty(itemId, IDPROJECT_PROPERTY).setValue(r[2]);
                     ocIdexContainer.getContainerProperty(itemId, IDEX_PROPERTY).setValue(r[3]);
                     ocIdexContainer.getContainerProperty(itemId, CUENTA_PROPERTY).setValue(r[4]);
+                    ocIdexContainer.getContainerProperty(itemId, NOM_ACTIVO_PROPERTY).setValue(r[22]);
+                    ocIdexContainer.getContainerProperty(itemId, NOM_PASIVO_PROPERTY).setValue(r[23]);
+                    ocIdexContainer.getContainerProperty(itemId, NOM_GASTO_PROPERTY).setValue(r[24]);
                     ocIdexContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).setValue(r[5]);
                     ocIdexContainer.getContainerProperty(itemId, UNIDAD_PROPERTY).setValue(r[6]);
                     ocIdexContainer.getContainerProperty(itemId, EMPRESA_PROPERTY).setValue(r[7]);
@@ -1068,6 +1084,9 @@ public class InspectionTaskOCWindow extends Window {
                     ocIdexContainer.getContainerProperty(itemId, PROJECT_PROPERTY).setValue(r[1]);
                     ocIdexContainer.getContainerProperty(itemId, IDEX_PROPERTY).setValue(r[2]);
                     ocIdexContainer.getContainerProperty(itemId, CUENTA_PROPERTY).setValue(r[3]);
+                    ocIdexContainer.getContainerProperty(itemId, NOM_ACTIVO_PROPERTY).setValue(r[13]);
+                    ocIdexContainer.getContainerProperty(itemId, NOM_PASIVO_PROPERTY).setValue(r[14]);
+                    ocIdexContainer.getContainerProperty(itemId, NOM_GASTO_PROPERTY).setValue(r[15]);
                     ocIdexContainer.getContainerProperty(itemId, DESCRIPCION_PROPERTY).setValue(r[4]);
                     ocIdexContainer.getContainerProperty(itemId, UNIDAD_PROPERTY).setValue(r[5]);
                     ocIdexContainer.getContainerProperty(itemId, EMPRESA_PROPERTY).setValue(r[6]);
@@ -1135,25 +1154,32 @@ public class InspectionTaskOCWindow extends Window {
         return "0.00";
     }
 
-    /** Retorna {ocCantidad, ocPrecio, ocTotal, idocDetalle} si el rubro está en la OC, o null si no está. */
+    /** Retorna {ocCantidad, ocPrecio, ocTotal, idocDetalle, noCuentaActivo, noCuentaPasivo, noCuentaGasto} si el rubro está en la OC, o null si no está. */
     private String[] buscarOCBg(Connection conn, String idProject, String cc,
             String idex, String cuenta, String empresa, String proveedor, String idOC) {
-        String s = "SELECT Cantidad, Precio, Total, IdVisitaInspeccionTareaOCDetalle";
-        s += " FROM visita_inspeccion_tarea_oc_detalle";
-        s += " WHERE IDCC = '" + cc + "'";
-        s += " AND IdProject = " + idProject;
-        s += " AND Idex = '" + idex + "'";
-        s += " AND NoCuenta = '" + cuenta + "'";
-        s += " AND IdEmpresa = " + empresa;
-        s += " AND IdProveedor = " + proveedor;
-        s += " AND IdVisitaInspeccionTareaOC = " + idOC;
+        String s = "SELECT DIC.Cantidad, DIC.Precio, DIC.Total, DIC.IdVisitaInspeccionTareaOCDetalle,";
+        s += " NA.NoCuenta NoCuentaActivo, NP.NoCuenta NoCuentaPasivo, NG.NoCuenta NoCuentaGasto";
+        s += " FROM visita_inspeccion_tarea_oc_detalle DIC";
+        s += " LEFT JOIN contabilidad_nomenclatura_empresa NA ON NA.IdNomenclatura = DIC.IdNomenclaturaActivo AND NA.IdEmpresa = DIC.IdEmpresa";
+        s += " LEFT JOIN contabilidad_nomenclatura_empresa NP ON NP.IdNomenclatura = DIC.IdNomenclaturaPasivo AND NP.IdEmpresa = DIC.IdEmpresa";
+        s += " LEFT JOIN contabilidad_nomenclatura_empresa NG ON NG.IdNomenclatura = DIC.IdNomenclaturaGasto AND NG.IdEmpresa = DIC.IdEmpresa";
+        s += " WHERE DIC.IDCC = '" + cc + "'";
+        s += " AND DIC.IdProject = " + idProject;
+        s += " AND DIC.Idex = '" + idex + "'";
+        s += " AND DIC.NoCuenta = '" + cuenta + "'";
+        s += " AND DIC.IdEmpresa = " + empresa;
+        s += " AND DIC.IdProveedor = " + proveedor;
+        s += " AND DIC.IdVisitaInspeccionTareaOC = " + idOC;
         try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(s)) {
             if (rs.next()) {
                 return new String[]{
                         rs.getString("Cantidad"),
                         rs.getString("Precio"),
                         rs.getString("Total"),
-                        rs.getString("IdVisitaInspeccionTareaOCDetalle")
+                        rs.getString("IdVisitaInspeccionTareaOCDetalle"),
+                        rs.getString("NoCuentaActivo") != null ? rs.getString("NoCuentaActivo") : "",
+                        rs.getString("NoCuentaPasivo") != null ? rs.getString("NoCuentaPasivo") : "",
+                        rs.getString("NoCuentaGasto")  != null ? rs.getString("NoCuentaGasto")  : ""
                 };
             }
         } catch (Exception ex) {
@@ -1168,10 +1194,14 @@ public class InspectionTaskOCWindow extends Window {
         String s = "SELECT DIC.IdVisitaInspeccionTareaOCDetalle, DIC.IdProject, DIC.NoCuenta,";
         s += " CCC.Descripcion CuentaDescripcion, DIC.IdEmpresa, DIC.IdProveedor,";
         s += " Prov.Nombre NombreProveedor, DIC.Idex, DIC.Unidad, DIC.Moneda, Lote,";
-        s += " DIC.Cantidad, DIC.Precio, DIC.Total";
+        s += " DIC.Cantidad, DIC.Precio, DIC.Total,";
+        s += " NA.NoCuenta NoCuentaActivo, NP.NoCuenta NoCuentaPasivo, NG.NoCuenta NoCuentaGasto";
         s += " FROM  visita_inspeccion_tarea_oc_detalle DIC";
         s += " INNER JOIN proveedor_empresa Prov ON Prov.IdProveedor = DIC.IdProveedor";
         s += " INNER JOIN centro_costo_cuenta CCC ON CCC.CodigoCuentaCentroCosto = DIC.NoCuenta";
+        s += " LEFT JOIN contabilidad_nomenclatura_empresa NA ON NA.IdNomenclatura = DIC.IdNomenclaturaActivo AND NA.IdEmpresa = DIC.IdEmpresa";
+        s += " LEFT JOIN contabilidad_nomenclatura_empresa NP ON NP.IdNomenclatura = DIC.IdNomenclaturaPasivo AND NP.IdEmpresa = DIC.IdEmpresa";
+        s += " LEFT JOIN contabilidad_nomenclatura_empresa NG ON NG.IdNomenclatura = DIC.IdNomenclaturaGasto AND NG.IdEmpresa = DIC.IdEmpresa";
         s += " WHERE DIC.IdVisitaInspeccionTareaOC = " + idOC;
         s += " AND DIC.IdCC = '" + bgIdcc + "'";
         s += " AND Prov.IdEmpresa = " + bgEmpresaId;
@@ -1190,7 +1220,10 @@ public class InspectionTaskOCWindow extends Window {
                         rs.getString("Moneda"),                           // 9
                         numberFormat3.format(rs.getDouble("Cantidad")),   // 10
                         numberFormat3.format(rs.getDouble("Precio")),     // 11
-                        numberFormat.format(rs.getDouble("Total"))        // 12
+                        numberFormat.format(rs.getDouble("Total")),       // 12
+                        rs.getString("NoCuentaActivo") != null ? rs.getString("NoCuentaActivo") : "", // 13
+                        rs.getString("NoCuentaPasivo") != null ? rs.getString("NoCuentaPasivo") : "", // 14
+                        rs.getString("NoCuentaGasto")  != null ? rs.getString("NoCuentaGasto")  : ""  // 15
                 });
             }
         } catch (Exception ex) {

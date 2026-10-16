@@ -1861,16 +1861,11 @@ public class OrdenCompraForm extends Window {
                             notif.setIcon(FontAwesome.WARNING);
                             notif.show(Page.getCurrent());
 
-//                            continue;
-
                             queryString += "(" + idOrdenCompra;
                             queryString += ",'" + item.getItemProperty(IDCC_PROPERTY).getValue() + "'";
                             queryString += ",'" + item.getItemProperty(IDEX_PROPERTY).getValue() + "'";
                             queryString += ",'" + item.getItemProperty(CUENTA_PROPERTY).getValue() + "'";
                             queryString += ",'" + item.getItemProperty(DESCRIPCION_CUENTA_PROPERTY).getValue() + "'";
-                                /*recorrer el array temporal para buscar si la cuenta y area ya tienen un plu asignado en la orden de compra
-                                      si es asi, usar ese plu y descripcion
-                                 */
                             queryString += ",''";
                             queryString += ",''";
                             queryString += ",'" + item.getItemProperty(PROJECT_PROPERTY).getValue() + "'";
