@@ -97,6 +97,8 @@ public class ProveedorForm_old extends Window {
     Label captionLbl;
 
     public ProveedorForm_old() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.mainUI = UI.getCurrent();
 
         setWidth("95%");

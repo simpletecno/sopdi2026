@@ -77,6 +77,8 @@ public class NotaCreditoCompra extends Window {
             String codigoPartida,
             String serieDocumento,
             String numeroDocumento) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.empresa = empresa;
         this.container = container;

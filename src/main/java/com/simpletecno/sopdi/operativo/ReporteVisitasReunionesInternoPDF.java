@@ -66,6 +66,8 @@ public class ReporteVisitasReunionesInternoPDF extends Window {
             IndexedContainer agendaContainer, 
             IndexedContainer participantesContainer
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.idvisitaInspeccion = idVisita;
         this.codigoVisita = codigoVisitaInspeccion;

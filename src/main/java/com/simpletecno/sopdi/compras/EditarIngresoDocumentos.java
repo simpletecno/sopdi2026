@@ -130,6 +130,8 @@ public class EditarIngresoDocumentos extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public EditarIngresoDocumentos(String codigoPartida, String descripcion) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.codigoPartidaEdit = codigoPartida;
         this.descripcionEdit = descripcion;

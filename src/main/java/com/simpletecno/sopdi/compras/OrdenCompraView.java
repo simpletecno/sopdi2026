@@ -535,6 +535,7 @@ public class OrdenCompraView extends VerticalLayout implements View {
 
     public void llenarTablaOrdenCompra() {
 
+        ordenCompraContainer.removeAllContainerFilters();
         ordenCompraContainer.removeAllItems();
 
         try {

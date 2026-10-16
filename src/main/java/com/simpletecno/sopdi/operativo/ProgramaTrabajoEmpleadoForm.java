@@ -47,6 +47,8 @@ public class ProgramaTrabajoEmpleadoForm extends Window {
             String idexName,
             String fechaInicio
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.rhContainer = rhContainer;
         this.idPlanTrabajoIdex = idPlanTrabajoIdex;
         this.fechaInicio = fechaInicio;

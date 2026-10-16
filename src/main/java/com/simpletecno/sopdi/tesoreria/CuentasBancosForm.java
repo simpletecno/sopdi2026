@@ -81,6 +81,7 @@ public class CuentasBancosForm extends Window {
     // ─────────────────────────────────────────────────────────────────────────
 
     public CuentasBancosForm(String tipoTransaccion, String idCuentaBancoEdit) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.mainUI = UI.getCurrent();
         this.tipoTransaccion = tipoTransaccion;
         this.idCuentaBancoEdit = idCuentaBancoEdit;

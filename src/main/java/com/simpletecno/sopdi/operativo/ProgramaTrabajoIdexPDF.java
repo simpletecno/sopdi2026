@@ -45,6 +45,8 @@ public class ProgramaTrabajoIdexPDF extends Window {
             IndexedContainer rhContainer,
             String instrucciones
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.selectedIdex = selectedIdex;
         this.idexContainer = idexContainer;
         this.rhContainer = rhContainer;

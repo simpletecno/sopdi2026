@@ -113,6 +113,7 @@ public class DepreciacionForm extends Window {
 
     public DepreciacionForm(List<DepreciacionesView.TipoDepreciacion> tipos) {
         super("Depreciación - Formulario");
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         this.mainUI = UI.getCurrent();
 

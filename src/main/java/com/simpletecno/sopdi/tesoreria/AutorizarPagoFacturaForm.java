@@ -108,6 +108,7 @@ public class AutorizarPagoFacturaForm extends Window {
 
     // ────────────────────────────────────────────────────────────────────────
     public AutorizarPagoFacturaForm() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.mainUI = UI.getCurrent();
 
         injectStyles();
@@ -465,7 +466,7 @@ public class AutorizarPagoFacturaForm extends Window {
         salirBtn.setIcon(FontAwesome.SIGN_OUT);
         salirBtn.addStyleName("apf-btn-salir");
         salirBtn.addClickListener(event -> {
-            ((AutorizacionesPagoView) (mainUI.getNavigator().getCurrentView())).pagoDocumentoBtn.setEnabled(true);
+            habilitarPagoDocumentoBtn();
             close();
         });
 
@@ -618,7 +619,7 @@ public class AutorizarPagoFacturaForm extends Window {
             ex.printStackTrace();
         }
 
-        ((AutorizacionesPagoView) (mainUI.getNavigator().getCurrentView())).pagoDocumentoBtn.setEnabled(true);
+        habilitarPagoDocumentoBtn();
     }
 
     public void llenarTablaAnticipos() {
@@ -882,5 +883,14 @@ public class AutorizarPagoFacturaForm extends Window {
         notif.setPosition(Position.MIDDLE_CENTER);
         notif.setIcon(FontAwesome.CHECK);
         notif.show(Page.getCurrent());
+    }
+
+    private void habilitarPagoDocumentoBtn() {
+        com.vaadin.navigator.View current = mainUI.getNavigator().getCurrentView();
+        if (current instanceof AutorizacionesPagoView) {
+            ((AutorizacionesPagoView) current).pagoDocumentoBtn.setEnabled(true);
+        } else if (current instanceof AutorizacionesPagoFundamexView) {
+            ((AutorizacionesPagoFundamexView) current).pagoDocumentoBtn.setEnabled(true);
+        }
     }
 }

@@ -48,6 +48,8 @@ public class IngresoResolucionesForm extends Window {
     public IngresoResolucionesForm(
             String visitaId, 
             String codigoVisita) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.visitaId = visitaId;
         this.codigoVisita = codigoVisita;

@@ -97,6 +97,8 @@ public class EditarPartidaLiquidacion extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public EditarPartidaLiquidacion(String codigoPartida, String codigoCC) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.codigoPartidaEdit = codigoPartida;
         this.codigoCC = codigoCC;

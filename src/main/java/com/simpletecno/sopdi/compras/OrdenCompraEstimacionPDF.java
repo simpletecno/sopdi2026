@@ -60,6 +60,12 @@ public class OrdenCompraEstimacionPDF extends Window {
             String proveedorNombre,
             double anticipo
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
+        setWidth("95%");
+        setHeight("90%");
+        center();
+
         this.idOrdenCompra = idOrdenCompra;
         this.tipoOrdenCompra = tipoOrdenCompra;
         this.nombreTipoOrdenCompra = nombreTipoOrdenCompra;
@@ -69,23 +75,23 @@ public class OrdenCompraEstimacionPDF extends Window {
         mainUI = UI.getCurrent();
 
         try {
-            BrowserFrame e = new BrowserFrame();
-            e.setSizeFull();
-            setWidth("95%");
-            setHeight("90%");
-            center();
-
             fileName = "OrdenCompra" + idOrdenCompra + ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName().replaceAll(" ", "_").replaceAll(",", "_").replaceAll("[()]", "").replaceAll("[.]", "") + "_" + new Utileria().getHora() + ".pdf";
 
             StreamResource pdfResource;
             pdfResource = new StreamResource(new Pdf(fileName), fileName);
             pdfResource.setMIMEType("application/pdf");
 
+            BrowserFrame e = new BrowserFrame();
+            e.setSizeFull();
             e.setSource(pdfResource);
+
             setContent(e);
+
             // despues de llamar Pdf()  fileName y tiene la ruta completa del archivo
             File file = new File(fileName);
             file.delete();
+
+            setClosable(true);
 
         } catch (Exception allEx) {
             Notification.show("Error al generar PDF orden compra.", Type.ERROR_MESSAGE);
@@ -282,10 +288,13 @@ public class OrdenCompraEstimacionPDF extends Window {
             c2.setFixedHeight(10f);
             reportTable2.addCell(c2);
 
-            queryString = " SELECT ODD.*";
+            queryString = " SELECT ODD.IdOrdenCompra, ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion";
+            queryString += " ODD.Cantidad, ODD.Precio, ODD.Total";
             queryString += " FROM orden_compra_detalle ODD";
 //            queryString += " INNER JOIN project On project.Numero = PIDX.IdProject And project.Estatus = 'ACTIVO' AND project.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
             queryString += " WHERE ODD.IdOrdenCompra = " + idOrdenCompra;
+            queryString += " GROUP BY ODD.IdOrdenCompra, ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion, ";
+            queryString += " ODD.Cantidad, ODD.Precio, ODD.Total";
 
 System.out.println("-->\nqueryStringDetalleEstimacion: " + queryString);
 
@@ -527,9 +536,12 @@ System.out.println("-->\nqueryStringDetalleEstimacion: " + queryString);
             c2.setFixedHeight(10f);
             reportTable2.addCell(c2);
 
-            queryString = "  SELECT * ";
+            queryString = "  SELECT ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion,";
+            queryString += "  SUM(ODD.Cantidad) TotalCantidad, (SUM(ODD.Total) / SUM(ODD.Cantidad)) TotalPrecio, ";
+            queryString += "  ( (SUM(ODD.Total) / SUM(ODD.Cantidad)) * SUM(ODD.Cantidad) ) TotalTotal";
             queryString += " FROM orden_compra_detalle ODD ";
             queryString += " WHERE ODD.IdOrdenCompra = " + idOrdenCompra;
+            queryString += " GROUP BY ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion, ODD.PluPrv, ODD.PluPrvDes ";
 
             Logger.getLogger(OrdenCompraEstimacionPDF.class.getName()).log(Level.INFO, queryString);
 
@@ -593,7 +605,7 @@ System.out.println("-->\nqueryStringDetalleEstimacion: " + queryString);
                             c2.setBorderWidthLeft(1);
                             reportTable2.addCell(c2);
 
-                            c2 = new PdfPCell(new Paragraph(numberFormat.format(rsRecords.getDouble("Cantidad")), small10));
+                            c2 = new PdfPCell(new Paragraph(numberFormat.format(rsRecords.getDouble("TotalCantidad")), small10));
                             c2.setHorizontalAlignment(Element.ALIGN_CENTER);
                             c2.setVerticalAlignment(Element.ALIGN_CENTER);
                             c2.setBorderWidth(0);
@@ -602,7 +614,7 @@ System.out.println("-->\nqueryStringDetalleEstimacion: " + queryString);
                             c2.setBorderWidthRight(1);
                             reportTable2.addCell(c2);
 
-                            c2 = new PdfPCell(new Paragraph(numberFormat.format(rsRecords.getDouble("Precio")), small10));
+                            c2 = new PdfPCell(new Paragraph(numberFormat.format(rsRecords.getDouble("TotalPrecio")), small10));
                             c2.setHorizontalAlignment(Element.ALIGN_RIGHT);
                             c2.setVerticalAlignment(Element.ALIGN_RIGHT);
                             c2.setBorderWidth(0);
@@ -611,7 +623,7 @@ System.out.println("-->\nqueryStringDetalleEstimacion: " + queryString);
                             c2.setBorderWidthRight(1);
                             reportTable2.addCell(c2);
 
-                            c2 = new PdfPCell(new Paragraph(numberFormat.format(rsRecords.getDouble("Total")), small10));
+                            c2 = new PdfPCell(new Paragraph(numberFormat.format(rsRecords.getDouble("TotalTotal")), small10));
                             c2.setHorizontalAlignment(Element.ALIGN_RIGHT);
                             c2.setVerticalAlignment(Element.ALIGN_RIGHT);
                             c2.setBorderWidth(0);
@@ -620,7 +632,7 @@ System.out.println("-->\nqueryStringDetalleEstimacion: " + queryString);
                             c2.setBorderWidthRight(1);
                             reportTable2.addCell(c2);
 
-                            total += rsRecords.getDouble("Total");
+                            total += rsRecords.getDouble("TotalTotal");
 //                        }//if cuentaanterior
 
                     } while (rsRecords.next());
@@ -781,6 +793,7 @@ System.out.println("-->\nqueryStringDetalleEstimacion: " + queryString);
             } catch (Exception e) {
                 System.out.println("Error al buscar orden de compra detalle" + e);
                 e.printStackTrace();
+                Notification.show("Error al leer base de datos : " + e.getMessage(), Notification.Type.ERROR_MESSAGE);
             }
 
             document.add(reportTable2);
@@ -870,9 +883,12 @@ System.out.println("-->\nqueryStringDetalleEstimacion: " + queryString);
             c2.setFixedHeight(10f);
             reportTable2.addCell(c2);
 
-            queryString = "  SELECT * ";
+            queryString = "  SELECT  ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion, ODD.PluPrv, ODD.PluPrvDes, ";
+            queryString += "  SUM(ODD.Cantidad) TotalCantidad, (SUM(ODD.Total) / SUM(ODD.Cantidad)) TotalPrecio, ";
+            queryString += "  ( (SUM(ODD.Total) / SUM(ODD.Cantidad)) * SUM(ODD.Cantidad) ) TotalTotal";
             queryString += " FROM orden_compra_detalle ODD ";
             queryString += " WHERE ODD.IdOrdenCompra = " + idOrdenCompra;
+            queryString += " GROUP BY ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion, ODD.PluPrv, ODD.PluPrvDes ";
 
 Logger.getLogger(OrdenCompraEstimacionPDF.class.getName()).log(Level.INFO, queryString);
 
@@ -914,7 +930,7 @@ Logger.getLogger(OrdenCompraEstimacionPDF.class.getName()).log(Level.INFO, query
                         c2.setFixedHeight(10f);
                         reportTable2.addCell(c2);
 
-                        c2 = new PdfPCell(new Paragraph(numberFormat.format(rsRecords.getDouble("Cantidad")), small10));
+                        c2 = new PdfPCell(new Paragraph(numberFormat.format(rsRecords.getDouble("TotalCantidad")), small10));
                         c2.setHorizontalAlignment(Element.ALIGN_CENTER);
                         c2.setVerticalAlignment(Element.ALIGN_CENTER);
                         c2.setBorderWidth(0);
@@ -923,7 +939,7 @@ Logger.getLogger(OrdenCompraEstimacionPDF.class.getName()).log(Level.INFO, query
                         c2.setBorderWidthRight(1);
                         reportTable2.addCell(c2);
 
-                        c2 = new PdfPCell(new Paragraph(numberFormat.format(rsRecords.getDouble("Precio")), small10));
+                        c2 = new PdfPCell(new Paragraph(numberFormat.format(rsRecords.getDouble("TotalPrecio")), small10));
                         c2.setHorizontalAlignment(Element.ALIGN_RIGHT);
                         c2.setVerticalAlignment(Element.ALIGN_RIGHT);
                         c2.setBorderWidth(0);
@@ -932,7 +948,7 @@ Logger.getLogger(OrdenCompraEstimacionPDF.class.getName()).log(Level.INFO, query
                         c2.setBorderWidthRight(1);
                         reportTable2.addCell(c2);
 
-                        c2 = new PdfPCell(new Paragraph(numberFormat.format(rsRecords.getDouble("Total")), small10));
+                        c2 = new PdfPCell(new Paragraph(numberFormat.format(rsRecords.getDouble("TotalTotal")), small10));
                         c2.setHorizontalAlignment(Element.ALIGN_RIGHT);
                         c2.setVerticalAlignment(Element.ALIGN_RIGHT);
                         c2.setBorderWidth(0);
@@ -941,7 +957,7 @@ Logger.getLogger(OrdenCompraEstimacionPDF.class.getName()).log(Level.INFO, query
                         c2.setBorderWidthRight(1);
                         reportTable2.addCell(c2);
 
-                        total += rsRecords.getDouble("Total");
+                        total += rsRecords.getDouble("TotalTotal");
 
                     } while (rsRecords.next());
 
@@ -982,12 +998,11 @@ Logger.getLogger(OrdenCompraEstimacionPDF.class.getName()).log(Level.INFO, query
                     c2.setBorderWidthBottom(1);
                     c2.setBorderWidthRight(1);
                     reportTable2.addCell(c2);
-
-
                 }
             } catch (Exception e) {
                 System.out.println("Error al buscar orden de compra detalle" + e);
                 e.printStackTrace();
+                Notification.show("Error al leer base de datos : " + e.getMessage(), Notification.Type.ERROR_MESSAGE);
             }
 
             document.add(reportTable2);

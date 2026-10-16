@@ -64,6 +64,7 @@ public class PlanoForm extends Window {
     boolean archivoCargado = false;
 
     public PlanoForm(String idPlano) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.mainUI = UI.getCurrent();
         this.idPlano = idPlano;
         setWidth("50%");

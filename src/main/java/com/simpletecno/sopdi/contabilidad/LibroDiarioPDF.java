@@ -66,6 +66,8 @@ public class LibroDiarioPDF extends Window {
             String hasta,
             String folioInicial
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idEmpresa = idEmpresa;
         this.empresaNombre = empresaNombre;
         this.empresaNit = empresaNit;

@@ -69,6 +69,8 @@ public class EstimacionesFacturaWindow extends Window {
             String empresaNombre,
             String proveedorId,
             String proveedorNombre) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.mainUI = UI.getCurrent();
         this.estimacionId = estimacionId;
         this.empresa = empresa;

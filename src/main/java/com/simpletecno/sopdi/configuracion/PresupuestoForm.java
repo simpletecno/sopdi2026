@@ -62,6 +62,7 @@ public class PresupuestoForm extends Window {
     UI mainUI;
     
     public PresupuestoForm() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.mainUI = UI.getCurrent();
         
         setResponsive(true);

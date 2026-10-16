@@ -68,6 +68,8 @@ public class ProjectTaskForm extends Window {
     UI mainUI;
     
     public ProjectTaskForm() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.mainUI = UI.getCurrent();
         
         setWidth("50%");

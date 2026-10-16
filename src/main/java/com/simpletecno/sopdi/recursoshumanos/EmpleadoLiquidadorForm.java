@@ -54,6 +54,8 @@ public class EmpleadoLiquidadorForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public EmpleadoLiquidadorForm(String idRegistro) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idEmpleado = idEmpleado;
         this.idRegistro = idRegistro;
         this.mainUI = UI.getCurrent();

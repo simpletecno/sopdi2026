@@ -50,6 +50,8 @@ public class AutorizarVentaMonedaForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public AutorizarVentaMonedaForm() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.mainUI = UI.getCurrent();
         setResponsive(true);
         if (mainUI.getPage().getBrowserWindowWidth() >= 736) {

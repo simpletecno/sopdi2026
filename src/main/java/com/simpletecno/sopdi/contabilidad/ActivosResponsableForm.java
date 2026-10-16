@@ -63,6 +63,7 @@ public class ActivosResponsableForm extends Window {
 
     public ActivosResponsableForm(long idActivo, String codigoActivo, String descripcion, int idEmpresa) {
         super("Gestión de Responsables - Activo: " + codigoActivo);
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.idActivo = idActivo;
         this.codigoActivo = codigoActivo;
         this.descripcion = descripcion;

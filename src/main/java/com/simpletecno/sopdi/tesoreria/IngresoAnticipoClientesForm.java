@@ -89,6 +89,7 @@ public class IngresoAnticipoClientesForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public IngresoAnticipoClientesForm() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.codigoPartida = codigoPartida;
 
         this.mainUI = UI.getCurrent();

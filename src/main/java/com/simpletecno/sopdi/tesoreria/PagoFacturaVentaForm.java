@@ -114,6 +114,8 @@ public class PagoFacturaVentaForm extends Window {
     double saldo_quetzales;
 
     public PagoFacturaVentaForm(String codigoCCFactura, String factura, String idproveedor, String nombre, double saldo_quetzales) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.mainUI = UI.getCurrent();
         this.codigoCCFactura = codigoCCFactura;

@@ -28,6 +28,8 @@ public class AutorizarPagosEspecialesPDF extends Window {
     private Pdf pdfContent;
 
     public AutorizarPagosEspecialesPDF(IndexedContainer porPagarContainer) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         try {
             BrowserFrame browser = new BrowserFrame();
             browser.setSizeFull();

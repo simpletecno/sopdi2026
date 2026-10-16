@@ -79,6 +79,7 @@ public class ApiKeysForm extends Window {
     boolean editando = false;
 
     public ApiKeysForm(String idEmpresa, String nombreEmpresa) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.mainUI = UI.getCurrent();
         this.idEmpresa = idEmpresa;
         this.nombreEmpresa = nombreEmpresa;

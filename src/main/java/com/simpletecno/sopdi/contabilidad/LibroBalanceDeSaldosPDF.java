@@ -68,6 +68,8 @@ public class LibroBalanceDeSaldosPDF extends Window {
             String desde,String hasta,
             String folioInicial
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idEmpresa = idEmpresa;
         this.empresaNombre = empresaNombre;
         this.empresaNit = empresaNit;

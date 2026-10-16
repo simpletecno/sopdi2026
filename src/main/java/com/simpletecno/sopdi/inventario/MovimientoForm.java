@@ -42,6 +42,7 @@ public class MovimientoForm extends Window {
     Button salirBtn;
 
     public MovimientoForm(String idMoviemiento) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.mainUI = UI.getCurrent();
         this.idMovimiento = idMoviemiento;
         setWidth("50%");

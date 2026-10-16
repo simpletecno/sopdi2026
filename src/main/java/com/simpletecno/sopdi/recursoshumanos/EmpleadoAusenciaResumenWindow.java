@@ -28,6 +28,7 @@ public class EmpleadoAusenciaResumenWindow extends Window {
                                         boolean medioFin,
                                         boolean sabados,
                                         Runnable onSaveSuccess) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         setCaption("Resumen de Ausencia");
         setModal(true);

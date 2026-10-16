@@ -93,6 +93,8 @@ public class InspectionTaskOCForm extends Window {
             boolean esNuevoDesdeSeleccionado,
             String lote
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.itemObject = itemObject;
         this.indexedContainer = indexedContainer;
         this.grid = grid;
@@ -623,12 +625,13 @@ System.out.println("2 " + queryString);
                     return;
                 }
 
-                if (cantidadTxt.getDoubleValueDoNotThrow() == 0) {
-                    Notification.show("Por favor ingrese una cantidad positiva o negativa!", Notification.Type.ERROR_MESSAGE);
-                    cantidadTxt.focus();
-                    saveBtn.setEnabled(true);
-                    return;
-                }
+                //comentado el 11/octubre/2026 por orden de Pedro Castañeda.
+//                if (cantidadTxt.getDoubleValueDoNotThrow() == 0) {
+//                    Notification.show("Por favor ingrese una cantidad positiva o negativa!", Notification.Type.ERROR_MESSAGE);
+//                    cantidadTxt.focus();
+//                    saveBtn.setEnabled(true);
+//                    return;
+//                }
                 if (precioTxt.getDoubleValueDoNotThrow() == 0) {
                     Notification.show("Por favor ingrese un precio mayor a 0.00 !", Notification.Type.ERROR_MESSAGE);
                     precioTxt.focus();

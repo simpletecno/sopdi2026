@@ -40,6 +40,8 @@ public class UsuarioPermisosEmpresaForm extends Window {
             int idUsuario,
             String usuarioNombre
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idUsuario = idUsuario;
         this.mainUI = UI.getCurrent();
 

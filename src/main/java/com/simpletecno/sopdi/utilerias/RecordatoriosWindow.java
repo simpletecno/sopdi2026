@@ -42,6 +42,7 @@ public class RecordatoriosWindow extends Window {
     private final RecordatorioEventoService eventoService = new RecordatorioEventoService();
 
     public RecordatoriosWindow(List<Recordatorio> recordatorios) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         setCaption("SOPDI - Recordatorios");
         setModal(true);
         setResizable(true);

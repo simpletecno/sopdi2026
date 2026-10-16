@@ -53,6 +53,8 @@ public class AutorizarPagoEmpresaRelacionadaForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public AutorizarPagoEmpresaRelacionadaForm() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         mainLayout = new VerticalLayout();
         mainLayout.setSpacing(true);

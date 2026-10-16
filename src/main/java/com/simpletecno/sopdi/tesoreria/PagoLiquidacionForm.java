@@ -149,6 +149,8 @@ public class PagoLiquidacionForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public PagoLiquidacionForm(String IdProveedor , Date fechaPago) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.mainUI = UI.getCurrent();
         this.IdProveedor = IdProveedor;

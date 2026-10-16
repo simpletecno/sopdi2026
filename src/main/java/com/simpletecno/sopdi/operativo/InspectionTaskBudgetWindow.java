@@ -88,6 +88,8 @@ public class InspectionTaskBudgetWindow extends Window {
             String descripcionTarea,
             String autorizadoTipo
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.tareaId = tareaId;
         this.codigoTarea = codigoTarea;
         this.descripcionTarea = descripcionTarea;

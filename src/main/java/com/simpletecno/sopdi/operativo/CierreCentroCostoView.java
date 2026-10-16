@@ -955,7 +955,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY IDEX PENDIENT
             queryString = "INSERT INTO DetalleItemsCostos ";
             queryString += " (NoCuenta, Descripcion, Precio, Cantidad, Total, IdProject, IDProveedor, ";
             queryString += " IdCC, IdArea, Lote, Moneda, IdEmpresa, Empresa, IDTarea, RazonOC, Unidad, ";
-            queryString += " Tipo, FechaIngreso, NOC, OCInicial, IDEXAN, IDEX, CodItemPro, IDVisita) ";
+            queryString += " Tipo, FechaIngreso, OCInicial, IDEX, CodItemPro) ";
             queryString += " VALUES ";
 
             for(Object itemObject : ocIdexContainer.getItemIds()) {
@@ -980,12 +980,9 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY IDEX PENDIENT
                     queryString += ",'" + ocIdexContainer.getContainerProperty(itemObject, UNIDAD_PROPERTY).getValue() + "'"; //16
                     queryString += ",'DOCA'";
                     queryString += ",'" + Utileria.getFechaYYYYMMDD_1(new java.util.Date()) + "'";
-                    queryString += ",0"; //noc
                     queryString += ",0"; //OCInicial
-                    queryString += "," + ocIdexContainer.getContainerProperty(itemObject, IDEX_PROPERTY).getValue(); //idexan
                     queryString += ",'" + ocIdexContainer.getContainerProperty(itemObject, IDEX_PROPERTY).getValue() + "'";
                     queryString += ",''"; //coditempro
-                    queryString += ",'0'";
                     queryString += "),";
                 }
             }

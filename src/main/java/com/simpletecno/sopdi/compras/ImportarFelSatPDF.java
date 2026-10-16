@@ -53,6 +53,8 @@ public class ImportarFelSatPDF extends Window {
             String empresaNombre, 
             String empresaNit,
             String UUID) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idEmpresa = idEmpresa;
         this.empresaNombre = empresaNombre;
         this.empresaNit = empresaNit;

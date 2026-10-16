@@ -38,7 +38,9 @@ public class UsuarioCorreoForm extends Window {
     static final String NOMBRE_PROPERTY = "Nombre";
     static final String CORREO_PROPERTY = "Correo";
 
-    public UsuarioCorreoForm(String token) {       
+    public UsuarioCorreoForm(String token) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);       
         this.mainUI = UI.getCurrent();
         this.token = token;
         

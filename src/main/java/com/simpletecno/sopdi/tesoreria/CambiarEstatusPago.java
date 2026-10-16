@@ -49,6 +49,8 @@ public class CambiarEstatusPago extends Window {
             String codigoPartida,
             String monto,
             String idNomenclatura) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.container       = container;
         this.itemId          = itemId;

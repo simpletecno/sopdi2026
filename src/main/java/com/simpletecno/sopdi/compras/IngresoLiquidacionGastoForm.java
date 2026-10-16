@@ -134,6 +134,8 @@ public class IngresoLiquidacionGastoForm extends Window {
             String idEmpresaEdit,
             String codigoCC
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.mainUI = UI.getCurrent();
         this.idPartidaEdit = idPartidaEdit;

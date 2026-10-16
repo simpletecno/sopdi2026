@@ -85,6 +85,7 @@ public class NotaDebitoBancoForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public NotaDebitoBancoForm(String tipo) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.tipo = tipo;
         this.mainUI = UI.getCurrent();
         setResponsive(true);

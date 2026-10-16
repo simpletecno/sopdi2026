@@ -502,6 +502,8 @@ public class VisitasView extends VerticalLayout implements View {
         crateTabParticipantes();
         addTabTareas();
 
+        setTabGridsEnabled(false);
+
         addComponent(tabSheet);
     }
 
@@ -576,7 +578,7 @@ public class VisitasView extends VerticalLayout implements View {
         motivoCbx.addItem("Consejo Administración").getItemProperty("Codigo").setValue("8");
         motivoCbx.addItem("Cliente").getItemProperty("Codigo").setValue("9");
         motivoCbx.addItem("Cierre Centro Costo").getItemProperty("Codigo").setValue("10");
-        motivoCbx.addItem("Cambio de proveedor").getItemProperty("Codigo").setValue("11");
+        motivoCbx.addItem("Cambio de proveedor").getItemProperty("Codigo").setValue("11 ");
 
         visitasCbx = new ComboBox("Visitas :");
         visitasCbx.addContainerProperty("Codigo", String.class, "");
@@ -1001,6 +1003,7 @@ public class VisitasView extends VerticalLayout implements View {
             @Override
             public void buttonClick(Button.ClickEvent event) {
 
+                setTabGridsEnabled(true);
                 addGridAgenda(true);
                 addGridParticipantes(true);
                 addGridTareas(true);
@@ -1475,7 +1478,7 @@ System.out.println("\n\n"+queryString);
                     queryString += "'" + participantesContainer.getContainerProperty(item, NOMBRE_PROPERTY).getValue() + "', ";
                     queryString += "'" + participantesContainer.getContainerProperty(item, DPI_PROPERTY).getValue() + "', ";
                     queryString += "'" + participantesContainer.getContainerProperty(item, EMAIL_PROPERTY).getValue() + "', ";
-                    queryString += "(SELECT Producto FROM proveedor WHERE Nombre = '" + participantesContainer.getContainerProperty(item, NOMBRE_PROPERTY).getValue() + "'), ";
+                    queryString += "NULL, ";
                     queryString += ((SopdiUI) mainUI).sessionInformation.getStrUserId() + ", ";
                     queryString += "current_timestamp), ";
                 }
@@ -1838,8 +1841,8 @@ System.out.println("\n\n"+queryString);
         
         String queryString = "SELECT * ";
         queryString += "FROM proveedor_empresa ";
-        queryString += "WHERE IdEmpresa = " + empresaId;
-                
+        queryString += "WHERE IdEmpresa = " + empresaId + " ";
+
         switch (String.valueOf(motivoCbx.getValue())) {
             case "Diaria":
             case "Comité Técnico":
@@ -1847,19 +1850,19 @@ System.out.println("\n\n"+queryString);
             case "Reunión Administrativa":
             case "Reunión Ordinaria":
             case "Operativa":
-                queryString += "WHERE (EsComite = 1 ";
+                queryString += "AND (EsComite = 1 ";
                 break;
             case "Residente":
-                queryString += "WHERE (EsComite = 1 OR EsCliente = 1 ";
+                queryString += "AND (EsComite = 1 OR EsCliente = 1 ";
                 break;
             case "Consejo Administración":
-                queryString += "WHERE (EsComite = 1 OR Grupo = 'Comites' ";
+                queryString += "AND (EsComite = 1 ";
                 break;
             case "Cliente":
-                queryString += "WHERE (EsComite = 1 ";
+                queryString += "AND (EsComite = 1 ";
                 break;
             default:
-                queryString += " ";
+                queryString += "AND (1=1 ";
                 break;
         }
         queryString += "OR IdProveedor = " + clienteCbx.getValue() + ") ";
@@ -1909,6 +1912,8 @@ System.out.println("\n\n"+queryString);
     }
 
     public void fillVisitaData() {
+
+        setTabGridsEnabled(true);
 
         idVisitaInspeccionTxt.setReadOnly(false);
         idVisitaInspeccionTxt.setValue(String.valueOf(visitasGrid.getContainerDataSource().getItem(visitasGrid.getSelectedRow()).getItemProperty(ID_PROPERTY).getValue()));
@@ -2098,6 +2103,12 @@ System.out.println("\n\n"+queryString);
             System.out.println("Error al leer registros de tareas visita  : " + ex.getMessage());
             Notification.show("Error al leer registros de tareas visitas..!", Notification.Type.ERROR_MESSAGE);
         }
+    }
+
+    private void setTabGridsEnabled(boolean enabled) {
+        agendaYResolucionesGrid.setEnabled(enabled);
+        participantesGrid.setEnabled(enabled);
+        tareasGrid.setEnabled(enabled);
     }
 
 }

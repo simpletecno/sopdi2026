@@ -123,7 +123,7 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
 
         estadoOg.setStyleName("horizontal");
         estadoOg.addItems("Activas", "Autorizadas", "Archivadas");
-        estadoOg.select("Autorizadas");
+        estadoOg.select("Activas");
         estadoOg.setDescription("Filtrar por estado de la tarea");
         estadoOg.addValueChangeListener(e -> fillInspectionsTaskGrid());
 
@@ -827,9 +827,9 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
         queryString += " FROM visita_inspeccion_tarea Tare ";
         queryString += " INNER JOIN visita_inspeccion VisI ON VisI.IdVisitaInspeccion = Tare.IdVisitaInspeccion";
         queryString += " LEFT  JOIN usuario Usr ON Usr.IdUsuario = Tare.AutorizadoPor";
-        queryString += " LEFT  JOIN proveedor_empresa Cl ON Cl.IdProveedor = VisI.IdCliente";
+        queryString += " LEFT  JOIN proveedor_empresa Cl ON Cl.IdProveedor = VisI.IdCliente  AND Cl.IdEmpresa = VisI.IdEmpresa ";
 //        queryString += " LEFT  JOIN proveedor Cl ON Cl.IdProveedor = VisI.IdCliente";
-        queryString += " LEFT  JOIN centro_costo Cc ON Cc.CodigoCentroCosto = VisI.IdCentroCosto";
+        queryString += " LEFT  JOIN centro_costo Cc ON Cc.CodigoCentroCosto = VisI.IdCentroCosto AND Cc.IdEmpresa = VisI.IdEmpresa";
         queryString += " WHERE VisI.IdProyecto = " + ((SopdiUI) mainUI).sessionInformation.getStrProjectId();
         queryString += " AND Tare.EsTarea = 'SI'";
         queryString += " AND Tare.RechazadoFecha IS NULL";
@@ -850,8 +850,8 @@ public class InspectionsTaskTrackView extends VerticalLayout implements View {
             queryString += " AND Tare.Archivado = 0";
         }
         queryString += " AND VisI.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
-        queryString += " AND Cc.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
-        queryString += " AND Cl.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+
+        Logger.getLogger(InspectionsTaskTrackView.class.getName()).log(Level.INFO, queryString);
 
         try {
 

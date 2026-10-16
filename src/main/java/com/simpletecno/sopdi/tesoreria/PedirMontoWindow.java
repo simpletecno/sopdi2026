@@ -26,6 +26,7 @@ public class PedirMontoWindow extends Window {
     private Button      cancelarBtn;
 
     public PedirMontoWindow() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         injectStyles();
 
         setModal(true);

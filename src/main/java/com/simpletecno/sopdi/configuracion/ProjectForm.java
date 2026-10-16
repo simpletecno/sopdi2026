@@ -92,6 +92,8 @@ public class ProjectForm extends Window {
     UI mainUI;
     
     public ProjectForm() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.mainUI = UI.getCurrent();
        
         setResponsive(true);

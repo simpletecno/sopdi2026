@@ -974,25 +974,36 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
             String codigoPartidaBase = null;
             Set<String> codigosAnticipo = new LinkedHashSet<>();
 
-            // Iterar el grid por pagar — todos los datos vienen del container
+            // Agrupar por proveedor: una sola partida contable por proveedor
+            java.util.LinkedHashMap<String, List<Object>> gruposPorProveedor = new java.util.LinkedHashMap<>();
             for (Object itemId : porPagarContainer.getItemIds()) {
-
                 double monto = parseMontoSF(porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).getValue());
                 if (monto <= 0.00) continue;
+                String idProv = nvlC(porPagarContainer.getContainerProperty(itemId, ID_PROVEEDOR_PROPERTY).getValue());
+                gruposPorProveedor.computeIfAbsent(idProv, k -> new ArrayList<>()).add(itemId);
+            }
 
-                String noCheque      = nvlC(porPagarContainer.getContainerProperty(itemId, CHEQUE_PROPERTY).getValue());
-                String idProveedor   = nvlC(porPagarContainer.getContainerProperty(itemId, ID_PROVEEDOR_PROPERTY).getValue());
-                String nombreProv    = nvlC(porPagarContainer.getContainerProperty(itemId, NOMBRE_PROVEEDOR_PROPERTY).getValue()).replace("'", "");
-                String moneda        = nvlC(porPagarContainer.getContainerProperty(itemId, MONEDA_PROPERTY).getValue());
-                String fechaSQL      = toFechaSQL(nvlC(porPagarContainer.getContainerProperty(itemId, FECHA_CHEQUE_PROPERTY).getValue()));
+            for (java.util.Map.Entry<String, List<Object>> entry : gruposPorProveedor.entrySet()) {
+                String idProveedor = entry.getKey();
+                List<Object> items = entry.getValue();
+
+                Object primerItem = items.get(0);
+                String noCheque   = nvlC(porPagarContainer.getContainerProperty(primerItem, CHEQUE_PROPERTY).getValue());
+                String nombreProv = nvlC(porPagarContainer.getContainerProperty(primerItem, NOMBRE_PROVEEDOR_PROPERTY).getValue()).replace("'", "");
+                String moneda     = nvlC(porPagarContainer.getContainerProperty(primerItem, MONEDA_PROPERTY).getValue());
+                String fechaSQL   = toFechaSQL(nvlC(porPagarContainer.getContainerProperty(primerItem, FECHA_CHEQUE_PROPERTY).getValue()));
 
                 double tipoCambio = moneda.equalsIgnoreCase("QUETZALES") ? 1.00
                         : parseMontoSF(((SopdiUI) mainUI).tipoCambioDolar);
 
+                double totalMonto = 0.0;
+                for (Object itemId : items) {
+                    totalMonto += parseMontoSF(porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).getValue());
+                }
+
                 String descripcion = ("ANTICIPO PROV. " + nombreProv
                         + (!noCheque.isEmpty() ? " CHQ." + noCheque : "")).replace("'", "").trim();
 
-                // Código de partida: uno por fila (o incrementar localmente si hay varias)
                 String codigoPartida;
                 if (codigoPartidaBase == null) {
                     codigoPartidaBase = Utileria.nextCodigoPartida(
@@ -1007,34 +1018,43 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
                 codigosAnticipo.add(codigoPartida);
 
                 StringBuilder sql = new StringBuilder("INSERT INTO contabilidad_partida " + COLS);
-                // DEBE: Anticipos a Proveedores
-                sql.append("(");
-                sql.append(empresaId);
-                sql.append(",'").append(codigoPartida).append("'");
-                sql.append(",'").append(codigoPartida).append("'");
-                sql.append(",'CHEQUE'");
-                sql.append(",").append(cuentaAnticipos);
-                sql.append(",''");
-                sql.append(",'").append(noCheque).append("'");
-                sql.append(",").append(fechaSQL);
-                sql.append(",'").append(moneda).append("'");
-                sql.append(",").append(monto);
-                sql.append(",").append(monto);
-                sql.append(",0");
-                sql.append(",").append(tipoCambio);
-                sql.append(",").append(monto * tipoCambio);
-                sql.append(",0");
-                sql.append(",'PAGADO'");
-                sql.append(",'").append(descripcion).append("'");
-                sql.append(",'CHEQUE'");
-                sql.append(",'").append(noCheque).append("'");
-                sql.append(",").append(idProveedor);
-                sql.append(",'").append(nombreProv).append("'");
-                sql.append(",'").append(nombreProv).append("'");
-                sql.append(",").append(usuario);
-                sql.append(",current_timestamp");
-                // HABER: Banco
-                sql.append("),(");
+                boolean primerTupla = true;
+                for (Object itemId : items) {
+                    double monto = parseMontoSF(porPagarContainer.getContainerProperty(itemId, A_LIQUIDAR_MONTO_CHEQUESF_PROPERTY).getValue());
+
+                    if (!primerTupla) sql.append(",");
+                    primerTupla = false;
+
+                    // DEBE: Anticipos a Proveedores (una línea por pago del proveedor)
+                    sql.append("(");
+                    sql.append(empresaId);
+                    sql.append(",'").append(codigoPartida).append("'");
+                    sql.append(",'").append(codigoPartida).append("'");
+                    sql.append(",'CHEQUE'");
+                    sql.append(",").append(cuentaAnticipos);
+                    sql.append(",''");
+                    sql.append(",'").append(noCheque).append("'");
+                    sql.append(",").append(fechaSQL);
+                    sql.append(",'").append(moneda).append("'");
+                    sql.append(",").append(monto);
+                    sql.append(",").append(monto);
+                    sql.append(",0");
+                    sql.append(",").append(tipoCambio);
+                    sql.append(",").append(monto * tipoCambio);
+                    sql.append(",0");
+                    sql.append(",'PAGADO'");
+                    sql.append(",'").append(descripcion).append("'");
+                    sql.append(",'CHEQUE'");
+                    sql.append(",'").append(noCheque).append("'");
+                    sql.append(",").append(idProveedor);
+                    sql.append(",'").append(nombreProv).append("'");
+                    sql.append(",'").append(nombreProv).append("'");
+                    sql.append(",").append(usuario);
+                    sql.append(",current_timestamp");
+                    sql.append(")");
+                }
+                // HABER: Banco — una sola línea con el total del proveedor
+                sql.append(",(");
                 sql.append(empresaId);
                 sql.append(",'").append(codigoPartida).append("'");
                 sql.append(",'").append(codigoPartida).append("'");
@@ -1044,12 +1064,12 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
                 sql.append(",'").append(noCheque).append("'");
                 sql.append(",").append(fechaSQL);
                 sql.append(",'").append(moneda).append("'");
-                sql.append(",").append(monto);
+                sql.append(",").append(totalMonto);
                 sql.append(",0");
-                sql.append(",").append(monto);
+                sql.append(",").append(totalMonto);
                 sql.append(",").append(tipoCambio);
                 sql.append(",0");
-                sql.append(",").append(monto * tipoCambio);
+                sql.append(",").append(totalMonto * tipoCambio);
                 sql.append(",'PAGADO'");
                 sql.append(",'").append(descripcion).append("'");
                 sql.append(",'CHEQUE'");
@@ -1064,7 +1084,6 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
                 Logger.getLogger(this.getClass().getName()).log(Level.INFO, "INSERT anticipo proveedor [{0}]: {1}", new Object[]{idProveedor, codigoPartida});
                 st.executeUpdate(sql.toString());
 
-                // Actualizar chequera
                 if (!noCheque.isEmpty()) {
                     String updChequera = " UPDATE contabilidad_cuentas_bancos_chequera SET "
                             + " UltimoUtilizado = " + noCheque
@@ -1075,8 +1094,9 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
                     st.executeUpdate(updChequera);
                 }
 
-                // Verificar cuadre post-insert (dentro de la transacción, antes de commit)
-                porPagarContainer.getContainerProperty(itemId, CODIGO_PARTIDA_PROPERTY).setValue(codigoPartida);
+                for (Object itemId : items) {
+                    porPagarContainer.getContainerProperty(itemId, CODIGO_PARTIDA_PROPERTY).setValue(codigoPartida);
+                }
             }
 
             // Verificar cuadre ANTES de commit — rollback automático si descuadra
@@ -1504,7 +1524,7 @@ Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Query Numero de che
                     ? totalPago * tipoCambio
                     : totalPago;
 
-            descripcion = ("PAGO " + proveedor + " CHQ." + numeroDoc + (!noCheque.isEmpty() ? " CHQ." + noCheque : " CON ANTICIPO"))
+            descripcion = ("PAGO " + proveedor + (!noCheque.isEmpty() ? " CHQ." + noCheque : " CON ANTICIPO"))
                     .replace("'", "").trim();
             String tipoDoca = tipoDocumento;
 

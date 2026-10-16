@@ -56,6 +56,7 @@ public class ActivosResponsableFirmaWindow extends Window {
             Runnable onGuardarCallback
     ) {
         super("Firma - " + responsable);
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         this.mainUI = mainUI;
         this.idActivo = idActivo;

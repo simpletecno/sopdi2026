@@ -34,6 +34,8 @@ public class ValidarTokenForm extends Window {
     private String origen;
 
     public ValidarTokenForm(boolean supervisar) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.mainUI = UI.getCurrent();
         this.supervisar = supervisar;

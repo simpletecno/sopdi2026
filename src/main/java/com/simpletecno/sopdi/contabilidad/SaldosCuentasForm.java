@@ -36,6 +36,8 @@ public class SaldosCuentasForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public SaldosCuentasForm(String idNomenclatura) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idNomenclatura = idNomenclatura;
         this.mainUI = UI.getCurrent();
 

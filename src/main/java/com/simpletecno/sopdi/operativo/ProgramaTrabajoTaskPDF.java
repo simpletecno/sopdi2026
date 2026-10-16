@@ -40,6 +40,8 @@ public class ProgramaTrabajoTaskPDF extends Window {
     public ProgramaTrabajoTaskPDF(
             IndexedContainer idexContainer
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idexContainer = idexContainer;
 
         try {

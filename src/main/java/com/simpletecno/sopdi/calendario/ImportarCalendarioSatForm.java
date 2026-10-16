@@ -75,6 +75,7 @@ public class ImportarCalendarioSatForm extends Window {
     private MultiFileUpload upload;
 
     public ImportarCalendarioSatForm(Runnable onImported) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.onImported = onImported;
         this.mainUI = UI.getCurrent();
 

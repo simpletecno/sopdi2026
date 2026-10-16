@@ -24,6 +24,7 @@ public class InfileTest extends Window {
     ResultSet rsRecords2 = null;
 
     public InfileTest() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         mainUI = UI.getCurrent();
 
         setCaption("Ventana Miscelánea");

@@ -24,6 +24,8 @@ public class TasaCambioForm extends Window {
     String queryString;
     
     public TasaCambioForm(String tipoCambioDolar){
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         
         this.mainUI = UI.getCurrent();
         setResponsive(true);

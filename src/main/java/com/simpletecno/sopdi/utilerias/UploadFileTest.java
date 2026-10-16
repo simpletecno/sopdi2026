@@ -30,6 +30,8 @@ public class UploadFileTest extends Window {
     VerticalLayout mainLayout = new VerticalLayout();
     
     public UploadFileTest() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         mainLayout.addComponent(image);
         

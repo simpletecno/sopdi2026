@@ -33,7 +33,7 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
     static public final String VENTA_MONEDA = "VENTA DE MONEDA";
     static public final String DEVOLUCION_CLIENTE = "DEVOLUCION A CLIENTE";
     static public final String DEVOLUCION_PRESTAMO_TERCERO = "DEVOLUCION PRESTAMO";
-    static public final String ANTICIPO_PROVEEDOR_OC = "ANTICIPO A PROVEEDOR OC";
+    static public final String ANTICIPO_PROVEEDOR_OC = "ANTICIPO A PROVEEDOR ORDEN COMPRA";
 
     Button anticiposProveedorBtn;
     Button anticiposSueldoBtn;
@@ -49,11 +49,6 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
     Button anticiposProveedorOCBtn;
 
     UI mainUI;
-
-    Statement stQuery;
-    ResultSet rsRecords;
-
-    String queryString;
 
     String empresaId = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyId();
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
@@ -73,8 +68,9 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
 
         anticiposProveedorBtn = new Button(ANTICIPO_PROVEEDOR);
         anticiposProveedorBtn.setIcon(FontAwesome.CHILD);
-        anticiposProveedorBtn.setWidth("17em");
+        anticiposProveedorBtn.setWidth("21em");
         anticiposProveedorBtn.setHeight("5em");
+        anticiposProveedorBtn.addStyleName("btn-wordwrap");
         anticiposProveedorBtn.setDescription(ANTICIPO_PROVEEDOR);
         anticiposProveedorBtn.addListener(new Button.ClickListener() {
             @Override
@@ -91,8 +87,9 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
         pagoDocumentoBtn = new Button(PAGO_DOCUMENTO);
         pagoDocumentoBtn.setIcon(FontAwesome.BARCODE);
         pagoDocumentoBtn.setDescription(PAGO_DOCUMENTO);
-        pagoDocumentoBtn.setWidth("17em");
+        pagoDocumentoBtn.setWidth("21em");
         pagoDocumentoBtn.setHeight("5em");
+        pagoDocumentoBtn.addStyleName("btn-wordwrap");
         pagoDocumentoBtn.addListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -105,8 +102,9 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
         pagoLiquidacionBtn = new Button(PAGO_LIQUIDACION);
         pagoLiquidacionBtn.setIcon(FontAwesome.LIST_OL);
         pagoLiquidacionBtn.setDescription(PAGO_LIQUIDACION);
-        pagoLiquidacionBtn.setWidth("17em ");
+        pagoLiquidacionBtn.setWidth("21em ");
         pagoLiquidacionBtn.setHeight("5em");
+        pagoLiquidacionBtn.addStyleName("btn-wordwrap");
         pagoLiquidacionBtn.addListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -120,8 +118,9 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
 
         anticiposSueldoBtn = new Button(ANTICIPO_SUELDOS);
         anticiposSueldoBtn.setIcon(FontAwesome.BATTERY_1);
-        anticiposSueldoBtn.setWidth("17em");
+        anticiposSueldoBtn.setWidth("21em");
         anticiposSueldoBtn.setHeight("5em");
+        anticiposSueldoBtn.addStyleName("btn-wordwrap");
         anticiposSueldoBtn.addListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -136,8 +135,9 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
         anticipoHonorarioBtn = new Button(ANTICIPO_HONORARIOS);
         anticipoHonorarioBtn.setIcon(FontAwesome.BATTERY_3);
         //anticipoHonorarioBtn.setDescription(ANTICIPO_HONORARIOS);
-        anticipoHonorarioBtn.setWidth("17em");
+        anticipoHonorarioBtn.setWidth("21em");
         anticipoHonorarioBtn.setHeight("5em");
+        anticipoHonorarioBtn.addStyleName("btn-wordwrap");
         anticipoHonorarioBtn.addListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -152,8 +152,9 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
         trasladoERBtn = new Button(TRASLADO_EMP_REL);
         trasladoERBtn.setIcon(FontAwesome.HOUZZ);
         trasladoERBtn.setDescription(TRASLADO_EMP_REL);
-        trasladoERBtn.setWidth("17em");
+        trasladoERBtn.setWidth("21em");
         trasladoERBtn.setHeight("5em");
+        trasladoERBtn.addStyleName("btn-wordwrap");
         trasladoERBtn.addListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -166,8 +167,9 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
 
         ventaMonedaBtn = new Button(VENTA_MONEDA);
         ventaMonedaBtn.setIcon(FontAwesome.BANK);
-        ventaMonedaBtn.setWidth("17em");
+        ventaMonedaBtn.setWidth("21em");
         ventaMonedaBtn.setHeight("5em");
+        ventaMonedaBtn.addStyleName("btn-wordwrap");
         ventaMonedaBtn.addListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -181,8 +183,9 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
 
         pagoPrestamoBtn = new Button(PAGO_PRESTAMO);
         pagoPrestamoBtn.setIcon(FontAwesome.BUILDING);
-        pagoPrestamoBtn.setWidth("17em");
+        pagoPrestamoBtn.setWidth("21em");
         pagoPrestamoBtn.setHeight("5em");
+        pagoPrestamoBtn.addStyleName("btn-wordwrap");
         pagoPrestamoBtn.addListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -196,8 +199,9 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
 
         devolucionClienteBtn = new Button(DEVOLUCION_CLIENTE);
         devolucionClienteBtn.setIcon(FontAwesome.HOUZZ);
-        devolucionClienteBtn.setWidth("17em");
+        devolucionClienteBtn.setWidth("21em");
         devolucionClienteBtn.setHeight("5em");
+        devolucionClienteBtn.addStyleName("btn-wordwrap");
         devolucionClienteBtn.addListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -211,8 +215,9 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
 
         planillaBtn = new Button(PAGO_PLANILLA);
         planillaBtn.setIcon(FontAwesome.USERS);
-        planillaBtn.setWidth("17em");
+        planillaBtn.setWidth("21em");
         planillaBtn.setHeight("5em");
+        planillaBtn.addStyleName("btn-wordwrap");
         planillaBtn.addListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -226,8 +231,9 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
 
         devolucionPrestamoTercerosBtn = new Button(DEVOLUCION_PRESTAMO_TERCERO);
         devolucionPrestamoTercerosBtn.setIcon(FontAwesome.USER);
-        devolucionPrestamoTercerosBtn.setWidth("17em");
+        devolucionPrestamoTercerosBtn.setWidth("21em");
         devolucionPrestamoTercerosBtn.setHeight("5em");
+        devolucionPrestamoTercerosBtn.addStyleName("btn-wordwrap");
         devolucionPrestamoTercerosBtn.addListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -241,8 +247,10 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
 
         anticiposProveedorOCBtn = new Button(ANTICIPO_PROVEEDOR_OC);
         anticiposProveedorOCBtn.setIcon(FontAwesome.SHOPPING_CART);
-        anticiposProveedorOCBtn.setWidth("17em");
+        anticiposProveedorOCBtn.setWidth("21em");
         anticiposProveedorOCBtn.setHeight("5em");
+        anticiposProveedorOCBtn.addStyleName("btn-wordwrap");
+        anticiposProveedorOCBtn.addStyleName("btn-wordwrap-tall");
         anticiposProveedorOCBtn.addListener(new Button.ClickListener() {
             @Override
             public void buttonClick(Button.ClickEvent event) {
@@ -312,5 +320,29 @@ public class AutorizacionesPagoView extends VerticalLayout implements View {
     public void enter(ViewChangeListener.ViewChangeEvent event) {
         Page.getCurrent().setTitle("Sopdi - Autorizar pagos");
         ((SopdiUI) UI.getCurrent()).lblEmpresaYFormulario.setValue(empresaId + " " + empresaNombre + " AUTORIZAR PAGOS DE....");
+        Page.getCurrent().getStyles().add(
+                ".v-button.btn-wordwrap {" +
+                "  position: relative;" +
+                "}" +
+                ".v-button.btn-wordwrap-tall {" +
+                "  height: auto !important;" +
+                "  min-height: 5em;" +
+                "}" +
+                ".v-button.btn-wordwrap .v-button-wrap {" +
+                "  padding-right: 26px;" +
+                "}" +
+                ".v-button.btn-wordwrap .v-button-caption {" +
+                "  white-space: normal !important;" +
+                "  word-break: break-word;" +
+                "  line-height: 1.3;" +
+                "  text-align: left;" +
+                "}" +
+                ".v-button.btn-wordwrap .v-icon {" +
+                "  position: absolute;" +
+                "  right: 10px;" +
+                "  top: 50%;" +
+                "  transform: translateY(-50%);" +
+                "}"
+        );
     }
 }

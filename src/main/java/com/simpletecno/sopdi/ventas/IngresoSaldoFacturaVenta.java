@@ -38,6 +38,7 @@ public class IngresoSaldoFacturaVenta extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public IngresoSaldoFacturaVenta(String empresa1, String codigoPartida, String Saldo, String proveedor, String numeroFactura) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         this.codigoPartida = codigoPartida;
         this.saldo = Saldo;

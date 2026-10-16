@@ -47,6 +47,7 @@ public class SeguimientoHandler extends Window implements Button.ClickListener {
     private String recordId, nombre;
     
     public SeguimientoHandler() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.mainUI = UI.getCurrent();
         
         setCaption("SOPDI - Seguimientos y Observaciones");

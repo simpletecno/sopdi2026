@@ -84,6 +84,8 @@ public class ProveedorEmpresaForm extends Window {
     public String idProveedor = "0";
 
     public ProveedorEmpresaForm(String idProveedor) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idProveedor = idProveedor;
         this.mainUI = UI.getCurrent();
 

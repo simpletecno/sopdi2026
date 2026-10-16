@@ -154,6 +154,7 @@ public class PagoFacturaProveedorForm extends Window {
 
     // ────────────────────────────────────────────────────────────────────────
     public PagoFacturaProveedorForm(String IdProveedor, Date fechaPago) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         this.mainUI      = UI.getCurrent();
         this.IdProveedor = IdProveedor;

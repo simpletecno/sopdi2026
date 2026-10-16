@@ -51,6 +51,8 @@ public class OrdenTrabajoForm extends Window {
     int idOrdenTrabajo;
 
     public OrdenTrabajoForm(int idOrdenTrabajo) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idOrdenTrabajo = idOrdenTrabajo;
         this.mainUI = UI.getCurrent();
        

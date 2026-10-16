@@ -84,6 +84,7 @@ public class AutorizarPagoAnticipoForm extends Window {
 
     // ────────────────────────────────────────────────────────────────────────
     public AutorizarPagoAnticipoForm(String tipo) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.tipo   = tipo;
         this.mainUI = UI.getCurrent();
 

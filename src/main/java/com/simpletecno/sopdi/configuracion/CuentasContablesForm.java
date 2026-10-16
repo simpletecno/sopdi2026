@@ -52,7 +52,8 @@ public class CuentasContablesForm extends Window {
     Button guardarBtn;
     Button salirBtn;
 
-    public CuentasContablesForm() {        
+    public CuentasContablesForm() {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);        
         this.mainUI = UI.getCurrent();
         setResponsive(true);
         setModal(true);

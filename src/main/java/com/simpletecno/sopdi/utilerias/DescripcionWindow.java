@@ -24,6 +24,7 @@ public class DescripcionWindow extends Window
     private final Button exitBtn;
 
     public DescripcionWindow(String descripcion) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         setCaption("SOPDI -- Seguimiento");
         

@@ -48,6 +48,8 @@ public class ProgramaTrabajoEmpleadoLibreForm extends Window {
     public ProgramaTrabajoEmpleadoLibreForm(
             DateField fechaFinal
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.fechaFinal = fechaFinal;
         this.mainUI = UI.getCurrent();
 

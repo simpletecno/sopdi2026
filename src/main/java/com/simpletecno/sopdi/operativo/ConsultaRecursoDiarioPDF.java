@@ -48,6 +48,8 @@ public class ConsultaRecursoDiarioPDF extends Window {
             String totalRh,
             IndexedContainer asistenciaContainer
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
 
         this.fechaInicio = fechaInicio;
         this.fechaFin = fechaFin;

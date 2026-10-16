@@ -61,6 +61,7 @@ public class AsignarProveedorProductoForm extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public AsignarProveedorProductoForm(String idProducto, String nombre, String noCuenta, String idProveedor) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
         this.mainUI = UI.getCurrent();
         this.idProducto = idProducto;

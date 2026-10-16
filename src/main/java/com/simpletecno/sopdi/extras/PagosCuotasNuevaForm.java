@@ -49,6 +49,7 @@ public class PagosCuotasNuevaForm extends Window {
     Button agregarCuotaBtn;
 
     public PagosCuotasNuevaForm(String idProveedor, String nombreProveedor){
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.idProveedor = idProveedor;
         this.nombreProveedor = nombreProveedor;
 

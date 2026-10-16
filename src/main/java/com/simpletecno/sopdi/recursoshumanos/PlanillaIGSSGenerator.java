@@ -60,6 +60,8 @@ public class PlanillaIGSSGenerator extends Window {
     String empresaNombre = ((SopdiUI) UI.getCurrent()).sessionInformation.getStrAccountingCompanyName();
 
     public PlanillaIGSSGenerator(String idPlanilla){
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         encabezado = "";
         cuerpo = "";
         licencias = "";

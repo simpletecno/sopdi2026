@@ -49,6 +49,8 @@ public class CargarDocumentoVisita extends Window {
     String codigoVisitaUpdate;
     
     public CargarDocumentoVisita(Object selectedObject, String codigoVisita) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.mainUI = UI.getCurrent();
         this.selectedObjectUpdate = selectedObject;
         this.codigoVisitaUpdate = codigoVisita;

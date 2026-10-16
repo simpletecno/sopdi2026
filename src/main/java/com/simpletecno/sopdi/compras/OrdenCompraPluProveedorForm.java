@@ -51,6 +51,7 @@ public class OrdenCompraPluProveedorForm extends Window {
             String idArea,
             String idProveedor
     ) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
         this.mainUI = UI.getCurrent();
         this.idOrdenCompra = idOrdenCompra;
         this.noCuenta = noCuenta;

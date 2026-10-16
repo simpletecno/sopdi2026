@@ -51,6 +51,8 @@ public class InspectionTextWindow extends Window {
             Integer corr,
             Object item,
             Integer id) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.visitaId = visitaId;
         this.codigoVisita =  codigoVisita;
         this.corr = corr;

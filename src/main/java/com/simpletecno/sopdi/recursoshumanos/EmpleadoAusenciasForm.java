@@ -92,6 +92,8 @@ public class   EmpleadoAusenciasForm extends Window {
     String cargo;
 
     public EmpleadoAusenciasForm(String idEmpleado, String nombreEmpleado, String cargo) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idEmpleado = idEmpleado;
         this.nombreEmpleado = nombreEmpleado;
         this.cargo = cargo;

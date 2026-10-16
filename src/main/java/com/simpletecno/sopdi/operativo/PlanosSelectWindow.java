@@ -40,6 +40,8 @@ public class PlanosSelectWindow extends Window {
     String idGrupoTrabajoPlan;
 
     public PlanosSelectWindow(String idGrupoTrabajoPlan, String centroCosto, String idex) {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idGrupoTrabajoPlan = idGrupoTrabajoPlan;
         this.mainUI = UI.getCurrent();
 

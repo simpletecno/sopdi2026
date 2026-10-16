@@ -85,6 +85,7 @@ public class RevisarMovimientosBancoForm extends Window {
     /** Por defecto abre el formulario mostrando EGRESOS. */
     public RevisarMovimientosBancoForm() {
         this(FILTRO_EGRESOS);
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
     }
 
     /**

@@ -62,6 +62,8 @@ public class InspectionTaskImageWindow extends Window {
             String descripcion,
             boolean editar)
     {
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+        setModal(true);
         this.idVisitaInspeccionTarea = idVisitaInspeccionTarea;
         this.codigoTarea = codigoTarea;
         this.descripcion = descripcion;
