@@ -1279,6 +1279,10 @@ public class OrdenCompraForm extends Window {
                     idccContainer.getContainerProperty(itemId, PRECIO_PROPERTY).setValue(r[8]);
                     idccContainer.getContainerProperty(itemId, TOTAL_PROPERTY).setValue(r[9]);
                     idccContainer.getContainerProperty(itemId, TOTALSF_PROPERTY).setValue(r[10]);
+
+                    if (!idccList.trim().isEmpty()) {
+                        idccGrid.select(itemId);
+                    }
                 }
                 ui.removeWindow(progressWindow);
                 ui.setPollInterval(-1);
@@ -2035,7 +2039,7 @@ public class OrdenCompraForm extends Window {
                 }
 
                 idccList.append(",'").append(sheet.getRow(linea).getCell(0).getStringCellValue()).append("'");
-                idccList.append(",'").append(sheet.getRow(linea).getCell(1).getStringCellValue()).append("'");
+                idexList.append(",'").append(sheet.getRow(linea).getCell(1).getStringCellValue()).append("'");
 
                 recordCount++;
 
