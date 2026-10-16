@@ -2034,8 +2034,8 @@ public class OrdenCompraForm extends Window {
                     break;
                 }
 
-                idccList.append(",'").append(rsRecords.getString("IdCC")).append("'");
-                idccList.append(",'").append(rsRecords.getString("IDEX")).append("'");
+                idccList.append(",'").append(sheet.getRow(linea).getCell(0).getStringCellValue()).append("'");
+                idccList.append(",'").append(sheet.getRow(linea).getCell(1).getStringCellValue()).append("'");
 
                 recordCount++;
 
