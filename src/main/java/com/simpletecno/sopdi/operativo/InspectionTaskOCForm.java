@@ -581,6 +581,8 @@ public class InspectionTaskOCForm extends Window {
                 queryString += " INNER JOIN centro_costo_cuenta CCC ON CCC.CodigoCuentaCentroCosto = OCD.NoCuenta";
                 queryString += " INNER JOIN centro_costo CC ON CC.IdCentroCosto = OCD.IdCC";
                 queryString += " WHERE OCD.IdVisitaInspeccionTareaOCDetalle = " + idVisitaInspeccionTareaOcDetalle;
+                queryString += " AND CC.IdEmpresa = OCD.Idempresa";
+                queryString += " AND OCD.IdEmpresa = " +((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
 
 //System.out.println("1 " + queryString);
 
@@ -616,12 +618,12 @@ public class InspectionTaskOCForm extends Window {
             }
             else { //buscar por detalle item costos
                 queryString = "SELECT DIC.*, CCC.Descripcion, CC.Lote LoteCC ";
-                queryString += " FROM  DIC";
+                queryString += " FROM  DetalleItemsCostos DIC";
                 queryString += " INNER JOIN centro_costo_cuenta CCC ON CCC.CodigoCuentaCentroCosto = DIC.NoCuenta";
                 queryString += " INNER JOIN centro_costo CC ON CC.IdCentroCosto = DIC.IdCC";
                 queryString += " WHERE DIC.Id = " + idDIC;
-
-System.out.println("2 " + queryString);
+                queryString += " AND CC.IdEmpresa = DIC.Idempresa";
+                queryString += " AND DIC.IdEmpresa = " +((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
 
                 rsRecords = stQuery.executeQuery(queryString);
 
