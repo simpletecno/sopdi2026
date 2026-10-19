@@ -288,7 +288,7 @@ public class OrdenCompraEstimacionPDF extends Window {
             c2.setFixedHeight(10f);
             reportTable2.addCell(c2);
 
-            queryString = " SELECT ODD.IdOrdenCompra, ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion";
+            queryString = " SELECT ODD.IdOrdenCompra, ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion, ";
             queryString += " ODD.Cantidad, ODD.Precio, ODD.Total";
             queryString += " FROM orden_compra_detalle ODD";
 //            queryString += " INNER JOIN project On project.Numero = PIDX.IdProject And project.Estatus = 'ACTIVO' AND project.IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
