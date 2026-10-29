@@ -537,11 +537,12 @@ System.out.println("-->\nqueryStringDetalleEstimacion: " + queryString);
             reportTable2.addCell(c2);
 
             queryString = "  SELECT ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion,";
-            queryString += "  SUM(ODD.Cantidad) TotalCantidad, (SUM(ODD.Total) / SUM(ODD.Cantidad)) TotalPrecio, ";
-            queryString += "  ( (SUM(ODD.Total) / SUM(ODD.Cantidad)) * SUM(ODD.Cantidad) ) TotalTotal";
-            queryString += " FROM orden_compra_detalle ODD ";
-            queryString += " WHERE ODD.IdOrdenCompra = " + idOrdenCompra;
-            queryString += " GROUP BY ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion, ODD.PluPrv, ODD.PluPrvDes ";
+            queryString += " SUM(ODD.Cantidad) TotalCantidad, COALESCE(SUM(ODD.Total) / NULLIF(SUM(ODD.Cantidad), 0), 0) TotalPrecio,";
+            queryString += " SUM(ODD.Total) TotalTotal";
+            queryString += " FROM (SELECT DISTINCT IDCC, IDEX, NoCuenta, Descripcion, IdProject, IdArea, Cantidad, Precio, Total";
+            queryString += " FROM orden_compra_detalle WHERE IdOrdenCompra = " + idOrdenCompra + ") ODD";
+            queryString += " GROUP BY ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion";
+            queryString += " ORDER BY ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion";
 
             Logger.getLogger(OrdenCompraEstimacionPDF.class.getName()).log(Level.INFO, queryString);
 
@@ -883,12 +884,11 @@ System.out.println("-->\nqueryStringDetalleEstimacion: " + queryString);
             c2.setFixedHeight(10f);
             reportTable2.addCell(c2);
 
-            queryString = "  SELECT  ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion, ODD.PluPrv, ODD.PluPrvDes, ";
-            queryString += "  SUM(ODD.Cantidad) TotalCantidad, (SUM(ODD.Total) / SUM(ODD.Cantidad)) TotalPrecio, ";
-            queryString += "  ( (SUM(ODD.Total) / SUM(ODD.Cantidad)) * SUM(ODD.Cantidad) ) TotalTotal";
-            queryString += " FROM orden_compra_detalle ODD ";
+            queryString = " SELECT ODD.PluPrv, ODD.PluPrvDes, ODD.Cantidad TotalCantidad,";
+            queryString += " ODD.Precio TotalPrecio, ODD.Total TotalTotal";
+            queryString += " FROM orden_compra_detalle_plu ODD";
             queryString += " WHERE ODD.IdOrdenCompra = " + idOrdenCompra;
-            queryString += " GROUP BY ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.Descripcion, ODD.PluPrv, ODD.PluPrvDes ";
+            queryString += " ORDER BY ODD.IdProject, ODD.IDCC, ODD.IDEX, ODD.NoCuenta, ODD.IdArea, ODD.Id";
 
 Logger.getLogger(OrdenCompraEstimacionPDF.class.getName()).log(Level.INFO, queryString);
 

@@ -333,17 +333,9 @@ public class OrdenCompraView extends VerticalLayout implements View {
                             }
 
                             try {
-                                queryString = "DELETE FROM orden_compra_detalle";
-                                queryString += " WHERE IdOrdenCompra = " + ordenCompraContainer.getContainerProperty(ordenCompraGrid.getSelectedRow(), ID_PROPERTY).getValue();
-
-                                stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-                                stQuery.execute(queryString);
-
-                                queryString = "DELETE FROM orden_compra";
-                                queryString += " WHERE Id = " + ordenCompraContainer.getContainerProperty(ordenCompraGrid.getSelectedRow(), ID_PROPERTY).getValue();
-
-                                stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-                                stQuery.execute(queryString);
+                                OrdenCompraDetallePlu.eliminarOrdenCompra(
+                                        ((SopdiUI) mainUI).databaseProvider.getCurrentConnection(),
+                                        String.valueOf(ordenCompraContainer.getContainerProperty(ordenCompraGrid.getSelectedRow(), ID_PROPERTY).getValue()));
 
                                 ordenCompraContainer.removeItem(ordenCompraGrid.getSelectedRow());
 

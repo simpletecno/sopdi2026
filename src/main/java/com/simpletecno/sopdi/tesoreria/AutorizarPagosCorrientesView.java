@@ -2542,7 +2542,7 @@ public class AutorizarPagosCorrientesView extends VerticalLayout implements View
                     insertBuilder.append("(");
                     insertBuilder.append(empresaId);
                     insertBuilder.append(",'").append(codigoPartida).append("'");
-                    insertBuilder.append(",'").append(cc.isEmpty() ? codigoPartida : cc).append("'"); // CodigoCC
+                    insertBuilder.append(",'").append(codigoPartida).append("'"); // CodigoCC: cuenta corriente iniciada por el cheque
                     insertBuilder.append(",'CHEQUE'");
                     insertBuilder.append(",").append(cuentaAnticipos);
                     insertBuilder.append(",''");

@@ -238,9 +238,9 @@ public class ProveedorPluView extends Window {
                     Notification.show("Por favor, seleccione el registro correspondiente.", Notification.Type.WARNING_MESSAGE);
                 } else {
 
-                    queryString = " SELECT * FROM orden_compra_detalle opd";
-                    queryString += " INNER JOIN orden_compra oc ON opd.IdOrdenCompra = oc.IdOrdenCompra";
-                    queryString += " WHERE opd.PluPrv = " + container.getContainerProperty(plusGrid.getSelectedRow(), PLU_PROPERTY).getValue();
+                    queryString = " SELECT * FROM orden_compra_detalle_plu opd";
+                    queryString += " INNER JOIN orden_compra oc ON opd.IdOrdenCompra = oc.Id";
+                    queryString += " WHERE opd.PluPrv = '" + String.valueOf(container.getContainerProperty(plusGrid.getSelectedRow(), PLU_PROPERTY).getValue()).replace("'", "''") + "'";
                     queryString += " AND oc.IdProveedor = " + container.getContainerProperty(plusGrid.getSelectedRow(), ID_PROVEEDOR_PROPERTY).getValue();
 
                     try {
