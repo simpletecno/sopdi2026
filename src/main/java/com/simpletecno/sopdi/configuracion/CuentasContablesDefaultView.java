@@ -1308,7 +1308,7 @@ public class CuentasContablesDefaultView extends VerticalLayout implements View 
                     queryString += " IsrGasto, IsrPorPagar, IsrRetenidoPorPagar, IsrOpcionalMensualPorPagar, Redondeo, MultasYRectificaciones, ";
                     queryString += " CuotaPatronalIgssPorPagar, CuotaLaboralIgssPorPagar, CuotaPatronalIgss, OtrosArbitrios, ";
                     queryString += " ProvisionCompras, ServiciosBancos, ChequesDevueltos, PerdidasGananciasEjercicioAnterior, ";
-                    queryString += "SueldoOrdinario,  SueldoExtraordinario, Bono37_2001, Bono78_89, Aguinaldo, Bono14, Indemnización ";
+                    queryString += "SueldoOrdinario,  SueldoExtraordinario, Bono37_2001, Bono78_89, Aguinaldo, Bono14, Indemnización, ";
                     queryString += "ProvisionBono14, ProvisionAguinaldo, ProvisionIndemnización, TituloAccion, TituloAccion2, ";
                     queryString += "ChequesTesoreria, AcreedorActivo, AcreedorPasivo ";
                     queryString +=   ") ";

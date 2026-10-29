@@ -141,11 +141,21 @@ public class IngresoLiquidacionGastoForm extends Window {
         final BigDecimal haberQuetzales;
 
         Renglon(String cuenta, BigDecimal debe, BigDecimal haber, BigDecimal tipoCambio) {
+            this(cuenta, debe, haber, centavos(debe).multiply(tipoCambio), centavos(haber).multiply(tipoCambio));
+        }
+
+        private Renglon(String cuenta, BigDecimal debe, BigDecimal haber,
+                BigDecimal debeQuetzales, BigDecimal haberQuetzales) {
             this.cuenta = cuenta;
             this.debe = centavos(debe);
             this.haber = centavos(haber);
-            this.debeQuetzales = centavos(this.debe.multiply(tipoCambio));
-            this.haberQuetzales = centavos(this.haber.multiply(tipoCambio));
+            this.debeQuetzales = centavos(debeQuetzales);
+            this.haberQuetzales = centavos(haberQuetzales);
+        }
+
+        boolean esAjusteRedondeo() {
+            return debe.signum() == 0 && haber.signum() == 0
+                    && (debeQuetzales.signum() != 0 || haberQuetzales.signum() != 0);
         }
     }
 
@@ -265,7 +275,7 @@ public class IngresoLiquidacionGastoForm extends Window {
     }
 
     static List<Renglon> crearRenglones(BigDecimal monto, BigDecimal tipoCambio,
-            String cuentaHaber, String[] cuentas, BigDecimal[] importes) {
+            String cuentaHaber, String[] cuentas, BigDecimal[] importes, String cuentaRedondeo) {
         if (monto.signum() <= 0 || centavos(monto).signum() <= 0 || tipoCambio.signum() <= 0) {
             throw new IllegalArgumentException("El monto y la tasa de cambio deben ser mayores que cero.");
         }
@@ -289,6 +299,31 @@ public class IngresoLiquidacionGastoForm extends Window {
                     renglones.add(new Renglon(cuentas[indice], importes[indice], BigDecimal.ZERO, tipoCambio));
                 }
             }
+        }
+        BigDecimal diferenciaDocumento = BigDecimal.ZERO;
+        BigDecimal diferenciaQuetzales = BigDecimal.ZERO;
+        for (Renglon renglon : renglones) {
+            diferenciaDocumento = diferenciaDocumento.add(renglon.debe).subtract(renglon.haber);
+            diferenciaQuetzales = diferenciaQuetzales.add(renglon.debeQuetzales).subtract(renglon.haberQuetzales);
+        }
+        if (diferenciaDocumento.signum() != 0) {
+            throw new IllegalArgumentException("La partida no cuadra en la moneda del documento. Diferencia: "
+                    + centavos(diferenciaDocumento) + ". Revise los montos.");
+        }
+        if (diferenciaQuetzales.signum() != 0) {
+            long idCuentaRedondeo;
+            try {
+                idCuentaRedondeo = numeroLiquidacion(cuentaRedondeo);
+            } catch (IllegalArgumentException exception) {
+                throw new IllegalArgumentException("Configure una cuenta de Redondeo válida para registrar la diferencia en quetzales.");
+            }
+            if (idCuentaRedondeo == numeroLiquidacion(cuentaHaber)) {
+                throw new IllegalArgumentException("La cuenta de Redondeo debe ser distinta de la cuenta de liquidaciones.");
+            }
+            // Los renglones anteriores se convirtieron con la misma tasa; solo se compensa su redondeo.
+            renglones.add(new Renglon(cuentaRedondeo, BigDecimal.ZERO, BigDecimal.ZERO,
+                    diferenciaQuetzales.signum() < 0 ? diferenciaQuetzales.negate() : BigDecimal.ZERO,
+                    diferenciaQuetzales.signum() > 0 ? diferenciaQuetzales : BigDecimal.ZERO));
         }
         validarCuadre(renglones);
         return renglones;
@@ -449,7 +484,9 @@ public class IngresoLiquidacionGastoForm extends Window {
                                 + " WHERE IdEmpresa = ? AND IdNomenclatura = ? AND Estatus = 'HABILITADA' FOR UPDATE",
                         factura.idEmpresa, renglon.cuenta); ResultSet registros = statement.executeQuery()) {
                     if (!registros.next()) {
-                        throw new IllegalArgumentException("La cuenta contable " + renglon.cuenta + " no está habilitada para esta empresa.");
+                        throw new IllegalArgumentException((renglon.esAjusteRedondeo()
+                                ? "La cuenta de Redondeo " : "La cuenta contable ")
+                                + renglon.cuenta + " no está habilitada para esta empresa.");
                     }
                 }
             }
@@ -465,7 +502,8 @@ public class IngresoLiquidacionGastoForm extends Window {
                         factura.idProveedor, factura.nombreProveedor, factura.serie, factura.numero, renglon.cuenta,
                         factura.moneda, renglon.debe, renglon.haber, renglon.debeQuetzales, renglon.haberQuetzales,
                         factura.tipoCambio, renglon.haber, liquidacion.idLiquidador, liquidacion.idLiquidacion,
-                        "LIQUIDACION GASTO " + liquidacion.idLiquidacion + " " + factura.nombreLiquidador,
+                        (renglon.esAjusteRedondeo() ? "AJUSTE POR REDONDEO LIQUIDACION GASTO " : "LIQUIDACION GASTO ")
+                                + liquidacion.idLiquidacion + " " + factura.nombreLiquidador,
                         factura.idCentroCosto, factura.codigoCentroCosto, factura.idUsuario)) {
                     statement.executeUpdate();
                 }
@@ -1489,7 +1527,8 @@ public class IngresoLiquidacionGastoForm extends Window {
                 idsCuentas[indice] = cuentas[indice].getValue() == null ? null : cuentas[indice].getValue().toString();
                 importes[indice] = importe(montos[indice]);
             }
-            factura.renglones = crearRenglones(importe(montoTxt), tasa, factura.cuentaLiquidaciones, idsCuentas, importes);
+            factura.renglones = crearRenglones(importe(montoTxt), tasa, factura.cuentaLiquidaciones, idsCuentas, importes,
+                    ((SopdiUI) mainUI).cuentasContablesDefault.getRedondeo());
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd");
             Date hoy = dateFormat.parse(new Utileria().getFecha());
             long dias = (hoy.getTime() - fechaDt.getValue().getTime()) / 86400000;
@@ -1702,19 +1741,17 @@ public class IngresoLiquidacionGastoForm extends Window {
                 liquidacion.idEmpresa, liquidacion.idLiquidador, liquidacion.idLiquidacion, codigoPartida);
                 ResultSet rsRecords1 = statement.executeQuery()) {
             int contador = 0;
+            boolean encabezadoLeido = false;
+            ComboBox[] cuentas = {cuentaContable1Cbx, cuentaContable2Cbx, cuentaContable3Cbx, cuentaContable4Cbx};
+            NumberField[] montos = {debe1Txt, debe2Txt, debe3Txt, debe4Txt};
             while (rsRecords1.next()) { //  encontrado                
-
-                if(rsRecords1.getString("IdNomenclatura").equals(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getLiquidacionesCajaChicha())) {
-                    montoTxt.setValue(rsRecords1.getBigDecimal("Haber").toPlainString());
-                }
-
-                if (contador == 0) {
+                if (!encabezadoLeido) {
 
                     serieTxt.setValue(rsRecords1.getString("SerieDocumento"));
                     numeroTxt.setValue(rsRecords1.getString("NumeroDocumento"));
                     nitProveedorTxt.setValue(rsRecords1.getString("NITProveedor"));
                     
-                    if(rsRecords1.getString("IdProveedor").equals("0") || rsRecords1.getObject("IdProveedor") == null) {
+                    if(rsRecords1.getObject("IdProveedor") == null || "0".equals(rsRecords1.getString("IdProveedor"))) {
                         proveedorCbx.select(0);
                         proveedorCbx.setValue(rsRecords1.getString("NombreProveedor"));
                     }
@@ -1724,29 +1761,21 @@ public class IngresoLiquidacionGastoForm extends Window {
                     fechaDt.setValue(rsRecords1.getDate("Fecha"));
                     monedaCbx.setValue(rsRecords1.getString("MonedaDocumento"));
                     tasaCambioTxt.setValue(rsRecords1.getBigDecimal("TipoCambio").toPlainString());
-                    cuentaContable1Cbx.select(rsRecords1.getString("IdNomenclatura"));
-                    debe1Txt.setValue(rsRecords1.getString("Debe"));
-
-                }
-                if (contador == 1) {
-                    cuentaContable2Cbx.select(rsRecords1.getString("IdNomenclatura"));
-                    debe2Txt.setValue(rsRecords1.getString("Debe"));
-                }
-                if (contador == 2) {
-                    cuentaContable3Cbx.select(rsRecords1.getString("IdNomenclatura"));
-                    debe3Txt.setValue(rsRecords1.getString("Debe"));
-                }
-                if (contador == 3) {
-                    cuentaContable4Cbx.select(rsRecords1.getString("IdNomenclatura"));
-                    debe4Txt.setValue(rsRecords1.getString("Debe"));
+                    encabezadoLeido = true;
                 }
 
-//                if (contador == 4) {
-//                    cuentaContable5Cbx.select(rsRecords1.getString("IdNomenclatura"));
-//                    debe5Txt.setValue(rsRecords1.getString("Debe"));
-//                }
+                if (rsRecords1.getString("IdNomenclatura").equals(
+                        ((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getLiquidacionesCajaChicha())) {
+                    montoTxt.setValue(rsRecords1.getBigDecimal("Haber").toPlainString());
+                    continue;
+                }
 
-                contador = contador + 1;
+                BigDecimal debe = rsRecords1.getBigDecimal("Debe");
+                if (debe != null && debe.signum() > 0 && contador < cuentas.length) {
+                    cuentas[contador].select(rsRecords1.getString("IdNomenclatura"));
+                    montos[contador].setValue(debe.toPlainString());
+                    contador++;
+                }
             }
 
         } catch (Exception ex) {
