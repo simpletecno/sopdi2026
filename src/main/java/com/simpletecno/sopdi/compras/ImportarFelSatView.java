@@ -33,6 +33,7 @@ import org.vaadin.ui.NumberField;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -40,8 +41,10 @@ import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.logging.Level;
 
 /**
@@ -1519,8 +1522,9 @@ System.out.println("\n--->queryStringOrdenesCompra="+queryString);
                         if(idOrdenCompra.isEmpty()) {
                             do { //recorre la lista de ordenes de compra activas del proveedor
 
+
                                 if (rsRecords.getDouble("MontoTolerancia") > 0) {
-                                    if ((Double.parseDouble(monto) - rsRecords.getDouble("Total")) <= rsRecords.getDouble("MontoTolerancia")) {
+                                    if (Math.abs(Double.parseDouble(monto) - rsRecords.getDouble("Total")) <= rsRecords.getDouble("MontoTolerancia")) {
                                         encontrado = true;
                                         contador++;
                                         idOrdenCompra = rsRecords.getString("Id");
@@ -1537,7 +1541,7 @@ System.out.println("\n--->queryStringOrdenesCompra="+queryString);
                                         contador++;
                                         idOrdenCompra = rsRecords.getString("Id");
                                         anticipo = rsRecords.getDouble("Anticipo");
-                                        idNomenclatura = rsRecords.getString("IdNomenclatura");//es null o 0 cuando es estimacion
+                                        idNomenclatura = rsRecords.getString("IdNomenclatura");
                                         tipoOrdenCompra = rsRecords.getString("IdTipoOrdenCompra");
                                         codigoCCAnticipo = rsRecords.getString("CodigoCCAnticipo");
                                         NOC = rsRecords.getString("NOC");
@@ -1551,13 +1555,25 @@ System.out.println("\n--->queryStringOrdenesCompra="+queryString);
                             encontrado = true;
                             contador = 1;
                             anticipo = rsRecords.getDouble("Anticipo");
-                            idNomenclatura = rsRecords.getString("IdNomenclatura"); // es null o 0 cuando es estimacion
+                            idNomenclatura = rsRecords.getString("IdNomenclatura");
                             tipoOrdenCompra = rsRecords.getString("IdTipoOrdenCompra");
                             codigoCCAnticipo = rsRecords.getString("CodigoCCAnticipo");
+                            NOC = rsRecords.getString("NOC");
                         }
 
                         if(encontrado && contador == 1) {
                             // si se encontró una y solo 1 orden de compra activa, se procede a crear la partida contable respectiva
+
+                            Map<String, String> nomenclaturasPorCentroCosto = new HashMap<>();
+                            // Tipo 1: estimación. Tipo 2: compra parcial.
+                            // Ambos resuelven la cuenta por centro de costo, normal o provisión.
+                            // La partida y sus aplicaciones usan la misma cuenta, distinta de NULL o 0.
+                            if (tipoOrdenCompra.equals("1") || tipoOrdenCompra.equals("2")) {
+                                // Validar todas las cuentas antes de la primera escritura de la contabilización.
+                                nomenclaturasPorCentroCosto = resolverNomenclaturasPorCentroCosto(
+                                        ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection(),
+                                        empresaId, idOrdenCompra);
+                            }
 
                             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
                             String fecha = fechaEmision; //Utileria.getFechaYYYYMMDD_1(new java.util.Date());
@@ -1821,7 +1837,12 @@ System.out.println("\n\nTEMPORALLOG=subQueryString=" + subQueryString);
                                 //test
                                 /// DEBE ingreso del costo
                                 do { // recorre la lista de centros de costo de la orden de compra
-                                    costo = rsRecords1.getString("TotalCosto");
+                                    if(rsRecords1.getString("TotalCosto") != null) {
+                                        costo = rsRecords1.getString("TotalCosto");
+                                    }else{
+                                        Notification.show("Verificar centro de costo de Orden: " + idOrdenCompra);
+                                        continue;
+                                    }
 
                                     queryString += ",(";
                                     queryString += empresaId;
@@ -1836,26 +1857,8 @@ System.out.println("\n\nTEMPORALLOG=subQueryString=" + subQueryString);
                                     queryString += ",'" + numero + "'";
                                     queryString += ",'" + codigoCC + "'";
 
-                                    // Leer tabla contabilidad_partida para validar si ya se ha emitido una Factura Venta para el Centro de Costo
-                                    // De ser asi, se debe utilizar el idNomenclaturaProvision del Centro de Costo (leer tabla centro_costo)
-
-                                    subQueryString = " SELECT * FROM contabilidad_partida ";
-                                    subQueryString += " WHERE contabilidad_partida.CodigoCentroCosto = '" + rsRecords1.getString("CodigoCentroCosto") + "'";
-                                    subQueryString += " AND contabilidad_partida.TipoDocumento = 'FACTURA VENTA' ";
-                                    subQueryString += " AND contabilidad_partida.Estatus <> 'ANULADO' ";
-                                    subQueryString += " LIMIT 1 ";
-
-System.out.println("TEMPORALLOG=subQueryStringVerificaFacturaVenta=" + subQueryString);
-
-                                    stQuery2 = ((SopdiUI) UI.getCurrent()).databaseProvider.getCurrentConnection().createStatement();
-
-                                    rsRecords = stQuery2.executeQuery(subQueryString);
-                                    if(rsRecords.next()) { // el centro de costo ya tiene una factura de venta asociada
-                                        queryString += "," + rsRecords1.getString("IdNomenclaturaProvision");
-                                    }
-                                    else {
-                                        queryString += "," + rsRecords1.getString("IdNomenclatura");
-                                    }
+                                    // Reutilizar la misma cuenta resuelta para la partida y sus aplicaciones.
+                                    queryString += "," + nomenclaturasPorCentroCosto.get(rsRecords1.getString("IdCentroCosto"));
                                     queryString += ",'" + moneda + "'";
                                     queryString += "," + costo; //DEBE
                                     queryString += ",0.00"; // HABER
@@ -1930,7 +1933,7 @@ System.out.println("TEMPORALLOG=subQueryStringVerificaFacturaVenta=" + subQueryS
                                         queryStringDOCA += ",null";// rebajado
                                         queryStringDOCA += ",null";//norefci
                                         queryStringDOCA += ",'" + rsRecords1.getString("IDEX") + "'";
-                                        queryStringDOCA += "," + idNomenclatura;
+                                        queryStringDOCA += "," + nomenclaturasPorCentroCosto.get(rsRecords1.getString("IdCentroCosto"));
                                         queryStringDOCA += ")";
 
                                     } while (rsRecords1.next());  //centros costo para orden de compra tipo no estimacion
@@ -2059,6 +2062,47 @@ System.out.println("TEMPORALLOG=queryStringInsertDOCA=" + queryStringDOCA);
             ex1.printStackTrace();
             Notification.show("Error al contabilizar documento." + ex1.getMessage(), Notification.Type.ERROR_MESSAGE);
         }
+    }
+
+    static Map<String, String> resolverNomenclaturasPorCentroCosto(
+            Connection connection, String idEmpresa, String idOrdenCompra) throws SQLException {
+        String sql = "SELECT DISTINCT CC.IdCentroCosto, DET.IdCC AS CodigoCentroCosto,"
+                + " CC.IdNomenclatura, CC.IdNomenclaturaProvision,"
+                + " EXISTS (SELECT 1 FROM contabilidad_partida CP"
+                + " WHERE CP.IdEmpresa = CC.IdEmpresa"
+                + " AND CP.CodigoCentroCosto = CC.CodigoCentroCosto"
+                + " AND CP.TipoDocumento = 'FACTURA VENTA'"
+                + " AND CP.Estatus <> 'ANULADO') AS TieneFacturaVenta"
+                + " FROM orden_compra_detalle DET"
+                + " LEFT JOIN centro_costo CC ON CC.CodigoCentroCosto = DET.IdCC AND CC.IdEmpresa = ?"
+                + " WHERE DET.IdOrdenCompra = ?";
+
+        Map<String, String> nomenclaturas = new HashMap<>();
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, idEmpresa);
+            statement.setString(2, idOrdenCompra);
+            try (ResultSet centros = statement.executeQuery()) {
+                while (centros.next()) {
+                    String idCentro = centros.getString("IdCentroCosto");
+                    String codigoCentro = centros.getString("CodigoCentroCosto");
+                    if (idCentro == null) {
+                        throw new SQLException("El centro de costo " + codigoCentro
+                                + " de la orden " + idOrdenCompra + " no existe en la empresa " + idEmpresa + ".");
+                    }
+                    String columnaCuenta = centros.getBoolean("TieneFacturaVenta")
+                            ? "IdNomenclaturaProvision" : "IdNomenclatura";
+                    if (centros.getLong(columnaCuenta) <= 0) {
+                        throw new SQLException("El centro de costo " + codigoCentro
+                                + " de la orden " + idOrdenCompra + " no tiene configurada " + columnaCuenta + ".");
+                    }
+                    nomenclaturas.put(idCentro, centros.getString(columnaCuenta));
+                }
+            }
+        }
+        if (nomenclaturas.isEmpty()) {
+            throw new SQLException("La orden de compra " + idOrdenCompra + " no tiene centros de costo asociados.");
+        }
+        return nomenclaturas;
     }
 
     /**

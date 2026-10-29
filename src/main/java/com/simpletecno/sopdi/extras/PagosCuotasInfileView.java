@@ -117,7 +117,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
     Date fechaDocumentoVenta;
     String fechasPagadas;
 
-    String tiposEnFactura;
+    String tiposProductos;
 
     String codigoPartidaAnticipo;
     String codigoPartidaCuota;
@@ -409,7 +409,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
                         return;
                     }
 
-                    if (!fechaFacturaValida()) {
+                    if (!fechaDocumentoVentaValida()) {
                         return;
                     }
 
@@ -692,7 +692,6 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
 
     public boolean documentoCeritficaroInfile(ComboBox proveedorCbx){
         String correo;
-        Date fechaEmision = fechaDt.getValue();
 
         if (proveedorCbx.getContainerProperty(proveedorCbx.getValue(), CORREO_PROPERTY).getValue() == null) {
             correo = "";
@@ -721,17 +720,6 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
             return false;
         }
 
-
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_YEAR, -5);  // hoy - 5 días
-        Date fechaLimite = cal.getTime();
-
-        // fechaEmision es más de 5 días antes que hoy
-        if (fechaEmision.before(fechaLimite)) {
-            fechaEmision = fechaLimite;
-        }
-
-
         infileClient = new InfileClient(((SopdiUI)mainUI).sessionInformation.getInfileEmisor());
         return infileClient.generarDocumentoBase(
                 receptor,
@@ -739,7 +727,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
                 productoList,
                 exentoIva ?"RDON":"FACT",
                 "",
-                fechaEmision,
+                fechaDocumentoVenta,
                 "GTQ",
                 1.00
         );
@@ -764,13 +752,16 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
             calcularCuotasAPagar(montoSobrante);
         }
 
-        Date fechaInicial = new Date();
         Calendar cal = Calendar.getInstance();
-        cal.setTime(fechaInicial);
-        cal.add(Calendar.DAY_OF_YEAR, -5);
+        cal.add(Calendar.DAY_OF_YEAR, -5);  // hoy - 5 días
+        Date fechaLimite = cal.getTime();
 
         // Si pasan 5 dias
-        fechaDocumentoVenta = fechaDt.getValue().before(cal.getTime()) ? fechaInicial : fechaDt.getValue();
+        if (fechaDt.getValue().before(fechaLimite)) {
+            fechaDocumentoVenta = fechaLimite;
+        } else {
+            fechaDocumentoVenta = fechaDt.getValue();
+        }
 
 
         BigDecimal base = toMoney(BigDecimal.valueOf(montoTotal).divide(IVA_DIVISOR, 2, RoundingMode.HALF_UP));
@@ -846,7 +837,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
         }
 
         if (this.montoBoletaTxt.getDoubleValueDoNotThrow() <= 0) {
-            Notification.show("Por favor ingrese el monto de la factura.", Notification.Type.WARNING_MESSAGE);
+            Notification.show("Por favor ingrese el monto de la Boleta.", Notification.Type.WARNING_MESSAGE);
             montoBoletaTxt.focus();
             return false;
         }
@@ -880,14 +871,14 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
         return true;
     }
 
-    private boolean fechaFacturaValida() {
+    private boolean fechaDocumentoVentaValida() {
         if (((SopdiUI) UI.getCurrent()).esMesCerrado(empresa, Utileria.getFechaYYYYMMDD_1(fechaDocumentoVenta))) {
-            Notification.show("La fecha de la factura no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
+            Notification.show("La fecha de la Cuota no puede ser de un mes ya cerrado contablemente, revise!", Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return false;
         }
         if (!((SopdiUI) UI.getCurrent()).esPrimerMesAbierto(empresa, Utileria.getFechaYYYYMMDD_1(fechaDocumentoVenta))) {
-            Notification.show("El mes abierto a operaciones para la factura es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(empresa), Notification.Type.WARNING_MESSAGE);
+            Notification.show("El mes abierto a operaciones para la Cuota es : " + ((SopdiUI) UI.getCurrent()).primerMesAbierto(empresa), Notification.Type.WARNING_MESSAGE);
             fechaDt.focus();
             return false;
         }
@@ -973,7 +964,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
 
             conn.commit();
 
-            Notification notif = new Notification("FACTURA VENTA GENERADA EXITOSAMENTE.", Notification.Type.HUMANIZED_MESSAGE);
+            Notification notif = new Notification(  tipoDocumento +" GENERADA EXITOSAMENTE.", Notification.Type.HUMANIZED_MESSAGE);
             notif.setDelayMsec(1500);
             notif.setPosition(Position.MIDDLE_CENTER);
             notif.setIcon(FontAwesome.CHECK);
@@ -1035,13 +1026,13 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
         BigDecimal isrMontoBd = toMoney(isrMonto);
 
         String descripcionAnticipo = "ANTICIPO CUOTA " + getProveedorProperty(proveedorCbx, NOMBRE_PROVEEDOR) + " - " + fechasPagadas;
-        String descripcionFactura = "FACTURA VENTA CUOTA " + getProveedorProperty(proveedorCbx, NOMBRE_PROVEEDOR) + " - " + fechasPagadas;
+        String descripcionCuota = tipoDocumento + " " + getProveedorProperty(proveedorCbx, NOMBRE_PROVEEDOR) + " - " + fechasPagadas;
 
-        partidas.add(crearPartida(proveedorCbx, codigoPartidaAnticipo, codigoPartidaAnticipo, tipoBoletaCbx.getValue().toString(), tiposEnFactura,
+        partidas.add(crearPartida(proveedorCbx, codigoPartidaAnticipo, codigoPartidaAnticipo, tipoBoletaCbx.getValue().toString(), tiposProductos,
                 fechaDt.getValue(), ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposClientes(), montoBoleta,
                 BigDecimal.ZERO, montoBoleta, saldo, descripcionAnticipo, false, 0, null, "", numeroBoletaTxt.getValue()));
 
-        partidas.add(crearPartida(proveedorCbx, codigoPartidaAnticipo, codigoPartidaAnticipo, tipoBoletaCbx.getValue().toString(), tiposEnFactura,
+        partidas.add(crearPartida(proveedorCbx, codigoPartidaAnticipo, codigoPartidaAnticipo, tipoBoletaCbx.getValue().toString(), tiposProductos,
                 fechaDt.getValue(), ((SopdiUI) mainUI).cuentasContablesDefault.getBancosMonedaLocal(), montoBoleta,
                 montoBoleta, BigDecimal.ZERO, saldo, descripcionAnticipo, false, 0, null, "", numeroBoletaTxt.getValue()));
 
@@ -1063,25 +1054,25 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
             }
         }
 
-        partidas.add(crearPartida(proveedorCbx, codigoPartidaCuota, codigoPartidaAnticipo, tipoDocumento, tiposEnFactura,
+        partidas.add(crearPartida(proveedorCbx, codigoPartidaCuota, codigoPartidaAnticipo, tipoDocumento, tiposProductos,
                 fechaDocumentoVenta, ((SopdiUI) mainUI).cuentasContablesDefault.getAnticiposClientes(), montoTotalBd,
-                montoTotalBd, BigDecimal.ZERO, saldoSobrante, descripcionFactura, true, 1, null, serieInfile(), String.valueOf(infileClient.getNumero())));
+                montoTotalBd, BigDecimal.ZERO, saldoSobrante, descripcionCuota, true, 1, null, serieInfile(), String.valueOf(infileClient.getNumero())));
 
         if(((SopdiUI) UI.getCurrent()).cuentasContablesDefault.getIvaPorPagar() != null && !esRegimenExento()) {
-            partidas.add(crearPartida(proveedorCbx, codigoPartidaCuota, codigoPartidaAnticipo, tipoDocumento, tiposEnFactura,
+            partidas.add(crearPartida(proveedorCbx, codigoPartidaCuota, codigoPartidaAnticipo, tipoDocumento, tiposProductos,
                     fechaDocumentoVenta, ((SopdiUI) mainUI).cuentasContablesDefault.getIvaPorPagar(), montoTotalBd,
-                    BigDecimal.ZERO, ivaMontoTotalBd, saldoSobrante, descripcionFactura, true, 1, null, serieInfile(), String.valueOf(infileClient.getNumero())));
+                    BigDecimal.ZERO, ivaMontoTotalBd, saldoSobrante, descripcionCuota, true, 1, null, serieInfile(), String.valueOf(infileClient.getNumero())));
         }
 
         if(!esRegimenExento()) {
             if ("1".equals(String.valueOf(getProveedorProperty(proveedorCbx, RETIENEISR_PROPERTY))) && isrMontoBd.compareTo(BigDecimal.ZERO) > 0) {
-                partidas.add(crearPartida(proveedorCbx, codigoPartidaCuota, codigoPartidaAnticipo, tipoDocumento, tiposEnFactura,
+                partidas.add(crearPartida(proveedorCbx, codigoPartidaCuota, codigoPartidaAnticipo, tipoDocumento, tiposProductos,
                         fechaDocumentoVenta, ((SopdiUI) mainUI).cuentasContablesDefault.getIsrGasto(), montoTotalBd,
-                        isrMontoBd, BigDecimal.ZERO, saldoSobrante, descripcionFactura, true, 1, null, serieInfile(), String.valueOf(infileClient.getNumero())));
+                        isrMontoBd, BigDecimal.ZERO, saldoSobrante, descripcionCuota, true, 1, null, serieInfile(), String.valueOf(infileClient.getNumero())));
 
-                partidas.add(crearPartida(proveedorCbx, codigoPartidaCuota, codigoPartidaAnticipo, tipoDocumento, tiposEnFactura,
+                partidas.add(crearPartida(proveedorCbx, codigoPartidaCuota, codigoPartidaAnticipo, tipoDocumento, tiposProductos,
                         fechaDocumentoVenta, ((SopdiUI) mainUI).cuentasContablesDefault.getIsrOpcionalMensualPorPagar(), montoTotalBd,
-                        BigDecimal.ZERO, isrMontoBd, saldoSobrante, descripcionFactura, true, 1, null, serieInfile(), String.valueOf(infileClient.getNumero())));
+                        BigDecimal.ZERO, isrMontoBd, saldoSobrante, descripcionCuota, true, 1, null, serieInfile(), String.valueOf(infileClient.getNumero())));
             }
         }
 
@@ -1243,7 +1234,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
                 "FROM contabilidad_partida " +
                 "WHERE IdProveedor = ? " +
                 "AND IdNomenclatura = ? " +
-                "AND TipoDocumento = 'FACTURA VENTA' " +
+                "AND TipoDocumento in ('FACTURA VENTA', 'RECIBO CONTABLE VENTA') " +
                 "AND IdEmpresa = ? " +
                 "ORDER BY Fecha " +
                 "LIMIT 1";
@@ -1266,7 +1257,7 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
         BigDecimal ivaMontoTotalBd = BigDecimal.ZERO;
 
         fechasPagadas = "";
-        tiposEnFactura = "";
+        tiposProductos = "";
 
         boolean productoBool = true;
         boolean servicioBool = true;
@@ -1276,11 +1267,11 @@ public class PagosCuotasInfileView extends VerticalLayout implements View {
 
             if(productoBool && cuotasPendientesContainer.getContainerProperty(itemId, TIPO_PRODUCTO).getValue().equals("PRODUCTO")) {
                 productoBool = false;
-                tiposEnFactura += "PRODUCTO ";
+                tiposProductos += "PRODUCTO ";
             }
             if(servicioBool && cuotasPendientesContainer.getContainerProperty(itemId, TIPO_PRODUCTO).getValue().equals("SERVICIO")) {
                 servicioBool = false;
-                tiposEnFactura += "SERVICIO ";
+                tiposProductos += "SERVICIO ";
             }
 
             BigDecimal montoActual = toMoney((Double) cuotasPendientesContainer.getContainerProperty(itemId, FALTANTE).getValue());

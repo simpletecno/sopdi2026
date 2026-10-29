@@ -37,6 +37,7 @@ import com.simpletecno.sopdi.MyDatabaseProvider;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -578,7 +579,10 @@ public class OrdenCompraForm extends Window {
                         idOrdenCompra,
                         item.getItemProperty(CUENTA_PROPERTY).getValue().toString(),
                         item.getItemProperty(AREA_PROPERTY).getValue().toString(),
-                        proveedorCbx.getValue().toString()
+                        proveedorCbx.getValue().toString(),
+                        item.getItemProperty(IDCC_PROPERTY).getValue().toString(),
+                        item.getItemProperty(IDEX_PROPERTY).getValue().toString(),
+                        item.getItemProperty(PROJECT_PROPERTY).getValue().toString()
                 );
                 UI.getCurrent().addWindow(ordenCompraPluProveedorForm);
                 ordenCompraPluProveedorForm.center();
@@ -818,17 +822,8 @@ public class OrdenCompraForm extends Window {
                             }
 
                             try {
-                                queryString = "DELETE FROM orden_compra_detalle";
-                                queryString += " WHERE IdOrdenCompra = " + idOrdenCompra;
-
-                                stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-                                stQuery.execute(queryString);
-
-                                queryString = "DELETE FROM orden_compra";
-                                queryString += " WHERE Id = " + idOrdenCompra;
-
-                                stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-                                stQuery.execute(queryString);
+                                OrdenCompraDetallePlu.eliminarOrdenCompra(
+                                        ((SopdiUI) mainUI).databaseProvider.getCurrentConnection(), idOrdenCompra);
 
                                 ((OrdenCompraView)UI.getCurrent().getNavigator().getCurrentView()).ordenCompraContainer.removeItem(selectedItem);
 
@@ -1126,10 +1121,8 @@ public class OrdenCompraForm extends Window {
             ...
  */
             String q = "SELECT DITEMC.IdCC, DITEMC.Idex, PROJT.Descripcion IdexDescripcion, DITEMC.NoCuenta, DITEMC.IdArea,";
-//            q += " DITEMC.Descripcion DescripcionCuenta, SUM(DITEMC.Cantidad) TotalCantidad, (SUM(DITEMC.Total) / SUM(DITEMC.Cantidad)) TotalPrecio, ";
-//            q += "  ( (SUM(DITEMC.Total) / SUM(DITEMC.Cantidad)) * SUM(DITEMC.Cantidad) ) TotalTotal,";
-            q += " DITEMC.Descripcion DescripcionCuenta, SUM(DITEMC.Cantidad) TotalCantidad, (SUM(DITEMC.Total) /  SUM(DITEMC.Cantidad)) TotalPrecio, ";
-            q += "  ( SUM(DITEMC.Cantidad) *(SUM(DITEMC.Total) /  SUM(DITEMC.Cantidad))) TotalTotal,";
+            q += " DITEMC.Descripcion DescripcionCuenta, SUM(DITEMC.Cantidad) TotalCantidad, (SUM(DITEMC.Total) / SUM(DITEMC.Cantidad)) TotalPrecio, ";
+            q += "  ( (SUM(DITEMC.Total) / SUM(DITEMC.Cantidad)) * SUM(DITEMC.Cantidad) ) TotalTotal,";
             q += " PROJ.Numero";
             q += " FROM  DetalleItemsCostos DITEMC";
             q += " INNER JOIN project PROJ On PROJ.Numero = DITEMC.IdProject And PROJ.Estatus = 'ACTIVO'";
@@ -1150,10 +1143,8 @@ public class OrdenCompraForm extends Window {
             finalQuery = q;
         } else { // 2=orden de compra parcial
             String q = "SELECT DITEMC.IdCC, DITEMC.Idex, PROJT.Descripcion IdexDescripcion, DITEMC.NoCuenta, DITEMC.IdArea,";
-//            q += " DITEMC.Descripcion DescripcionCuenta, SUM(DITEMC.Cantidad) TotalCantidad, (SUM(DITEMC.Total) / SUM(DITEMC.Cantidad)) TotalPrecio,";
-//            q += " ( (SUM(DITEMC.Total) / SUM(DITEMC.Cantidad)) * SUM(DITEMC.Cantidad) )  TotalTotal,";
-            q += " DITEMC.Descripcion DescripcionCuenta, SUM(DITEMC.Cantidad) TotalCantidad, (SUM(DITEMC.Total) /  SUM(DITEMC.Cantidad)) TotalPrecio, ";
-            q += "  ( SUM(DITEMC.Cantidad) * (SUM(DITEMC.Total) /  SUM(DITEMC.Cantidad))) TotalTotal,";
+            q += " DITEMC.Descripcion DescripcionCuenta, SUM(DITEMC.Cantidad) TotalCantidad, (SUM(DITEMC.Total) / SUM(DITEMC.Cantidad)) TotalPrecio,";
+            q += " ( (SUM(DITEMC.Total) / SUM(DITEMC.Cantidad)) * SUM(DITEMC.Cantidad) )  TotalTotal,";
             q += " PROJ.Numero";
             q += " FROM  DetalleItemsCostos DITEMC";
             q += " INNER JOIN project PROJ On PROJ.Numero = DITEMC.IdProject And PROJ.Estatus = 'ACTIVO'";
@@ -1283,10 +1274,6 @@ public class OrdenCompraForm extends Window {
                     idccContainer.getContainerProperty(itemId, PRECIO_PROPERTY).setValue(r[8]);
                     idccContainer.getContainerProperty(itemId, TOTAL_PROPERTY).setValue(r[9]);
                     idccContainer.getContainerProperty(itemId, TOTALSF_PROPERTY).setValue(r[10]);
-
-                    if (!idccList.trim().isEmpty()) {
-                        idccGrid.select(itemId);
-                    }
                 }
                 ui.removeWindow(progressWindow);
                 ui.setPollInterval(-1);
@@ -1355,6 +1342,8 @@ public class OrdenCompraForm extends Window {
                         if (item.getItemProperty(IDCC_PROPERTY).getValue().equals(rsRecords.getString("Idcc"))
                                 && item.getItemProperty(IDEX_PROPERTY).getValue().equals(rsRecords.getString("Idex"))
                                 && item.getItemProperty(CUENTA_PROPERTY).getValue().equals(rsRecords.getString("NoCuenta"))
+                                && item.getItemProperty(PROJECT_PROPERTY).getValue().equals(rsRecords.getString("IdProject"))
+                                && item.getItemProperty(AREA_PROPERTY).getValue().equals(rsRecords.getString("IdArea"))
                         ) {
                             idccGrid.select(itemId);
                             if (firstSelectedItemId == null) {
@@ -1623,6 +1612,9 @@ public class OrdenCompraForm extends Window {
     }
 
     public void guardarOrdenCompra() {
+        Connection connection = null;
+        String idOrdenCompraAnterior = idOrdenCompra;
+        boolean ordenGuardada = false;
 
         try {
 
@@ -1681,7 +1673,12 @@ public class OrdenCompraForm extends Window {
                 }
             }
 
-            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+            connection = new MyDatabaseProvider().getNewConnection();
+            if (connection == null) {
+                throw new SQLException("No se pudo conectar para guardar la orden de compra.");
+            }
+            connection.setAutoCommit(false);
+            stQuery = connection.createStatement();
 
             if(idOrdenCompra.trim().isEmpty()) {
                 int siguienteOrdenCompra = 1;
@@ -1696,7 +1693,7 @@ public class OrdenCompraForm extends Window {
 
                 try {
 
-                    stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+                    stQuery = connection.createStatement();
                     rsRecords = stQuery.executeQuery (queryString);
 
                     if(rsRecords.next()) { //  encontrado
@@ -1742,7 +1739,7 @@ public class OrdenCompraForm extends Window {
 
                 Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
 
-                stPreparedQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().prepareStatement(queryString, Statement.RETURN_GENERATED_KEYS);
+                stPreparedQuery = connection.prepareStatement(queryString, Statement.RETURN_GENERATED_KEYS);
                 stPreparedQuery.executeUpdate();
                 rsRecords = stPreparedQuery.getGeneratedKeys();
 
@@ -1771,149 +1768,46 @@ public class OrdenCompraForm extends Window {
 
             }
 
-            ArrayList<PluTemp> pluTemps = new ArrayList<>();
-
-            if(Integer.parseInt(tipoOrdenCompraCbx.getValue().toString()) == 2 ) {
-                /* leer tabla orden_compra_detalle y guardar los registros en un arreglo temporal de Cuenta, Area, PrvPlu prvPluDes
-                    para luego susbtituir el PluPrv y PluPrvDesc en el isert into
-                 */
-                queryString = " SELECT * FROM orden_compra_detalle WHERE IdOrdenCompra = " + idOrdenCompra;
-                // Logger.getLogger(this.getClass().getName()).log(Level.INFO, queryString);
-                stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-                rsRecords1 = stQuery.executeQuery(queryString);
-                if (rsRecords1.next()) { //  encontrado
-                    do {
-                        PluTemp pluTemp = new PluTemp(
-                                rsRecords1.getString("NoCuenta"),
-                                rsRecords1.getString("IdArea"),
-                                rsRecords1.getString("PluPrv"),
-                                rsRecords1.getString("PluPrvDes"));
-                        pluTemps.add(pluTemp);
-
-                    } while (rsRecords1.next());
-                }
+            try (PreparedStatement eliminarDetalle = connection.prepareStatement(
+                    "DELETE FROM orden_compra_detalle WHERE IdOrdenCompra = ?")) {
+                eliminarDetalle.setString(1, idOrdenCompra);
+                eliminarDetalle.executeUpdate();
             }
 
-            // eliminar todos los registros de orden_compra_detalle relacionados a la orden de compra
-            // para luego insertar los registros seleccionados en el grid
-            queryString = "DELETE FROM orden_compra_detalle WHERE IdOrdenCompra = " + idOrdenCompra;
-            stQuery.executeUpdate(queryString);
-
-            for (Object itemId : idccContainer.getItemIds()) {
-                Item item = idccContainer.getItem(itemId);
-
-                if(idccGrid.isSelected(itemId)) {
-
-                    queryString = "INSERT INTO orden_compra_detalle";
-                    if(tipoOrdenCompraCbx.getValue().equals("2")) { //COMPRA PARCIAL
-                        queryString += "(IdOrdenCompra, IDCC, IDEX, NoCuenta, Descripcion, PluPrv, PluPrvDes, ";
-                        queryString += " IdProject, IdArea, Cantidad, Precio, Total, CreadoFechaYHora, CreadoUsuario)";
-                        queryString += " VALUES ";
-
-                        String cuenta = String.valueOf(item.getItemProperty(CUENTA_PROPERTY).getValue());
-                        String searchQuery = "  SELECT * FROM proveedor_plu ";
-                        searchQuery += " LEFT JOIN centro_costo_cuenta on centro_costo_cuenta.IdCuentaCentroCosto = proveedor_plu.IdCuentaCentroCosto ";
-                        searchQuery += " WHERE proveedor_plu.IdProveedor = " + proveedorCbx.getValue();
-                        searchQuery += " AND centro_costo_cuenta.CodigoCuentaCentroCosto = '" + cuenta + "'";
-
-                        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY PARA BUSCAR PRODUCTOS PLU DE LA CUENTA : " + searchQuery);
-
-                        rsRecords1 = stQuery.executeQuery(searchQuery);
-
-                        if(rsRecords1.next()) {
-                            do {
-                                queryString += "(" + idOrdenCompra;
-                                queryString += ",'" + item.getItemProperty(IDCC_PROPERTY).getValue() + "'";
-                                queryString += ",'" + item.getItemProperty(IDEX_PROPERTY).getValue() + "'";
-                                queryString += ",'" + item.getItemProperty(CUENTA_PROPERTY).getValue() + "'";
-                                queryString += ",'" + item.getItemProperty(DESCRIPCION_CUENTA_PROPERTY).getValue() + "'";
-                                /*recorrer el array temporal para buscar si la cuenta y area ya tienen un plu asignado en la orden de compra
-                                      si es asi, usar ese plu y descripcion
-                                 */
-                                String prvPlu = rsRecords1.getString("Plu");
-                                String prvPluDes = rsRecords1.getString("DescripcionProveedor");
-
-                                for(PluTemp pt : pluTemps) {
-                                    if(pt.getCuenta().equals(cuenta)
-                                            && pt.getArea().equals(String.valueOf(item.getItemProperty(AREA_PROPERTY).getValue()))
-                                    ) {
-                                        prvPlu = pt.getPrvPlu();
-                                        prvPluDes = pt.getPrvPluDes();
-                                        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "SE ENCONTRO PLU TEMPORAL PARA LA CUENTA : " + cuenta + " Y AREA : " + item.getItemProperty(AREA_PROPERTY).getValue()
-                                                + " USANDO PLU : " + prvPlu + " DESCRIPCION : " + prvPluDes);
-                                        break;
-                                    }
-                                }
-                                queryString += ",'" + prvPlu + "'";
-                                queryString += ",'" + prvPluDes + "'";
-                                queryString += ",'" + item.getItemProperty(PROJECT_PROPERTY).getValue() + "'";
-                                queryString += ", " + item.getItemProperty(AREA_PROPERTY).getValue();
-                                queryString += "," + Double.parseDouble(String.valueOf(item.getItemProperty(CANTIDAD_PROPERTY).getValue()).replaceAll(",", ""));
-                                queryString += "," + Double.parseDouble(String.valueOf(item.getItemProperty(PRECIO_PROPERTY).getValue()).replaceAll(",", ""));
-                                queryString += "," + Double.parseDouble(String.valueOf(item.getItemProperty(TOTAL_PROPERTY).getValue()).replaceAll(",", ""));
-                                queryString += ",current_timestamp";
-                                queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
-                                queryString += "),";
-
-                                Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY ORDEN DE COMPRA DETALLE : " + queryString );
-
-                            } while(rsRecords1.next());
-                        } else {
-                            Notification notif = new Notification("NO SE HAN ENCONTRADO PRODUCTOS PLU RELACIONADOS A LA CUENTA : " + cuenta, Notification.Type.WARNING_MESSAGE);
-                            notif.setDelayMsec(3000);
-                            notif.setPosition(Position.MIDDLE_CENTER);
-                            notif.setIcon(FontAwesome.WARNING);
-                            notif.show(Page.getCurrent());
-
-                            queryString += "(" + idOrdenCompra;
-                            queryString += ",'" + item.getItemProperty(IDCC_PROPERTY).getValue() + "'";
-                            queryString += ",'" + item.getItemProperty(IDEX_PROPERTY).getValue() + "'";
-                            queryString += ",'" + item.getItemProperty(CUENTA_PROPERTY).getValue() + "'";
-                            queryString += ",'" + item.getItemProperty(DESCRIPCION_CUENTA_PROPERTY).getValue() + "'";
-                            queryString += ",''";
-                            queryString += ",''";
-                            queryString += ",'" + item.getItemProperty(PROJECT_PROPERTY).getValue() + "'";
-                            queryString += ", " + item.getItemProperty(AREA_PROPERTY).getValue();
-                            queryString += "," + Double.parseDouble(String.valueOf(item.getItemProperty(CANTIDAD_PROPERTY).getValue()).replaceAll(",", ""));
-                            queryString += "," + Double.parseDouble(String.valueOf(item.getItemProperty(PRECIO_PROPERTY).getValue()).replaceAll(",", ""));
-                            queryString += "," + Double.parseDouble(String.valueOf(item.getItemProperty(TOTAL_PROPERTY).getValue()).replaceAll(",", ""));
-                            queryString += ",current_timestamp";
-                            queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
-                            queryString += "),";
-
-                            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY ORDEN DE COMPRA DETALLE SIN PLU : " + queryString );
-
-                        }
-                        queryString = queryString.substring(0, queryString.length() - 1); // remove last comma
+            String insertarDetalle = "INSERT INTO orden_compra_detalle"
+                    + " (IdOrdenCompra, IDCC, IDEX, NoCuenta, Descripcion, IdProject, IdArea,"
+                    + " Cantidad, Precio, Total, CreadoFechaYHora, CreadoUsuario)"
+                    + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)";
+            try (PreparedStatement detalleStatement = connection.prepareStatement(insertarDetalle)) {
+                for (Object itemId : idccContainer.getItemIds()) {
+                    if (!idccGrid.isSelected(itemId)) {
+                        continue;
                     }
-                    else { // compra ESTIMACION, eventual, recurrente
-                        queryString += "(IdOrdenCompra, IDCC, IDEX, NoCuenta, Descripcion, ";
-                        queryString += " IdProject, IdArea, Cantidad, Precio, Total, CreadoFechaYHora, CreadoUsuario)";
-                        queryString += " VALUES ";
-                        queryString += "(" + idOrdenCompra;
-                        queryString += ",'" + item.getItemProperty(IDCC_PROPERTY).getValue() + "'";
-                        queryString += ",'" + item.getItemProperty(IDEX_PROPERTY).getValue() + "'";
-                        queryString += ",'" + item.getItemProperty(CUENTA_PROPERTY).getValue() + "'";
-                        if(String.valueOf(item.getItemProperty(DESCRIPCION_CUENTA_PROPERTY).getValue()).isEmpty()) {
-                            queryString += ",'" + item.getItemProperty(DESCRIPCION_PROPERTY).getValue() + "'";
-                        }
-                        else {
-                            queryString += ",'" + item.getItemProperty(DESCRIPCION_CUENTA_PROPERTY).getValue() + "'";
-                        }
-                        queryString += ",'" + item.getItemProperty(PROJECT_PROPERTY).getValue() + "'";
-                        queryString += ", " + item.getItemProperty(AREA_PROPERTY).getValue();
-                        queryString += "," + Double.parseDouble(String.valueOf(item.getItemProperty(CANTIDAD_PROPERTY).getValue()).replaceAll(",", ""));
-                        queryString += "," + Double.parseDouble(String.valueOf(item.getItemProperty(PRECIO_PROPERTY).getValue()).replaceAll(",", ""));
-                        queryString += "," + Double.parseDouble(String.valueOf(item.getItemProperty(TOTAL_PROPERTY).getValue()).replaceAll(",", ""));
-                        queryString += ",current_timestamp";
-                        queryString += "," + ((SopdiUI) mainUI).sessionInformation.getStrUserId();
-                        queryString += ")";
+                    Item item = idccContainer.getItem(itemId);
+                    String descripcion = String.valueOf(item.getItemProperty(DESCRIPCION_CUENTA_PROPERTY).getValue());
+                    if (descripcion.isEmpty()) {
+                        descripcion = String.valueOf(item.getItemProperty(DESCRIPCION_PROPERTY).getValue());
                     }
-                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "QUERY INSERT ORDEN DE COMPRA DETALLE : " + queryString );
-
-                    stQuery.executeUpdate(queryString);
+                    detalleStatement.setString(1, idOrdenCompra);
+                    detalleStatement.setString(2, String.valueOf(item.getItemProperty(IDCC_PROPERTY).getValue()));
+                    detalleStatement.setString(3, String.valueOf(item.getItemProperty(IDEX_PROPERTY).getValue()));
+                    detalleStatement.setString(4, String.valueOf(item.getItemProperty(CUENTA_PROPERTY).getValue()));
+                    detalleStatement.setString(5, descripcion);
+                    detalleStatement.setString(6, String.valueOf(item.getItemProperty(PROJECT_PROPERTY).getValue()));
+                    detalleStatement.setString(7, String.valueOf(item.getItemProperty(AREA_PROPERTY).getValue()));
+                    detalleStatement.setBigDecimal(8, new BigDecimal(String.valueOf(item.getItemProperty(CANTIDAD_PROPERTY).getValue()).replace(",", "")));
+                    detalleStatement.setBigDecimal(9, new BigDecimal(String.valueOf(item.getItemProperty(PRECIO_PROPERTY).getValue()).replace(",", "")));
+                    detalleStatement.setBigDecimal(10, new BigDecimal(String.valueOf(item.getItemProperty(TOTAL_PROPERTY).getValue()).replace(",", "")));
+                    detalleStatement.setString(11, ((SopdiUI) mainUI).sessionInformation.getStrUserId());
+                    detalleStatement.addBatch();
                 }
+                detalleStatement.executeBatch();
             }
+            OrdenCompraDetallePlu.sincronizar(connection, idOrdenCompra,
+                    ((SopdiUI) mainUI).sessionInformation.getStrUserId());
+            connection.commit();
+            ordenGuardada = true;
+
 
             Notification notif = new Notification("ORDEN DE COMPRA GENERADA EXITOSAMENTE!.", Notification.Type.HUMANIZED_MESSAGE);
             notif.setDelayMsec(1500);
@@ -1950,6 +1844,16 @@ public class OrdenCompraForm extends Window {
 //            close();
 
         } catch (Exception ex) {
+            if (!ordenGuardada) {
+                idOrdenCompra = idOrdenCompraAnterior;
+                if (connection != null) {
+                    try {
+                        connection.rollback();
+                    } catch (SQLException rollbackException) {
+                        ex.addSuppressed(rollbackException);
+                    }
+                }
+            }
             Notification notif = new Notification("HA OCURRIDO UN ERROR DE BASE DE DATOS : " + ex.getMessage(), Notification.Type.HUMANIZED_MESSAGE);
             notif.setDelayMsec(1500);
             notif.setPosition(Position.MIDDLE_CENTER);
@@ -1957,6 +1861,14 @@ public class OrdenCompraForm extends Window {
             notif.show(Page.getCurrent());
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
             ex.printStackTrace();
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException closeException) {
+                    Logger.getLogger(getClass().getName()).log(Level.WARNING, "Error al cerrar conexión de orden de compra", closeException);
+                }
+            }
         }
     }
 
@@ -2069,50 +1981,4 @@ public class OrdenCompraForm extends Window {
         singleUpload.setEnabled(true);
     }
 
-}
-
-class PluTemp {
-    private String cuenta;
-    private String area;
-    private String prvPlu;
-    private String prvPluDes;
-
-    public PluTemp(String cuenta, String area, String prvPlu, String prvPluDesc) {
-        this.cuenta = cuenta;
-        this.area = area;
-        this.prvPlu = prvPlu;
-        this.prvPluDes = prvPluDesc;
-    }
-
-    public String getPrvPlu() {
-        return prvPlu;
-    }
-
-    public void setPrvPlu(String prvPlu) {
-        this.prvPlu = prvPlu;
-    }
-
-    public String getPrvPluDes() {
-        return prvPluDes;
-    }
-
-    public void setPrvPluDesc(String prvPluDes) {
-        this.prvPluDes = prvPluDes;
-    }
-
-    public String getCuenta() {
-        return cuenta;
-    }
-
-    public void setCuenta(String cuenta) {
-        this.cuenta = cuenta;
-    }
-
-    public String getArea() {
-        return area;
-    }
-
-    public void setArea(String area) {
-        this.area = area;
-    }
 }
