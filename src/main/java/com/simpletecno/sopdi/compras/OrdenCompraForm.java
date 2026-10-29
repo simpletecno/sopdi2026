@@ -1950,7 +1950,7 @@ public class OrdenCompraForm extends Window {
                 }
 
                 idccList.append(",'").append(sheet.getRow(linea).getCell(0).getStringCellValue()).append("'");
-                idccList.append(",'").append(sheet.getRow(linea).getCell(1).getStringCellValue()).append("'");
+                idexList.append(",'").append(sheet.getRow(linea).getCell(1).getStringCellValue()).append("'");
 
                 recordCount++;
 

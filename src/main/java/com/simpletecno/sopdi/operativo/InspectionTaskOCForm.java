@@ -59,6 +59,9 @@ public class InspectionTaskOCForm extends Window {
     NumberField totalTxt;
     ComboBox monedaCbx;
     ComboBox proveedorCbx;
+    ComboBox nomActivoCbx;
+    ComboBox nomPasivoCbx;
+    ComboBox nomGastoCbx;
 
     UI mainUI;
 
@@ -317,6 +320,30 @@ public class InspectionTaskOCForm extends Window {
             proveedorCbx.select(String.valueOf(indexedContainer.getContainerProperty(itemObjectDIC, InspectionTaskOCWindow.PROVEEDOR_PROPERTY).getValue()).split(" ")[0]);
         }
 
+        nomActivoCbx = new ComboBox("Cuenta Activo :");
+        nomActivoCbx.setWidth("20em");
+        nomActivoCbx.setFilteringMode(FilteringMode.CONTAINS);
+        nomActivoCbx.setNewItemsAllowed(false);
+        nomActivoCbx.setInvalidAllowed(false);
+        nomActivoCbx.setNullSelectionAllowed(false);
+        llenarComboNomenclatura(nomActivoCbx);
+
+        nomPasivoCbx = new ComboBox("Cuenta Pasivo :");
+        nomPasivoCbx.setWidth("20em");
+        nomPasivoCbx.setFilteringMode(FilteringMode.CONTAINS);
+        nomPasivoCbx.setNewItemsAllowed(false);
+        nomPasivoCbx.setInvalidAllowed(false);
+        nomPasivoCbx.setNullSelectionAllowed(false);
+        llenarComboNomenclatura(nomPasivoCbx);
+
+        nomGastoCbx = new ComboBox("Cuenta Gasto :");
+        nomGastoCbx.setWidth("20em");
+        nomGastoCbx.setFilteringMode(FilteringMode.CONTAINS);
+        nomGastoCbx.setNewItemsAllowed(false);
+        nomGastoCbx.setInvalidAllowed(false);
+        nomGastoCbx.setNullSelectionAllowed(false);
+        llenarComboNomenclatura(nomGastoCbx);
+
         ocForm.addComponent(tipoCbx);
         ocForm.addComponent(idProjectTxt);
         ocForm.addComponent(centroCostoTxt);
@@ -331,6 +358,9 @@ public class InspectionTaskOCForm extends Window {
         ocForm.addComponent(precioTxt);
         ocForm.addComponent(totalTxt);
         ocForm.addComponent(proveedorCbx);
+        ocForm.addComponent(nomActivoCbx);
+        ocForm.addComponent(nomPasivoCbx);
+        ocForm.addComponent(nomGastoCbx);
 
         mainLayout.addComponent(ocForm);
         mainLayout.setComponentAlignment(ocForm, Alignment.MIDDLE_CENTER);
@@ -501,6 +531,42 @@ public class InspectionTaskOCForm extends Window {
         }
     }
 
+    private void llenarComboNomenclatura(ComboBox combo) {
+
+        combo.removeAllItems();
+
+        String queryString = " SELECT * FROM contabilidad_nomenclatura_empresa";
+        queryString += " WHERE Estatus = 'HABILITADA'";
+        queryString += " AND IdEmpresa = " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+        queryString += " ORDER BY N5";
+
+        try {
+            combo.addItem("0");
+            combo.setItemCaption("0", "SELECCIONE");
+
+            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
+            rsRecords = stQuery.executeQuery(queryString);
+
+            while (rsRecords.next()) { //  encontrado
+                combo.addItem(rsRecords.getString("IdNomenclatura"));
+                combo.setItemCaption(rsRecords.getString("IdNomenclatura"), rsRecords.getString("NoCuenta") + " " + rsRecords.getString("N5"));
+            }
+
+            combo.select("0");
+        } catch (Exception ex1) {
+            System.out.println("Error al combo nomenclatura: " + ex1.getMessage());
+            ex1.printStackTrace();
+        }
+    }
+
+    /** Devuelve el IdNomenclatura seleccionado como valor SQL, o 0 si no se eligió cuenta. */
+    private String nomSqlValue(ComboBox combo) {
+        if (combo.getValue() == null || String.valueOf(combo.getValue()).equals("0")) {
+            return "0";
+        }
+        return String.valueOf(combo.getValue());
+    }
+
     private void fillData() {
         try {
 
@@ -515,6 +581,8 @@ public class InspectionTaskOCForm extends Window {
                 queryString += " INNER JOIN centro_costo_cuenta CCC ON CCC.CodigoCuentaCentroCosto = OCD.NoCuenta";
                 queryString += " INNER JOIN centro_costo CC ON CC.IdCentroCosto = OCD.IdCC";
                 queryString += " WHERE OCD.IdVisitaInspeccionTareaOCDetalle = " + idVisitaInspeccionTareaOcDetalle;
+                queryString += " AND CC.IdEmpresa = OCD.Idempresa";
+                queryString += " AND OCD.IdEmpresa = " +((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
 
 //System.out.println("1 " + queryString);
 
@@ -539,16 +607,23 @@ public class InspectionTaskOCForm extends Window {
                     totalTxt.setValue(rsRecords.getDouble("Total"));
                     monedaCbx.select(rsRecords.getString("Moneda"));
                     proveedorCbx.select(rsRecords.getString("IdProveedor"));
+
+                    String idNomActivo = rsRecords.getString("IdNomenclaturaActivo");
+                    nomActivoCbx.select((idNomActivo == null || idNomActivo.equals("0")) ? "0" : idNomActivo);
+                    String idNomPasivo = rsRecords.getString("IdNomenclaturaPasivo");
+                    nomPasivoCbx.select((idNomPasivo == null || idNomPasivo.equals("0")) ? "0" : idNomPasivo);
+                    String idNomGasto = rsRecords.getString("IdNomenclaturaGasto");
+                    nomGastoCbx.select((idNomGasto == null || idNomGasto.equals("0")) ? "0" : idNomGasto);
                 }
             }
             else { //buscar por detalle item costos
                 queryString = "SELECT DIC.*, CCC.Descripcion, CC.Lote LoteCC ";
-                queryString += " FROM DetalleItemsCostos DIC";
+                queryString += " FROM  DetalleItemsCostos DIC";
                 queryString += " INNER JOIN centro_costo_cuenta CCC ON CCC.CodigoCuentaCentroCosto = DIC.NoCuenta";
                 queryString += " INNER JOIN centro_costo CC ON CC.IdCentroCosto = DIC.IdCC";
                 queryString += " WHERE DIC.Id = " + idDIC;
-
-System.out.println("2 " + queryString);
+                queryString += " AND CC.IdEmpresa = DIC.Idempresa";
+                queryString += " AND DIC.IdEmpresa = " +((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
 
                 rsRecords = stQuery.executeQuery(queryString);
 
@@ -573,6 +648,13 @@ System.out.println("2 " + queryString);
                     totalTxt.setValue(rsRecords.getDouble("Total"));
                     monedaCbx.select(rsRecords.getString("Moneda"));
                     proveedorCbx.select(rsRecords.getString("IdProveedor"));
+
+                    String idNomActivo = rsRecords.getString("IdNomenclaturaActivo");
+                    nomActivoCbx.select((idNomActivo == null || idNomActivo.equals("0")) ? "0" : idNomActivo);
+                    String idNomPasivo = rsRecords.getString("IdNomenclaturaPasivo");
+                    nomPasivoCbx.select((idNomPasivo == null || idNomPasivo.equals("0")) ? "0" : idNomPasivo);
+                    String idNomGasto = rsRecords.getString("IdNomenclaturaGasto");
+                    nomGastoCbx.select((idNomGasto == null || idNomGasto.equals("0")) ? "0" : idNomGasto);
                 }
             }
 
@@ -647,7 +729,8 @@ System.out.println("2 " + queryString);
 
                 queryString = "INSERT INTO visita_inspeccion_tarea_oc_detalle ";
                 queryString += " (idVisitaInspeccionTareaOC, Tipo, IdProject, IdCC, Idex, NoCuenta, IdArea, Lote,";
-                queryString += " Cantidad, Precio, Total, Moneda, IdEmpresa, IdProveedor) ";
+                queryString += " Cantidad, Precio, Total, Moneda, IdEmpresa, IdProveedor,";
+                queryString += " IdNomenclaturaActivo, IdNomenclaturaPasivo, IdNomenclaturaGasto) ";
                 queryString += " VALUES (";
                 queryString += "  " + idOC;
                 queryString += ",'" + tipoCbx.getValue() + "'";
@@ -668,6 +751,9 @@ System.out.println("2 " + queryString);
                 queryString += ",'" + monedaCbx.getValue() + "'";
                 queryString += ", " + ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
                 queryString += ", " + proveedorCbx.getValue();
+                queryString += ", " + nomSqlValue(nomActivoCbx);
+                queryString += ", " + nomSqlValue(nomPasivoCbx);
+                queryString += ", " + nomSqlValue(nomGastoCbx);
                 queryString += ")";
             }
             else {
@@ -676,6 +762,9 @@ System.out.println("2 " + queryString);
                     queryString += " Cantidad = " + cantidadTxt.getDoubleValueDoNotThrow();
                     queryString += ",Precio   = " + precioTxt.getDoubleValueDoNotThrow();
                     queryString += ",Total    = " + (cantidadTxt.getDoubleValueDoNotThrow() * precioTxt.getDoubleValueDoNotThrow());
+                    queryString += ",IdNomenclaturaActivo = " + nomSqlValue(nomActivoCbx);
+                    queryString += ",IdNomenclaturaPasivo = " + nomSqlValue(nomPasivoCbx);
+                    queryString += ",IdNomenclaturaGasto  = " + nomSqlValue(nomGastoCbx);
                     queryString += " WHERE idVisitaInspeccionTareaOcDetalle  = " + idVisitaInspeccionTareaOcDetalle;
                 } else {
                     queryString = "DELETE FROM visita_inspeccion_tarea_oc_detalle";
