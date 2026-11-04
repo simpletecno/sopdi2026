@@ -4,287 +4,165 @@ import com.simpletecno.sopdi.SopdiUI;
 import com.vaadin.data.util.IndexedContainer;
 import com.vaadin.server.FontAwesome;
 import com.vaadin.shared.ui.MarginInfo;
-import com.vaadin.ui.Alignment;
-import com.vaadin.ui.Button;
-import com.vaadin.ui.ComboBox;
-import com.vaadin.ui.FormLayout;
-import com.vaadin.ui.HorizontalLayout;
-import com.vaadin.ui.Label;
-import com.vaadin.ui.Notification;
-import com.vaadin.ui.TextField;
-import com.vaadin.ui.UI;
-import com.vaadin.ui.VerticalLayout;
-import com.vaadin.ui.Window;
+import com.vaadin.ui.*;
 import com.vaadin.ui.themes.Runo;
 import com.vaadin.ui.themes.ValoTheme;
-import java.sql.ResultSet;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.vaadin.dialogs.ConfirmDialog;
 
 public class CambiarEstatusPago extends Window {
+    private final UI mainUI;
+    private final IndexedContainer container;
+    private final Object itemId;
+    private final String codigoPartida;
+    private final String idNomenclatura;
+    private final String empresaId;
+    private final boolean esCheque;
+    private final ComboBox estatusCbx = new ComboBox("Estatus :");
+    private final TextField numeroTxt = new TextField("# Documento :");
+    private final Button guardarBtn = new Button("Cambiar datos");
 
-    String queryString;
-    FormLayout mainForm;
-    ComboBox estatusCbx;
-    TextField numeroTxt;
-
-    Button guardarBtn;
-    Statement stQuery;
-    Statement stQuery2;
-
-    UI mainUI;
-
-    IndexedContainer container;
-    Object itemId;
-    String codigoPartida;
-    String monto;
-    String idNomenclatura;
-
-    public CambiarEstatusPago(
-            IndexedContainer container,
-            Object itemId,
-            String codigoPartida,
-            String monto,
-            String idNomenclatura) {
-        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
+    public CambiarEstatusPago(IndexedContainer container, Object itemId, String codigoPartida,
+            String monto, String idNomenclatura) {
+        this.container = container;
+        this.itemId = itemId;
+        this.codigoPartida = codigoPartida;
+        this.idNomenclatura = idNomenclatura;
+        this.mainUI = UI.getCurrent();
+        this.empresaId = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
+        this.esCheque = "CHEQUE".equalsIgnoreCase(String.valueOf(
+                container.getContainerProperty(itemId, HistorialPagoView.TIPO_PROPERTY).getValue()));
         setModal(true);
-
-        this.container       = container;
-        this.itemId          = itemId;
-        this.codigoPartida   = codigoPartida;
-        this.idNomenclatura  = idNomenclatura;
-        this.mainUI          = UI.getCurrent();
         setResponsive(true);
+        addCloseShortcut(com.vaadin.event.ShortcutAction.KeyCode.ESCAPE, null);
 
-        MarginInfo marginInfo = new MarginInfo(false, true, true, true);
-
-        mainForm = new FormLayout();
-        mainForm.setMargin(marginInfo);
-        mainForm.setSpacing(true);
-
-        numeroTxt = new TextField("# Documento : ");
-        numeroTxt.setValue(String.valueOf(container.getItem(itemId).getItemProperty(HistorialPagoView.DOCUMENTO_PROPERTY).getValue()));
+        numeroTxt.setValue(String.valueOf(container.getContainerProperty(
+                itemId, HistorialPagoView.DOCUMENTO_PROPERTY).getValue()));
         numeroTxt.setWidth("8em");
-
-        estatusCbx = new ComboBox("Estatus :");
+        numeroTxt.setReadOnly(esCheque);
+        if (esCheque) numeroTxt.setDescription("Para cambiar el numero, anule y traslade el cheque.");
         estatusCbx.addStyleName(ValoTheme.COMBOBOX_HUGE);
         estatusCbx.setInvalidAllowed(false);
         estatusCbx.setNewItemsAllowed(false);
         estatusCbx.setWidth("14em");
-        estatusCbx.addItem("CONCILIADO");
-        estatusCbx.addItem("INGRESADO");
-        estatusCbx.addItem("ANULADO");
-        estatusCbx.select(String.valueOf(container.getItem(itemId).getItemProperty(HistorialPagoView.ESTATUS_PROPERTY).getValue()));
-
-        guardarBtn = new Button("Cambiar datos");
+        estatusCbx.addItems("CONCILIADO", "INGRESADO", "ANULADO");
+        estatusCbx.select(String.valueOf(container.getContainerProperty(
+                itemId, HistorialPagoView.ESTATUS_PROPERTY).getValue()));
         guardarBtn.setIcon(FontAwesome.SAVE);
         guardarBtn.addStyleName(ValoTheme.BUTTON_PRIMARY);
-        guardarBtn.addClickListener(event ->
-            ConfirmDialog.show(UI.getCurrent(), "Confirme:", "Está seguro de CAMBIAR los datos de este cheque?",
-                "SI", "NO", dialog -> {
-                    if (dialog.isConfirmed()) {
-                        cambiarEstatus();
-                    }
-                })
-        );
+        guardarBtn.addClickListener(e -> ConfirmDialog.show(mainUI, "Confirme:",
+                "Esta seguro de cambiar los datos de este documento?", "SI", "NO", dialog -> {
+                    if (dialog.isConfirmed()) cambiarEstatus();
+                }));
+        Button salir = new Button("Salir", FontAwesome.ARROW_RIGHT);
+        salir.addStyleName(ValoTheme.BUTTON_BORDERLESS);
+        salir.addClickListener(e -> close());
+        HorizontalLayout botones = new HorizontalLayout(salir, guardarBtn);
+        botones.setSpacing(true);
+        FormLayout formulario = new FormLayout(estatusCbx, numeroTxt, botones);
+        formulario.setMargin(new MarginInfo(false, true, true, true));
+        Label titulo = new Label("Cambio de estatus/documento");
+        titulo.addStyleName(Runo.LABEL_H2);
+        VerticalLayout contenido = new VerticalLayout(titulo, formulario);
+        contenido.setSizeUndefined();
+        setContent(contenido);
+    }
 
-        Button salirBtn = new Button("Salir");
-        salirBtn.addStyleName(ValoTheme.BUTTON_BORDERLESS);
-        salirBtn.setIcon(FontAwesome.ARROW_RIGHT);
-        salirBtn.addClickListener(event -> close());
-
-        HorizontalLayout buttonsLayout = new HorizontalLayout();
-        buttonsLayout.setSpacing(true);
-        buttonsLayout.addComponent(salirBtn);
-        buttonsLayout.setComponentAlignment(salirBtn, Alignment.BOTTOM_LEFT);
-        buttonsLayout.addComponent(guardarBtn);
-        buttonsLayout.setComponentAlignment(guardarBtn, Alignment.BOTTOM_CENTER);
-
-        mainForm.addComponent(estatusCbx);
-        mainForm.addComponent(numeroTxt);
-        mainForm.addComponent(buttonsLayout);
-
-        VerticalLayout contentLayout = new VerticalLayout();
-        contentLayout.setSizeUndefined();
-
-        HorizontalLayout titleLayout = new HorizontalLayout();
-        titleLayout.setWidth("100%");
-        titleLayout.setMargin(true);
-
-        Label titleLbl = new Label("Cambio de estatus/documento");
-        titleLbl.addStyleName(Runo.LABEL_H2);
-        titleLbl.setSizeUndefined();
-
-        titleLayout.addComponent(titleLbl);
-        titleLayout.setComponentAlignment(titleLbl, Alignment.TOP_CENTER);
-
-        contentLayout.addComponent(titleLayout);
-        contentLayout.setComponentAlignment(titleLayout, Alignment.TOP_CENTER);
-        contentLayout.addComponent(mainForm);
-        contentLayout.setComponentAlignment(mainForm, Alignment.TOP_CENTER);
-
-        setContent(contentLayout);
+    private Connection conexion() {
+        return ((SopdiUI) mainUI).databaseProvider.getCurrentConnection();
     }
 
     private void cambiarEstatus() {
-        if ("ANULADO".equals(String.valueOf(estatusCbx.getValue()))) {
-            ConfirmDialog.show(UI.getCurrent(),
-                "Trasladar cheque:",
-                "¿Desea trasladar la partida al siguiente # de cheque disponible en la misma cuenta bancaria?",
-                "SI — Trasladar", "NO — Solo anular",
-                dialog -> {
-                    if (dialog.isConfirmed()) {
-                        anularYTrasladar();
-                    } else {
-                        soloAnular();
-                    }
-                });
-        } else {
-            actualizarPartida();
+        if (estatusCbx.getValue() == null) {
+            Notification.show("Seleccione un estatus.", Notification.Type.WARNING_MESSAGE);
+            return;
         }
+        if (esCheque && "ANULADO".equals(estatusCbx.getValue())) {
+            ConfirmDialog.show(mainUI, "Trasladar cheque:",
+                    "Desea trasladar la partida al siguiente cheque disponible en la misma cuenta?",
+                    "SI — Trasladar", "NO — Solo anular", dialog -> {
+                        if (dialog.isConfirmed()) pedirFechaReemision();
+                        else actualizarPartida();
+                    });
+        } else actualizarPartida();
     }
 
-    // Cambia estatus/número sin clonar
     private void actualizarPartida() {
-        try {
-            queryString  = " UPDATE contabilidad_partida SET ";
-            queryString += " Estatus = '" + estatusCbx.getValue() + "'";
-            queryString += ",NumeroDocumento = '" + numeroTxt.getValue() + "'";
-            queryString += " WHERE CodigoPartida = '" + codigoPartida + "'";
-
-            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-            stQuery.executeUpdate(queryString);
-
-            container.getItem(itemId).getItemProperty(HistorialPagoView.ESTATUS_PROPERTY).setValue(String.valueOf(estatusCbx.getValue()));
-            container.getItem(itemId).getItemProperty(HistorialPagoView.DOCUMENTO_PROPERTY).setValue(numeroTxt.getValue());
+        String estatus = String.valueOf(estatusCbx.getValue());
+        String sql = "UPDATE contabilidad_partida SET Estatus=?"
+                + (esCheque ? "" : ",NumeroDocumento=?")
+                + " WHERE IdEmpresa=? AND CodigoPartida=? AND Estatus <> 'ANULADO'";
+        try (PreparedStatement ps = conexion().prepareStatement(sql)) {
+            int parametro = 1;
+            ps.setString(parametro++, estatus);
+            if (!esCheque) ps.setString(parametro++, numeroTxt.getValue());
+            ps.setString(parametro++, empresaId);
+            ps.setString(parametro, codigoPartida);
+            if (ps.executeUpdate() == 0) throw new SQLException("La partida ya fue anulada o no existe en esta empresa.");
+            container.getContainerProperty(itemId, HistorialPagoView.ESTATUS_PROPERTY).setValue(estatus);
+            if (!esCheque) container.getContainerProperty(itemId, HistorialPagoView.DOCUMENTO_PROPERTY).setValue(numeroTxt.getValue());
+            if ("ANULADO".equals(estatus)) Notification.show("Cheque anulado. Su numero permanece consumido.");
             close();
         } catch (SQLException ex) {
-            Notification.show("ERROR al actualizar: " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
-            ex.printStackTrace();
+            mostrarError("actualizar", ex);
         }
     }
 
-    // Anula sin trasladar
-    private void soloAnular() {
-        try {
-            queryString  = " UPDATE contabilidad_partida SET Estatus = 'ANULADO'";
-            queryString += " WHERE CodigoPartida = '" + codigoPartida + "'";
-
-            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-            stQuery.executeUpdate(queryString);
-
-            container.getItem(itemId).getItemProperty(HistorialPagoView.ESTATUS_PROPERTY).setValue("ANULADO");
-            Notification.show("Cheque anulado.", Notification.Type.HUMANIZED_MESSAGE);
-            close();
-        } catch (SQLException ex) {
-            Notification.show("ERROR al anular: " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
-            ex.printStackTrace();
-        }
-    }
-
-    // Anula y clona la partida con el siguiente # de cheque de la chequera
-    private void anularYTrasladar() {
-        try {
-            String empresaId = ((SopdiUI) mainUI).sessionInformation.getStrAccountingCompanyId();
-
-            // 1. Buscar la chequera activa para esta cuenta bancaria
-            queryString  = " SELECT ch.IdChequera, ch.UltimoUtilizado, ch.Al";
-            queryString += " FROM contabilidad_cuentas_bancos_chequera ch";
-            queryString += " INNER JOIN contabilidad_cuentas_bancos ccb ON ccb.IdCuentaBanco = ch.IdCuentaBanco";
-            queryString += " WHERE ccb.IdNomenclatura = " + idNomenclatura;
-            queryString += " AND ccb.IdEmpresa = " + empresaId;
-            queryString += " AND ch.UltimoUtilizado < ch.Al";
-            queryString += " ORDER BY ch.IdChequera ASC LIMIT 1";
-
-            stQuery = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-            ResultSet rs = stQuery.executeQuery(queryString);
-
-            if (!rs.next()) {
-                Notification.show("No hay chequera disponible para esta cuenta. Se anulará sin trasladar.",
-                        Notification.Type.WARNING_MESSAGE);
-                soloAnular();
+    private void pedirFechaReemision() {
+        Window popup = new Window("Fecha del cheque de reemplazo");
+        popup.setModal(true);
+        popup.setResizable(false);
+        DateField fecha = new DateField("Fecha de cheque");
+        fecha.setDateFormat("dd/MM/yyyy");
+        fecha.setTimeZone(TimeZone.getTimeZone("America/Guatemala"));
+        fecha.setValue(new Date());
+        Button aceptar = new Button("Aceptar", FontAwesome.CHECK);
+        aceptar.addStyleName(ValoTheme.BUTTON_PRIMARY);
+        aceptar.addClickListener(e -> {
+            if (fecha.getValue() == null) {
+                Notification.show("Seleccione una fecha.", Notification.Type.WARNING_MESSAGE);
                 return;
             }
+            popup.close();
+            anularYTrasladar(fecha.getValue());
+        });
+        Button cancelar = new Button("Cancelar", FontAwesome.TIMES);
+        cancelar.addClickListener(e -> popup.close());
+        HorizontalLayout botones = new HorizontalLayout(cancelar, aceptar);
+        botones.setSpacing(true);
+        VerticalLayout contenido = new VerticalLayout(fecha, botones);
+        contenido.setMargin(true);
+        contenido.setSpacing(true);
+        popup.setContent(contenido);
+        mainUI.addWindow(popup);
+        popup.center();
+    }
 
-            int idChequera       = rs.getInt("IdChequera");
-            int ultimoUtilizado  = rs.getInt("UltimoUtilizado");
-            int nuevoNumeroCheque = ultimoUtilizado + 1;
-
-            // 2. Generar nuevo CodigoPartida (mismo esquema: empresaId+YYYYMMDD+1+NNN)
-            String nuevoCodigo = generarNuevoCodigoPartida(empresaId);
-
-            // 3. Clonar todas las filas de la partida con el nuevo código y nuevo # de cheque
-            queryString  = " INSERT INTO contabilidad_partida";
-            queryString += " (IdEmpresa, Estatus, CodigoPartida, CodigoCC, Fecha, Descripcion,";
-            queryString += "  IdProveedor, NITProveedor, NombreProveedor, NombreCheque, NumeroDocumento,";
-            queryString += "  SerieDocumento, TipoDocumento, IdNomenclatura, MonedaDocumento, MontoDocumento,";
-            queryString += "  Debe, Haber, TipoCambio, DebeQuetzales, HaberQuetzales, Saldo,";
-            queryString += "  MontoAutorizadoPagar, MontoAplicarAnticipo, IdLiquidacion, IdLiquidador,";
-            queryString += "  TipoEnganche, TipoVenta, TipoDOCA, NoDOCA, Referencia,";
-            queryString += "  CreadoFechaYHora, CreadoUsuario, Año, PagadoIva, IdOrdenCompra,";
-            queryString += "  IdConciliacion, IdCentroCosto, CodigoCentroCosto, IdProducto, EsCuota,";
-            queryString += "  SueldoOrdinario, FechaYHoraCreado, CreadoPor)";
-            queryString += " SELECT";
-            queryString += "  IdEmpresa, 'INGRESADO', '" + nuevoCodigo + "',";
-            // La línea de bancos tiene CodigoCC = CodigoPartida; las de gasto tienen su propio CodigoCC → respetar
-            queryString += "  CASE WHEN CodigoCC = '" + codigoPartida + "' THEN '" + nuevoCodigo + "' ELSE CodigoCC END,";
-            queryString += "  Fecha, Descripcion,";
-            queryString += "  IdProveedor, NITProveedor, NombreProveedor, NombreCheque, '" + nuevoNumeroCheque + "',";
-            queryString += "  SerieDocumento, TipoDocumento, IdNomenclatura, MonedaDocumento, MontoDocumento,";
-            queryString += "  Debe, Haber, TipoCambio, DebeQuetzales, HaberQuetzales, Saldo,";
-            queryString += "  MontoAutorizadoPagar, MontoAplicarAnticipo, IdLiquidacion, IdLiquidador,";
-            queryString += "  TipoEnganche, TipoVenta, TipoDOCA, NoDOCA, Referencia,";
-            queryString += "  NOW(), CreadoUsuario, Año, PagadoIva, IdOrdenCompra,";
-            queryString += "  IdConciliacion, IdCentroCosto, CodigoCentroCosto, IdProducto, EsCuota,";
-            queryString += "  SueldoOrdinario, NOW(), CreadoPor";
-            queryString += " FROM contabilidad_partida";
-            queryString += " WHERE CodigoPartida = '" + codigoPartida + "'";
-
-            stQuery2 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-            stQuery2.executeUpdate(queryString);
-
-            // 4. Actualizar UltimoUtilizado en la chequera
-            queryString  = " UPDATE contabilidad_cuentas_bancos_chequera";
-            queryString += " SET UltimoUtilizado = " + nuevoNumeroCheque;
-            queryString += " WHERE IdChequera = " + idChequera;
-            stQuery.executeUpdate(queryString);
-
-            // 5. Anular la partida original
-            queryString  = " UPDATE contabilidad_partida SET Estatus = 'ANULADO'";
-            queryString += " WHERE CodigoPartida = '" + codigoPartida + "'";
-            stQuery.executeUpdate(queryString);
-
-            container.getItem(itemId).getItemProperty(HistorialPagoView.ESTATUS_PROPERTY).setValue("ANULADO");
-
-            Notification.show("Cheque anulado. Partida trasladada al cheque # " + nuevoNumeroCheque
-                    + "  (Partida: " + nuevoCodigo + ")", Notification.Type.HUMANIZED_MESSAGE);
+    private void anularYTrasladar(Date fecha) {
+        guardarBtn.setEnabled(false);
+        try {
+            ReemisionChequeService.Resultado resultado = ReemisionChequeService.trasladar(
+                    conexion(), empresaId, idNomenclatura, codigoPartida, fecha,
+                    ((SopdiUI) mainUI).sessionInformation.getStrUserId());
+            container.getContainerProperty(itemId, HistorialPagoView.ESTATUS_PROPERTY).setValue("ANULADO");
+            Notification.show("Cheque anulado. Partida trasladada al cheque # " + resultado.numeroCheque
+                    + " (Partida: " + resultado.codigoPartida + ").");
             close();
-
         } catch (Exception ex) {
-            Notification.show("ERROR al trasladar cheque: " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
-            ex.printStackTrace();
+            mostrarError("trasladar cheque", ex);
+        } finally {
+            guardarBtn.setEnabled(true);
         }
     }
 
-    private String generarNuevoCodigoPartida(String empresaId) throws SQLException {
-        String fecha  = new SimpleDateFormat("yyyyMMdd").format(new Date());
-        String prefijo = empresaId + fecha + "1";
-
-        queryString  = " SELECT CodigoPartida FROM contabilidad_partida";
-        queryString += " WHERE CodigoPartida LIKE '" + prefijo + "%'";
-        queryString += " ORDER BY CodigoPartida DESC LIMIT 1";
-
-        stQuery2 = ((SopdiUI) mainUI).databaseProvider.getCurrentConnection().createStatement();
-        ResultSet rs = stQuery2.executeQuery(queryString);
-
-        if (rs.next()) {
-            String ultimo = rs.getString("CodigoPartida");
-            int secuencia = Integer.parseInt(ultimo.substring(12, 15)) + 1;
-            return prefijo + String.format("%03d", secuencia);
-        }
-        return prefijo + "001";
+    private void mostrarError(String operacion, Exception ex) {
+        Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Error al " + operacion, ex);
+        Notification.show("Error al " + operacion + ": " + ex.getMessage(), Notification.Type.ERROR_MESSAGE);
     }
 }
